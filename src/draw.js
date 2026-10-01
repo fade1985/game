@@ -1,0 +1,124 @@
+// ─────────────────────────────────────────────
+//  Utilidades de dibujo con estilo "cartoon":
+//  formas redondas, contorno grueso y brillo
+// ─────────────────────────────────────────────
+import { OUTLINE } from './config.js';
+
+const TAU = Math.PI * 2;
+
+// Sombra ovalada bajo los personajes
+export function shadow(ctx, x, y, r, alpha = 0.22) {
+  ctx.fillStyle = `rgba(20, 16, 40, ${alpha})`;
+  ctx.beginPath();
+  ctx.ellipse(x, y + r * 0.85, r * 0.95, r * 0.36, 0, 0, TAU);
+  ctx.fill();
+}
+
+// Cuerpo redondo ("blob") con sombreado, brillo y contorno
+export function blob(ctx, x, y, r, fill, { sx = 1, sy = 1, lw = 4, flash = false } = {}) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(sx, sy);
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, TAU);
+  ctx.fillStyle = flash ? '#ffffff' : fill;
+  ctx.fill();
+  if (!flash) {
+    ctx.save();
+    ctx.clip();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.13)';
+    ctx.beginPath();
+    ctx.arc(r * 0.15, r * 0.75, r * 1.05, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.beginPath();
+    ctx.ellipse(-r * 0.38, -r * 0.42, r * 0.26, r * 0.15, -0.7, 0, TAU);
+    ctx.fill();
+  }
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, TAU);
+  ctx.lineWidth = lw;
+  ctx.strokeStyle = OUTLINE;
+  ctx.stroke();
+  ctx.restore();
+}
+
+// Ojos que miran en la dirección (lx, ly)
+export function eyes(ctx, x, y, r, lx, ly, { angry = false, blink = false } = {}) {
+  const ex = r * 0.34;
+  const er = r * 0.27;
+  const cy = y - r * 0.15 + ly * r * 0.1;
+  const ox = lx * r * 0.16;
+  ctx.lineCap = 'round';
+  for (const s of [-1, 1]) {
+    const cx = x + s * ex + ox;
+    if (blink) {
+      ctx.beginPath();
+      ctx.moveTo(cx - er * 0.8, cy);
+      ctx.lineTo(cx + er * 0.8, cy);
+      ctx.lineWidth = Math.max(2, r * 0.1);
+      ctx.strokeStyle = OUTLINE;
+      ctx.stroke();
+    } else {
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, er * 0.85, er, 0, 0, TAU);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+      ctx.lineWidth = Math.max(2, r * 0.09);
+      ctx.strokeStyle = OUTLINE;
+      ctx.stroke();
+      const px = cx + lx * er * 0.35, py = cy + ly * er * 0.4;
+      ctx.beginPath();
+      ctx.arc(px, py, er * 0.5, 0, TAU);
+      ctx.fillStyle = OUTLINE;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(px - er * 0.18, py - er * 0.2, er * 0.16, 0, TAU);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+    }
+    if (angry) {
+      ctx.beginPath();
+      ctx.moveTo(cx + s * er * 1.0, cy - er * 1.45);
+      ctx.lineTo(cx - s * er * 0.9, cy - er * 0.8);
+      ctx.lineWidth = Math.max(2.5, r * 0.13);
+      ctx.strokeStyle = OUTLINE;
+      ctx.stroke();
+    }
+  }
+}
+
+// Texto con contorno grueso, como en los juegos casual
+export function outlinedText(ctx, text, x, y, size, fill, { lw = 6, align = 'center', stroke = OUTLINE } = {}) {
+  ctx.font = `${size}px "Lilita One", system-ui, sans-serif`;
+  ctx.textAlign = align;
+  ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = lw;
+  ctx.strokeStyle = stroke;
+  ctx.strokeText(text, x, y);
+  ctx.fillStyle = fill;
+  ctx.fillText(text, x, y);
+}
+
+// Rectángulo redondeado relleno + contorno
+export function roundBox(ctx, x, y, w, h, r, fill, lw = 4) {
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, r);
+  ctx.fillStyle = fill;
+  ctx.fill();
+  if (lw) {
+    ctx.lineWidth = lw;
+    ctx.strokeStyle = OUTLINE;
+    ctx.stroke();
+  }
+}
+
+export function heartPath(ctx, x, y, s) {
+  ctx.beginPath();
+  ctx.moveTo(x, y + s * 0.35);
+  ctx.bezierCurveTo(x - s * 1.1, y - s * 0.35, x - s * 0.45, y - s * 1.0, x, y - s * 0.45);
+  ctx.bezierCurveTo(x + s * 0.45, y - s * 1.0, x + s * 1.1, y - s * 0.35, x, y + s * 0.35);
+  ctx.closePath();
+}
