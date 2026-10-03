@@ -24,8 +24,8 @@ window.addEventListener('keydown', unlockAudio);
 window.addEventListener('keydown', (e) => {
   if ((e.code === 'Escape' || e.code === 'KeyP') && !e.uiHandled) game.openPause();
 });
-// Modo pruebas (?pruebas): las teclas 1-6 invocan cada tipo de zombi
-const TEST_ZOMBIES = ['lento', 'normal', 'rapido', 'explosivo', 'tentaculos', 'venenoso'];
+// Modo pruebas (?pruebas): las teclas 1-6 invocan cada tipo de zombi, 7 el mini jefe y 8 la jefa final
+const TEST_ZOMBIES = ['lento', 'normal', 'rapido', 'explosivo', 'tentaculos', 'venenoso', 'miniboss', 'boss'];
 window.addEventListener('keydown', (e) => {
   if (!game.testMode || game.state !== 'playing' || game.paused || e.uiHandled) return;
   const n = Number(e.key);

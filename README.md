@@ -22,8 +22,8 @@ muestra lo explorado y los iconos de las salas especiales:
 | 🧟 Monstruos | Oleadas de enemigos |
 | 🎁 Objeto | Un pedestal con un objeto (o, a veces, un arma): pásale por encima para cogerlo |
 | 🙋 Superviviente | Limpia la sala y acércate para que se una a tu equipo |
-| 👹 Mini jefe | Uno por planta. Al derrotarlo aparecen las **escaleras** a la siguiente planta |
-| 👑 Jefe final | En la última planta, detrás del mini jefe. Derrótalo para completar el edificio |
+| 👹 Mini jefe | Uno por planta: **El vecino del 4ºB**. Al derrotarlo aparecen las **escaleras** a la siguiente planta |
+| 👑 Jefe final | En la última planta, detrás del mini jefe: **La portera**. Derrótala para completar el edificio |
 
 Las puertas que llevan a salas especiales tienen el marco de color y un icono al lado.
 Los atributos y el equipo se conservan entre plantas; si caes, vuelves a empezar el edificio.
@@ -80,8 +80,35 @@ ataque, alcance) multiplican las estadísticas del arma que lleves.
 Los tipos más peligrosos aparecen en las salas más lejanas y en las plantas superiores.
 Todos los ataques especiales avisan antes: ¡muévete o usa la esquiva!
 
+### 👹 Jefes
+
+**El vecino del 4ºB** (mini jefe, 400 de vida y +25 % por planta). Un zombi enorme en camiseta de tirantes.
+
+| Ataque | Aviso | Qué hace |
+|---|---|---|
+| Embestida | Pasillo rojo con flechas | Carga en línea recta. Si choca contra la pared se queda **mareado** (no hace daño al tocarlo): ¡aprovecha! |
+| Pisotón | Círculo rojo mientras salta | Cae y lanza una onda que daña y empuja |
+| ¡Vecinos! | Levanta los brazos | Llama a 2 zombis |
+
+Por debajo del 40 % de vida se enfada: anda más rápido, embiste dos veces seguidas, llama a 3 zombis y su
+pisotón suelta cascotes en todas direcciones.
+
+**La portera** (jefa final, 1.200 de vida). Con moño, gafas, delantal y escoba. Tiene **dos fases**:
+
+| Ataque | Fase | Aviso | Qué hace |
+|---|---|---|---|
+| Abanico de polvo | 1 y 2 | Líneas rojas finas | Barre y lanza bolas de polvo en abanico (2 o 3 seguidos) |
+| Escobazo | 1 y 2 | Cuña roja delante de ella | Golpe fuerte que empuja, si estás cerca |
+| ¡Lejía! | 1 y 2 | Círculo donde caerá cada botella | Lanza botellas que dejan charcos de lejía que queman |
+| ¡A barrer! | 2 | Círculo rojo y grito | Gira como una peonza persiguiéndote y suelta polvo en espiral |
+| ¡Los del 3º! | 2 | Grito | Llama a 2 zombis |
+
+Al bajar del 50 % grita "¡QUE ACABO DE FREGAR!", te aparta, borra los proyectiles y pasa a la fase 2: más
+rápida, abanicos más anchos y más botellas. Los barridos de las armas cuerpo a cuerpo también deshacen las bolas de polvo.
+
 **Modo de pruebas:** añade `?pruebas` a la dirección (por ejemplo `http://localhost:3000/?pruebas`): todas
-las armas aparecerán en la sala de entrada y las teclas **1 a 6** invocan cada tipo de zombi.
+las armas aparecerán en la sala de entrada, las teclas **1 a 6** invocan cada tipo de zombi, la **7** al vecino del 4ºB
+y la **8** a la portera.
 
 ## 🚀 Ejecutar en local
 
@@ -112,8 +139,9 @@ src/
   props.js        → objetos fijos de las salas: pedestal, superviviente, escaleras y armas
   weapons.js      → catálogo de armas (datos) y su dibujo
   aim.js          → controlador de apuntado (automático; el manual irá aquí)
-  entities.js     → jugador, compañeros y jefes (comportamiento + dibujo)
+  entities.js     → jugador y compañeros (comportamiento + dibujo)
   zombies.js      → los 6 tipos de zombi y sus ataques especiales
+  bosses.js       → los jefes: el vecino del 4ºB y la portera (ataques, fases y dibujo)
   render.js       → dibujo de habitaciones, puertas en los 4 lados y minimapa
   draw.js         → ayudas de dibujo: personaje humano, "blobs", ojos, sombras, texto
   upgrades.js     → atributos del jugador y objetos

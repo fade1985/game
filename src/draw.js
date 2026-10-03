@@ -157,11 +157,13 @@ export function drawHuman(ctx, x, y, o) {
   ctx.strokeStyle = OUTLINE;
   ctx.lineJoin = 'round';
 
-  // sombra
-  ctx.fillStyle = 'rgba(20, 16, 40, 0.22)';
-  ctx.beginPath();
-  ctx.ellipse(x, y + 15 * s, 15 * s, 5.5 * s, 0, 0, TAU);
-  ctx.fill();
+  // sombra (los jefes que saltan la dibujan ellos mismos en el suelo)
+  if (!o.noShadow) {
+    ctx.fillStyle = 'rgba(20, 16, 40, 0.22)';
+    ctx.beginPath();
+    ctx.ellipse(x, y + 15 * s, 15 * s, 5.5 * s, 0, 0, TAU);
+    ctx.fill();
+  }
 
   // pies (se adelantan y atrasan al andar)
   const fx = mx * step * 4 * s, fy = my * step * 3 * s;
@@ -182,7 +184,24 @@ export function drawHuman(ctx, x, y, o) {
       if (o.hideHand === side) continue; // esa mano la dibuja quien sujeta un arma
       let hx = x + side * 13 * s - side * fx * 0.7;
       let hy = by + 3 * s - side * fy * 0.7;
-      if (o.zombie) {
+      if (o.armsUp) {
+        // brazos en alto (gritando o saltando)
+        const shx = x + side * 9 * s, shy = by - 5 * s;
+        hx = x + side * 17 * s + Math.sin((o.walk || 0) * 2 + side) * 2 * s;
+        hy = by - 27 * s;
+        ctx.beginPath();
+        ctx.moveTo(shx, shy);
+        ctx.lineTo(hx, hy);
+        ctx.lineCap = 'round';
+        ctx.lineWidth = 8 * s;
+        ctx.strokeStyle = OUTLINE;
+        ctx.stroke();
+        ctx.lineWidth = 4.5 * s;
+        ctx.strokeStyle = col(o.armsColor || o.skin);
+        ctx.stroke();
+        ctx.lineWidth = lw;
+        ctx.strokeStyle = OUTLINE;
+      } else if (o.zombie) {
         // brazos de zombi: estirados hacia donde mira, balanceándose
         const sway = Math.sin((o.walk || 0) * 1.3 + side) * 2 * s;
         hx = x + lookX * 16 * s - lookY * side * 9 * s + sway;

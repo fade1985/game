@@ -69,5 +69,10 @@ export const sfx = {
   allyGun: throttled('allyGun', 70, () => tone(760, 0.05, 'square', 0.018, -550)),
   slam: () => { tone(110, 0.16, 'square', 0.07, -50); tone(70, 0.22, 'triangle', 0.08, -20, 0.03); },
   boss: () => { tone(110, 0.6, 'sawtooth', 0.06, -40); tone(82, 0.8, 'sawtooth', 0.05, -20, 0.2); },
+  roar: () => { tone(160, 0.5, 'sawtooth', 0.07, -90); tone(120, 0.6, 'square', 0.04, -60, 0.05); },
+  charge: () => { tone(70, 0.6, 'sawtooth', 0.08, 40); tone(140, 0.3, 'square', 0.03, 80); },
+  stomp: () => { tone(60, 0.5, 'sawtooth', 0.1, -30); tone(45, 0.6, 'triangle', 0.12, -15, 0.02); tone(300, 0.12, 'square', 0.04, -250); },
+  broom: throttled('broom', 90, () => tone(900, 0.12, 'sawtooth', 0.018, -700)),
+  glass: throttled('glass', 60, () => { tone(2200, 0.08, 'square', 0.025, -800); tone(1500, 0.12, 'triangle', 0.03, 600, 0.03); }),
   enemyShot: throttled('eshot', 80, () => tone(330, 0.08, 'sine', 0.025, -150)),
 };

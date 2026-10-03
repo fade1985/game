@@ -13,8 +13,8 @@ Forma de trabajo: **fase a fase**. Al terminar cada una → resumen + capturas +
 | 2 | Salas especiales (objeto, superviviente, mini jefe), escaleras, edificio de 3 plantas, jefe final provisional | ✅ Hecha |
 | 3 | Sistema de armas: fregona (cuerpo a cuerpo) y armas a distancia, animaciones, controlador de apuntado | ✅ Hecha |
 | 4 | Los 6 zombis, charcos de veneno, oleadas por planta | ✅ Hecha |
-| 5 | Objetos en pedestal y supervivientes (policía, médico, militar) | ✅ Hecha (pendiente de tu visto bueno) |
-| 6 | Mini jefe "El vecino del 4ºB" y jefe final "La portera" | ⏳ |
+| 5 | Objetos en pedestal y supervivientes (policía, médico, militar) | ✅ Hecha |
+| 6 | Mini jefe "El vecino del 4ºB" y jefe final "La portera" | ✅ Hecha (pendiente de tu visto bueno) |
 | 7 | Selector de edificios, guardado del progreso, muebles y ambientación | ⏳ |
 | 8 | Pulido: sonido, efectos de impacto, equilibrado, móvil | ⏳ |
 
@@ -51,7 +51,13 @@ Después: ataque manual (cambiando solo el controlador de apuntado), más edific
 - Pedestal con objeto; supervivientes que se unen al equipo; retratos en el HUD. Los compañeros no mueren (de momento).
 
 ### Fase 6 · Jefes de Apartamentos
-- Mini jefe con 2–3 ataques (suelta siempre un arma) y jefe final con 2 fases.
+- `src/bosses.js`: cada jefe es una máquina de estados (andar → elegir ataque → avisar → atacar).
+- **El vecino del 4ºB:** embestida (se marea si choca con la pared), pisotón con onda expansiva, llama a vecinos.
+  Por debajo del 40 % embiste dos veces y el pisotón suelta cascotes. Siempre suelta un arma.
+- **La portera:** abanico de polvo, escobazo, botellas de lejía (charcos). Fase 2 al 50 %: "¡QUE ACABO DE FREGAR!",
+  torbellino con la escoba y llamada a zombis.
+- Vida: el vecino 400 (+25 % por planta); la portera 1.200 fijos (solo aparece en la última planta).
+- Modo pruebas: teclas 7 (vecino) y 8 (portera).
 
 ### Fase 7 · Edificios y guardado
 - Selector de edificios (Apartamentos disponible, el resto "Próximamente"), progreso guardado, muebles.

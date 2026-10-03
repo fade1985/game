@@ -4,7 +4,8 @@
 // ─────────────────────────────────────────────
 import { W, H, WALL, DOOR_W, OUTLINE, MAX_ALLIES, DIRS, BUILDINGS, SURVIVORS } from './config.js';
 import { rand, clamp, dist, pushOut } from './utils.js';
-import { Player, Ally, Boss, BOSS_TYPES } from './entities.js';
+import { Player, Ally } from './entities.js';
+import { makeBoss, BOSS_TYPES, BLEACH, drawBottle } from './bosses.js';
 import { Zombie, POISON, TENTACLE } from './zombies.js';
 import { generateFloor, neighbour } from './floor.js';
 import { makeRoomLayout, ROOM_TYPES } from './rooms.js';
@@ -16,6 +17,15 @@ import { drawRoom, drawDoors, drawPickup, drawBullet, drawMinimap } from './rend
 import { outlinedText, roundBox } from './draw.js';
 import { getMoveVector, consumeDash, clearInput } from './input.js';
 import { sfx } from './sfx.js';
+
+// Charcos que dejan los proyectiles en parábola: moco venenoso y lejía
+const HAZARDS = {
+  poison: { ...POISON, fill: '#8fd13f', stroke: '#4f772d', bubble: '#c7f27a', drop: '#9be33b' },
+  bleach: { ...BLEACH, fill: '#e9f8ff', stroke: '#2f86c4', bubble: '#ffffff', drop: '#4cb4f0' },
+};
+
+// Vida de los jefes según la planta (la portera solo sale en la última)
+const bossHpMul = (type, floorNum) => (type === 'boss' ? 1 : 1 + (floorNum - 1) * 0.25);
 
 const SLIDE = 0.4; // duración del deslizamiento de cámara entre salas
 const FADE = 0.6;  // duración de cada mitad del fundido al cambiar de planta
@@ -199,8 +209,8 @@ export class Game {
     const firstVisit = !room.visited;
     room.visited = true;
     if (firstVisit && (room.type === 'miniboss' || room.type === 'boss')) {
-      const info = ROOM_TYPES[room.type];
-      this.banner = { title: `${info.icon} ${info.name}`, sub: room.type === 'boss' ? '¡El último combate del edificio!' : '¡Derrótalo para seguir subiendo!', t: 0 };
+      const info = ROOM_TYPES[room.type], boss = BOSS_TYPES[room.type];
+      this.banner = { title: `${boss.icon} ${boss.name}`, sub: `${info.name} · ${room.type === 'boss' ? '¡El último combate del edificio!' : '¡Derrótalo para seguir subiendo!'}`, t: 0 };
     }
     for (const dir of Object.keys(DIRS)) {
       if (room.doors[dir]) neighbour(this.floor, room, dir).seen = true;
@@ -239,7 +249,7 @@ export class Game {
         const p = this.player;
         const x = clamp(W / 2 + (W / 2 - p.x) * 0.6, WALL + 120, W - WALL - 120);
         const y = clamp(H / 2 + (H / 2 - p.y) * 0.6, WALL + 110, H - WALL - 110);
-        this.enemies.push(new Boss(t, x, y, 1 + (this.floorNum - 1) * 0.35));
+        this.enemies.push(makeBoss(t, x, y, bossHpMul(t, this.floorNum)));
         sfx.boss();
         this.shake(10);
         continue;
@@ -253,7 +263,7 @@ export class Game {
     const mul = 1 + (this.floorNum - 1) * 0.2;
     x = clamp(x, WALL + 30, W - WALL - 30);
     y = clamp(y, WALL + 30, H - WALL - 30);
-    const e = BOSS_TYPES[type] ? new Boss(type, x, y, mul) : new Zombie(type, x, y, mul);
+    const e = BOSS_TYPES[type] ? makeBoss(type, x, y, bossHpMul(type, this.floorNum)) : new Zombie(type, x, y, mul);
     this.enemies.push(e);
     return e;
   }
@@ -420,7 +430,7 @@ export class Game {
 
     for (const e of this.enemies) {
       e.update(dt, this);
-      if (e.active && !p.dead && dist(e, p) < e.r + p.r - 4) p.hurt(e.dmg, this);
+      if (e.active && e.dmg > 0 && !p.dead && dist(e, p) < e.r + p.r - 4) p.hurt(e.dmg, this);
     }
     this.separateEnemies();
     this.enemies = this.enemies.filter((e) => !e.dead);
@@ -649,7 +659,7 @@ export class Game {
       if (!b.friendly && inArc(b.x, b.y, b.r)) { b.dead = true; this.puff(b.x, b.y, '#ffffff'); }
     }
     if (hits) {
-      this.hitStop = 0.05; // pequeña pausa de impacto: da sensación de golpe
+      this.hitStop = Math.max(this.hitStop || 0, 0.05); // pequeña pausa de impacto: da sensación de golpe
       this.shake(3 + hits);
       sfx.thud();
     }
@@ -662,14 +672,15 @@ export class Game {
     this.particles.push({ x, y, vx: Math.cos(a) * rand(90, 150), vy: Math.sin(a) * rand(90, 150) - 60, r: 2.6, color: '#ffd23f', life: 0.5, max: 0.5, outline: true });
   }
 
-  enemyShoot(x, y, angle, speed, dmg) {
+  // Proyectil enemigo. `o` admite: color, r, sound (false para no sonar)
+  enemyShoot(x, y, angle, speed, dmg, o = {}) {
     this.bullets.push({
       x, y,
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed,
-      r: 8, dmg, friendly: false, color: '#ff4d6d', life: 6,
+      r: o.r || 8, dmg, friendly: false, color: o.color || '#ff4d6d', life: 6,
     });
-    sfx.enemyShot();
+    if (o.sound !== false) sfx.enemyShot();
   }
 
   killEnemy(e) {
@@ -692,8 +703,13 @@ export class Game {
       if (!e.dead) { e.dead = true; this.burst(e.x, e.y, e.color, 8, e.r); }
     }
     this.bullets = this.bullets.filter((b) => b.friendly);
+    this.hazards = [];
+    this.lobs = [];
     this.burst(boss.x, boss.y, '#ffd23f', 30, boss.r);
+    this.burst(boss.x, boss.y - 40, boss.color, 20, boss.r);
     this.shake(20);
+    this.hitStop = 0.35; // cámara lenta un instante: ¡golpe final!
+    sfx.boom();
     this.dropPickup('heart', boss.x, boss.y);
     this.dropPickup('heart', boss.x, boss.y);
     // el mini jefe siempre suelta un arma (lejos de donde saldrán las escaleras)
@@ -748,45 +764,75 @@ export class Game {
     this.shake(5);
   }
 
-  // Moco lanzado en parábola hacia donde estaba el jugador
-  lob(x, y, tx, ty) {
+  // Onda expansiva (pisotón): daña y empuja al jugador si está dentro del radio
+  shockwave(x, y, radius, dmg, push) {
+    this.shake(16);
+    this.particles.push({ x, y, vx: 0, vy: 0, r: radius * 0.5, ring: true, color: '#ffffff', life: 0.35, max: 0.35 });
+    for (let i = 0; i < 18; i++) {
+      const a = rand(0, Math.PI * 2), sp = rand(150, 320);
+      this.particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.6, r: rand(4, 9), color: '#d8cbb0', life: rand(0.3, 0.6), max: 0.6, outline: true });
+    }
+    const p = this.player;
+    const d = dist(p, { x, y });
+    if (p.dead || d > radius + p.r) return;
+    p.hurt(dmg, this);
+    if (push) { p.vx += ((p.x - x) / (d || 1)) * push; p.vy += ((p.y - y) / (d || 1)) * push; }
+  }
+
+  // La portera pasa a la fase 2: borra las balas y te aparta de un grito
+  bossRage(boss) {
+    this.bullets = this.bullets.filter((b) => b.friendly);
+    this.banner = { title: '¡QUE ACABO DE FREGAR!', sub: 'La portera se ha enfadado de verdad', t: 0 };
+    sfx.roar();
+    const p = this.player;
+    const d = dist(p, boss);
+    if (!p.dead && d < 260) { p.vx += ((p.x - boss.x) / (d || 1)) * 900; p.vy += ((p.y - boss.y) / (d || 1)) * 900; }
+    this.shake(18);
+    this.particles.push({ x: boss.x, y: boss.y, vx: 0, vy: 0, r: 120, ring: true, color: '#ffd23f', life: 0.45, max: 0.45 });
+  }
+
+  // Proyectil en parábola hacia donde estaba el jugador (moco o botella de lejía)
+  lob(x, y, tx, ty, kind = 'poison') {
     tx = clamp(tx, WALL + 30, W - WALL - 30);
     ty = clamp(ty, WALL + 30, H - WALL - 30);
-    this.lobs.push({ x0: x, y0: y, tx, ty, t: 0 });
+    this.lobs.push({ x0: x, y0: y, tx, ty, t: 0, kind });
   }
 
   updateHazards(dt) {
     const p = this.player;
     for (const lb of this.lobs) {
       lb.t += dt;
-      if (lb.t >= POISON.flight) {
-        // ¡splash! deja un charco venenoso
+      const hd = HAZARDS[lb.kind];
+      if (lb.t >= hd.flight) {
+        // ¡splash! deja un charco
         lb.done = true;
-        this.hazards.push({ x: lb.tx, y: lb.ty, r: POISON.radius, life: POISON.life, seed: rand(0, 6) });
+        this.hazards.push({ x: lb.tx, y: lb.ty, r: hd.radius, life: hd.life, seed: rand(0, 6), kind: lb.kind });
         for (let i = 0; i < 8; i++) {
           const a = rand(0, Math.PI * 2), sp = rand(60, 160);
-          this.particles.push({ x: lb.tx, y: lb.ty, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: rand(3, 6), color: '#9be33b', life: 0.4, max: 0.4, outline: true });
+          this.particles.push({ x: lb.tx, y: lb.ty, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: rand(3, 6), color: hd.drop, life: 0.4, max: 0.4, outline: true });
         }
-        sfx.splat();
-        if (!p.dead && dist(p, { x: lb.tx, y: lb.ty }) < POISON.radius + p.r * 0.5) p.hurt(POISON.hit, this);
+        if (lb.kind === 'bleach') sfx.glass(); else sfx.splat();
+        if (!p.dead && dist(p, { x: lb.tx, y: lb.ty }) < hd.radius + p.r * 0.5) p.hurt(hd.hit, this);
       }
     }
     this.lobs = this.lobs.filter((lb) => !lb.done);
     for (const hz of this.hazards) {
       hz.life -= dt;
       // pisar el charco quema poco a poco (la esquiva te deja cruzarlo)
-      if (!p.dead && p.dashT <= 0 && dist(p, hz) < hz.r + p.r * 0.3) p.poison(POISON.dps * dt, this);
+      const hd = HAZARDS[hz.kind];
+      if (!p.dead && p.dashT <= 0 && dist(p, hz) < hz.r + p.r * 0.3) p.poison(hd.dps * dt, this, hd.drop);
     }
     this.hazards = this.hazards.filter((hz) => hz.life > 0);
   }
 
   drawHazards(ctx) {
     for (const hz of this.hazards) {
-      const fade = Math.min(1, hz.life / 0.6) * Math.min(1, (POISON.life - hz.life) / 0.15 + 0.3);
+      const hd = HAZARDS[hz.kind];
+      const fade = Math.min(1, hz.life / 0.6) * Math.min(1, (hd.life - hz.life) / 0.15 + 0.3);
       ctx.save();
       ctx.globalAlpha = 0.8 * fade;
-      ctx.fillStyle = '#8fd13f';
-      ctx.strokeStyle = '#4f772d';
+      ctx.fillStyle = hd.fill;
+      ctx.strokeStyle = hd.stroke;
       ctx.lineWidth = 3;
       ctx.beginPath();
       for (let i = 0; i <= 12; i++) {
@@ -798,7 +844,7 @@ export class Game {
       ctx.fill();
       ctx.stroke();
       // burbujas
-      ctx.fillStyle = '#c7f27a';
+      ctx.fillStyle = hd.bubble;
       for (let i = 0; i < 3; i++) {
         const b = (this.time * 1.5 + i / 3 + hz.seed) % 1;
         ctx.beginPath();
@@ -811,16 +857,25 @@ export class Game {
 
   drawLobs(ctx) {
     for (const lb of this.lobs) {
-      const k = lb.t / POISON.flight;
+      const hd = HAZARDS[lb.kind];
+      const k = lb.t / hd.flight;
       const gx = lb.x0 + (lb.tx - lb.x0) * k, gy = lb.y0 + (lb.ty - lb.y0) * k;
-      const h = Math.sin(k * Math.PI) * 90;
+      const h = Math.sin(k * Math.PI) * (lb.kind === 'bleach' ? 130 : 90);
       // aviso de dónde caerá
       ctx.beginPath();
-      ctx.ellipse(lb.tx, lb.ty, POISON.radius * k, POISON.radius * 0.6 * k, 0, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(155, 227, 59, 0.25)';
+      ctx.ellipse(lb.tx, lb.ty, hd.radius * k, hd.radius * 0.6 * k, 0, 0, Math.PI * 2);
+      ctx.fillStyle = lb.kind === 'bleach' ? 'rgba(90, 169, 214, 0.3)' : 'rgba(155, 227, 59, 0.25)';
       ctx.fill();
+      if (lb.kind === 'bleach') {
+        ctx.setLineDash([6, 6]);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(255, 60, 90, 0.9)';
+        ctx.beginPath(); ctx.ellipse(lb.tx, lb.ty, hd.radius, hd.radius * 0.6, 0, 0, Math.PI * 2); ctx.stroke();
+        ctx.setLineDash([]);
+      }
       ctx.fillStyle = 'rgba(20,16,40,0.25)';
       ctx.beginPath(); ctx.ellipse(gx, gy, 8, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+      if (lb.kind === 'bleach') { drawBottle(ctx, gx, gy - h, lb.t * 10); continue; }
       ctx.beginPath();
       ctx.arc(gx, gy - h, 8, 0, Math.PI * 2);
       ctx.fillStyle = '#9be33b';
@@ -962,11 +1017,21 @@ export class Game {
     const boss = this.enemies.find((e) => e.isBoss && e.active);
     if (!boss) return;
     const w = 420, x = W / 2 - w / 2, y = H - WALL - 40;
+    // se vuelve transparente si hay alguien debajo, para no tapar el combate
+    const under = [this.player, ...this.enemies].some((e) => e.x > x - 30 && e.x < x + w + 30 && e.y > y - 60);
+    ctx.save();
+    ctx.globalAlpha = under ? 0.35 : 1;
     ctx.beginPath(); ctx.roundRect(x - 4, y - 4, w + 8, 26, 13);
     ctx.fillStyle = OUTLINE; ctx.fill();
     ctx.beginPath(); ctx.roundRect(x, y, w * Math.max(0, boss.hp / boss.maxHp), 18, 9);
     ctx.fillStyle = boss.color; ctx.fill();
-    outlinedText(ctx, `${boss.type === 'boss' ? '👑' : '👹'} ${boss.name}`, W / 2, y - 16, 22, '#ffd23f', { lw: 6 });
+    if (boss.type === 'boss' && boss.phase === 1) {
+      // marca de la mitad: ahí empieza la fase 2
+      ctx.fillStyle = OUTLINE;
+      ctx.fillRect(x + w / 2 - 2, y - 2, 4, 22);
+    }
+    outlinedText(ctx, `${boss.icon} ${boss.name}${boss.phase === 2 ? ' 💢' : ''}`, W / 2, y - 16, 22, '#ffd23f', { lw: 6 });
+    ctx.restore();
   }
 
   drawBanner(ctx) {
