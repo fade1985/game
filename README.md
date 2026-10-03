@@ -102,7 +102,7 @@ sin comando de build y sin carpeta de salida. Cada `git push` vuelve a publicar.
 
 ```
 index.html        → página, HUD y capas de menús
-style.css         → estilo cartoon de botones, cartas y paneles
+style.css         → estilo cartoon de botones, paneles y HUD
 docs/PLAN.md      → plan de desarrollo por fases y decisiones
 src/
   main.js         → arranque y bucle principal (update + render)
