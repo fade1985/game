@@ -2,6 +2,7 @@
 //  Interfaz en HTML: menús, cartas, pausa y HUD
 // ─────────────────────────────────────────────
 import { RARITY_LABEL } from './upgrades.js';
+import { weaponSummary } from './weapons.js';
 import { toggleMute } from './sfx.js';
 
 export function createUI(root) {
@@ -71,6 +72,8 @@ export function createUI(root) {
       const p = g.player;
       set('hpw', $('.hpbar .fill'), `${Math.max(0, (p.hp / g.stats.maxHp) * 100)}%`, 'width');
       set('hpt', $('.hpbar span'), `${Math.ceil(p.hp)} / ${Math.round(g.stats.maxHp)}`);
+      const w = g.player.weapon;
+      set('weapon', $('#pill-weapon'), `${w.icon} <b>${w.name}</b>`, 'innerHTML');
       set('team', $('#hud-team'), String(g.allies.length));
       set('teamShow', $('#pill-team'), g.allies.length === 0, 'hidden');
     },
@@ -112,9 +115,11 @@ export function createUI(root) {
           <h2 class="title">Pausa</h2>
           <p class="sub">${g.building.icon} ${g.building.name} · Planta ${g.floorNum}</p>
           <div class="stats">
+            ${stat(g.player.weapon.icon, g.player.weapon.name, weaponSummary(g.player.weapon))}
             ${stat('❤️', 'Vida', `${Math.ceil(g.player.hp)} / ${Math.round(s.maxHp)}`)}
-            ${stat('💪', 'Daño', s.damage.toFixed(1))}
-            ${stat('⚡', 'Ataques/seg', s.fireRate.toFixed(2))}
+            ${stat('💪', 'Daño', `x${s.damage.toFixed(2)}`)}
+            ${stat('⚡', 'Velocidad de ataque', `x${s.fireRate.toFixed(2)}`)}
+            ${stat('🔭', 'Alcance', `x${s.range.toFixed(2)}`)}
             ${stat('👟', 'Velocidad', Math.round(s.speed))}
             ${stat('🎯', 'Crítico', `${Math.round(s.crit * 100)}%`)}
             ${stat('👥', 'Equipo', g.allies.map((a) => `${a.def.icon} ${a.def.name}`).join(', ') || 'Nadie todavía')}

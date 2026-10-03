@@ -10,7 +10,7 @@ Hecho con **HTML5 Canvas + JavaScript puro**, sin librerías ni paso de compilac
 
 - **Moverse:** `WASD` o flechas (en móvil: arrastra en la mitad izquierda de la pantalla)
 - **Esquivar:** `Espacio` (en móvil: botón 💨). Te hace invulnerable un instante.
-- **Atacar:** de momento es automático (más adelante será manual).
+- **Atacar:** de momento es automático: apuntas al enemigo más cercano (más adelante será manual).
 - **Pausa:** `Esc` o `P`
 
 El edificio **Apartamentos** tiene **3 plantas**. Cada planta es un mapa de salas generado al azar; al entrar
@@ -27,6 +27,25 @@ muestra lo explorado y los iconos de las salas especiales:
 
 Las puertas que llevan a salas especiales tienen el marco de color y un icono al lado.
 Los atributos y el equipo se conservan entre plantas; si caes, vuelves a empezar el edificio.
+
+### 🧹 Armas
+
+Empiezas cada edificio con la **fregona**. Al pasar por encima de un arma del suelo la cambias por la tuya
+(la vieja se queda en el suelo). El mini jefe siempre suelta un arma y a veces la sala de objeto guarda una.
+
+| Arma | Tipo | Daño | Ataques/s | Detalle |
+|---|---|---|---|---|
+| 🧹 Fregona | Cuerpo a cuerpo | 8 | 1,8 | Barrido amplio que empuja mucho |
+| 🏏 Bate | Cuerpo a cuerpo | 16 | 1,6 | Golpe fuerte |
+| 🔪 Cuchillo | Cuerpo a cuerpo | 9 | 4 | Rapidísimo pero de corto alcance |
+| 🔫 Pistola | A distancia | 10 | 2,5 | Largo alcance |
+| 💥 Escopeta | A distancia | 7 × 5 | 1 | Abanico de perdigones |
+
+Los golpes cuerpo a cuerpo también **destruyen los proyectiles enemigos**. Las mejoras (daño, velocidad de
+ataque, alcance) multiplican las estadísticas del arma que lleves.
+
+**Modo de pruebas:** añade `?pruebas` a la dirección (por ejemplo `http://localhost:3000/?pruebas`) y todas
+las armas aparecerán en la sala de entrada.
 
 ## 🚀 Ejecutar en local
 
@@ -54,7 +73,9 @@ src/
   game.js         → flujo de la partida: plantas, salas, puertas, oleadas, colisiones
   floor.js        → generador de plantas (mapa de salas al estilo Isaac)
   rooms.js        → tipos de sala y su contenido: estilo, obstáculos, alfombras y oleadas
-  props.js        → objetos fijos de las salas: pedestal, superviviente y escaleras
+  props.js        → objetos fijos de las salas: pedestal, superviviente, escaleras y armas
+  weapons.js      → catálogo de armas (datos) y su dibujo
+  aim.js          → controlador de apuntado (automático; el manual irá aquí)
   entities.js     → jugador, compañeros y enemigos (comportamiento + dibujo)
   render.js       → dibujo de habitaciones, puertas en los 4 lados y minimapa
   draw.js         → ayudas de dibujo: personaje humano, "blobs", ojos, sombras, texto

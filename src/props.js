@@ -4,6 +4,7 @@
 // ─────────────────────────────────────────────
 import { W, H, OUTLINE } from './config.js';
 import { drawHuman, outlinedText, roundBox } from './draw.js';
+import { drawWeapon } from './weapons.js';
 
 const TAU = Math.PI * 2;
 
@@ -115,5 +116,39 @@ export class Stairs {
     if (k >= 1) {
       outlinedText(ctx, `▲ Planta ${this.nextFloor}`, x, y - 66 - Math.abs(Math.sin(game.time * 4)) * 5, 22, '#ffd23f');
     }
+  }
+}
+
+// Arma tirada en el suelo: al pasar por encima la cambias por la tuya
+export class WeaponProp {
+  constructor(weapon, x, y) {
+    this.kind = 'weapon';
+    this.weapon = weapon;
+    this.x = x; this.y = y;
+    this.r = 22;
+    this.solid = false;
+    this.taken = false;
+    this.armed = false; // hay que acercarse "de nuevas" para cogerla
+    this.seed = Math.random() * 6;
+  }
+
+  draw(ctx, game) {
+    const { x, y } = this;
+    const bob = Math.sin(game.time * 3 + this.seed) * 3;
+    const glow = ctx.createRadialGradient(x, y, 4, x, y, 44);
+    glow.addColorStop(0, 'rgba(255, 230, 120, 0.55)');
+    glow.addColorStop(1, 'rgba(255, 230, 120, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath(); ctx.arc(x, y, 44, 0, TAU); ctx.fill();
+    ctx.fillStyle = 'rgba(20,16,40,0.2)';
+    ctx.beginPath(); ctx.ellipse(x, y + 12, 24, 7, 0, 0, TAU); ctx.fill();
+    ctx.save();
+    // la dibujamos centrada (las armas largas se desplazan un poco)
+    const len = this.weapon.type === 'melee' ? (this.weapon.reach > 55 ? 50 : 28) : (this.weapon.muzzle || 24);
+    ctx.translate(x - Math.cos(-0.5) * len / 2, y - 4 + bob - Math.sin(-0.5) * len / 2);
+    ctx.rotate(-0.5);
+    drawWeapon(ctx, this.weapon);
+    ctx.restore();
+    outlinedText(ctx, this.weapon.name, x, y + 30, 15, '#ffd23f', { lw: 4 });
   }
 }

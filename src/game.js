@@ -8,7 +8,8 @@ import { Player, Ally, Enemy } from './entities.js';
 import { generateFloor, neighbour } from './floor.js';
 import { makeRoomLayout, ROOM_TYPES } from './rooms.js';
 import { baseStats, rollCards } from './upgrades.js';
-import { Pedestal, SurvivorNPC, Stairs } from './props.js';
+import { Pedestal, SurvivorNPC, Stairs, WeaponProp } from './props.js';
+import { WEAPONS, randomWeapon, weaponSummary } from './weapons.js';
 import { loadSave, writeSave } from './save.js';
 import { drawRoom, drawDoors, drawPickup, drawBullet, drawMinimap } from './render.js';
 import { outlinedText } from './draw.js';
@@ -110,11 +111,22 @@ export class Game {
 
     // Colocamos el objeto y el superviviente de esta planta
     for (const r of this.floor.rooms.values()) {
-      if (r.type === 'item') r.props.push(new Pedestal(rollCards(this, 1, 0.6)[0]));
+      if (r.type === 'item') {
+        // 25 % de las veces la sala de objeto guarda un arma
+        if (Math.random() < 0.25) r.props.push(new WeaponProp(randomWeapon(this.player.weapon.id), W / 2, H / 2));
+        else r.props.push(new Pedestal(rollCards(this, 1, 0.6)[0]));
+      }
       if (r.type === 'survivor') {
         const def = this.survivorOrder[(this.floorNum - 1) % this.survivorOrder.length];
         r.props.push(new SurvivorNPC(def));
       }
+    }
+
+    // Modo de pruebas (añade ?pruebas a la dirección): todas las armas en la entrada
+    if (this.floorNum === 1 && new URLSearchParams(location.search).has('pruebas')) {
+      Object.values(WEAPONS).filter((w) => w.id !== 'fregona').forEach((w, i) => {
+        this.floor.start.props.push(new WeaponProp(w, W / 2 - 240 + i * 160, H / 2 - 110));
+      });
     }
     this.enterRoom(this.floor.start, null);
     this.banner = { title: `${this.building.icon} ${this.building.name}`, sub: `Planta ${this.floorNum}`, t: 0 };
@@ -282,6 +294,16 @@ export class Game {
         this.banner = { title: `${pr.def.icon} ¡${pr.def.name} se une!`, sub: 'Te seguirá y luchará a tu lado', t: 0 };
         this.burst(pr.x, pr.y, pr.def.color, 14, 16);
         sfx.clear();
+      } else if (pr.kind === 'weapon' && pr.armed) {
+        // Cambiamos de arma: la que llevabas se queda en el suelo
+        const old = this.player.weapon;
+        this.player.weapon = pr.weapon;
+        this.player.swing = null;
+        pr.weapon = old;
+        pr.armed = false; // hay que alejarse antes de poder volver a cogerla
+        this.banner = { title: `${this.player.weapon.icon} ${this.player.weapon.name}`, sub: weaponSummary(this.player.weapon), t: 0 };
+        this.burst(pr.x, pr.y, '#ffd23f', 10, 16);
+        sfx.buy();
       } else if (pr.kind === 'stairs' && pr.appear >= 1 && pr.armed) {
         pr.taken = true;
         this.goNextFloor();
@@ -328,6 +350,9 @@ export class Game {
     this.time += dt;
     if (this.state === 'menu') { this.updateMenu(dt); return; }
     if (this.state !== 'playing' || this.paused) return;
+
+    // Pausa de impacto al golpear (unas centésimas de segundo)
+    if (this.hitStop > 0) { this.hitStop -= dt; return; }
 
     // Fundido a negro al cambiar de planta
     if (this.fade) {
@@ -469,7 +494,7 @@ export class Game {
           if (dist(e, b) < e.r + b.r) {
             b.hit.add(e);
             const l = Math.hypot(b.vx, b.vy) || 1;
-            e.hurt(b.dmg, b.crit, b.vx / l, b.vy / l, this);
+            e.hurt(b.dmg, b.crit, b.vx / l, b.vy / l, this, b.knock ?? 1);
             this.puff(b.x, b.y, '#ffffff');
             if (b.pierce-- <= 0) { b.dead = true; break; }
           }
@@ -550,27 +575,73 @@ export class Game {
     return best;
   }
 
-  fireVolley(src, angle, dmg, shots, pierce, color, r = 7) {
-    const spread = 0.16;
-    const speed = this.stats.bulletSpeed;
-    for (let i = 0; i < shots; i++) {
-      const a = angle + (i - (shots - 1) / 2) * spread;
+  // Dispara una o varias balas aliadas. `o` admite: dmg, count, spread, jitter,
+  // speed, life, pierce, knock, color, r, x, y (punto de salida)
+  fireVolley(src, angle, o) {
+    const n = o.count || 1;
+    const spread = o.spread ?? 0.16;
+    for (let i = 0; i < n; i++) {
+      const off = n > 1 ? (i / (n - 1) - 0.5) * spread * (n > 2 ? 1 : 0.6) : 0;
+      const a = angle + off + (Math.random() - 0.5) * (o.jitter || 0);
       const crit = Math.random() < this.stats.crit;
+      const speed = (o.speed || 560) * (o.jitter ? 0.9 + Math.random() * 0.2 : 1);
+      const r = o.r || 7;
       this.bullets.push({
-        x: src.x + Math.cos(a) * src.r,
-        y: src.y + Math.sin(a) * src.r,
+        x: o.x ?? src.x + Math.cos(a) * src.r,
+        y: o.y ?? src.y + Math.sin(a) * src.r,
         vx: Math.cos(a) * speed,
         vy: Math.sin(a) * speed,
         r: crit ? r + 3 : r,
-        dmg: crit ? dmg * 2 : dmg,
+        dmg: crit ? o.dmg * 2 : o.dmg,
         crit,
-        pierce,
+        pierce: o.pierce || 0,
+        knock: o.knock ?? 1,
         friendly: true,
-        color: crit ? '#ffd23f' : color,
-        life: 1.2,
+        color: crit ? '#ffd23f' : (o.color || '#fff6d5'),
+        life: o.life || 1.2,
         hit: new Set(),
       });
     }
+  }
+
+  // Golpe cuerpo a cuerpo: daña a todo lo que esté dentro del abanico
+  // y además rompe los proyectiles enemigos (¡se pueden "barrer"!)
+  meleeHit(src, angle, half, reach, dmg, w) {
+    const inArc = (x, y, r) => {
+      const dx = x - src.x, dy = y - src.y;
+      const d = Math.hypot(dx, dy);
+      if (d - r > reach) return false;
+      const diff = Math.abs(Math.atan2(Math.sin(Math.atan2(dy, dx) - angle), Math.cos(Math.atan2(dy, dx) - angle)));
+      return diff <= half + 0.2 || d < r + 12;
+    };
+    let hits = 0;
+    for (const e of this.enemies) {
+      if (!e.active || !inArc(e.x, e.y, e.r)) continue;
+      const crit = Math.random() < this.stats.crit;
+      const l = Math.hypot(e.x - src.x, e.y - src.y) || 1;
+      e.hurt(crit ? dmg * 2 : dmg, crit, (e.x - src.x) / l, (e.y - src.y) / l, this, w.knock);
+      hits++;
+      // salpicaduras (de agua, si es la fregona)
+      for (let i = 0; i < 5; i++) {
+        const a = angle + (Math.random() - 0.5) * 1.6, sp = rand(120, 260);
+        this.particles.push({ x: e.x, y: e.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: rand(3, 5), color: w.trail, life: 0.35, max: 0.35, outline: true });
+      }
+    }
+    for (const b of this.bullets) {
+      if (!b.friendly && inArc(b.x, b.y, b.r)) { b.dead = true; this.puff(b.x, b.y, '#ffffff'); }
+    }
+    if (hits) {
+      this.hitStop = 0.05; // pequeña pausa de impacto: da sensación de golpe
+      this.shake(3 + hits);
+      sfx.thud();
+    }
+  }
+
+  // Casquillo que sale despedido al disparar
+  casing(x, y, angle) {
+    const side = Math.cos(angle) >= 0 ? -1 : 1;
+    const a = angle + side * Math.PI / 2 + rand(-0.4, 0.4);
+    this.particles.push({ x, y, vx: Math.cos(a) * rand(90, 150), vy: Math.sin(a) * rand(90, 150) - 60, r: 2.6, color: '#ffd23f', life: 0.5, max: 0.5, outline: true });
   }
 
   enemyShoot(x, y, angle, speed, dmg) {
@@ -605,6 +676,10 @@ export class Game {
     this.shake(20);
     this.dropPickup('heart', boss.x, boss.y);
     this.dropPickup('heart', boss.x, boss.y);
+    // el mini jefe siempre suelta un arma (lejos de donde saldrán las escaleras)
+    if (boss.type === 'miniboss') {
+      this.room.props.push(new WeaponProp(randomWeapon(this.player.weapon.id), W / 2, H / 2 + 130));
+    }
   }
 
   onPlayerDeath() {

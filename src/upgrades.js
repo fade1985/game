@@ -9,11 +9,11 @@ export const CARDS = [
   { id: 'cadencia', icon: '⚡', name: 'Gatillo rápido',  desc: '+20% velocidad de ataque',             rarity: 'common', apply: (g) => { g.stats.fireRate *= 1.2; } },
   { id: 'botas',    icon: '👟', name: 'Zapatillas',      desc: '+12% velocidad de movimiento',         rarity: 'common', apply: (g) => { g.stats.speed *= 1.12; } },
   { id: 'corazon',  icon: '❤️', name: 'Corazón grande',  desc: '+20 vida máxima y te cura 20',         rarity: 'common', apply: (g) => { g.stats.maxHp += 20; g.healPlayer(20); } },
-  { id: 'alcance',  icon: '🔭', name: 'Catalejo',        desc: '+20% de alcance',                      rarity: 'common', apply: (g) => { g.stats.range *= 1.2; g.stats.bulletSpeed *= 1.15; } },
+  { id: 'alcance',  icon: '🔭', name: 'Catalejo',        desc: '+20% de alcance de tus armas',         rarity: 'common', apply: (g) => { g.stats.range *= 1.2; g.stats.bulletSpeed *= 1.15; } },
   { id: 'critico',  icon: '🎯', name: 'Ojo de halcón',   desc: '+10% de probabilidad de crítico (x2)', rarity: 'rare',   apply: (g) => { g.stats.crit += 0.1; } },
-  { id: 'perfora',  icon: '🗡️', name: 'Perforante',      desc: 'Tus balas atraviesan +1 enemigo',      rarity: 'rare',   apply: (g) => { g.stats.pierce += 1; } },
+  { id: 'perfora',  icon: '🗡️', name: 'Perforante',      desc: 'Tus balas atraviesan +1 enemigo (armas a distancia)', rarity: 'rare',   apply: (g) => { g.stats.pierce += 1; } },
   { id: 'vampiro',  icon: '🧛', name: 'Colmillos',       desc: 'Te curas 2 por cada enemigo eliminado', rarity: 'rare',  apply: (g) => { g.stats.lifesteal += 2; } },
-  { id: 'multi',    icon: '🔱', name: 'Multidisparo',    desc: '+1 proyectil por disparo',             rarity: 'epic',   apply: (g) => { g.stats.shots += 1; } },
+  { id: 'multi',    icon: '🔱', name: 'Multidisparo',    desc: '+1 proyectil por disparo (armas a distancia)', rarity: 'epic',   apply: (g) => { g.stats.shots += 1; } },
 ];
 
 export const RARITY_LABEL = { common: 'Común', rare: 'Rara', epic: 'Épica' };
@@ -39,16 +39,17 @@ export function rollCards(g, n = 3, luck = 0) {
 // Estadísticas iniciales al empezar un edificio
 export function baseStats() {
   return {
+    // Los atributos de ataque son multiplicadores sobre el arma que lleves
     maxHp: 100,
-    damage: 10,
-    fireRate: 2.2,       // ataques por segundo
-    speed: 210,
-    shots: 1,
+    damage: 1,           // x daño del arma
+    fireRate: 1,         // x velocidad de ataque del arma
+    range: 1,            // x alcance del arma
+    bulletSpeed: 1,      // x velocidad de las balas
+    shots: 0,            // proyectiles extra (armas a distancia)
     pierce: 0,
     crit: 0.05,
+    speed: 210,
     magnet: 120,         // radio en el que los corazones vienen hacia ti
-    range: 430,
-    bulletSpeed: 560,
     teamDamage: 1,
     lifesteal: 0,
     maxAllies: MAX_ALLIES,

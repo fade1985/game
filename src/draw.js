@@ -138,6 +138,7 @@ export function heartPath(ctx, x, y, s) {
 //    bandana    color de la cinta de la cabeza (opcional)
 //    overalls   color del mono de trabajo (opcional)
 //    flash      true = todo blanco (al recibir daño)
+//    hideHand   1 o -1: no dibuja esa mano (la que sujeta el arma)
 // ─────────────────────────────────────────────
 export function drawHuman(ctx, x, y, o) {
   const s = o.s || 1;
@@ -177,6 +178,7 @@ export function drawHuman(ctx, x, y, o) {
   // manos (balanceo opuesto a los pies)
   const drawHands = () => {
     for (const side of [-1, 1]) {
+      if (o.hideHand === side) continue; // esa mano la dibuja quien sujeta un arma
       const hx = x + side * 13 * s - side * fx * 0.7;
       const hy = by + 3 * s - side * fy * 0.7;
       ctx.beginPath();

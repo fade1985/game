@@ -5,10 +5,14 @@ import { W, H, WALL, OUTLINE, PLAYER_LOOK } from './config.js';
 import { rand } from './utils.js';
 import { blob, eyes, shadow, outlinedText, drawHuman } from './draw.js';
 import { sfx } from './sfx.js';
+import { WEAPONS, drawWeapon } from './weapons.js';
+import { autoAim } from './aim.js';
 
 const TAU = Math.PI * 2;
 
 // ═════════════ JUGADOR ═════════════
+const wrapAngle = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+
 export class Player {
   constructor(stats) {
     this.stats = stats;
@@ -19,14 +23,23 @@ export class Player {
     this.hp = stats.maxHp;
     this.invuln = 0;      // tiempo de invulnerabilidad tras recibir daño
     this.hurtT = 0;       // destello blanco al recibir daño
-    this.fireT = 0;
     this.dashT = 0;       // duración restante de la esquiva
     this.dashCd = 0;      // enfriamiento de la esquiva
     this.lookX = 0; this.lookY = -1;
     this.walkT = 0;
-    this.kick = 0;        // retroceso visual al disparar
     this.blinkT = rand(2, 4);
     this.dead = false;
+
+    // Arma y apuntado
+    this.weapon = WEAPONS.fregona; // se empieza cada edificio con la fregona
+    this.aimer = autoAim;          // en el futuro: un controlador manual
+    this.atkT = 0;                 // tiempo hasta el siguiente ataque
+    this.aimAngle = -Math.PI / 2;  // hacia dónde apunta
+    this.armAngle = -Math.PI / 2;  // ángulo actual del arma (animado)
+    this.swing = null;             // barrido en curso (armas cuerpo a cuerpo)
+    this.swingDir = 1;             // los barridos van y vuelven, como fregando
+    this.recoil = 0;               // retroceso del arma a distancia
+    this.muzzleT = 0;              // fogonazo
   }
 
   update(dt, game, move, dash) {
@@ -66,23 +79,88 @@ export class Player {
 
     const sp = Math.hypot(this.vx, this.vy);
     this.walkT += dt * (sp > 20 ? 4 + sp / 22 : 0);
-    if (move.x || move.y) { this.lookX = move.x; this.lookY = move.y; }
+    if (move.x || move.y) {
+      this.lookX = move.x; this.lookY = move.y;
+      this.aimAngle = Math.atan2(move.y, move.x);
+    }
 
-    // Disparo automático al enemigo más cercano
-    this.fireT -= dt;
-    this.kick = Math.max(0, this.kick - dt * 8);
-    if (game.state !== 'playing') return;
-    const target = game.nearestEnemy(this.x, this.y, s.range);
-    if (target) {
-      const a = Math.atan2(target.y - this.y, target.x - this.x);
-      this.lookX = Math.cos(a); this.lookY = Math.sin(a);
-      if (this.fireT <= 0) {
-        this.fireT = 1 / s.fireRate;
-        game.fireVolley(this, a, s.damage, s.shots, s.pierce, '#fff6d5');
-        this.kick = 1;
-        sfx.shoot();
+    // Ataque: el controlador de apuntado decide hacia dónde y cuándo
+    this.atkT -= dt;
+    this.recoil = Math.max(0, this.recoil - dt * 10);
+    this.muzzleT -= dt;
+    if (game.state === 'playing') {
+      const w = this.weapon;
+      const aim = this.aimer.aim(game, this, w, s);
+      if (aim) {
+        this.aimAngle = aim.angle;
+        this.lookX = Math.cos(aim.angle); this.lookY = Math.sin(aim.angle);
+        if (aim.attack && this.atkT <= 0) {
+          this.atkT = 1 / (w.rate * s.fireRate);
+          this.attack(game, aim.angle);
+        }
       }
     }
+    this.animateArm(dt);
+  }
+
+  attack(game, angle) {
+    const w = this.weapon, s = this.stats;
+    if (w.type === 'melee') {
+      // Barrido en arco: de un lado al otro del objetivo
+      const half = (w.arc * Math.PI) / 360;
+      this.swing = {
+        t: 0,
+        dur: Math.min(0.2, 0.7 / (w.rate * s.fireRate)),
+        from: angle - half * this.swingDir,
+        to: angle + half * this.swingDir,
+        reach: w.reach * s.range,
+      };
+      this.swingDir *= -1;
+      game.meleeHit(this, angle, half, w.reach * s.range, w.damage * s.damage, w);
+      sfx.swing();
+    } else {
+      // Disparo desde la boca del arma
+      const h = this.handPos(angle);
+      const n = w.pellets + s.shots;
+      game.fireVolley(this, angle, {
+        dmg: w.damage * s.damage,
+        count: n,
+        spread: w.pellets > 1 ? w.spread : 0.16,
+        jitter: w.pellets > 1 ? 0.06 : 0,
+        speed: w.speed * s.bulletSpeed,
+        life: (w.range * s.range) / (w.speed * s.bulletSpeed),
+        pierce: s.pierce,
+        knock: w.knock,
+        r: w.pellets > 1 ? 5 : 7,
+        x: h.x + Math.cos(angle) * w.muzzle,
+        y: h.y + Math.sin(angle) * w.muzzle,
+      });
+      this.recoil = 1;
+      this.muzzleT = 0.06;
+      game.casing(h.x, h.y, angle);
+      if (w.pellets > 1) { sfx.shotgun(); game.shake(4); } else sfx.gun();
+    }
+  }
+
+  // Posición de la mano que sujeta el arma (gira alrededor del cuerpo)
+  handPos(a) {
+    return { x: this.x + Math.cos(a) * 13, y: this.y + 3 + Math.sin(a) * 9 };
+  }
+
+  animateArm(dt) {
+    const sw = this.swing;
+    if (sw) {
+      sw.t += dt;
+      const k = Math.min(1, sw.t / sw.dur);
+      const e = 1 - Math.pow(1 - k, 3);
+      this.armAngle = sw.from + (sw.to - sw.from) * e;
+      if (sw.t >= sw.dur + 0.1) this.swing = null;
+      return;
+    }
+    // En reposo: el arma cuerpo a cuerpo se queda preparada para el siguiente barrido
+    const w = this.weapon;
+    const rest = w.type === 'melee' ? this.aimAngle - (w.arc * Math.PI / 360) * 0.7 * this.swingDir : this.aimAngle;
+    this.armAngle += wrapAngle(rest - this.armAngle) * (1 - Math.exp(-dt * 14));
   }
 
   hurt(dmg, game) {
@@ -113,6 +191,10 @@ export class Player {
 
     ctx.save();
     if (this.invuln > 0 && this.dashT <= 0 && Math.floor(this.invuln * 18) % 2 === 0) ctx.globalAlpha = 0.45;
+    this.drawSwingTrail(ctx);
+    const a = this.armAngle;
+    const behind = Math.sin(a) < -0.3; // si apunta hacia arriba, el arma va detrás del cuerpo
+    if (behind) this.drawArm(ctx, a);
     const sp = Math.hypot(this.vx, this.vy);
     drawHuman(ctx, x, y, {
       ...PLAYER_LOOK,
@@ -124,7 +206,65 @@ export class Player {
       walk: this.walkT,
       blink: this.blinkT < 0,
       flash: this.hurtT > 0,
+      hideHand: 1, // esa mano la dibujamos nosotros, sujetando el arma
     });
+    if (!behind) this.drawArm(ctx, a);
+    ctx.restore();
+  }
+
+  drawArm(ctx, a) {
+    const h = this.handPos(a);
+    const back = this.recoil * 6;
+    ctx.save();
+    ctx.translate(h.x - Math.cos(a) * back, h.y - Math.sin(a) * back);
+    ctx.rotate(a);
+    if (Math.cos(a) < 0) ctx.scale(1, -1); // que las pistolas no queden boca abajo
+    drawWeapon(ctx, this.weapon);
+    if (this.muzzleT > 0 && this.weapon.type === 'ranged') {
+      const mx = this.weapon.muzzle + 6;
+      ctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const r = i % 2 ? 4 : 11, t = (i / 10) * TAU;
+        ctx.lineTo(mx + Math.cos(t) * r, Math.sin(t) * r);
+      }
+      ctx.closePath();
+      ctx.fillStyle = '#ffd23f';
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#ff9f1c';
+      ctx.stroke();
+    }
+    ctx.restore();
+    // la mano encima de la empuñadura
+    ctx.beginPath();
+    ctx.arc(h.x - Math.cos(a) * back, h.y - Math.sin(a) * back, 4.5, 0, TAU);
+    ctx.fillStyle = this.hurtT > 0 ? '#ffffff' : PLAYER_LOOK.skin;
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = OUTLINE;
+    ctx.stroke();
+  }
+
+  // Estela del barrido: un abanico que se desvanece
+  drawSwingTrail(ctx) {
+    const sw = this.swing;
+    if (!sw) return;
+    const alpha = 0.8 * (1 - Math.max(0, (sw.t - sw.dur) / 0.1));
+    if (alpha <= 0) return;
+    const ccw = sw.to < sw.from;
+    ctx.save();
+    ctx.globalAlpha *= alpha;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y + 3, sw.reach + 8, sw.from, this.armAngle, ccw);
+    ctx.arc(this.x, this.y + 3, 20, this.armAngle, sw.from, !ccw);
+    ctx.closePath();
+    ctx.fillStyle = this.weapon.trail;
+    ctx.globalAlpha *= 0.7;
+    ctx.fill();
+    ctx.globalAlpha /= 0.7;
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#ffffff';
+    ctx.stroke();
     ctx.restore();
   }
 }
@@ -165,13 +305,13 @@ export class Ally {
     // De momento todos disparan igual; en la fase 5 cada uno tendrá su papel
     this.fireT -= dt;
     const s = game.stats;
-    const target = game.nearestEnemy(this.x, this.y, s.range * 0.9);
+    const target = game.nearestEnemy(this.x, this.y, 380);
     if (target) {
       const a = Math.atan2(target.y - this.y, target.x - this.x);
       this.lookX = Math.cos(a); this.lookY = Math.sin(a);
       if (this.fireT <= 0) {
-        this.fireT = 1 / (s.fireRate * 0.55);
-        game.fireVolley(this, a, s.damage * 0.45 * s.teamDamage, 1, 0, this.color, 6);
+        this.fireT = 1 / 1.2;
+        game.fireVolley(this, a, { dmg: 5 * s.teamDamage, color: this.color, r: 6 });
       }
     }
   }
@@ -343,10 +483,10 @@ export class Enemy {
     game.collideWorld(this);
   }
 
-  hurt(dmg, crit, dirX, dirY, game) {
+  hurt(dmg, crit, dirX, dirY, game, knock = 1) {
     this.hp -= dmg;
     this.hitFlash = 0.08;
-    const push = this.isBoss ? 20 : this.type === 'charger' ? 90 : 180;
+    const push = (this.isBoss ? 20 : this.type === 'charger' ? 90 : 180) * knock;
     this.kx += dirX * push; this.ky += dirY * push;
     game.floatText(this.x + rand(-8, 8), this.y - this.r - 6, Math.round(dmg).toString(), crit ? '#ffd23f' : '#ffffff', crit ? 26 : 18);
     sfx.hit();
