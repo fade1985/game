@@ -139,6 +139,7 @@ export function heartPath(ctx, x, y, s) {
 //    overalls   color del mono de trabajo (opcional)
 //    flash      true = todo blanco (al recibir daño)
 //    hideHand   1 o -1: no dibuja esa mano (la que sujeta el arma)
+//    zombie     true = brazos estirados hacia delante y boca con dientes
 // ─────────────────────────────────────────────
 export function drawHuman(ctx, x, y, o) {
   const s = o.s || 1;
@@ -179,8 +180,29 @@ export function drawHuman(ctx, x, y, o) {
   const drawHands = () => {
     for (const side of [-1, 1]) {
       if (o.hideHand === side) continue; // esa mano la dibuja quien sujeta un arma
-      const hx = x + side * 13 * s - side * fx * 0.7;
-      const hy = by + 3 * s - side * fy * 0.7;
+      let hx = x + side * 13 * s - side * fx * 0.7;
+      let hy = by + 3 * s - side * fy * 0.7;
+      if (o.zombie) {
+        // brazos de zombi: estirados hacia donde mira, balanceándose
+        const sway = Math.sin((o.walk || 0) * 1.3 + side) * 2 * s;
+        hx = x + lookX * 16 * s - lookY * side * 9 * s + sway;
+        hy = by - 1 * s + lookY * 5 * s + lookX * side * 5 * s;
+        // el brazo (manga) desde el hombro hasta la mano
+        const shx = x - lookY * side * 9 * s + lookX * 2 * s;
+        const shy = by - 3 * s + lookX * side * 3 * s;
+        ctx.beginPath();
+        ctx.moveTo(shx, shy);
+        ctx.lineTo(hx, hy);
+        ctx.lineCap = 'round';
+        ctx.lineWidth = 8 * s;
+        ctx.strokeStyle = OUTLINE;
+        ctx.stroke();
+        ctx.lineWidth = 4.5 * s;
+        ctx.strokeStyle = col(o.shirt);
+        ctx.stroke();
+        ctx.lineWidth = lw;
+        ctx.strokeStyle = OUTLINE;
+      }
       ctx.beginPath();
       ctx.arc(hx, hy, 4.5 * s, 0, TAU);
       ctx.fillStyle = col(o.skin);
@@ -329,7 +351,17 @@ export function drawHuman(ctx, x, y, o) {
   // cara (solo si no está de espaldas)
   if (!facingBack) {
     eyes(ctx, hx + lookX * 4 * s, hy + 8 * s, 15 * s, lookX, lookY, { angry: o.angry, blink: o.blink });
-    if (lookY > -0.1 && !o.flash) {
+    if (o.zombie && !o.flash) {
+      // boca torcida con dientes
+      const mx = hx + lookX * 5 * s, my = hy + 11.5 * s;
+      ctx.beginPath();
+      ctx.ellipse(mx, my, 5 * s, 2.6 * s, -0.15, 0, TAU);
+      ctx.fillStyle = '#3a1f2b';
+      ctx.fill();
+      ctx.fillStyle = '#fff8ea';
+      ctx.fillRect(mx - 3 * s, my - 2.4 * s, 2 * s, 2 * s);
+      ctx.fillRect(mx + 1 * s, my - 2.4 * s, 2 * s, 2 * s);
+    } else if (lookY > -0.1 && !o.flash) {
       ctx.fillStyle = 'rgba(255, 120, 140, 0.45)';
       for (const k of [-1, 1]) {
         ctx.beginPath();

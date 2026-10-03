@@ -24,6 +24,16 @@ window.addEventListener('keydown', unlockAudio);
 window.addEventListener('keydown', (e) => {
   if ((e.code === 'Escape' || e.code === 'KeyP') && !e.uiHandled) game.openPause();
 });
+// Modo pruebas (?pruebas): las teclas 1-6 invocan cada tipo de zombi
+const TEST_ZOMBIES = ['lento', 'normal', 'rapido', 'explosivo', 'tentaculos', 'venenoso'];
+window.addEventListener('keydown', (e) => {
+  if (!game.testMode || game.state !== 'playing' || game.paused || e.uiHandled) return;
+  const n = Number(e.key);
+  if (n >= 1 && n <= TEST_ZOMBIES.length) {
+    const pos = game.findSpawnPoint();
+    game.spawnEnemy(TEST_ZOMBIES[n - 1], pos.x, pos.y);
+  }
+});
 document.getElementById('btn-pause').addEventListener('click', (e) => { e.currentTarget.blur(); game.openPause(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) game.openPause(); });
 

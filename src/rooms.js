@@ -14,8 +14,9 @@ export const ROOM_TYPES = {
   boss:     { icon: '👑', name: 'Jefe final', frame: '#b5179e' },
 };
 
-// Coste de cada enemigo para "comprar" oleadas con un presupuesto
-const COST = { slime: 1, bat: 1, shooter: 2, charger: 3 };
+// Coste de cada zombi para "comprar" oleadas con un presupuesto.
+// Los lentos son baratos: aparecen en grupo.
+const COST = { lento: 0.5, normal: 1, rapido: 1, venenoso: 2, explosivo: 2, tentaculos: 3 };
 
 // Puntos de entrada de las puertas (para no tapar el paso con obstáculos)
 const DOOR_SPOTS = [
@@ -85,9 +86,11 @@ export function makeRoomWaves(room, floorNum) {
 // Oleadas: el presupuesto crece cuanto más lejos está la sala de la entrada
 export function makeWaves(depth, floorNum = 1) {
   const level = depth + (floorNum - 1) * 2;
-  const pool = ['slime', 'bat'];
-  if (level >= 2) pool.push('shooter');
-  if (level >= 3) pool.push('charger');
+  // Los tipos más peligrosos van apareciendo según se avanza
+  const pool = ['lento', 'normal'];
+  if (level >= 2) pool.push('rapido', 'venenoso');
+  if (level >= 3) pool.push('explosivo');
+  if (level >= 4) pool.push('tentaculos');
   const total = Math.round(3 + level * 1.2);
   const nWaves = level <= 1 ? 1 : 2;
   const waves = [];

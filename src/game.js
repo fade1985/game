@@ -4,7 +4,8 @@
 // ─────────────────────────────────────────────
 import { W, H, WALL, DOOR_W, OUTLINE, MAX_ALLIES, DIRS, BUILDINGS, SURVIVORS } from './config.js';
 import { rand, clamp, dist, pushOut } from './utils.js';
-import { Player, Ally, Enemy } from './entities.js';
+import { Player, Ally, Boss, BOSS_TYPES } from './entities.js';
+import { Zombie, POISON, TENTACLE } from './zombies.js';
 import { generateFloor, neighbour } from './floor.js';
 import { makeRoomLayout, ROOM_TYPES } from './rooms.js';
 import { baseStats, rollCards } from './upgrades.js';
@@ -52,6 +53,8 @@ export class Game {
   // ═════════════ Pantallas ═════════════
 
   resetRoomState() {
+    this.hazards = [];   // charcos de veneno en el suelo
+    this.lobs = [];      // mocos volando
     this.enemies = [];
     this.bullets = [];
     this.particles = [];
@@ -123,13 +126,19 @@ export class Game {
     }
 
     // Modo de pruebas (añade ?pruebas a la dirección): todas las armas en la entrada
-    if (this.floorNum === 1 && new URLSearchParams(location.search).has('pruebas')) {
+    // y las teclas 1-6 invocan zombis (ver main.js)
+    this.testMode = new URLSearchParams(location.search).has('pruebas');
+    if (this.floorNum === 1 && this.testMode) {
       Object.values(WEAPONS).filter((w) => w.id !== 'fregona').forEach((w, i) => {
         this.floor.start.props.push(new WeaponProp(w, W / 2 - 240 + i * 160, H / 2 - 110));
       });
     }
     this.enterRoom(this.floor.start, null);
-    this.banner = { title: `${this.building.icon} ${this.building.name}`, sub: `Planta ${this.floorNum}`, t: 0 };
+    this.banner = {
+      title: `${this.building.icon} ${this.building.name}`,
+      sub: this.testMode ? 'Modo pruebas · teclas 1-6: invocar zombis' : `Planta ${this.floorNum}`,
+      t: 0,
+    };
   }
 
   openPause() {
@@ -228,19 +237,23 @@ export class Game {
         const p = this.player;
         const x = clamp(W / 2 + (W / 2 - p.x) * 0.6, WALL + 120, W - WALL - 120);
         const y = clamp(H / 2 + (H / 2 - p.y) * 0.6, WALL + 110, H - WALL - 110);
-        this.enemies.push(new Enemy(t, x, y, 1 + (this.floorNum - 1) * 0.35));
+        this.enemies.push(new Boss(t, x, y, 1 + (this.floorNum - 1) * 0.35));
         sfx.boss();
         this.shake(10);
         continue;
       }
       const pos = this.findSpawnPoint();
-      this.enemies.push(new Enemy(t, pos.x, pos.y, mul));
+      this.enemies.push(new Zombie(t, pos.x, pos.y, mul));
     }
   }
 
   spawnEnemy(type, x, y) {
-    const e = new Enemy(type, clamp(x, WALL + 30, W - WALL - 30), clamp(y, WALL + 30, H - WALL - 30), 1);
+    const mul = 1 + (this.floorNum - 1) * 0.2;
+    x = clamp(x, WALL + 30, W - WALL - 30);
+    y = clamp(y, WALL + 30, H - WALL - 30);
+    const e = BOSS_TYPES[type] ? new Boss(type, x, y, mul) : new Zombie(type, x, y, mul);
     this.enemies.push(e);
+    return e;
   }
 
   findSpawnPoint() {
@@ -409,6 +422,7 @@ export class Game {
     this.enemies = this.enemies.filter((e) => !e.dead);
 
     this.updateBullets(dt);
+    this.updateHazards(dt);
     this.updatePickups(dt);
     this.updateParticles(dt);
     this.updateDoors(dt);
@@ -468,7 +482,7 @@ export class Game {
         const d = Math.hypot(dx, dy) || 0.01;
         const overlap = a.r + b.r - d;
         if (overlap > 0) {
-          const wa = a.type === 'boss' ? 0 : b.type === 'boss' ? 1 : 0.5;
+          const wa = a.isBoss ? 0 : b.isBoss ? 1 : 0.5;
           a.x -= (dx / d) * overlap * wa; a.y -= (dy / d) * overlap * wa;
           b.x += (dx / d) * overlap * (1 - wa); b.y += (dy / d) * overlap * (1 - wa);
         }
@@ -658,6 +672,8 @@ export class Game {
     if (e.dead) return;
     e.dead = true;
     this.kills++;
+    if (e.onDeath) e.onDeath(this);
+    if (!e.isBoss) sfx.splat();
     this.burst(e.x, e.y, e.color, 12, e.r);
     this.shake(3);
     sfx.kill();
@@ -693,6 +709,122 @@ export class Game {
   dropPickup(kind, x, y) {
     const a = rand(0, Math.PI * 2), s = rand(80, 220);
     this.pickups.push({ kind, x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0, seed: rand(0, 6) });
+  }
+
+  // ═════════════ Ataques especiales de los zombis ═════════════
+
+  // Explosión: daña al jugador y TAMBIÉN a los demás zombis (¡reacciones en cadena!)
+  explode(x, y, radius, dmg, source) {
+    sfx.boom();
+    this.shake(14);
+    for (let i = 0; i < 26; i++) {
+      const a = rand(0, Math.PI * 2), sp = rand(60, 320);
+      const c = ['#ffd23f', '#ff9f1c', '#ff5d3c', '#5d5873'][i % 4];
+      this.particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: rand(6, 14), color: c, life: rand(0.35, 0.7), max: 0.7, outline: true });
+    }
+    this.particles.push({ x, y, vx: 0, vy: 0, r: radius * 0.6, ring: true, color: '#ffd23f', life: 0.35, max: 0.35 });
+    const p = this.player;
+    if (!p.dead && dist(p, { x, y }) <= radius + p.r) p.hurt(dmg, this);
+    for (const e of this.enemies) {
+      if (e === source || !e.active) continue;
+      const d = dist(e, { x, y });
+      if (d <= radius + e.r) e.hurt(dmg, false, (e.x - x) / (d || 1), (e.y - y) / (d || 1), this, 2.2);
+    }
+  }
+
+  // Latigazo de tentáculo: golpea todo lo que haya en la línea marcada
+  tentacleHit(src, angle) {
+    const p = this.player;
+    if (p.dead) return;
+    const ex = Math.cos(angle), ey = Math.sin(angle);
+    const rx = p.x - src.x, ry = p.y - src.y;
+    const along = clamp(rx * ex + ry * ey, 0, TENTACLE.range);
+    const off = Math.hypot(rx - ex * along, ry - ey * along);
+    if (off <= TENTACLE.width + p.r) p.hurt(TENTACLE.dmg, this);
+    this.shake(5);
+  }
+
+  // Moco lanzado en parábola hacia donde estaba el jugador
+  lob(x, y, tx, ty) {
+    tx = clamp(tx, WALL + 30, W - WALL - 30);
+    ty = clamp(ty, WALL + 30, H - WALL - 30);
+    this.lobs.push({ x0: x, y0: y, tx, ty, t: 0 });
+  }
+
+  updateHazards(dt) {
+    const p = this.player;
+    for (const lb of this.lobs) {
+      lb.t += dt;
+      if (lb.t >= POISON.flight) {
+        // ¡splash! deja un charco venenoso
+        lb.done = true;
+        this.hazards.push({ x: lb.tx, y: lb.ty, r: POISON.radius, life: POISON.life, seed: rand(0, 6) });
+        for (let i = 0; i < 8; i++) {
+          const a = rand(0, Math.PI * 2), sp = rand(60, 160);
+          this.particles.push({ x: lb.tx, y: lb.ty, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: rand(3, 6), color: '#9be33b', life: 0.4, max: 0.4, outline: true });
+        }
+        sfx.splat();
+        if (!p.dead && dist(p, { x: lb.tx, y: lb.ty }) < POISON.radius + p.r * 0.5) p.hurt(POISON.hit, this);
+      }
+    }
+    this.lobs = this.lobs.filter((lb) => !lb.done);
+    for (const hz of this.hazards) {
+      hz.life -= dt;
+      // pisar el charco quema poco a poco (la esquiva te deja cruzarlo)
+      if (!p.dead && p.dashT <= 0 && dist(p, hz) < hz.r + p.r * 0.3) p.poison(POISON.dps * dt, this);
+    }
+    this.hazards = this.hazards.filter((hz) => hz.life > 0);
+  }
+
+  drawHazards(ctx) {
+    for (const hz of this.hazards) {
+      const fade = Math.min(1, hz.life / 0.6) * Math.min(1, (POISON.life - hz.life) / 0.15 + 0.3);
+      ctx.save();
+      ctx.globalAlpha = 0.8 * fade;
+      ctx.fillStyle = '#8fd13f';
+      ctx.strokeStyle = '#4f772d';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      for (let i = 0; i <= 12; i++) {
+        const a = (i / 12) * Math.PI * 2;
+        const r = hz.r * (0.85 + Math.sin(a * 3 + hz.seed) * 0.12);
+        ctx.lineTo(hz.x + Math.cos(a) * r, hz.y + Math.sin(a) * r * 0.6);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      // burbujas
+      ctx.fillStyle = '#c7f27a';
+      for (let i = 0; i < 3; i++) {
+        const b = (this.time * 1.5 + i / 3 + hz.seed) % 1;
+        ctx.beginPath();
+        ctx.arc(hz.x + Math.cos(i * 2.1 + hz.seed) * hz.r * 0.45, hz.y + Math.sin(i * 2.1 + hz.seed) * hz.r * 0.25, 2 + b * 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+
+  drawLobs(ctx) {
+    for (const lb of this.lobs) {
+      const k = lb.t / POISON.flight;
+      const gx = lb.x0 + (lb.tx - lb.x0) * k, gy = lb.y0 + (lb.ty - lb.y0) * k;
+      const h = Math.sin(k * Math.PI) * 90;
+      // aviso de dónde caerá
+      ctx.beginPath();
+      ctx.ellipse(lb.tx, lb.ty, POISON.radius * k, POISON.radius * 0.6 * k, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(155, 227, 59, 0.25)';
+      ctx.fill();
+      ctx.fillStyle = 'rgba(20,16,40,0.25)';
+      ctx.beginPath(); ctx.ellipse(gx, gy, 8, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(gx, gy - h, 8, 0, Math.PI * 2);
+      ctx.fillStyle = '#9be33b';
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = OUTLINE;
+      ctx.stroke();
+    }
   }
 
   // ═════════════ Efectos ═════════════
@@ -767,6 +899,7 @@ export class Game {
     drawDoors(ctx, this.room, this.doorOpen);
     const props = this.room.props.filter((pr) => !(pr.kind === 'survivor' && pr.taken));
     for (const pr of props) if (pr.flat) pr.draw(ctx, this);
+    this.drawHazards(ctx);
     for (const pk of this.pickups) drawPickup(ctx, pk, this.time);
 
     // Ordenamos por "y" para que lo de abajo se dibuje delante (falsa profundidad)
@@ -776,6 +909,7 @@ export class Game {
     for (const e of list) e.draw(ctx, this);
 
     for (const b of this.bullets) drawBullet(ctx, b);
+    this.drawLobs(ctx);
     this.drawParticles(ctx);
     for (const t of this.texts) {
       const pop = Math.min(1, t.t / 0.08);

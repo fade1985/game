@@ -44,8 +44,22 @@ Empiezas cada edificio con la **fregona**. Al pasar por encima de un arma del su
 Los golpes cuerpo a cuerpo también **destruyen los proyectiles enemigos**. Las mejoras (daño, velocidad de
 ataque, alcance) multiplican las estadísticas del arma que lleves.
 
-**Modo de pruebas:** añade `?pruebas` a la dirección (por ejemplo `http://localhost:3000/?pruebas`) y todas
-las armas aparecerán en la sala de entrada.
+### 🧟 Zombis
+
+| Zombi | Cómo reconocerlo | Qué hace |
+|---|---|---|
+| Lento | Camisa marrón | Se arrastra despacio; aparecen en grupo |
+| Normal | Camisa azul | Va a por ti a paso normal |
+| Rápido | Pequeño, rubio, chándal rojo | Corre muchísimo pero gira mal: esquívalo y se pasará de largo |
+| Explosivo | Grande, cartuchos rojos y mecha | Al acercarse enciende la mecha (círculo rojo en el suelo) y explota. También explota al morir y daña a otros zombis |
+| Tentáculos | Tentáculos morados en la espalda | Marca una franja roja y, al rato, lanza un latigazo por ella |
+| Venenoso | Verde chillón, con babas | Mantiene la distancia y escupe mocos que dejan un charco que quema al pisarlo |
+
+Los tipos más peligrosos aparecen en las salas más lejanas y en las plantas superiores.
+Todos los ataques especiales avisan antes: ¡muévete o usa la esquiva!
+
+**Modo de pruebas:** añade `?pruebas` a la dirección (por ejemplo `http://localhost:3000/?pruebas`): todas
+las armas aparecerán en la sala de entrada y las teclas **1 a 6** invocan cada tipo de zombi.
 
 ## 🚀 Ejecutar en local
 
@@ -76,7 +90,8 @@ src/
   props.js        → objetos fijos de las salas: pedestal, superviviente, escaleras y armas
   weapons.js      → catálogo de armas (datos) y su dibujo
   aim.js          → controlador de apuntado (automático; el manual irá aquí)
-  entities.js     → jugador, compañeros y enemigos (comportamiento + dibujo)
+  entities.js     → jugador, compañeros y jefes (comportamiento + dibujo)
+  zombies.js      → los 6 tipos de zombi y sus ataques especiales
   render.js       → dibujo de habitaciones, puertas en los 4 lados y minimapa
   draw.js         → ayudas de dibujo: personaje humano, "blobs", ojos, sombras, texto
   upgrades.js     → atributos del jugador y cartas de mejora
