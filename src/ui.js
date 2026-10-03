@@ -1,7 +1,6 @@
 // ─────────────────────────────────────────────
 //  Interfaz en HTML: menús, cartas, pausa y HUD
 // ─────────────────────────────────────────────
-import { RARITY_LABEL } from './upgrades.js';
 import { weaponSummary } from './weapons.js';
 import { toggleMute } from './sfx.js';
 
@@ -37,15 +36,6 @@ export function createUI(root) {
     keyHandler = null;
   }
 
-  const cardHTML = (c, i, extra = '') => `
-    <button class="card ${c.rarity || 'common'}" data-act="pick" data-arg="${i}" style="--i:${i}">
-      <div class="rar">${RARITY_LABEL[c.rarity || 'common']}</div>
-      <div class="icon">${c.icon}</div>
-      <div class="name">${c.name}</div>
-      <div class="desc">${c.desc}</div>
-      ${extra}
-    </button>`;
-
   // ═════════════ HUD ═════════════
   const cache = {};
   function set(key, el, value, prop = 'textContent') {
@@ -74,7 +64,7 @@ export function createUI(root) {
       set('hpt', $('.hpbar span'), `${Math.ceil(p.hp)} / ${Math.round(g.stats.maxHp)}`);
       const w = g.player.weapon;
       set('weapon', $('#pill-weapon'), `${w.icon} <b>${w.name}</b>`, 'innerHTML');
-      set('team', $('#hud-team'), String(g.allies.length));
+      set('team', $('#hud-team'), g.allies.map((al) => al.def.icon).join(''));
       set('teamShow', $('#pill-team'), g.allies.length === 0, 'hidden');
     },
 
@@ -98,33 +88,34 @@ export function createUI(root) {
       'clear');
     },
 
-    showCards(cards, title, onPick) {
-      const picked = (i) => { if (cards[i]) onPick(cards[i]); };
-      open(`
-        <h2 class="title">${title}</h2>
-        <div class="cards">${cards.map((c, i) => cardHTML(c, i, `<kbd>${i + 1}</kbd>`)).join('')}</div>`,
-      { pick: (i) => picked(Number(i)) },
-      (e) => { const n = Number(e.key); if (n >= 1 && n <= cards.length) picked(n - 1); });
-    },
-
     showPause(g, { resume, quit }) {
       const s = g.stats;
       const stat = (icon, name, val) => `<div class="stat"><span>${icon} ${name}</span><b>${val}</b></div>`;
+      const list = (title, rows, empty) => `
+        <div class="plist"><div class="plist-title">${title}</div>
+          ${rows.length ? rows.map((r) => `<div class="plist-row">${r}</div>`).join('') : `<div class="plist-row empty">${empty}</div>`}
+        </div>`;
       open(`
         <div class="panel pause">
           <h2 class="title">Pausa</h2>
           <p class="sub">${g.building.icon} ${g.building.name} · Planta ${g.floorNum}</p>
-          <div class="stats">
-            ${stat(g.player.weapon.icon, g.player.weapon.name, weaponSummary(g.player.weapon))}
-            ${stat('❤️', 'Vida', `${Math.ceil(g.player.hp)} / ${Math.round(s.maxHp)}`)}
-            ${stat('💪', 'Daño', `x${s.damage.toFixed(2)}`)}
-            ${stat('⚡', 'Velocidad de ataque', `x${s.fireRate.toFixed(2)}`)}
-            ${stat('🔭', 'Alcance', `x${s.range.toFixed(2)}`)}
-            ${stat('👟', 'Velocidad', Math.round(s.speed))}
-            ${stat('🎯', 'Crítico', `${Math.round(s.crit * 100)}%`)}
-            ${stat('👥', 'Equipo', g.allies.map((a) => `${a.def.icon} ${a.def.name}`).join(', ') || 'Nadie todavía')}
+          <div class="pause-grid">
+            <div class="stats">
+              ${stat('❤️', 'Vida', `${Math.ceil(g.player.hp)} / ${Math.round(s.maxHp)}`)}
+              ${stat('💪', 'Daño', `x${s.damage.toFixed(2)}`)}
+              ${stat('⚡', 'Velocidad de ataque', `x${s.fireRate.toFixed(2)}`)}
+              ${stat('🔭', 'Alcance', `x${(s.range * (g.player.weapon.type === 'melee' ? s.meleeRange : 1)).toFixed(2)}`)}
+              ${stat('👟', 'Velocidad', Math.round(s.speed))}
+              ${stat('⛑️', 'Daño recibido', `x${s.damageTaken.toFixed(2)}`)}
+              ${stat('🎯', 'Crítico', `${Math.round(s.crit * 100)}%`)}
+            </div>
+            <div>
+              ${list('🗡️ Arma', [`${g.player.weapon.icon} <b>${g.player.weapon.name}</b> · ${weaponSummary(g.player.weapon)}`], '')}
+              ${list('🎒 Objetos', g.items.map((it) => `${it.icon} <b>${it.name}</b> · ${it.desc}`), 'Ninguno todavía')}
+              ${list('👥 Equipo', g.allies.map((al) => `${al.def.icon} <b>${al.def.name}</b> · ${al.def.desc}`), 'Nadie todavía: ¡rescata supervivientes!')}
+            </div>
           </div>
-          <div class="col">
+          <div class="row-btns">
             <button class="btn yellow" data-act="resume">▶ Continuar</button>
             <button class="btn pink small" data-act="quit">Abandonar partida</button>
           </div>

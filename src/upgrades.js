@@ -1,39 +1,26 @@
 // ─────────────────────────────────────────────
-//  Atributos del jugador y cartas de mejora
-//  (las cartas se reutilizarán de forma provisional en la sala de objeto, fase 2)
+//  Atributos del jugador y objetos de las salas de objeto
 // ─────────────────────────────────────────────
-import { MAX_ALLIES } from './config.js';
 
-export const CARDS = [
-  { id: 'fuerza',   icon: '💪', name: 'Fuerza',          desc: '+25% de daño',                         rarity: 'common', apply: (g) => { g.stats.damage *= 1.25; } },
-  { id: 'cadencia', icon: '⚡', name: 'Gatillo rápido',  desc: '+20% velocidad de ataque',             rarity: 'common', apply: (g) => { g.stats.fireRate *= 1.2; } },
-  { id: 'botas',    icon: '👟', name: 'Zapatillas',      desc: '+12% velocidad de movimiento',         rarity: 'common', apply: (g) => { g.stats.speed *= 1.12; } },
-  { id: 'corazon',  icon: '❤️', name: 'Corazón grande',  desc: '+20 vida máxima y te cura 20',         rarity: 'common', apply: (g) => { g.stats.maxHp += 20; g.healPlayer(20); } },
-  { id: 'alcance',  icon: '🔭', name: 'Catalejo',        desc: '+20% de alcance de tus armas',         rarity: 'common', apply: (g) => { g.stats.range *= 1.2; g.stats.bulletSpeed *= 1.15; } },
-  { id: 'critico',  icon: '🎯', name: 'Ojo de halcón',   desc: '+10% de probabilidad de crítico (x2)', rarity: 'rare',   apply: (g) => { g.stats.crit += 0.1; } },
-  { id: 'perfora',  icon: '🗡️', name: 'Perforante',      desc: 'Tus balas atraviesan +1 enemigo (armas a distancia)', rarity: 'rare',   apply: (g) => { g.stats.pierce += 1; } },
-  { id: 'vampiro',  icon: '🧛', name: 'Colmillos',       desc: 'Te curas 2 por cada enemigo eliminado', rarity: 'rare',  apply: (g) => { g.stats.lifesteal += 2; } },
-  { id: 'multi',    icon: '🔱', name: 'Multidisparo',    desc: '+1 proyectil por disparo (armas a distancia)', rarity: 'epic',   apply: (g) => { g.stats.shots += 1; } },
+// Objetos que aparecen en los pedestales. Para añadir uno nuevo, copia una
+// línea: `apply` recibe el juego y modifica sus atributos (g.stats).
+export const ITEMS = [
+  { id: 'zapatillas', icon: '👟', name: 'Zapatillas', desc: '+15% de velocidad de movimiento',     apply: (g) => { g.stats.speed *= 1.15; } },
+  { id: 'proteinas',  icon: '🥤', name: 'Proteínas',  desc: '+20% de daño',                        apply: (g) => { g.stats.damage *= 1.2; } },
+  { id: 'botiquin',   icon: '🩹', name: 'Botiquín',   desc: '+25 de vida máxima (y te cura 25)',   apply: (g) => { g.stats.maxHp += 25; g.healPlayer(25); } },
+  { id: 'cafe',       icon: '☕', name: 'Café',       desc: '+20% de velocidad de ataque',         apply: (g) => { g.stats.fireRate *= 1.2; } },
+  { id: 'guantes',    icon: '🧤', name: 'Guantes',    desc: '+25% de alcance cuerpo a cuerpo',     apply: (g) => { g.stats.meleeRange *= 1.25; } },
+  { id: 'casco',      icon: '⛑️', name: 'Casco',      desc: 'Recibes un 15% menos de daño',        apply: (g) => { g.stats.damageTaken *= 0.85; } },
 ];
 
-export const RARITY_LABEL = { common: 'Común', rare: 'Rara', epic: 'Épica' };
-
-// Saca n cartas al azar sin repetir. `luck` aumenta la probabilidad de rarezas.
-export function rollCards(g, n = 3, luck = 0) {
-  const weight = { common: 10, rare: 3.5 + luck * 3, epic: 1 + luck * 2 };
-  const avail = CARDS.filter((c) => !c.canAppear || c.canAppear(g));
-  const out = [];
-  while (out.length < n && avail.length) {
-    const total = avail.reduce((s, c) => s + weight[c.rarity], 0);
-    let r = Math.random() * total;
-    let i = 0;
-    for (; i < avail.length - 1; i++) {
-      r -= weight[avail[i].rarity];
-      if (r <= 0) break;
-    }
-    out.push(avail.splice(i, 1)[0]);
-  }
-  return out;
+// Elige un objeto que todavía no haya salido en esta partida (si ya salieron
+// todos, puede repetirse alguno)
+export function rollItem(seen) {
+  const fresh = ITEMS.filter((it) => !seen.has(it.id));
+  const pool = fresh.length ? fresh : ITEMS;
+  const item = pool[Math.floor(Math.random() * pool.length)];
+  seen.add(item.id);
+  return item;
 }
 
 // Estadísticas iniciales al empezar un edificio
@@ -44,14 +31,15 @@ export function baseStats() {
     damage: 1,           // x daño del arma
     fireRate: 1,         // x velocidad de ataque del arma
     range: 1,            // x alcance del arma
+    meleeRange: 1,       // x alcance extra de las armas cuerpo a cuerpo
     bulletSpeed: 1,      // x velocidad de las balas
     shots: 0,            // proyectiles extra (armas a distancia)
     pierce: 0,
     crit: 0.05,
+    damageTaken: 1,      // x daño que recibes (menos es mejor)
     speed: 210,
     magnet: 120,         // radio en el que los corazones vienen hacia ti
     teamDamage: 1,
     lifesteal: 0,
-    maxAllies: MAX_ALLIES,
   };
 }

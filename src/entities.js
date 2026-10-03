@@ -5,7 +5,7 @@ import { W, H, WALL, OUTLINE, PLAYER_LOOK } from './config.js';
 import { rand } from './utils.js';
 import { blob, eyes, shadow, drawHuman } from './draw.js';
 import { sfx } from './sfx.js';
-import { WEAPONS, drawWeapon } from './weapons.js';
+import { WEAPONS, RIFLE, drawHeld } from './weapons.js';
 import { autoAim } from './aim.js';
 
 const TAU = Math.PI * 2;
@@ -113,10 +113,10 @@ export class Player {
         dur: Math.min(0.2, 0.7 / (w.rate * s.fireRate)),
         from: angle - half * this.swingDir,
         to: angle + half * this.swingDir,
-        reach: w.reach * s.range,
+        reach: w.reach * s.range * s.meleeRange,
       };
       this.swingDir *= -1;
-      game.meleeHit(this, angle, half, w.reach * s.range, w.damage * s.damage, w);
+      game.meleeHit(this, angle, half, w.reach * s.range * s.meleeRange, w.damage * s.damage, w);
       sfx.swing();
     } else {
       // Disparo desde la boca del arma
@@ -166,6 +166,7 @@ export class Player {
   // Daño continuo del veneno: no da invulnerabilidad ni retroceso
   poison(amount, game) {
     if (this.dead) return;
+    amount *= this.stats.damageTaken;
     this.hp -= amount;
     this.poisonAcc = (this.poisonAcc || 0) + amount;
     if (this.poisonAcc >= 2) {
@@ -182,6 +183,7 @@ export class Player {
 
   hurt(dmg, game) {
     if (this.invuln > 0 || this.dead) return;
+    dmg = Math.max(1, Math.round(dmg * this.stats.damageTaken)); // el casco reduce el daño
     this.hp -= dmg;
     this.invuln = 0.9;
     this.hurtT = 0.12;
@@ -231,35 +233,12 @@ export class Player {
 
   drawArm(ctx, a) {
     const h = this.handPos(a);
-    const back = this.recoil * 6;
-    ctx.save();
-    ctx.translate(h.x - Math.cos(a) * back, h.y - Math.sin(a) * back);
-    ctx.rotate(a);
-    if (Math.cos(a) < 0) ctx.scale(1, -1); // que las pistolas no queden boca abajo
-    drawWeapon(ctx, this.weapon);
-    if (this.muzzleT > 0 && this.weapon.type === 'ranged') {
-      const mx = this.weapon.muzzle + 6;
-      ctx.beginPath();
-      for (let i = 0; i < 10; i++) {
-        const r = i % 2 ? 4 : 11, t = (i / 10) * TAU;
-        ctx.lineTo(mx + Math.cos(t) * r, Math.sin(t) * r);
-      }
-      ctx.closePath();
-      ctx.fillStyle = '#ffd23f';
-      ctx.fill();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = '#ff9f1c';
-      ctx.stroke();
-    }
-    ctx.restore();
-    // la mano encima de la empuñadura
-    ctx.beginPath();
-    ctx.arc(h.x - Math.cos(a) * back, h.y - Math.sin(a) * back, 4.5, 0, TAU);
-    ctx.fillStyle = this.hurtT > 0 ? '#ffffff' : PLAYER_LOOK.skin;
-    ctx.fill();
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = OUTLINE;
-    ctx.stroke();
+    drawHeld(ctx, this.weapon, h.x, h.y, a, {
+      skin: PLAYER_LOOK.skin,
+      recoil: this.recoil,
+      muzzle: this.muzzleT > 0,
+      flash: this.hurtT > 0,
+    });
   }
 
   // Estela del barrido: un abanico que se desvanece
@@ -287,18 +266,29 @@ export class Player {
 }
 
 // ═════════════ COMPAÑEROS (el "equipo") ═════════════
-// `def` es uno de los supervivientes de config.js (policía, médica, militar...)
+// `def` es uno de los supervivientes de config.js. Su habilidad (`def.ability`)
+// decide qué hace: disparar (policía, militar) o curar (médica).
+const ALLY_S = 0.82; // escala del dibujo de los compañeros
+
 export class Ally {
   constructor(def, x, y) {
     this.def = def;
+    this.ab = def.ability;
     this.color = def.color;
     this.x = x; this.y = y;
     this.r = 14;
     this.vx = 0; this.vy = 0;
     this.idx = 0;
-    this.fireT = rand(0, 0.6);
     this.lookX = 0; this.lookY = 1;
     this.walkT = rand(0, 6);
+    this.abT = rand(0.4, this.ab.every); // tiempo hasta usar la habilidad
+    this.burstLeft = 0;                  // balas que quedan de la ráfaga
+    this.burstT = 0;
+    this.aimAngle = Math.PI / 2;
+    this.recoil = 0;
+    this.muzzleT = 0;
+    this.healFx = 0;                     // destello de curación
+    this.weapon = this.ab.weapon === 'rifle' ? RIFLE : this.ab.weapon ? WEAPONS[this.ab.weapon] : null;
   }
 
   update(dt, game) {
@@ -316,35 +306,125 @@ export class Ally {
     game.collideWorld(this);
     const sp = Math.hypot(this.vx, this.vy);
     this.walkT += dt * (sp > 20 ? 4 + sp / 22 : 0);
-    if (sp > 20) { this.lookX = this.vx / sp; this.lookY = this.vy / sp; }
+    if (sp > 20) {
+      this.lookX = this.vx / sp; this.lookY = this.vy / sp;
+      this.aimAngle = Math.atan2(this.lookY, this.lookX);
+    }
+    this.recoil = Math.max(0, this.recoil - dt * 10);
+    this.muzzleT -= dt;
+    this.healFx -= dt;
 
     if (game.state !== 'playing') return;
-    // De momento todos disparan igual; en la fase 5 cada uno tendrá su papel
-    this.fireT -= dt;
-    const s = game.stats;
-    const target = game.nearestEnemy(this.x, this.y, 380);
-    if (target) {
-      const a = Math.atan2(target.y - this.y, target.x - this.x);
-      this.lookX = Math.cos(a); this.lookY = Math.sin(a);
-      if (this.fireT <= 0) {
-        this.fireT = 1 / 1.2;
-        game.fireVolley(this, a, { dmg: 5 * s.teamDamage, color: this.color, r: 6 });
+    const ab = this.ab;
+    this.abT -= dt;
+    if (ab.kind === 'shoot') {
+      const target = game.nearestEnemy(this.x, this.y, 400);
+      if (target) {
+        this.aimAngle = Math.atan2(target.y - this.y, target.x - this.x);
+        this.lookX = Math.cos(this.aimAngle); this.lookY = Math.sin(this.aimAngle);
+        if (this.abT <= 0 && this.burstLeft === 0) {
+          this.burstLeft = ab.burst;
+          this.burstT = 0;
+          this.abT = ab.every;
+        }
+      }
+      if (this.burstLeft > 0) {
+        this.burstT -= dt;
+        if (this.burstT <= 0) {
+          if (target) this.fire(game);
+          this.burstLeft--;
+          this.burstT = ab.gap || 0;
+        }
+      }
+    } else if (ab.kind === 'heal') {
+      if (this.abT <= 0) {
+        this.abT = ab.every;
+        if (!p.dead && p.hp < game.stats.maxHp) this.heal(game, ab.amount);
       }
     }
   }
 
-  draw(ctx) {
+  fire(game) {
+    const a = this.aimAngle;
+    const h = this.handPos(a);
+    game.fireVolley(this, a, {
+      dmg: this.ab.dmg * game.stats.teamDamage,
+      color: this.color,
+      r: 6,
+      speed: 620,
+      jitter: this.ab.burst > 1 ? 0.08 : 0,
+      x: h.x + Math.cos(a) * this.weapon.muzzle * ALLY_S,
+      y: h.y + Math.sin(a) * this.weapon.muzzle * ALLY_S,
+    });
+    this.recoil = 1;
+    this.muzzleT = 0.05;
+    game.casing(h.x, h.y, a);
+    sfx.allyGun();
+  }
+
+  heal(game, amount) {
+    game.healPlayer(amount);
+    this.healFx = 0.45;
+    sfx.heal();
+    const p = game.player;
+    for (let i = 0; i < 6; i++) {
+      const a = rand(0, TAU);
+      game.particles.push({ x: p.x + Math.cos(a) * 16, y: p.y + Math.sin(a) * 12, vx: Math.cos(a) * 40, vy: -rand(40, 90), r: rand(3, 5), color: '#80ed99', life: 0.6, max: 0.6, outline: true });
+    }
+  }
+
+  // El juego avisa a cada compañero cuando se limpia una sala
+  onRoomCleared(game) {
+    const p = game.player;
+    if (this.ab.onClear && !p.dead && p.hp < game.stats.maxHp) this.heal(game, this.ab.onClear);
+  }
+
+  handPos(a) {
+    return { x: this.x + Math.cos(a) * 11, y: this.y + 2 + Math.sin(a) * 7.5 };
+  }
+
+  draw(ctx, game) {
+    // rayo de curación de la médica
+    if (this.healFx > 0 && game) {
+      const p = game.player;
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, this.healFx / 0.2);
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y - 10);
+      ctx.lineTo(p.x, p.y - 10);
+      ctx.lineCap = 'round';
+      ctx.lineWidth = 8;
+      ctx.strokeStyle = 'rgba(128, 237, 153, 0.5)';
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(p.x, p.y + 4, 26 + (0.45 - this.healFx) * 30, 0, TAU);
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#80ed99';
+      ctx.stroke();
+      ctx.restore();
+    }
+
     const sp = Math.hypot(this.vx, this.vy);
+    const a = this.aimAngle;
+    const behind = this.weapon && Math.sin(a) < -0.3;
+    if (behind) this.drawArm(ctx, a);
     drawHuman(ctx, this.x, this.y, {
       ...this.def.look,
-      s: 0.82,
+      s: ALLY_S,
       lookX: this.lookX,
       lookY: this.lookY,
       moveX: sp > 1 ? this.vx / sp : 0,
       moveY: sp > 1 ? this.vy / sp : 0,
       moving: Math.min(1, sp / 150),
       walk: this.walkT,
+      hideHand: this.weapon ? 1 : 0,
     });
+    if (this.weapon && !behind) this.drawArm(ctx, a);
+  }
+
+  drawArm(ctx, a) {
+    const h = this.handPos(a);
+    drawHeld(ctx, this.weapon, h.x, h.y, a, { skin: this.def.look.skin, recoil: this.recoil, muzzle: this.muzzleT > 0, scale: ALLY_S });
   }
 }
 

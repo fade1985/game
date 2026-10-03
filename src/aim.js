@@ -17,7 +17,7 @@ export const autoAim = {
     if (!target) return null;
     const angle = Math.atan2(target.y - player.y, target.x - player.x);
     const gap = Math.hypot(target.x - player.x, target.y - player.y) - target.r;
-    const attack = weapon.type === 'melee' ? gap <= weapon.reach * stats.range : true;
+    const attack = weapon.type === 'melee' ? gap <= weapon.reach * stats.range * stats.meleeRange : true;
     return { angle, attack };
   },
 };

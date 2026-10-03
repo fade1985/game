@@ -8,12 +8,12 @@ import { Player, Ally, Boss, BOSS_TYPES } from './entities.js';
 import { Zombie, POISON, TENTACLE } from './zombies.js';
 import { generateFloor, neighbour } from './floor.js';
 import { makeRoomLayout, ROOM_TYPES } from './rooms.js';
-import { baseStats, rollCards } from './upgrades.js';
+import { baseStats, rollItem } from './upgrades.js';
 import { Pedestal, SurvivorNPC, Stairs, WeaponProp } from './props.js';
 import { WEAPONS, randomWeapon, weaponSummary } from './weapons.js';
 import { loadSave, writeSave } from './save.js';
 import { drawRoom, drawDoors, drawPickup, drawBullet, drawMinimap } from './render.js';
-import { outlinedText } from './draw.js';
+import { outlinedText, roundBox } from './draw.js';
 import { getMoveVector, consumeDash, clearInput } from './input.js';
 import { sfx } from './sfx.js';
 
@@ -96,6 +96,8 @@ export class Game {
     this.fade = null;
     // orden en que aparecerán los supervivientes en este edificio
     this.survivorOrder = shuffle(Object.values(SURVIVORS));
+    this.items = [];            // objetos conseguidos
+    this.itemsSeen = new Set(); // objetos que ya han salido (para no repetir)
     this.state = 'playing';
     this.paused = false;
     clearInput();
@@ -117,7 +119,7 @@ export class Game {
       if (r.type === 'item') {
         // 25 % de las veces la sala de objeto guarda un arma
         if (Math.random() < 0.25) r.props.push(new WeaponProp(randomWeapon(this.player.weapon.id), W / 2, H / 2));
-        else r.props.push(new Pedestal(rollCards(this, 1, 0.6)[0]));
+        else r.props.push(new Pedestal(rollItem(this.itemsSeen)));
       }
       if (r.type === 'survivor') {
         const def = this.survivorOrder[(this.floorNum - 1) % this.survivorOrder.length];
@@ -268,6 +270,7 @@ export class Game {
 
   roomCleared() {
     this.room.cleared = true;
+    for (const a of this.allies) if (a.onRoomCleared) a.onRoomCleared(this);
     sfx.clear();
     this.floatText(this.player.x, this.player.y - 50, '¡Despejada!', '#80ed99', 24);
     this.later(0.25, () => sfx.door());
@@ -298,13 +301,14 @@ export class Game {
       if (pr.kind === 'pedestal') {
         pr.taken = true;
         pr.item.apply(this);
+        this.items.push(pr.item);
         this.banner = { title: `${pr.item.icon} ${pr.item.name}`, sub: pr.item.desc, t: 0 };
         this.burst(pr.x, pr.y - 40, '#ffd23f', 14, 20);
         sfx.buy();
       } else if (pr.kind === 'survivor' && this.room.cleared) {
         pr.taken = true;
         this.addAlly(pr.def, pr.x, pr.y);
-        this.banner = { title: `${pr.def.icon} ¡${pr.def.name} se une!`, sub: 'Te seguirá y luchará a tu lado', t: 0 };
+        this.banner = { title: `${pr.def.icon} ¡${pr.def.name} se une!`, sub: pr.def.desc, t: 0 };
         this.burst(pr.x, pr.y, pr.def.color, 14, 16);
         sfx.clear();
       } else if (pr.kind === 'weapon' && pr.armed) {
@@ -881,6 +885,7 @@ export class Game {
     }
 
     if (this.state !== 'menu' && this.floor) {
+      this.drawItemBar(ctx);
       drawMinimap(ctx, this.floor, this.room, `PLANTA ${this.floorNum}/${this.building.floors}`, this.time);
     }
     this.drawBossBar(ctx);
@@ -937,6 +942,19 @@ export class Game {
       }
     }
     ctx.globalAlpha = 1;
+  }
+
+  // Objetos conseguidos, arriba a la izquierda (sobre el muro)
+  drawItemBar(ctx) {
+    if (!this.items || !this.items.length) return;
+    const x0 = 16, y0 = 12, size = 30;
+    roundBox(ctx, x0 - 6, y0 - 4, this.items.length * (size + 4) + 8, size + 8, 10, 'rgba(29, 27, 44, 0.7)', 3);
+    this.items.forEach((it, i) => {
+      ctx.font = `${size - 8}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(it.icon, x0 + i * (size + 4) + size / 2, y0 + size / 2 + 1);
+    });
   }
 
   // Barra de vida de jefes y mini jefes

@@ -20,13 +20,35 @@ muestra lo explorado y los iconos de las salas especiales:
 | Sala | Qué hay |
 |---|---|
 | 🧟 Monstruos | Oleadas de enemigos |
-| 🎁 Objeto | Un pedestal con una mejora: pásale por encima para cogerla |
-| 🙋 Superviviente | Limpia la sala y acércate para que se una a tu equipo (policía, médica o militar) |
+| 🎁 Objeto | Un pedestal con un objeto (o, a veces, un arma): pásale por encima para cogerlo |
+| 🙋 Superviviente | Limpia la sala y acércate para que se una a tu equipo |
 | 👹 Mini jefe | Uno por planta. Al derrotarlo aparecen las **escaleras** a la siguiente planta |
 | 👑 Jefe final | En la última planta, detrás del mini jefe. Derrótalo para completar el edificio |
 
 Las puertas que llevan a salas especiales tienen el marco de color y un icono al lado.
 Los atributos y el equipo se conservan entre plantas; si caes, vuelves a empezar el edificio.
+
+### 🎒 Objetos
+
+Cada planta tiene una sala de objeto con un pedestal (no se repiten en la misma partida). Los que llevas se
+ven arriba a la izquierda y en la pausa.
+
+| Objeto | Efecto |
+|---|---|
+| 👟 Zapatillas | +15 % de velocidad de movimiento |
+| 🥤 Proteínas | +20 % de daño |
+| 🩹 Botiquín | +25 de vida máxima (y te cura 25) |
+| ☕ Café | +20 % de velocidad de ataque |
+| 🧤 Guantes | +25 % de alcance cuerpo a cuerpo |
+| ⛑️ Casco | Recibes un 15 % menos de daño |
+
+### 👥 Supervivientes
+
+| Superviviente | Habilidad |
+|---|---|
+| 👮 Policía | Dispara con su pistola cada 1,2 s (5 de daño) |
+| 🧑‍⚕️ Médica | No ataca: te cura 3 cada 8 s y 15 al limpiar cada sala |
+| 🪖 Militar | Ráfagas de 3 balas cada 2,5 s (6 de daño cada una) |
 
 ### 🧹 Armas
 
@@ -94,8 +116,8 @@ src/
   zombies.js      → los 6 tipos de zombi y sus ataques especiales
   render.js       → dibujo de habitaciones, puertas en los 4 lados y minimapa
   draw.js         → ayudas de dibujo: personaje humano, "blobs", ojos, sombras, texto
-  upgrades.js     → atributos del jugador y cartas de mejora
-  ui.js           → menús en HTML (cartas, pausa, fin) y HUD
+  upgrades.js     → atributos del jugador y objetos
+  ui.js           → menús en HTML (inicio, pausa, fin) y HUD
   input.js        → teclado + joystick táctil
   sfx.js          → sonidos generados con Web Audio (sin archivos)
   save.js         → guardado en localStorage

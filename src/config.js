@@ -53,18 +53,26 @@ export const APARTMENT_STYLES = [
   { name: 'Baño',       floor: 'tiles',   floorA: '#d7efe6', floorB: '#b9e0d3', seam: '#94c7b6', wall: '#bfe0f2', stripe: '#aed5ec', trim: '#4f86a8', rug: null },
 ];
 
-// Supervivientes que se pueden rescatar (en la fase 5 tendrán habilidades propias)
+// Supervivientes que se pueden rescatar. `ability` define lo que hace cada uno:
+//   shoot: dispara `burst` balas de `dmg` cada `every` segundos
+//   heal:  cura `amount` cada `every` segundos y `onClear` al limpiar una sala
 export const SURVIVORS = {
   policia: {
     id: 'policia', name: 'Policía', icon: '👮', color: '#6fa8ff',
+    desc: 'Dispara con su pistola cada 1,2 s',
+    ability: { kind: 'shoot', every: 1.2, dmg: 5, burst: 1, weapon: 'pistola' },
     look: { skin: '#f1c27d', hair: '#2b2b2b', shirt: '#3d63c9', pants: '#22336b', shoes: '#1d1b2c', hat: { kind: 'cap', color: '#22336b' } },
   },
   medico: {
     id: 'medico', name: 'Médica', icon: '🧑‍⚕️', color: '#80ed99',
+    desc: 'Te cura 3 cada 8 s y 15 al limpiar cada sala',
+    ability: { kind: 'heal', every: 8, amount: 3, onClear: 15 },
     look: { skin: '#ffd2a8', hair: '#c0392b', shirt: '#ffffff', pants: '#7fd1c7', shoes: '#3b3550', cross: true },
   },
   militar: {
     id: 'militar', name: 'Militar', icon: '🪖', color: '#c9e265',
+    desc: 'Lanza ráfagas de 3 balas cada 2,5 s',
+    ability: { kind: 'shoot', every: 2.5, dmg: 6, burst: 3, gap: 0.1, weapon: 'rifle' },
     look: { skin: '#c68642', hair: '#3b2a1a', shirt: '#6b8e23', pants: '#4b5320', shoes: '#2e2a1f', hat: { kind: 'helmet', color: '#556b2f' } },
   },
 };

@@ -12,6 +12,8 @@
 // ─────────────────────────────────────────────
 import { OUTLINE } from './config.js';
 
+const TAU = Math.PI * 2;
+
 export const WEAPONS = {
   fregona: {
     id: 'fregona', name: 'Fregona', icon: '🧹', type: 'melee',
@@ -34,6 +36,9 @@ export const WEAPONS = {
     damage: 7, rate: 1, range: 260, speed: 540, pellets: 5, spread: 0.55, knock: 1.2, muzzle: 38,
   },
 };
+
+// Fusil del militar (no se puede recoger: solo lo lleva él)
+export const RIFLE = { id: 'rifle', name: 'Fusil', type: 'ranged', muzzle: 34 };
 
 // Arma al azar (para los botines), evitando la fregona y la que ya llevas
 export function randomWeapon(exclude) {
@@ -92,6 +97,15 @@ export function drawWeapon(ctx, w) {
       ctx.fillStyle = '#2f3240'; ctx.fill(); ctx.stroke();
       break;
     }
+    case 'rifle': {
+      ctx.beginPath(); ctx.roundRect(-8, -4, 16, 8, 3);
+      ctx.fillStyle = '#4b5320'; ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.roundRect(6, -3, 28, 6, 2);
+      ctx.fillStyle = '#3a3d47'; ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.roundRect(10, 2, 5, 9, 2);
+      ctx.fillStyle = '#2f3240'; ctx.fill(); ctx.stroke();
+      break;
+    }
     case 'escopeta': {
       ctx.beginPath(); ctx.roundRect(-8, -4, 18, 9, 3);
       ctx.fillStyle = '#8b5a3c'; ctx.fill(); ctx.stroke();
@@ -102,4 +116,40 @@ export function drawWeapon(ctx, w) {
       break;
     }
   }
+}
+
+// Arma sujeta en la mano: (hx, hy) es la mano, `a` el ángulo.
+// La usan el jugador y los compañeros armados.
+export function drawHeld(ctx, w, hx, hy, a, { skin, recoil = 0, muzzle = false, flash = false, scale = 1 }) {
+  const back = recoil * 6;
+  const x = hx - Math.cos(a) * back, y = hy - Math.sin(a) * back;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(a);
+  ctx.scale(scale, scale);
+  if (Math.cos(a) < 0) ctx.scale(1, -1); // que las pistolas no queden boca abajo
+  drawWeapon(ctx, w);
+  if (muzzle && w.type === 'ranged') {
+    const mx = w.muzzle + 6;
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const r = i % 2 ? 4 : 11, t = (i / 10) * TAU;
+      ctx.lineTo(mx + Math.cos(t) * r, Math.sin(t) * r);
+    }
+    ctx.closePath();
+    ctx.fillStyle = '#ffd23f';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#ff9f1c';
+    ctx.stroke();
+  }
+  ctx.restore();
+  // la mano encima de la empuñadura
+  ctx.beginPath();
+  ctx.arc(x, y, 4.5 * scale, 0, TAU);
+  ctx.fillStyle = flash ? '#ffffff' : skin;
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = OUTLINE;
+  ctx.stroke();
 }
