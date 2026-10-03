@@ -71,8 +71,8 @@ export const SURVIVORS = {
   },
   medico: {
     id: 'medico', name: 'Médica', icon: '🧑‍⚕️', color: '#80ed99',
-    desc: 'Te cura 3 cada 8 s y 15 al limpiar cada sala',
-    ability: { kind: 'heal', every: 8, amount: 3, onClear: 15 },
+    desc: 'Te cura 3 cada 8 s y 10 al limpiar cada sala',
+    ability: { kind: 'heal', every: 8, amount: 3, onClear: 10 },
     look: { skin: '#ffd2a8', hair: '#c0392b', shirt: '#ffffff', pants: '#7fd1c7', shoes: '#3b3550', cross: true },
   },
   militar: {

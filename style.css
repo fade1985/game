@@ -237,6 +237,15 @@ canvas {
 .wrow .btn { min-width: 4.6em; }
 .end.lose .title { color: var(--pink); }
 
+/* En móvil el juego ocupa casi toda la pantalla (bordes más finos) */
+body.touch #game-wrap {
+  width: min(100vw, calc(98vh * 1.5));
+  width: min(100vw, calc(98dvh * 1.5));
+  border-width: 3px;
+  border-radius: 14px;
+  box-shadow: 0 4px 0 var(--ink);
+}
+
 /* ═════════════ HUD ═════════════ */
 #hud {
   position: absolute;

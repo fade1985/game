@@ -50,6 +50,24 @@ export function drawRoom(ctx, room, time) {
     ctx.setLineDash([]);
   }
 
+  // manchas de los zombis derrotados en esta sala
+  for (const d of room.decals || []) {
+    ctx.globalAlpha = 0.35;
+    ctx.fillStyle = d.color;
+    ctx.beginPath();
+    for (let i = 0; i <= 10; i++) {
+      const a = (i / 10) * TAU;
+      const r = d.r * (0.75 + 0.3 * Math.sin(a * 3 + d.seed));
+      ctx.lineTo(d.x + Math.cos(a) * r, d.y + Math.sin(a) * r * 0.65);
+    }
+    ctx.fill();
+    for (let i = 0; i < 3; i++) {
+      const a = d.seed + i * 2.1;
+      ctx.beginPath(); ctx.arc(d.x + Math.cos(a) * d.r * 1.3, d.y + Math.sin(a) * d.r * 0.8, d.r * 0.18, 0, TAU); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
   // motas de polvo / desgaste
   ctx.fillStyle = 'rgba(29, 27, 44, 0.08)';
   for (const d of decor) {

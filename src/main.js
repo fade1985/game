@@ -4,13 +4,16 @@
 import { Game } from './game.js';
 import { createUI } from './ui.js';
 import { initInput } from './input.js';
-import { unlockAudio } from './sfx.js';
+import { unlockAudio, setMusicOn } from './sfx.js';
+import { loadSave } from './save.js';
 
 const root = document.getElementById('game-wrap');
 const canvas = document.getElementById('game');
 const touchUI = document.getElementById('touch-ui');
 
 if (window.matchMedia('(pointer: coarse)').matches) document.body.classList.add('touch');
+
+setMusicOn(loadSave().settings.music);
 
 const ui = createUI(root);
 const game = new Game(canvas, ui);

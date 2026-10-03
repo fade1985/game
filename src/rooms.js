@@ -94,7 +94,7 @@ export function makeRoomWaves(room, floorNum) {
 
 // Oleadas: el presupuesto crece cuanto más lejos está la sala de la entrada
 export function makeWaves(depth, floorNum = 1) {
-  const level = depth + (floorNum - 1) * 2;
+  const level = depth + Math.round((floorNum - 1) * 2.5);
   // Los tipos más peligrosos van apareciendo según se avanza
   const pool = ['lento', 'normal'];
   if (level >= 2) pool.push('rapido', 'venenoso');

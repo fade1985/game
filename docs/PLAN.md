@@ -15,8 +15,8 @@ Forma de trabajo: **fase a fase**. Al terminar cada una → resumen + capturas +
 | 4 | Los 6 zombis, charcos de veneno, oleadas por planta | ✅ Hecha |
 | 5 | Objetos en pedestal y supervivientes (policía, médico, militar) | ✅ Hecha |
 | 6 | Mini jefe "El vecino del 4ºB" y jefe final "La portera" | ✅ Hecha |
-| 7 | Selector de edificios, guardado del progreso, muebles y ambientación, llaves y Taller | ✅ Hecha (pendiente de tu visto bueno) |
-| 8 | Pulido: sonido, efectos de impacto, equilibrado, móvil | ⏳ |
+| 7 | Selector de edificios, guardado del progreso, muebles y ambientación, llaves y Taller | ✅ Hecha |
+| 8 | Pulido: sonido, efectos de impacto, equilibrado, móvil | ✅ Hecha (pendiente de tu visto bueno) |
 
 Después: ataque manual (cambiando solo el controlador de apuntado), más edificios, armas y zombis.
 
@@ -69,6 +69,16 @@ Después: ataque manual (cambiando solo el controlador de apuntado), más edific
   aunque pierdas y se gastan en 5 mejoras permanentes (vida, daño, velocidad, esquiva y mochila).
 
 ### Fase 8 · Pulido y equilibrado
+- **Sonido:** volumen general con compresor; música sintetizada (menú, exploración y jefes), melodías de
+  victoria y derrota, latido con poca vida. Opción "Música: Sí/No" en la pausa (se guarda).
+- **Efectos:** chispas al golpear (doradas si es crítico), manchas en el suelo al morir los zombis (se quedan en
+  la sala), borde rojo al recibir daño y borde palpitante con menos del 30 % de vida.
+- **Equilibrado** con un bot que juega partidas enteras (esquiva todos los avisos): corazones 8 % → 5 % y curan
+  20 → 15; médica 15 → 10 al limpiar sala; zombis +25 % de vida por planta (antes +20 %); oleadas más grandes en
+  las plantas 2 y 3. Resultado del bot: gana ~85 % de las veces y la planta 3 lo deja con 17–30 de vida.
+- **Móvil:** el juego ocupa más pantalla en táctil, botón de pantalla completa (Android) y modo app al añadirlo
+  a la pantalla de inicio (iPhone). Probado: joystick, esquiva, menús y pausa en un iPhone en horizontal.
+- Primera partida: el cartel de entrada recuerda los controles.
 
 ## Decisiones tomadas
 1. Se eliminan monedas, tienda y hoguera.
@@ -86,7 +96,7 @@ Después: ataque manual (cambiando solo el controlador de apuntado), más edific
 
 **Jugador:** 100 vida · velocidad 210 · 0,9 s de invulnerabilidad · esquiva.
 
-**Apartamentos:** 3 plantas de 8 / 10 / 12 salas. +20 % de vida de los zombis por planta.
+**Apartamentos:** 3 plantas de 8 / 10 / 12 salas. +25 % de vida de los zombis por planta.
 
 | Arma | Tipo | Daño | Ataques/s | Alcance | Notas |
 |---|---|---|---|---|---|
@@ -109,6 +119,6 @@ Después: ataque manual (cambiando solo el controlador de apuntado), más edific
 Guantes (+25 % alcance cuerpo a cuerpo), Casco (−15 % daño recibido).
 
 **Supervivientes:** Policía (pistola cada 1,2 s, 5 daño) · Médico (cura 15 al limpiar sala y 3 cada 8 s) ·
-Militar (ráfaga de 3 balas cada 2,5 s, 6 daño).
+Militar (ráfaga de 3 balas cada 2,5 s, 6 daño). *(Fase 8: la médica cura 10 al limpiar sala.)*
 
 **Jefes:** "El vecino del 4ºB" (400 vida, embestida, pisotón, invoca) · "La portera" (1.200 vida, 2 fases, escobazos y lejía).

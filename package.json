@@ -1,8 +1,8 @@
 {
   "name": "blob-quest",
-  "version": "0.1.0",
+  "version": "0.8.0",
   "private": true,
-  "description": "Mini roguelike de salas en el navegador (HTML5 Canvas + JavaScript)",
+  "description": "Roguelike de zombis por edificios en el navegador (HTML5 Canvas + JavaScript)",
   "scripts": {
     "dev": "npx --yes serve -l 3000 ."
   }

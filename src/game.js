@@ -16,7 +16,7 @@ import { loadSave, updateSave, buildingSave } from './save.js';
 import { drawRoom, drawDoors, drawPickup, drawBullet, drawMinimap } from './render.js';
 import { outlinedText, roundBox } from './draw.js';
 import { getMoveVector, consumeDash, clearInput } from './input.js';
-import { sfx } from './sfx.js';
+import { sfx, music, setMusicOn } from './sfx.js';
 
 // Charcos que dejan los proyectiles en parábola: moco venenoso y lejía
 const HAZARDS = {
@@ -27,7 +27,9 @@ const HAZARDS = {
 // Vida de los jefes según la planta (la portera solo sale en la última)
 const bossHpMul = (type, floorNum) => (type === 'boss' ? 1 : 1 + (floorNum - 1) * 0.25);
 
-const KEY_CHANCE = 0.07; // probabilidad de que un zombi suelte una llave 🔑
+const KEY_CHANCE = 0.07;   // probabilidad de que un zombi suelte una llave 🔑
+const HEART_CHANCE = 0.05; // ...o un corazón
+const HEART_HEAL = 15;
 
 const formatTime = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
@@ -97,6 +99,7 @@ export class Game {
     this.paused = false;
     this.setupMenuScene();
     this.ui.showHud(false);
+    music.play('menu');
     this.ui.showMenu(loadSave(), { play: () => this.showBuildings(), workshop: () => this.showWorkshop() });
   }
 
@@ -187,9 +190,12 @@ export class Game {
       });
     }
     this.enterRoom(this.floor.start, null);
+    // primera partida: recordatorio de los controles
+    const firstTime = loadSave().runs <= 1 && this.floorNum === 1;
     this.banner = {
       title: `${this.building.icon} ${this.building.name}`,
-      sub: this.testMode ? 'Modo pruebas · teclas 1-6: zombis · 7-8: jefes' : `Planta ${this.floorNum}`,
+      sub: this.testMode ? 'Modo pruebas · teclas 1-6: zombis · 7-8: jefes'
+        : firstTime ? 'Muévete con WASD o flechas · Espacio para esquivar' : `Planta ${this.floorNum}`,
       t: 0,
     };
   }
@@ -201,6 +207,13 @@ export class Game {
     clearInput();
     this.ui.showPause(this, {
       resume: () => this.closePause(),
+      music: () => {
+        const on = !loadSave().settings.music;
+        updateSave((s) => { s.settings.music = on; });
+        setMusicOn(on);
+        this.paused = false; this.pauseOpen = false;
+        this.openPause(); // vuelve a dibujar la pausa con el botón actualizado
+      },
       quit: () => { this.pauseOpen = false; this.endRun(false, true); },
     });
   }
@@ -230,6 +243,7 @@ export class Game {
     });
     const record = win && save.buildings[id].bestTime === this.runTime;
     this.ui.showHud(false);
+    if (!quit) music.jingle(win ? 'win' : 'lose');
     if (quit) { this.goMenu(); return; }
     const rooms = [...this.floor.rooms.values()];
     this.ui.showEnd(
@@ -283,6 +297,8 @@ export class Game {
 
     this.waveIdx = 0;
     this.waveDelay = room.cleared ? 0 : 0.6;
+    if (!room.decals) room.decals = [];
+    music.play(!room.cleared && (room.type === 'miniboss' || room.type === 'boss') ? 'boss' : 'explore');
     // Las puertas entran abiertas y se cierran de golpe si hay enemigos
     this.doorOpen = 1;
   }
@@ -296,7 +312,7 @@ export class Game {
   }
 
   spawnWave(types) {
-    const mul = 1 + (this.room.dist - 1) * 0.12 + (this.floorNum - 1) * 0.2;
+    const mul = 1 + (this.room.dist - 1) * 0.12 + (this.floorNum - 1) * 0.25;
     for (const t of types) {
       if (t === 'miniboss' || t === 'boss') {
         // el jefe aparece en el lado contrario al jugador
@@ -314,7 +330,7 @@ export class Game {
   }
 
   spawnEnemy(type, x, y) {
-    const mul = 1 + (this.floorNum - 1) * 0.2;
+    const mul = 1 + (this.floorNum - 1) * 0.25;
     x = clamp(x, WALL + 30, W - WALL - 30);
     y = clamp(y, WALL + 30, H - WALL - 30);
     const e = BOSS_TYPES[type] ? makeBoss(type, x, y, bossHpMul(type, this.floorNum)) : new Zombie(type, x, y, mul);
@@ -340,6 +356,7 @@ export class Game {
     this.later(0.25, () => sfx.door());
 
     const type = this.room.type;
+    if (type === 'miniboss') music.play('explore');
     if (type === 'miniboss') {
       if (this.floor.isFinal) {
         this.banner = { title: '¡Mini jefe derrotado!', sub: 'Se ha abierto la puerta del jefe final...', t: 0 };
@@ -498,6 +515,12 @@ export class Game {
     this.updateProps();
 
     this.shakeAmt *= Math.exp(-dt * 10);
+    this.hurtFlash = Math.max(0, (this.hurtFlash || 0) - dt);
+    // latido con poca vida
+    if (!p.dead && p.hp < this.stats.maxHp * 0.3) {
+      this.beatT = (this.beatT || 0) - dt;
+      if (this.beatT <= 0) { this.beatT = 0.9; sfx.heartbeat(); }
+    }
     if (this.banner) this.banner.t += dt;
     this.ui.updateHud(this);
   }
@@ -578,7 +601,7 @@ export class Game {
             b.hit.add(e);
             const l = Math.hypot(b.vx, b.vy) || 1;
             e.hurt(b.dmg, b.crit, b.vx / l, b.vy / l, this, b.knock ?? 1);
-            this.puff(b.x, b.y, '#ffffff');
+            this.hitSpark(b.x, b.y, b.crit);
             if (b.pierce-- <= 0) { b.dead = true; break; }
           }
         }
@@ -618,7 +641,7 @@ export class Game {
   collect(pk) {
     pk.dead = true;
     if (pk.kind === 'heart') {
-      this.healPlayer(20);
+      this.healPlayer(HEART_HEAL);
       sfx.gem();
     } else if (pk.kind === 'key') {
       // las llaves se guardan al momento: no se pierden aunque mueras
@@ -710,6 +733,7 @@ export class Game {
       const crit = Math.random() < this.stats.crit;
       const l = Math.hypot(e.x - src.x, e.y - src.y) || 1;
       e.hurt(crit ? dmg * 2 : dmg, crit, (e.x - src.x) / l, (e.y - src.y) / l, this, w.knock);
+      this.hitSpark(e.x - ((e.x - src.x) / l) * e.r * 0.6, e.y - ((e.y - src.y) / l) * e.r * 0.6 - 10, crit);
       hits++;
       // salpicaduras (de agua, si es la fregona)
       for (let i = 0; i < 5; i++) {
@@ -751,12 +775,13 @@ export class Game {
     this.kills++;
     if (e.onDeath) e.onDeath(this);
     if (!e.isBoss) sfx.splat();
+    this.addDecal(e);
     this.burst(e.x, e.y, e.color, 12, e.r);
     this.shake(3);
     sfx.kill();
     if (!e.isBoss) {
       if (Math.random() < KEY_CHANCE) this.dropPickup('key', e.x, e.y);
-      else if (Math.random() < 0.08) this.dropPickup('heart', e.x, e.y);
+      else if (Math.random() < HEART_CHANCE) this.dropPickup('heart', e.x, e.y);
     }
     if (this.stats.lifesteal && !this.player.dead) this.healPlayer(this.stats.lifesteal);
     if (e.isBoss) this.bossDefeated(e);
@@ -972,6 +997,25 @@ export class Game {
     this.particles.push({ x, y, vx: 0, vy: 0, r, ring: true, color: '#ffffff', life: 0.3, max: 0.3 });
   }
 
+  // Chispas en forma de estrella donde se golpea
+  hitSpark(x, y, crit) {
+    const n = crit ? 6 : 4;
+    for (let i = 0; i < n; i++) {
+      const a = rand(0, Math.PI * 2), sp = rand(160, 300);
+      this.particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: crit ? 7 : 5, color: crit ? '#ffd23f' : '#ffffff', life: 0.16, max: 0.16, star: true });
+    }
+  }
+
+  // Mancha que se queda en el suelo de la sala al morir un enemigo
+  addDecal(e) {
+    const decals = this.room && this.room.decals;
+    if (!decals) return;
+    const colors = { explosivo: '#2b2633', venenoso: '#8fd13f', tentaculos: '#7b4fa0' };
+    const base = e.isBoss ? 1.8 : 1;
+    decals.push({ x: e.x, y: e.y + 10, r: rand(14, 20) * base, color: colors[e.type] || '#5b7d3a', seed: rand(0, 6) });
+    if (decals.length > 60) decals.shift();
+  }
+
   floatText(x, y, text, color, size = 18) {
     this.texts.push({ x, y, text, color, size, t: 0, life: 0.9, vy: -70 });
   }
@@ -1009,6 +1053,7 @@ export class Game {
       this.drawItemBar(ctx);
       drawMinimap(ctx, this.floor, this.room, `PLANTA ${this.floorNum}/${this.building.floors}`, this.time);
     }
+    this.drawVignette(ctx);
     this.drawBossBar(ctx);
     this.drawBanner(ctx);
     if (this.fade) {
@@ -1050,7 +1095,15 @@ export class Game {
       const k = pt.life / pt.max;
       ctx.globalAlpha = Math.min(1, k * 1.5);
       ctx.beginPath();
-      if (pt.ring) {
+      if (pt.star) {
+        // destello de 4 puntas
+        const s = pt.r * (0.6 + k * 0.6);
+        ctx.moveTo(pt.x, pt.y - s); ctx.lineTo(pt.x + s * 0.25, pt.y - s * 0.25); ctx.lineTo(pt.x + s, pt.y);
+        ctx.lineTo(pt.x + s * 0.25, pt.y + s * 0.25); ctx.lineTo(pt.x, pt.y + s); ctx.lineTo(pt.x - s * 0.25, pt.y + s * 0.25);
+        ctx.lineTo(pt.x - s, pt.y); ctx.lineTo(pt.x - s * 0.25, pt.y - s * 0.25); ctx.closePath();
+        ctx.fillStyle = pt.color;
+        ctx.fill();
+      } else if (pt.ring) {
         ctx.arc(pt.x, pt.y, pt.r * (1 + (1 - k) * 1.2), 0, Math.PI * 2);
         ctx.lineWidth = 4;
         ctx.strokeStyle = pt.color;
@@ -1076,6 +1129,21 @@ export class Game {
       ctx.textBaseline = 'middle';
       ctx.fillText(it.icon, x0 + i * (size + 4) + size / 2, y0 + size / 2 + 1);
     });
+  }
+
+  // Borde rojo al recibir daño y latido cuando queda poca vida
+  drawVignette(ctx) {
+    if (this.state !== 'playing' || !this.player) return;
+    const p = this.player;
+    const low = !p.dead && p.hp < this.stats.maxHp * 0.3;
+    const pulse = low ? 0.25 + 0.2 * Math.max(0, Math.sin(this.time * 7)) : 0;
+    const a = Math.max(pulse, (this.hurtFlash || 0) * 1.4);
+    if (a <= 0.01) return;
+    const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, W * 0.62);
+    g.addColorStop(0, 'rgba(255, 30, 60, 0)');
+    g.addColorStop(1, `rgba(255, 30, 60, ${Math.min(0.7, a)})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
   }
 
   // Barra de vida de jefes y mini jefes

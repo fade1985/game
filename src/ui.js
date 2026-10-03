@@ -3,6 +3,15 @@
 // ─────────────────────────────────────────────
 import { weaponSummary } from './weapons.js';
 import { toggleMute } from './sfx.js';
+import { loadSave } from './save.js';
+
+// Pantalla completa (solo en móviles que la permiten; en iPhone no existe)
+const canFullscreen = () => document.body.classList.contains('touch') && document.fullscreenEnabled && !document.fullscreenElement;
+function goFullscreen() {
+  document.documentElement.requestFullscreen?.()
+    .then(() => screen.orientation?.lock?.('landscape'))
+    .catch(() => { /* el navegador no lo permite */ });
+}
 
 export function createUI(root) {
   const overlay = root.querySelector('#overlay');
@@ -78,6 +87,7 @@ export function createUI(root) {
           <p class="tagline">Limpia el edificio de zombis, planta a planta</p>
           <div class="col">
             <button class="btn yellow big" data-act="play">▶ JUGAR</button>
+            ${canFullscreen() ? '<button class="btn green small" data-act="fullscreen">⛶ Pantalla completa</button>' : ''}
             <button class="btn blue" data-act="workshop">🔧 Taller <span class="keys-chip">🔑 ${save.keys}</span>${upgrades ? ` <small>· ${upgrades} mejora${upgrades > 1 ? 's' : ''}</small>` : ''}</button>
           </div>
           <div class="hint panel small">
@@ -86,7 +96,7 @@ export function createUI(root) {
           </div>
           ${save.bestFloor ? `<div class="record">🏆 Mejor planta alcanzada: ${save.bestFloor}</div>` : ''}
         </div>`,
-      { play, workshop },
+      { play, workshop, fullscreen: goFullscreen },
       (e) => {
         if (e.code === 'Enter') play();
         else if (e.code === 'KeyT') workshop();
@@ -161,7 +171,8 @@ export function createUI(root) {
       (e) => { if (e.code === 'Escape') back(); });
     },
 
-    showPause(g, { resume, quit }) {
+    showPause(g, { resume, music, quit }) {
+      const musicOn = loadSave().settings.music;
       const s = g.stats;
       const stat = (icon, name, val) => `<div class="stat"><span>${icon} ${name}</span><b>${val}</b></div>`;
       const list = (title, rows, empty) => `
@@ -190,10 +201,11 @@ export function createUI(root) {
           </div>
           <div class="row-btns">
             <button class="btn yellow" data-act="resume">▶ Continuar</button>
+            <button class="btn blue small" data-act="music">🎵 Música: ${musicOn ? 'Sí' : 'No'}</button>
             <button class="btn pink small" data-act="quit">Abandonar partida</button>
           </div>
         </div>`,
-      { resume, quit },
+      { resume, music, quit },
       (e) => { if (e.code === 'Escape' || e.code === 'KeyP') resume(); });
     },
 

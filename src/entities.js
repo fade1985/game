@@ -188,6 +188,7 @@ export class Player {
     this.invuln = 0.9;
     this.hurtT = 0.12;
     game.shake(9);
+    game.hurtFlash = 0.35;
     game.floatText(this.x, this.y - this.r - 10, `-${dmg}`, '#ff5d73', 22);
     sfx.hurt();
     if (this.hp <= 0) {

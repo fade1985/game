@@ -11,7 +11,10 @@ Hecho con **HTML5 Canvas + JavaScript puro**, sin librerías ni paso de compilac
 - **Moverse:** `WASD` o flechas (en móvil: arrastra en la mitad izquierda de la pantalla)
 - **Esquivar:** `Espacio` (en móvil: botón 💨). Te hace invulnerable un instante.
 - **Atacar:** de momento es automático: apuntas al enemigo más cercano (más adelante será manual).
-- **Pausa:** `Esc` o `P`
+- **Pausa:** `Esc` o `P` (desde la pausa puedes quitar la música; el botón 🔊 silencia todo)
+
+**En el móvil:** juega en horizontal. En Android hay un botón de **pantalla completa** en el menú; en iPhone,
+usa *Compartir → Añadir a pantalla de inicio* y se abrirá como una app, a pantalla completa.
 
 Al pulsar **Jugar** eliges edificio. De momento se puede jugar **Apartamentos**; el Hospital, el Centro comercial
 y la Comisaría aparecen como *Próximamente*. Cada tarjeta muestra tu progreso: intentos, mejor planta, veces
@@ -73,7 +76,7 @@ ven arriba a la izquierda y en la pausa.
 | Superviviente | Habilidad |
 |---|---|
 | 👮 Policía | Dispara con su pistola cada 1,2 s (5 de daño) |
-| 🧑‍⚕️ Médica | No ataca: te cura 3 cada 8 s y 15 al limpiar cada sala |
+| 🧑‍⚕️ Médica | No ataca: te cura 3 cada 8 s y 10 al limpiar cada sala |
 | 🪖 Militar | Ráfagas de 3 balas cada 2,5 s (6 de daño cada una) |
 
 ### 🧹 Armas
@@ -149,7 +152,8 @@ python3 -m http.server 3000
 ## ☁️ Publicar en Vercel
 
 Sitio 100 % estático: en Vercel → **Add New… → Project** → importa el repo, **Framework Preset: Other**,
-sin comando de build y sin carpeta de salida. Cada `git push` vuelve a publicar.
+sin comando de build y sin carpeta de salida. Cada `git push` vuelve a publicar: la rama `main` es la versión
+oficial (producción) y las demás ramas generan una *preview* con su propia dirección.
 
 ## 🗂️ Estructura del código
 
@@ -174,7 +178,7 @@ src/
   upgrades.js     → atributos del jugador, objetos y mejoras del Taller
   ui.js           → menús en HTML (inicio, selector de edificios, Taller, pausa, fin) y HUD
   input.js        → teclado + joystick táctil
-  sfx.js          → sonidos generados con Web Audio (sin archivos)
+  sfx.js          → sonidos y música generados con Web Audio (sin archivos)
   save.js         → guardado en localStorage (llaves, Taller, récords y edificios)
   config.js       → constantes, colores, edificios y estilos de habitación
 ```

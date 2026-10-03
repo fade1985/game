@@ -17,6 +17,7 @@ const DEFAULT = {
   kills: 0,
   workshop: {},     // nivel de cada mejora del Taller: { vida: 2, ... }
   buildings: {},    // progreso por edificio: { apartamentos: { ... } }
+  settings: { music: true },
 };
 
 export function loadSave() {
@@ -24,6 +25,7 @@ export function loadSave() {
   try { d = JSON.parse(localStorage.getItem(KEY)) || {}; } catch { /* guardado roto o sin acceso */ }
   const save = { ...structuredClone(DEFAULT), ...d };
   save.workshop = { ...(d.workshop || {}) };
+  save.settings = { ...DEFAULT.settings, ...(d.settings || {}) };
   save.buildings = {};
   for (const [id, b] of Object.entries(d.buildings || {})) save.buildings[id] = { ...BUILDING_DEFAULT, ...b };
   return save;
