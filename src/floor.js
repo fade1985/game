@@ -6,8 +6,8 @@
 //  sala ya existente: así salen pasillos y ramas (forma irregular), sin
 //  bloques macizos de 2x2.
 // ─────────────────────────────────────────────
-import { GRID, DIRS } from './config.js';
-import { makeRoomLayout, makeWaves } from './rooms.js';
+import { GRID, DIRS, OPPOSITE } from './config.js';
+import { makeRoomLayout, makeRoomWaves } from './rooms.js';
 
 export const keyOf = (gx, gy) => `${gx},${gy}`;
 
@@ -46,8 +46,9 @@ function growLayout(count) {
   return { cells, start };
 }
 
-// Genera una planta completa con `count` salas
-export function generateFloor(count, floorNum = 1) {
+// Genera una planta completa con `count` salas.
+// En la última planta del edificio (`isFinal`) se añade la sala del jefe final.
+export function generateFloor(count, floorNum = 1, isFinal = false) {
   for (let attempt = 0; attempt < 200; attempt++) {
     const res = growLayout(count);
     if (!res) continue;
@@ -85,11 +86,46 @@ export function generateFloor(count, floorNum = 1) {
 
     startRoom.type = 'start';
     startRoom.cleared = true;
+
+    // Salas especiales en los callejones: el mini jefe en el más lejano
+    deadEnds.sort((a, b) => b.dist - a.dist);
+    const mini = deadEnds[0];
+    mini.type = 'miniboss';
+    const others = shuffle(deadEnds.slice(1));
+    others[0].type = 'item';
+    others[1].type = 'survivor';
+
+    // Última planta: la sala del jefe va pegada a la del mini jefe y solo
+    // se llega a ella a través de él.
+    if (isFinal) {
+      let placed = false;
+      for (const [dir, [dx, dy]] of shuffle(Object.entries(DIRS))) {
+        const gx = mini.gx + dx, gy = mini.gy + dy;
+        if (gx < 0 || gy < 0 || gx >= GRID || gy >= GRID || rooms.has(keyOf(gx, gy))) continue;
+        const touching = Object.values(DIRS).filter(([ex, ey]) => rooms.has(keyOf(gx + ex, gy + ey))).length;
+        if (touching !== 1) continue;
+        const doors = { up: false, down: false, left: false, right: false };
+        doors[OPPOSITE[dir]] = true;
+        mini.doors[dir] = true;
+        rooms.set(keyOf(gx, gy), { key: keyOf(gx, gy), gx, gy, doors, dist: mini.dist + 1, type: 'boss', visited: false, seen: false, cleared: false, pickups: [] });
+        placed = true;
+        break;
+      }
+      if (!placed) continue;
+    }
+
     for (const r of rooms.values()) {
       r.layout = makeRoomLayout(r.type);
-      r.waves = r.type === 'monsters' ? makeWaves(r.dist, floorNum) : [];
+      r.waves = makeRoomWaves(r, floorNum);
+      r.props = [];
+      if (!r.waves.length) r.cleared = true; // salas sin enemigos: entrada y objeto
+      // tipo de sala que hay detrás de cada puerta (para decorar la puerta)
+      r.doorTypes = {};
+      for (const [dir, [dx, dy]] of Object.entries(DIRS)) {
+        if (r.doors[dir]) r.doorTypes[dir] = rooms.get(keyOf(r.gx + dx, r.gy + dy)).type;
+      }
     }
-    return { rooms, start: startRoom, deadEnds, floorNum };
+    return { rooms, start: startRoom, deadEnds, floorNum, isFinal };
   }
   throw new Error('No se pudo generar la planta');
 }

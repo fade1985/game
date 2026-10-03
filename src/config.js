@@ -52,3 +52,19 @@ export const APARTMENT_STYLES = [
   { name: 'Pasillo',    floor: 'parquet', floorA: '#c99260', floorB: '#bd8654', seam: '#9e6c3d', wall: '#f4dd9c', stripe: '#ebd189', trim: '#9a7340', rug: '#9fdcf2' },
   { name: 'Baño',       floor: 'tiles',   floorA: '#d7efe6', floorB: '#b9e0d3', seam: '#94c7b6', wall: '#bfe0f2', stripe: '#aed5ec', trim: '#4f86a8', rug: null },
 ];
+
+// Supervivientes que se pueden rescatar (en la fase 5 tendrán habilidades propias)
+export const SURVIVORS = {
+  policia: {
+    id: 'policia', name: 'Policía', icon: '👮', color: '#6fa8ff',
+    look: { skin: '#f1c27d', hair: '#2b2b2b', shirt: '#3d63c9', pants: '#22336b', shoes: '#1d1b2c', hat: { kind: 'cap', color: '#22336b' } },
+  },
+  medico: {
+    id: 'medico', name: 'Médica', icon: '🧑‍⚕️', color: '#80ed99',
+    look: { skin: '#ffd2a8', hair: '#c0392b', shirt: '#ffffff', pants: '#7fd1c7', shoes: '#3b3550', cross: true },
+  },
+  militar: {
+    id: 'militar', name: 'Militar', icon: '🪖', color: '#c9e265',
+    look: { skin: '#c68642', hair: '#3b2a1a', shirt: '#6b8e23', pants: '#4b5320', shoes: '#2e2a1f', hat: { kind: 'helmet', color: '#556b2f' } },
+  },
+};

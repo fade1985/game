@@ -9,8 +9,8 @@ Forma de trabajo: **fase a fase**. Al terminar cada una → resumen + capturas +
 
 | Fase | Contenido | Estado |
 |---|---|---|
-| 1 | Mapa de planta, navegación entre salas, minimapa, estética de apartamento, **protagonista humano** | ✅ Hecha (pendiente de tu visto bueno) |
-| 2 | Salas especiales (objeto, superviviente, mini jefe), escaleras, edificio de 3 plantas, jefe final provisional | ⏳ |
+| 1 | Mapa de planta, navegación entre salas, minimapa, estética de apartamento, **protagonista humano** | ✅ Hecha |
+| 2 | Salas especiales (objeto, superviviente, mini jefe), escaleras, edificio de 3 plantas, jefe final provisional | ✅ Hecha (pendiente de tu visto bueno) |
 | 3 | Sistema de armas: fregona (cuerpo a cuerpo) y armas a distancia, animaciones, controlador de apuntado | ⏳ |
 | 4 | Los 6 zombis, charcos de veneno, oleadas por planta | ⏳ |
 | 5 | Objetos en pedestal y supervivientes (policía, médico, militar) | ⏳ |

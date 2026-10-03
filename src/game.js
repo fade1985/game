@@ -2,12 +2,13 @@
 //  Game: controla el flujo de la partida
 //  menú → edificio → plantas → salas conectadas
 // ─────────────────────────────────────────────
-import { W, H, WALL, DOOR_W, OUTLINE, MAX_ALLIES, ALLY_COLORS, DIRS, OPPOSITE, BUILDINGS } from './config.js';
+import { W, H, WALL, DOOR_W, OUTLINE, MAX_ALLIES, DIRS, BUILDINGS, SURVIVORS } from './config.js';
 import { rand, clamp, dist, pushOut } from './utils.js';
 import { Player, Ally, Enemy } from './entities.js';
 import { generateFloor, neighbour } from './floor.js';
-import { makeRoomLayout } from './rooms.js';
-import { baseStats } from './upgrades.js';
+import { makeRoomLayout, ROOM_TYPES } from './rooms.js';
+import { baseStats, rollCards } from './upgrades.js';
+import { Pedestal, SurvivorNPC, Stairs } from './props.js';
 import { loadSave, writeSave } from './save.js';
 import { drawRoom, drawDoors, drawPickup, drawBullet, drawMinimap } from './render.js';
 import { outlinedText } from './draw.js';
@@ -15,6 +16,15 @@ import { getMoveVector, consumeDash, clearInput } from './input.js';
 import { sfx } from './sfx.js';
 
 const SLIDE = 0.4; // duración del deslizamiento de cámara entre salas
+const FADE = 0.6;  // duración de cada mitad del fundido al cambiar de planta
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
 
 export class Game {
   constructor(canvas, ui) {
@@ -54,7 +64,8 @@ export class Game {
     this.banner = null;
     this.transition = null;
     this.floor = null;
-    this.room = { doors: {}, layout: makeRoomLayout('start') };
+    this.fade = null;
+    this.room = { doors: {}, doorTypes: {}, props: [], layout: makeRoomLayout('start') };
     this.doorOpen = 1;
     this.stats = baseStats();
     this.player = new Player(this.stats);
@@ -78,6 +89,9 @@ export class Game {
     this.allies = [];
     this.kills = 0;
     this.floorNum = 1;
+    this.fade = null;
+    // orden en que aparecerán los supervivientes en este edificio
+    this.survivorOrder = shuffle(Object.values(SURVIVORS));
     this.state = 'playing';
     this.paused = false;
     clearInput();
@@ -89,8 +103,19 @@ export class Game {
   // Genera una planta nueva y coloca al jugador en la entrada
   startFloor() {
     const count = this.building.roomsPerFloor[this.floorNum - 1] || 12;
-    this.floor = generateFloor(count, this.floorNum);
+    const isFinal = this.floorNum === this.building.floors;
+    this.floor = generateFloor(count, this.floorNum, isFinal);
     this.transition = null;
+    this.room = null;
+
+    // Colocamos el objeto y el superviviente de esta planta
+    for (const r of this.floor.rooms.values()) {
+      if (r.type === 'item') r.props.push(new Pedestal(rollCards(this, 1, 0.6)[0]));
+      if (r.type === 'survivor') {
+        const def = this.survivorOrder[(this.floorNum - 1) % this.survivorOrder.length];
+        r.props.push(new SurvivorNPC(def));
+      }
+    }
     this.enterRoom(this.floor.start, null);
     this.banner = { title: `${this.building.icon} ${this.building.name}`, sub: `Planta ${this.floorNum}`, t: 0 };
   }
@@ -118,6 +143,7 @@ export class Game {
     this.paused = false;
     const save = loadSave();
     save.bestFloor = Math.max(save.bestFloor || 0, this.floorNum);
+    if (win) save.buildings.apartamentos = { unlocked: true, completed: true };
     writeSave(save);
     this.ui.showHud(false);
     if (quit) { this.goMenu(); return; }
@@ -125,12 +151,14 @@ export class Game {
     this.ui.showEnd(
       {
         win,
-        title: win ? '🧹 ¡Planta despejada!' : '💥 ¡Derrota!',
+        title: win ? '🏆 ¡Edificio completado!' : '💥 ¡Derrota!',
         sub: win
-          ? `Has limpiado la planta ${this.floorNum} de ${this.building.name}`
-          : `Caíste en la planta ${this.floorNum} de ${this.building.name}`,
+          ? `Has limpiado los ${this.building.name} de arriba abajo`
+          : `Caíste en la planta ${this.floorNum} de ${this.building.floors} de ${this.building.name}`,
         kills: this.kills,
         explored: `${rooms.filter((r) => r.visited).length} / ${rooms.length}`,
+        floors: `${win ? this.building.floors : this.floorNum - 1} / ${this.building.floors}`,
+        team: this.allies.map((a) => a.def.icon).join(' ') || '—',
       },
       { retry: () => this.newRun(), menu: () => this.goMenu() },
     );
@@ -145,7 +173,12 @@ export class Game {
     this.resetRoomState();
     this.room = room;
     this.pickups = room.pickups;
+    const firstVisit = !room.visited;
     room.visited = true;
+    if (firstVisit && (room.type === 'miniboss' || room.type === 'boss')) {
+      const info = ROOM_TYPES[room.type];
+      this.banner = { title: `${info.icon} ${info.name}`, sub: room.type === 'boss' ? '¡El último combate del edificio!' : '¡Derrótalo para seguir subiendo!', t: 0 };
+    }
     for (const dir of Object.keys(DIRS)) {
       if (room.doors[dir]) neighbour(this.floor, room, dir).seen = true;
     }
@@ -178,6 +211,16 @@ export class Game {
   spawnWave(types) {
     const mul = 1 + (this.room.dist - 1) * 0.12 + (this.floorNum - 1) * 0.2;
     for (const t of types) {
+      if (t === 'miniboss' || t === 'boss') {
+        // el jefe aparece en el lado contrario al jugador
+        const p = this.player;
+        const x = clamp(W / 2 + (W / 2 - p.x) * 0.6, WALL + 120, W - WALL - 120);
+        const y = clamp(H / 2 + (H / 2 - p.y) * 0.6, WALL + 110, H - WALL - 110);
+        this.enemies.push(new Enemy(t, x, y, 1 + (this.floorNum - 1) * 0.35));
+        sfx.boss();
+        this.shake(10);
+        continue;
+      }
       const pos = this.findSpawnPoint();
       this.enemies.push(new Enemy(t, pos.x, pos.y, mul));
     }
@@ -204,17 +247,64 @@ export class Game {
     this.floatText(this.player.x, this.player.y - 50, '¡Despejada!', '#80ed99', 24);
     this.later(0.25, () => sfx.door());
 
-    if ([...this.floor.rooms.values()].every((r) => r.cleared)) {
-      // Fase 1: limpiar todas las salas completa la planta (en la fase 2 serán las escaleras)
-      this.banner = { title: '¡Planta despejada!', sub: 'No queda ni un monstruo', t: 0 };
-      this.later(2.4, () => this.endRun(true));
+    const type = this.room.type;
+    if (type === 'miniboss') {
+      if (this.floor.isFinal) {
+        this.banner = { title: '¡Mini jefe derrotado!', sub: 'Se ha abierto la puerta del jefe final...', t: 0 };
+      } else {
+        this.room.props.push(new Stairs(this.floorNum + 1));
+        this.banner = { title: '¡Mini jefe derrotado!', sub: `Sube por las escaleras a la planta ${this.floorNum + 1}`, t: 0 };
+      }
+    } else if (type === 'boss') {
+      this.banner = { title: '¡EDIFICIO COMPLETADO!', sub: `Los ${this.building.name} están a salvo`, t: 0 };
+      this.later(2.8, () => this.endRun(true));
+    } else if (type === 'survivor') {
+      this.floatText(W / 2, H / 2 - 90, '¡Ve a por el superviviente!', '#ffd23f', 20);
     }
   }
 
-  addAlly() {
-    if (this.allies.length >= MAX_ALLIES) return false;
+  // Objetos de la sala: pedestal, superviviente y escaleras
+  updateProps() {
     const p = this.player;
-    const a = new Ally(ALLY_COLORS[this.allies.length % ALLY_COLORS.length], p.x, p.y + 30);
+    if (p.dead) return;
+    for (const pr of this.room.props) {
+      if (pr.taken) continue;
+      if (dist(pr, p) > pr.r + p.r + 4) { pr.armed = true; continue; } // hay que salir y volver a pisarlo
+      if (pr.kind === 'pedestal') {
+        pr.taken = true;
+        pr.item.apply(this);
+        this.banner = { title: `${pr.item.icon} ${pr.item.name}`, sub: pr.item.desc, t: 0 };
+        this.burst(pr.x, pr.y - 40, '#ffd23f', 14, 20);
+        sfx.buy();
+      } else if (pr.kind === 'survivor' && this.room.cleared) {
+        pr.taken = true;
+        this.addAlly(pr.def, pr.x, pr.y);
+        this.banner = { title: `${pr.def.icon} ¡${pr.def.name} se une!`, sub: 'Te seguirá y luchará a tu lado', t: 0 };
+        this.burst(pr.x, pr.y, pr.def.color, 14, 16);
+        sfx.clear();
+      } else if (pr.kind === 'stairs' && pr.appear >= 1 && pr.armed) {
+        pr.taken = true;
+        this.goNextFloor();
+      }
+    }
+  }
+
+  goNextFloor() {
+    sfx.door();
+    clearInput();
+    this.fade = {
+      t: 0,
+      phase: 'out',
+      action: () => {
+        this.floorNum++;
+        this.startFloor();
+      },
+    };
+  }
+
+  addAlly(def, x = this.player.x, y = this.player.y + 30) {
+    if (this.allies.length >= MAX_ALLIES) return false;
+    const a = new Ally(def, x, y);
     this.allies.push(a);
     this.allies.forEach((al, i) => { al.idx = i; });
     return true;
@@ -238,6 +328,15 @@ export class Game {
     this.time += dt;
     if (this.state === 'menu') { this.updateMenu(dt); return; }
     if (this.state !== 'playing' || this.paused) return;
+
+    // Fundido a negro al cambiar de planta
+    if (this.fade) {
+      const f = this.fade;
+      f.t += dt;
+      if (f.phase === 'out' && f.t >= FADE) { f.action(); f.phase = 'in'; f.t = 0; }
+      else if (f.phase === 'in' && f.t >= FADE) this.fade = null;
+      if (this.fade && this.fade.phase === 'out') return;
+    }
 
     // Durante el deslizamiento entre salas el juego se congela
     if (this.transition) {
@@ -288,6 +387,7 @@ export class Game {
     this.updatePickups(dt);
     this.updateParticles(dt);
     this.updateDoors(dt);
+    this.updateProps();
 
     this.shakeAmt *= Math.exp(-dt * 10);
     if (this.banner) this.banner.t += dt;
@@ -437,6 +537,7 @@ export class Game {
     ent.x = clamp(ent.x, WALL + ent.r, W - WALL - ent.r);
     ent.y = clamp(ent.y, WALL + ent.r, H - WALL - ent.r);
     for (const o of this.room.layout.obstacles) pushOut(ent, o);
+    for (const pr of this.room.props) if (pr.solid) pushOut(ent, pr);
   }
 
   nearestEnemy(x, y, range) {
@@ -491,6 +592,19 @@ export class Game {
     sfx.kill();
     if (Math.random() < 0.08) this.dropPickup('heart', e.x, e.y);
     if (this.stats.lifesteal && !this.player.dead) this.healPlayer(this.stats.lifesteal);
+    if (e.isBoss) this.bossDefeated(e);
+  }
+
+  // Al caer un jefe desaparecen sus esbirros y sus proyectiles
+  bossDefeated(boss) {
+    for (const e of this.enemies) {
+      if (!e.dead) { e.dead = true; this.burst(e.x, e.y, e.color, 8, e.r); }
+    }
+    this.bullets = this.bullets.filter((b) => b.friendly);
+    this.burst(boss.x, boss.y, '#ffd23f', 30, boss.r);
+    this.shake(20);
+    this.dropPickup('heart', boss.x, boss.y);
+    this.dropPickup('heart', boss.x, boss.y);
   }
 
   onPlayerDeath() {
@@ -560,19 +674,28 @@ export class Game {
     }
 
     if (this.state !== 'menu' && this.floor) {
-      drawMinimap(ctx, this.floor, this.room, `PLANTA ${this.floorNum}`, this.time);
+      drawMinimap(ctx, this.floor, this.room, `PLANTA ${this.floorNum}/${this.building.floors}`, this.time);
     }
     this.drawBossBar(ctx);
     this.drawBanner(ctx);
+    if (this.fade) {
+      const k = clamp(this.fade.t / FADE, 0, 1);
+      ctx.globalAlpha = this.fade.phase === 'out' ? k : 1 - k;
+      ctx.fillStyle = OUTLINE;
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalAlpha = 1;
+    }
   }
 
   drawWorld(ctx) {
     drawRoom(ctx, this.room, this.time);
     drawDoors(ctx, this.room, this.doorOpen);
+    const props = this.room.props.filter((pr) => !(pr.kind === 'survivor' && pr.taken));
+    for (const pr of props) if (pr.flat) pr.draw(ctx, this);
     for (const pk of this.pickups) drawPickup(ctx, pk, this.time);
 
     // Ordenamos por "y" para que lo de abajo se dibuje delante (falsa profundidad)
-    const list = [...this.enemies, ...this.allies];
+    const list = [...this.enemies, ...this.allies, ...props.filter((pr) => !pr.flat)];
     if (!this.player.dead) list.push(this.player);
     list.sort((a, b) => a.y - b.y);
     for (const e of list) e.draw(ctx, this);
@@ -607,16 +730,16 @@ export class Game {
     ctx.globalAlpha = 1;
   }
 
-  // Barra de vida de jefes (se usará a partir de la fase 2)
+  // Barra de vida de jefes y mini jefes
   drawBossBar(ctx) {
-    const boss = this.enemies.find((e) => e.type === 'boss' && e.active);
+    const boss = this.enemies.find((e) => e.isBoss && e.active);
     if (!boss) return;
     const w = 420, x = W / 2 - w / 2, y = H - WALL - 40;
     ctx.beginPath(); ctx.roundRect(x - 4, y - 4, w + 8, 26, 13);
     ctx.fillStyle = OUTLINE; ctx.fill();
     ctx.beginPath(); ctx.roundRect(x, y, w * Math.max(0, boss.hp / boss.maxHp), 18, 9);
     ctx.fillStyle = boss.color; ctx.fill();
-    outlinedText(ctx, `👑 ${boss.name}`, W / 2, y - 16, 22, '#ffd23f', { lw: 6 });
+    outlinedText(ctx, `${boss.type === 'boss' ? '👑' : '👹'} ${boss.name}`, W / 2, y - 16, 22, '#ffd23f', { lw: 6 });
   }
 
   drawBanner(ctx) {

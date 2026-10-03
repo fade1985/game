@@ -6,16 +6,27 @@ Hecho con **HTML5 Canvas + JavaScript puro**, sin librerías ni paso de compilac
 
 > 🚧 En pleno rediseño por fases. El plan completo y su estado están en [`docs/PLAN.md`](docs/PLAN.md).
 
-## 🎮 Cómo se juega (fase 1)
+## 🎮 Cómo se juega
 
 - **Moverse:** `WASD` o flechas (en móvil: arrastra en la mitad izquierda de la pantalla)
 - **Esquivar:** `Espacio` (en móvil: botón 💨). Te hace invulnerable un instante.
 - **Atacar:** de momento es automático (más adelante será manual).
 - **Pausa:** `Esc` o `P`
 
-Cada planta es un mapa de salas generado al azar. Al entrar en una sala con enemigos **las puertas se cierran**
-y no se abren hasta que la limpias. El **minimapa** (arriba a la derecha) muestra las salas visitadas, las que
-has visto sin entrar (gris) y dónde estás (amarillo). Limpia todas las salas para completar la planta.
+El edificio **Apartamentos** tiene **3 plantas**. Cada planta es un mapa de salas generado al azar; al entrar
+en una sala con enemigos **las puertas se cierran** hasta que la limpias. El **minimapa** (arriba a la derecha)
+muestra lo explorado y los iconos de las salas especiales:
+
+| Sala | Qué hay |
+|---|---|
+| 🧟 Monstruos | Oleadas de enemigos |
+| 🎁 Objeto | Un pedestal con una mejora: pásale por encima para cogerla |
+| 🙋 Superviviente | Limpia la sala y acércate para que se una a tu equipo (policía, médica o militar) |
+| 👹 Mini jefe | Uno por planta. Al derrotarlo aparecen las **escaleras** a la siguiente planta |
+| 👑 Jefe final | En la última planta, detrás del mini jefe. Derrótalo para completar el edificio |
+
+Las puertas que llevan a salas especiales tienen el marco de color y un icono al lado.
+Los atributos y el equipo se conservan entre plantas; si caes, vuelves a empezar el edificio.
 
 ## 🚀 Ejecutar en local
 
@@ -42,7 +53,8 @@ src/
   main.js         → arranque y bucle principal (update + render)
   game.js         → flujo de la partida: plantas, salas, puertas, oleadas, colisiones
   floor.js        → generador de plantas (mapa de salas al estilo Isaac)
-  rooms.js        → contenido de cada sala: estilo, obstáculos, alfombras y oleadas
+  rooms.js        → tipos de sala y su contenido: estilo, obstáculos, alfombras y oleadas
+  props.js        → objetos fijos de las salas: pedestal, superviviente y escaleras
   entities.js     → jugador, compañeros y enemigos (comportamiento + dibujo)
   render.js       → dibujo de habitaciones, puertas en los 4 lados y minimapa
   draw.js         → ayudas de dibujo: personaje humano, "blobs", ojos, sombras, texto

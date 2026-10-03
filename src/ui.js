@@ -117,7 +117,7 @@ export function createUI(root) {
             ${stat('⚡', 'Ataques/seg', s.fireRate.toFixed(2))}
             ${stat('👟', 'Velocidad', Math.round(s.speed))}
             ${stat('🎯', 'Crítico', `${Math.round(s.crit * 100)}%`)}
-            ${stat('👥', 'Equipo', g.allies.length)}
+            ${stat('👥', 'Equipo', g.allies.map((a) => `${a.def.icon} ${a.def.name}`).join(', ') || 'Nadie todavía')}
           </div>
           <div class="col">
             <button class="btn yellow" data-act="resume">▶ Continuar</button>
@@ -134,11 +134,13 @@ export function createUI(root) {
           <h2 class="title">${r.title}</h2>
           <p class="sub">${r.sub}</p>
           <div class="stats">
+            <div class="stat"><span>🏢 Plantas superadas</span><b>${r.floors}</b></div>
             <div class="stat"><span>🧟 Enemigos derrotados</span><b>${r.kills}</b></div>
-            <div class="stat"><span>🗺️ Salas exploradas</span><b>${r.explored}</b></div>
+            <div class="stat"><span>🗺️ Salas exploradas (última planta)</span><b>${r.explored}</b></div>
+            <div class="stat"><span>👥 Equipo</span><b>${r.team}</b></div>
           </div>
           <div class="col">
-            <button class="btn yellow big" data-act="retry">↻ ${r.win ? 'Otra planta' : 'Reintentar'}</button>
+            <button class="btn yellow big" data-act="retry">↻ ${r.win ? 'Jugar otra vez' : 'Reintentar edificio'}</button>
             <button class="btn blue small" data-act="menu">Menú principal</button>
           </div>
         </div>`,

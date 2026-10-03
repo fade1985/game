@@ -4,10 +4,14 @@
 import { W, H, WALL, APARTMENT_STYLES } from './config.js';
 import { mulberry32, pick } from './utils.js';
 
-// Tipos de sala (en la fase 2 se añaden objeto, superviviente y mini jefe)
+// Tipos de sala. `frame` es el color del marco de las puertas que llevan a ella.
 export const ROOM_TYPES = {
   start:    { icon: '🚪', name: 'Entrada' },
   monsters: { icon: '🧟', name: 'Monstruos' },
+  item:     { icon: '🎁', name: 'Sala de objeto', frame: '#ffd23f' },
+  survivor: { icon: '🙋', name: 'Superviviente', frame: '#80ed99' },
+  miniboss: { icon: '👹', name: 'Mini jefe', frame: '#ff5d73' },
+  boss:     { icon: '👑', name: 'Jefe final', frame: '#b5179e' },
 };
 
 // Coste de cada enemigo para "comprar" oleadas con un presupuesto
@@ -34,8 +38,8 @@ export function makeRoomLayout(type) {
 
   // Obstáculos (macetas y cajas) solo en salas con monstruos
   const obstacles = [];
-  if (type === 'monsters') {
-    const n = Math.floor(rng() * 4);
+  if (type === 'monsters' || type === 'survivor') {
+    const n = Math.floor(rng() * (type === 'survivor' ? 3 : 4));
     for (let tries = 0; obstacles.length < n && tries < 60; tries++) {
       const o = {
         x: WALL + 120 + rng() * (W - 2 * WALL - 240),
@@ -45,7 +49,7 @@ export function makeRoomLayout(type) {
         rot: (rng() - 0.5) * 0.4,
       };
       const freeDoors = DOOR_SPOTS.every((d) => Math.hypot(d.x - o.x, d.y - o.y) > 170);
-      const freeCenter = Math.hypot(o.x - W / 2, o.y - H / 2) > 90;
+      const freeCenter = Math.hypot(o.x - W / 2, o.y - H / 2) > (type === 'survivor' ? 150 : 90);
       const farFromOthers = obstacles.every((p) => Math.hypot(p.x - o.x, p.y - o.y) > p.r + o.r + 80);
       if (freeDoors && freeCenter && farFromOthers) obstacles.push(o);
     }
@@ -65,6 +69,17 @@ export function makeRoomLayout(type) {
   }
 
   return { style, seams, obstacles, rug, decor };
+}
+
+// Enemigos de cada sala según su tipo
+export function makeRoomWaves(room, floorNum) {
+  switch (room.type) {
+    case 'monsters': return makeWaves(room.dist, floorNum);
+    case 'survivor': return makeWaves(Math.max(1, room.dist - 1), floorNum).slice(0, 1); // una oleada rodeando al superviviente
+    case 'miniboss': return [['miniboss']];
+    case 'boss': return [['boss']];
+    default: return [];
+  }
 }
 
 // Oleadas: el presupuesto crece cuanto más lejos está la sala de la entrada

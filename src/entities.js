@@ -130,36 +130,39 @@ export class Player {
 }
 
 // ═════════════ COMPAÑEROS (el "equipo") ═════════════
+// `def` es uno de los supervivientes de config.js (policía, médica, militar...)
 export class Ally {
-  constructor(color, x, y) {
-    this.color = color;
+  constructor(def, x, y) {
+    this.def = def;
+    this.color = def.color;
     this.x = x; this.y = y;
     this.r = 14;
     this.vx = 0; this.vy = 0;
     this.idx = 0;
     this.fireT = rand(0, 0.6);
-    this.lookX = 0; this.lookY = -1;
+    this.lookX = 0; this.lookY = 1;
     this.walkT = rand(0, 6);
-    this.kick = 0;
   }
 
   update(dt, game) {
     const p = game.player;
     const n = game.allies.length;
-    // Los compañeros orbitan alrededor del jugador
-    const ang = (this.idx / n) * TAU + game.time * 0.8;
-    const tx = p.x + Math.cos(ang) * 50;
-    const ty = p.y + Math.sin(ang) * 40;
-    const k = 1 - Math.exp(-dt * 7);
+    // Los compañeros se reparten alrededor del jugador y lo siguen
+    const ang = (this.idx / n) * TAU + game.time * 0.6;
+    const tx = p.x + Math.cos(ang) * 55;
+    const ty = p.y + Math.sin(ang) * 42;
+    const k = 1 - Math.exp(-dt * 6);
     const nx = this.x + (tx - this.x) * k;
     const ny = this.y + (ty - this.y) * k;
     this.vx = (nx - this.x) / dt; this.vy = (ny - this.y) / dt;
     this.x = nx; this.y = ny;
     game.collideWorld(this);
-    this.walkT += dt * 10;
-    this.kick = Math.max(0, this.kick - dt * 8);
+    const sp = Math.hypot(this.vx, this.vy);
+    this.walkT += dt * (sp > 20 ? 4 + sp / 22 : 0);
+    if (sp > 20) { this.lookX = this.vx / sp; this.lookY = this.vy / sp; }
 
     if (game.state !== 'playing') return;
+    // De momento todos disparan igual; en la fase 5 cada uno tendrá su papel
     this.fireT -= dt;
     const s = game.stats;
     const target = game.nearestEnemy(this.x, this.y, s.range * 0.9);
@@ -169,25 +172,22 @@ export class Ally {
       if (this.fireT <= 0) {
         this.fireT = 1 / (s.fireRate * 0.55);
         game.fireVolley(this, a, s.damage * 0.45 * s.teamDamage, 1, 0, this.color, 6);
-        this.kick = 1;
       }
     }
   }
 
   draw(ctx) {
-    const { x, y, r } = this;
-    shadow(ctx, x, y, r);
-    const hop = Math.abs(Math.sin(this.walkT)) * 3;
-    blob(ctx, x, y - hop, r, this.color, { sx: 1 - this.kick * 0.06, sy: 1 + this.kick * 0.06, lw: 3.5 });
-    // antenita
-    ctx.beginPath();
-    ctx.moveTo(x, y - hop - r);
-    ctx.quadraticCurveTo(x + 6, y - hop - r - 8, x + 3, y - hop - r - 12);
-    ctx.lineWidth = 3; ctx.strokeStyle = OUTLINE; ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(x + 3, y - hop - r - 13, 4, 0, TAU);
-    ctx.fillStyle = this.color; ctx.fill(); ctx.lineWidth = 2.5; ctx.stroke();
-    eyes(ctx, x, y - hop, r, this.lookX, this.lookY);
+    const sp = Math.hypot(this.vx, this.vy);
+    drawHuman(ctx, this.x, this.y, {
+      ...this.def.look,
+      s: 0.82,
+      lookX: this.lookX,
+      lookY: this.lookY,
+      moveX: sp > 1 ? this.vx / sp : 0,
+      moveY: sp > 1 ? this.vy / sp : 0,
+      moving: Math.min(1, sp / 150),
+      walk: this.walkT,
+    });
   }
 }
 
@@ -197,7 +197,8 @@ export const ENEMY_TYPES = {
   bat:     { name: 'Murci',     r: 15, hp: 14,  speed: 135, dmg: 10, color: '#7b61ff', coins: [1, 2] },
   shooter: { name: 'Escupidor', r: 21, hp: 30,  speed: 70,  dmg: 12, color: '#2ec4b6', coins: [2, 3] },
   charger: { name: 'Toro',      r: 25, hp: 50,  speed: 55,  dmg: 18, color: '#c97b4a', coins: [3, 4] },
-  boss:    { name: 'Rey Gelatina', r: 62, hp: 900, speed: 55, dmg: 20, color: '#ff5d73', coins: [25, 30] },
+  miniboss: { name: 'Gelatina Gorda', r: 46, hp: 380, speed: 60, dmg: 16, color: '#9b6bff', coins: [0, 0] },
+  boss:    { name: 'Rey Gelatina', r: 62, hp: 1200, speed: 55, dmg: 20, color: '#ff5d73', coins: [0, 0] },
 };
 
 const SPAWN_TIME = 0.8;
@@ -218,7 +219,7 @@ export class Enemy {
     this.elite = elite;
     this.vx = 0; this.vy = 0;
     this.kx = 0; this.ky = 0; // empuje al recibir disparos
-    this.spawnT = type === 'boss' ? 1.4 : SPAWN_TIME;
+    this.spawnT = this.isBoss ? 1.4 : SPAWN_TIME;
     this.t = rand(0, 10);
     this.hitFlash = 0;
     this.dead = false;
@@ -234,6 +235,7 @@ export class Enemy {
   }
 
   get active() { return this.spawnT <= 0 && !this.dead; }
+  get isBoss() { return this.type === 'boss' || this.type === 'miniboss'; }
 
   update(dt, game) {
     if (this.spawnT > 0) { this.spawnT -= dt; return; }
@@ -297,11 +299,14 @@ export class Enemy {
         }
         break;
 
+      case 'miniboss':
       case 'boss': {
+        // El jefe final es más grande y agresivo que el mini jefe
+        const big = this.type === 'boss';
         const phase2 = this.hp < this.maxHp * 0.5;
         if (phase2 && !this.enraged) {
           this.enraged = true;
-          this.color = '#ff3355';
+          this.color = big ? '#ff3355' : '#7b3fe0';
           game.floatText(this.x, this.y - this.r - 20, '¡FURIOSO!', '#ffd23f', 30);
           game.shake(14);
         }
@@ -309,17 +314,17 @@ export class Enemy {
         spd = (phase2 ? 85 : 55) * (0.4 + 0.9 * Math.max(0, Math.sin(this.t * 3)));
         this.ringT -= dt;
         if (this.ringT <= 0) {
-          this.ringT = phase2 ? 1.9 : 2.7;
-          const n = phase2 ? 16 : 12;
+          this.ringT = big ? (phase2 ? 1.9 : 2.7) : (phase2 ? 2.4 : 3.2);
+          const n = big ? (phase2 ? 16 : 12) : (phase2 ? 10 : 8);
           const off = rand(0, TAU);
           for (let i = 0; i < n; i++) game.enemyShoot(this.x, this.y, off + (i / n) * TAU, 190, 14);
           game.shake(6);
         }
         this.sumT -= dt;
         if (this.sumT <= 0) {
-          this.sumT = phase2 ? 5.5 : 7;
+          this.sumT = big ? (phase2 ? 5.5 : 7) : 8;
           game.spawnEnemy('slime', this.x - 80, this.y + 30);
-          game.spawnEnemy('slime', this.x + 80, this.y + 30);
+          if (big || phase2) game.spawnEnemy('slime', this.x + 80, this.y + 30);
         }
         break;
       }
@@ -341,7 +346,7 @@ export class Enemy {
   hurt(dmg, crit, dirX, dirY, game) {
     this.hp -= dmg;
     this.hitFlash = 0.08;
-    const push = this.type === 'boss' ? 20 : this.type === 'charger' ? 90 : 180;
+    const push = this.isBoss ? 20 : this.type === 'charger' ? 90 : 180;
     this.kx += dirX * push; this.ky += dirY * push;
     game.floatText(this.x + rand(-8, 8), this.y - this.r - 6, Math.round(dmg).toString(), crit ? '#ffd23f' : '#ffffff', crit ? 26 : 18);
     sfx.hit();
@@ -353,7 +358,7 @@ export class Enemy {
 
     // Aviso en el suelo antes de aparecer
     if (this.spawnT > 0) {
-      const total = this.type === 'boss' ? 1.4 : SPAWN_TIME;
+      const total = this.isBoss ? 1.4 : SPAWN_TIME;
       const k = 1 - this.spawnT / total;
       ctx.save();
       ctx.setLineDash([7, 6]);
@@ -388,12 +393,13 @@ export class Enemy {
 
     switch (this.type) {
       case 'slime':
+      case 'miniboss':
       case 'boss': {
         shadow(ctx, x, y, r);
-        const j = Math.max(0, Math.sin(this.t * (this.type === 'boss' ? 3 : 5)));
-        const hop = j * (this.type === 'boss' ? 14 : 8);
+        const j = Math.max(0, Math.sin(this.t * (this.isBoss ? 3 : 5)));
+        const hop = j * (this.isBoss ? 14 : 8);
         const sq = (1 - j) * 0.12;
-        blob(ctx, x, y - hop, r, this.color, { sx: 1 + sq, sy: 1 - sq + j * 0.05, flash, lw: this.type === 'boss' ? 6 : 4 });
+        blob(ctx, x, y - hop, r, this.color, { sx: 1 + sq, sy: 1 - sq + j * 0.05, flash, lw: this.isBoss ? 6 : 4 });
         eyes(ctx, x, y - hop, r, lx, ly, { angry: true });
         if (this.type === 'boss') drawCrown(ctx, x, y - hop - r * 0.85, r * 0.55);
         break;
@@ -477,7 +483,7 @@ export class Enemy {
     }
 
     // barra de vida pequeña
-    if (this.type !== 'boss' && this.hp < this.maxHp) {
+    if (!this.isBoss && this.hp < this.maxHp) {
       const w = r * 1.8, bx = x - w / 2, by = y - r - (this.type === 'bat' ? 34 : 14);
       ctx.fillStyle = OUTLINE;
       ctx.beginPath(); ctx.roundRect(bx - 2, by - 2, w + 4, 9, 4); ctx.fill();

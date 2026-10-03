@@ -217,6 +217,13 @@ export function drawHuman(ctx, x, y, o) {
   ctx.roundRect(x - 11 * s, by - 9 * s, 22 * s, 20 * s, 9 * s);
   ctx.stroke();
 
+  // cruz roja en el pecho (personal sanitario)
+  if (o.cross && !o.flash && !facingBack) {
+    ctx.fillStyle = '#ff5d73';
+    ctx.fillRect(x - 1.6 * s, by + 1 * s, 3.2 * s, 8 * s);
+    ctx.fillRect(x - 4 * s, by + 3.4 * s, 8 * s, 3.2 * s);
+  }
+
   if (!facingBack) drawHands();
 
   // cabeza
@@ -279,6 +286,41 @@ export function drawHuman(ctx, x, y, o) {
       ctx.fill();
       ctx.lineWidth = 2 * s;
       ctx.stroke();
+    }
+  }
+
+  // gorra de policía o casco militar
+  if (o.hat && !o.flash) {
+    ctx.fillStyle = o.hat.color;
+    ctx.lineWidth = lw;
+    ctx.strokeStyle = OUTLINE;
+    if (o.hat.kind === 'helmet') {
+      ctx.beginPath();
+      ctx.ellipse(hx, hy - 4 * s, 17.5 * s, 14 * s, 0, Math.PI * 1.02, Math.PI * 1.98);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(0,0,0,0.18)';
+      for (const [dx, dy] of [[-6, -10], [4, -13], [8, -6]]) {
+        ctx.beginPath(); ctx.arc(hx + dx * s, hy + dy * s, 2.2 * s, 0, TAU); ctx.fill();
+      }
+    } else {
+      ctx.beginPath();
+      ctx.ellipse(hx, hy - 6 * s, 15.5 * s, 11 * s, 0, Math.PI, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      if (!facingBack) {
+        // visera hacia donde mira
+        ctx.beginPath();
+        ctx.ellipse(hx + lookX * 8 * s, hy - 5 * s, 11 * s, 4 * s, lookX * 0.3, 0, Math.PI);
+        ctx.fillStyle = '#1d1b2c';
+        ctx.fill();
+      }
+      ctx.beginPath();
+      ctx.arc(hx, hy - 12 * s, 2.6 * s, 0, TAU);
+      ctx.fillStyle = '#ffd23f';
+      ctx.fill();
     }
   }
 

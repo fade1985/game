@@ -3,6 +3,7 @@
 // ─────────────────────────────────────────────
 import { W, H, WALL, DOOR_W, OUTLINE } from './config.js';
 import { roundBox, outlinedText, heartPath } from './draw.js';
+import { ROOM_TYPES } from './rooms.js';
 
 const TAU = Math.PI * 2;
 
@@ -163,12 +164,23 @@ export function drawDoors(ctx, room, open) {
   for (const [dir, has] of Object.entries(room.doors)) {
     if (!has) continue;
     const p = DOOR_POS[dir];
+    const special = ROOM_TYPES[room.doorTypes[dir]];
+    const frame = special && special.frame;
     ctx.save();
     ctx.translate(p.x, p.y);
     ctx.rotate(p.a);
     const w = DOOR_W, h = WALL + 10;
-    // marco de madera
-    roundBox(ctx, -w / 2 - 10, -h / 2 - 2, w + 20, h + 2, 6, trim, 4);
+    // marco: de madera, o de color si lleva a una sala especial
+    roundBox(ctx, -w / 2 - 10, -h / 2 - 2, w + 20, h + 2, 6, frame || trim, 4);
+    if (frame) {
+      // remaches decorativos
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      for (const sx of [-w / 2 - 5, w / 2 + 5]) {
+        for (const sy of [-h / 2 + 8, 0, h / 2 - 8]) {
+          ctx.beginPath(); ctx.arc(sx, sy, 2.5, 0, TAU); ctx.fill();
+        }
+      }
+    }
     // hueco oscuro
     const g = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
     g.addColorStop(0, '#120f1f');
@@ -197,6 +209,20 @@ export function drawDoors(ctx, room, open) {
       }
     }
     ctx.restore();
+
+    // insignia con el icono de la sala, al lado de la puerta (siempre derecha)
+    if (special && special.frame) {
+      const bx = p.x + Math.cos(p.a) * (w / 2 + 34);
+      const by = p.y + Math.sin(p.a) * (w / 2 + 34);
+      ctx.beginPath();
+      ctx.arc(bx, by, 17, 0, TAU);
+      ctx.fillStyle = special.frame;
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = OUTLINE;
+      ctx.stroke();
+      drawEmoji(ctx, special.icon, bx, by + 1, 18);
+    }
   }
 }
 
@@ -279,6 +305,10 @@ export function drawMinimap(ctx, floor, current, title, time) {
     ctx.lineWidth = 2;
     ctx.strokeStyle = isCur ? '#ffffff' : OUTLINE;
     ctx.stroke();
+    const info = ROOM_TYPES[r.type];
+    const stairs = r.props && r.props.some((pr) => pr.kind === 'stairs');
+    if (stairs) drawEmoji(ctx, '🪜', p.x + CW / 2, p.y + CH / 2 + 1, 12);
+    else if (info.frame) drawEmoji(ctx, info.icon, p.x + CW / 2, p.y + CH / 2 + 1, 12);
     if (isCur) {
       ctx.globalAlpha = 0.5 + Math.sin(time * 6) * 0.3;
       ctx.beginPath();
@@ -289,4 +319,11 @@ export function drawMinimap(ctx, floor, current, title, time) {
     }
   }
   ctx.restore();
+}
+
+export function drawEmoji(ctx, emoji, x, y, size) {
+  ctx.font = `${size}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(emoji, x, y);
 }
