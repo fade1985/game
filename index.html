@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Blob Quest</title>
-  <meta name="description" content="Mini roguelike de salas con vista desde arriba y estilo cartoon." />
+  <meta name="description" content="Roguelike de zombis por edificios, con vista desde arriba y estilo cartoon." />
   <meta name="theme-color" content="#2b8fb0" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='54' r='40' fill='%23ffd23f' stroke='%231d1b2c' stroke-width='8'/><circle cx='37' cy='48' r='9' fill='%231d1b2c'/><circle cx='63' cy='48' r='9' fill='%231d1b2c'/></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -16,16 +16,13 @@
   <main id="game-wrap">
     <canvas id="game"></canvas>
 
-    <!-- HUD: va sobre el muro inferior de la sala -->
+    <!-- HUD: va sobre el muro inferior, dejando libre el centro (puerta de abajo) -->
     <div id="hud" hidden>
       <div class="hud-left">
         <div class="hpbar"><div class="fill"></div><span></span></div>
       </div>
-      <div class="hud-center"><div class="dots"></div></div>
       <div class="hud-right">
-        <div class="pill" title="Monedas">🪙 <b id="hud-coins">0</b></div>
-        <div class="pill" title="Gemas">💎 <b id="hud-gems">0</b></div>
-        <div class="pill" title="Equipo">👥 <b id="hud-team">0</b></div>
+        <div class="pill" id="pill-team" title="Equipo" hidden>👥 <b id="hud-team">0</b></div>
         <button class="icon-btn" id="btn-mute" title="Sonido">🔊</button>
         <button class="icon-btn" id="btn-pause" title="Pausa (Esc)">⏸</button>
       </div>

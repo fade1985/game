@@ -1,19 +1,20 @@
 // ─────────────────────────────────────────────
 //  Game: controla el flujo de la partida
-//  menú → salas → recompensas → jefe → fin
+//  menú → edificio → plantas → salas conectadas
 // ─────────────────────────────────────────────
-import { W, H, WALL, DOOR_W, OUTLINE, TOTAL_ROOMS, MAX_ALLIES, ALLY_COLORS } from './config.js';
-import { rand, randInt, clamp, dist, pushOut } from './utils.js';
+import { W, H, WALL, DOOR_W, OUTLINE, MAX_ALLIES, ALLY_COLORS, DIRS, OPPOSITE, BUILDINGS } from './config.js';
+import { rand, clamp, dist, pushOut } from './utils.js';
 import { Player, Ally, Enemy } from './entities.js';
-import { makeRoom, doorOptions, ROOM_TYPES } from './rooms.js';
-import { rollCards, makeShopOffers, restOptions, baseStats, startCoins, buyMeta } from './upgrades.js';
-import { loadSave, writeSave, addGems } from './save.js';
-import { drawRoom, drawDoors, drawInteract, drawPickup, drawBullet } from './render.js';
+import { generateFloor, neighbour } from './floor.js';
+import { makeRoomLayout } from './rooms.js';
+import { baseStats } from './upgrades.js';
+import { loadSave, writeSave } from './save.js';
+import { drawRoom, drawDoors, drawPickup, drawBullet, drawMinimap } from './render.js';
 import { outlinedText } from './draw.js';
 import { getMoveVector, consumeDash, clearInput } from './input.js';
 import { sfx } from './sfx.js';
 
-const TRANS = 0.45; // duración de cada mitad de la transición entre salas
+const SLIDE = 0.4; // duración del deslizamiento de cámara entre salas
 
 export class Game {
   constructor(canvas, ui) {
@@ -39,27 +40,26 @@ export class Game {
 
   // ═════════════ Pantallas ═════════════
 
-  resetWorld() {
+  resetRoomState() {
     this.enemies = [];
     this.bullets = [];
-    this.pickups = [];
     this.particles = [];
     this.texts = [];
-    this.doors = [];
     this.timers = [];
-    this.interact = null;
-    this.banner = null;
-    this.transition = null;
   }
 
   setupMenuScene() {
-    this.resetWorld();
-    this.room = makeRoom(0, 'menu');
-    this.stats = baseStats(loadSave());
+    this.resetRoomState();
+    this.pickups = [];
+    this.banner = null;
+    this.transition = null;
+    this.floor = null;
+    this.room = { doors: {}, layout: makeRoomLayout('start') };
+    this.doorOpen = 1;
+    this.stats = baseStats();
     this.player = new Player(this.stats);
     this.player.x = W / 2; this.player.y = H / 2 + 60;
     this.allies = [];
-    this.addAlly(); this.addAlly();
     this.menuTarget = { x: W / 2, y: H / 2, t: 0 };
   }
 
@@ -68,41 +68,31 @@ export class Game {
     this.paused = false;
     this.setupMenuScene();
     this.ui.showHud(false);
-    this.ui.showMenu(loadSave(), {
-      play: () => this.newRun(),
-      workshop: () => this.openWorkshop(),
-    });
-  }
-
-  openWorkshop() {
-    const save = loadSave();
-    this.ui.showWorkshop(save, {
-      buy: (id) => {
-        if (buyMeta(save, id)) { writeSave(save); sfx.buy(); } else sfx.nope();
-        this.openWorkshop();
-      },
-      back: () => this.goMenu(),
-    });
+    this.ui.showMenu(loadSave(), { play: () => this.newRun() });
   }
 
   newRun() {
-    const save = loadSave();
-    this.resetWorld();
-    this.stats = baseStats(save);
+    this.building = BUILDINGS.apartamentos;
+    this.stats = baseStats();
     this.player = new Player(this.stats);
     this.allies = [];
-    for (let i = 0; i < save.upgrades.amigo; i++) this.addAlly();
-    this.coins = startCoins(save);
-    this.runGems = 0;
     this.kills = 0;
-    this.roomIndex = 0;
+    this.floorNum = 1;
     this.state = 'playing';
     this.paused = false;
     clearInput();
     this.ui.hide();
     this.ui.showHud(true);
-    this.enterRoom('combat');
-    this.transition = { phase: 'in', t: 0 };
+    this.startFloor();
+  }
+
+  // Genera una planta nueva y coloca al jugador en la entrada
+  startFloor() {
+    const count = this.building.roomsPerFloor[this.floorNum - 1] || 12;
+    this.floor = generateFloor(count, this.floorNum);
+    this.transition = null;
+    this.enterRoom(this.floor.start, null);
+    this.banner = { title: `${this.building.icon} ${this.building.name}`, sub: `Planta ${this.floorNum}`, t: 0 };
   }
 
   openPause() {
@@ -127,156 +117,98 @@ export class Game {
     this.state = 'over';
     this.paused = false;
     const save = loadSave();
-    save.best = Math.max(save.best || 0, this.roomIndex + 1);
-    if (win) save.wins = (save.wins || 0) + 1;
+    save.bestFloor = Math.max(save.bestFloor || 0, this.floorNum);
     writeSave(save);
     this.ui.showHud(false);
     if (quit) { this.goMenu(); return; }
+    const rooms = [...this.floor.rooms.values()];
     this.ui.showEnd(
-      { win, room: this.roomIndex + 1, total: TOTAL_ROOMS, kills: this.kills, gems: this.runGems, team: this.allies.length },
+      {
+        win,
+        title: win ? '🧹 ¡Planta despejada!' : '💥 ¡Derrota!',
+        sub: win
+          ? `Has limpiado la planta ${this.floorNum} de ${this.building.name}`
+          : `Caíste en la planta ${this.floorNum} de ${this.building.name}`,
+        kills: this.kills,
+        explored: `${rooms.filter((r) => r.visited).length} / ${rooms.length}`,
+      },
       { retry: () => this.newRun(), menu: () => this.goMenu() },
     );
   }
 
   // ═════════════ Salas ═════════════
 
-  enterRoom(type) {
-    const keepAllies = this.allies;
-    this.resetWorld();
-    this.allies = keepAllies;
-    this.room = makeRoom(this.roomIndex, type);
-    this.cleared = false;
-    this.waveIdx = 0;
-    this.waveDelay = 0;
-
-    const p = this.player;
-    p.x = W / 2; p.y = H - WALL - 50; p.vx = 0; p.vy = 0;
-    p.lookX = 0; p.lookY = -1;
-    this.allies.forEach((a) => { a.x = p.x + rand(-30, 30); a.y = p.y + rand(-10, 20); });
-
-    switch (type) {
-      case 'combat':
-      case 'elite':
-      case 'boss':
-        this.waveDelay = type === 'boss' ? 1.2 : 0.9;
-        break;
-      case 'treasure':
-        this.interact = { kind: 'chest', x: W / 2, y: H / 2 + 20, r: 36, used: false };
-        this.cleared = true;
-        this.openDoors();
-        break;
-      case 'shop':
-        this.interact = { kind: 'shop', x: W / 2, y: H / 2 + 40, r: 62, used: false };
-        this.shopOffers = makeShopOffers(this);
-        this.cleared = true;
-        this.openDoors();
-        break;
-      case 'rest':
-        this.interact = { kind: 'campfire', x: W / 2, y: H / 2 + 20, r: 32, used: false };
-        this.cleared = true;
-        this.openDoors();
-        break;
+  // Entra en una sala. `fromDir` es la dirección en la que se movía el jugador
+  // (null al empezar la planta).
+  enterRoom(room, fromDir) {
+    if (this.room && this.room.pickups) this.room.pickups = this.pickups; // la sala recuerda sus objetos
+    this.resetRoomState();
+    this.room = room;
+    this.pickups = room.pickups;
+    room.visited = true;
+    for (const dir of Object.keys(DIRS)) {
+      if (room.doors[dir]) neighbour(this.floor, room, dir).seen = true;
     }
-    if (this.interact) this.interact.inside = false;
 
-    const info = ROOM_TYPES[type];
-    this.banner = { title: `${info.icon} ${info.name}`, sub: `Sala ${this.roomIndex + 1} de ${TOTAL_ROOMS} · ${this.room.biome.name}`, t: 0 };
+    // Colocamos al jugador junto a la puerta por la que entra
+    const p = this.player;
+    const IN = p.r + 34;
+    if (!fromDir) { p.x = W / 2; p.y = H / 2 + 40; }
+    else if (fromDir === 'up') { p.x = W / 2; p.y = H - WALL - IN; }
+    else if (fromDir === 'down') { p.x = W / 2; p.y = WALL + IN; }
+    else if (fromDir === 'left') { p.x = W - WALL - IN; p.y = H / 2; }
+    else if (fromDir === 'right') { p.x = WALL + IN; p.y = H / 2; }
+    if (fromDir) { p.vx *= 0.3; p.vy *= 0.3; }
+    this.allies.forEach((a) => { a.x = p.x + rand(-20, 20); a.y = p.y + rand(-20, 20); });
+
+    this.waveIdx = 0;
+    this.waveDelay = room.cleared ? 0 : 0.6;
+    // Las puertas entran abiertas y se cierran de golpe si hay enemigos
+    this.doorOpen = 1;
   }
 
-  openDoors() {
-    if (this.roomIndex >= TOTAL_ROOMS - 1) return;
-    const opts = doorOptions(this.roomIndex + 1, this.room.type);
-    const xs = opts.length === 1 ? [W / 2] : [W * 0.3, W * 0.7];
-    this.doors = opts.map((type, i) => ({ type, x: xs[i], open: 0 }));
+  goThroughDoor(dir) {
+    const next = neighbour(this.floor, this.room, dir);
+    if (!next) return;
+    this.transition = { dir, t: 0, from: this.room };
+    this.enterRoom(next, dir);
     sfx.door();
   }
 
   spawnWave(types) {
-    const mul = (1 + this.roomIndex * 0.18) * (this.room.type === 'elite' ? 1.4 : 1);
-    const elite = this.room.type === 'elite';
+    const mul = 1 + (this.room.dist - 1) * 0.12 + (this.floorNum - 1) * 0.2;
     for (const t of types) {
-      if (t === 'boss') {
-        this.enemies.push(new Enemy('boss', W / 2, H / 2 - 70, 1));
-        sfx.boss();
-        this.shake(10);
-      } else {
-        const pos = this.findSpawnPoint();
-        this.enemies.push(new Enemy(t, pos.x, pos.y, mul, elite && Math.random() < 0.5));
-      }
+      const pos = this.findSpawnPoint();
+      this.enemies.push(new Enemy(t, pos.x, pos.y, mul));
     }
   }
 
   spawnEnemy(type, x, y) {
-    const mul = 1 + this.roomIndex * 0.18;
-    const e = new Enemy(type, clamp(x, WALL + 30, W - WALL - 30), clamp(y, WALL + 30, H - WALL - 30), mul);
+    const e = new Enemy(type, clamp(x, WALL + 30, W - WALL - 30), clamp(y, WALL + 30, H - WALL - 30), 1);
     this.enemies.push(e);
   }
 
   findSpawnPoint() {
     for (let i = 0; i < 40; i++) {
-      const pt = { x: rand(WALL + 50, W - WALL - 50), y: rand(WALL + 50, H - WALL - 60) };
-      if (dist(pt, this.player) < 240) continue;
-      if (this.room.obstacles.some((o) => dist(o, pt) < o.r + 40)) continue;
+      const pt = { x: rand(WALL + 50, W - WALL - 50), y: rand(WALL + 50, H - WALL - 50) };
+      if (dist(pt, this.player) < 260) continue;
+      if (this.room.layout.obstacles.some((o) => dist(o, pt) < o.r + 40)) continue;
       return pt;
     }
-    return { x: W / 2, y: WALL + 80 };
+    return { x: W - this.player.x, y: H - this.player.y };
   }
 
   roomCleared() {
-    this.cleared = true;
+    this.room.cleared = true;
     sfx.clear();
-    this.banner = { title: '¡Sala superada!', sub: '', t: 0 };
-    const luck = this.room.type === 'elite' ? 1 : 0;
-    this.later(0.9, () => this.offerCards(rollCards(this, 3, luck), 'Elige una mejora', () => this.openDoors()));
-  }
+    this.floatText(this.player.x, this.player.y - 50, '¡Despejada!', '#80ed99', 24);
+    this.later(0.25, () => sfx.door());
 
-  offerCards(cards, title, then) {
-    if (this.player.dead) return;
-    this.paused = true;
-    clearInput();
-    sfx.card();
-    this.ui.showCards(cards, title, (card) => {
-      card.apply(this);
-      this.ui.hide();
-      this.paused = false;
-      this.floatText(this.player.x, this.player.y - 40, `${card.icon} ${card.name}`, '#ffd23f', 22);
-      sfx.buy();
-      if (then) then();
-    });
-  }
-
-  useInteract(it) {
-    if (it.kind === 'chest' && !it.used) {
-      it.used = true;
-      this.dropCoins(it.x, it.y - 10, randInt(10, 16));
-      this.dropPickup('gem', it.x, it.y - 10);
-      this.burst(it.x, it.y - 20, '#ffd23f', 18, 30);
-      this.shake(6);
-      sfx.clear();
-      this.later(0.7, () => this.offerCards(rollCards(this, 3, 1), '¡Tesoro! Elige una', null));
-    } else if (it.kind === 'shop') {
-      this.openShop();
-    } else if (it.kind === 'campfire' && !it.used) {
-      this.offerCards(restOptions(this), 'Hoguera: elige una', () => { it.used = true; });
+    if ([...this.floor.rooms.values()].every((r) => r.cleared)) {
+      // Fase 1: limpiar todas las salas completa la planta (en la fase 2 serán las escaleras)
+      this.banner = { title: '¡Planta despejada!', sub: 'No queda ni un monstruo', t: 0 };
+      this.later(2.4, () => this.endRun(true));
     }
-  }
-
-  openShop() {
-    this.paused = true;
-    clearInput();
-    for (const o of this.shopOffers) o.blocked = !!(o.canBuy && !o.canBuy(this));
-    this.ui.showShop(this.shopOffers, this.coins, {
-      buy: (offer) => {
-        const blocked = offer.canBuy && !offer.canBuy(this);
-        if (offer.sold || this.coins < offer.price || blocked) { sfx.nope(); return; }
-        this.coins -= offer.price;
-        offer.sold = true;
-        offer.apply(this);
-        sfx.buy();
-        this.openShop();
-      },
-      close: () => { this.ui.hide(); this.paused = false; },
-    });
   }
 
   addAlly() {
@@ -285,10 +217,6 @@ export class Game {
     const a = new Ally(ALLY_COLORS[this.allies.length % ALLY_COLORS.length], p.x, p.y + 30);
     this.allies.push(a);
     this.allies.forEach((al, i) => { al.idx = i; });
-    if (this.state === 'playing') {
-      this.burst(a.x, a.y, a.color, 10, 14);
-      this.floatText(a.x, a.y - 30, '¡Nuevo compañero!', '#80ed99', 20);
-    }
     return true;
   }
 
@@ -297,7 +225,7 @@ export class Game {
     const before = p.hp;
     p.hp = Math.min(this.stats.maxHp, p.hp + n);
     const healed = Math.round(p.hp - before);
-    if (healed > 0) this.floatText(p.x, p.y - 34, `+${healed}`, '#80ed99', 20);
+    if (healed > 0) this.floatText(p.x, p.y - 44, `+${healed}`, '#80ed99', 20);
   }
 
   // ═════════════ Bucle principal ═════════════
@@ -311,34 +239,26 @@ export class Game {
     if (this.state === 'menu') { this.updateMenu(dt); return; }
     if (this.state !== 'playing' || this.paused) return;
 
+    // Durante el deslizamiento entre salas el juego se congela
     if (this.transition) {
-      const tr = this.transition;
-      tr.t += dt;
-      if (tr.phase === 'out') {
-        if (tr.t >= TRANS) {
-          this.roomIndex++;
-          this.enterRoom(tr.next);
-          this.transition = { phase: 'in', t: 0 };
-        }
-        return;
-      }
-      if (tr.t >= TRANS) this.transition = null;
+      this.transition.t += dt;
+      if (this.transition.t >= SLIDE) this.transition = null;
+      return;
     }
     this.updatePlay(dt);
   }
 
   updateMenu(dt) {
-    // En el menú el héroe pasea solo con sus compañeros
+    // En el menú el conserje pasea solo por la habitación
     const m = this.menuTarget;
     m.t -= dt;
     if (m.t <= 0) {
-      m.x = rand(W * 0.3, W * 0.7); m.y = rand(H * 0.45, H * 0.75); m.t = rand(1.5, 3);
+      m.x = rand(W * 0.25, W * 0.75); m.y = rand(H * 0.45, H * 0.75); m.t = rand(1.5, 3);
     }
     const dx = m.x - this.player.x, dy = m.y - this.player.y;
     const d = Math.hypot(dx, dy);
     const mv = d > 20 ? { x: (dx / d) * 0.6, y: (dy / d) * 0.6 } : { x: 0, y: 0 };
     this.player.update(dt, this, mv, false);
-    this.allies.forEach((a) => a.update(dt, this));
     this.updateParticles(dt);
   }
 
@@ -367,8 +287,7 @@ export class Game {
     this.updateBullets(dt);
     this.updatePickups(dt);
     this.updateParticles(dt);
-    this.checkDoors(dt);
-    this.checkInteract();
+    this.updateDoors(dt);
 
     this.shakeAmt *= Math.exp(-dt * 10);
     if (this.banner) this.banner.t += dt;
@@ -377,7 +296,7 @@ export class Game {
 
   updateWaves(dt) {
     const waves = this.room.waves;
-    if (this.cleared || !waves.length) return;
+    if (this.room.cleared || !waves.length) return;
     if (this.waveDelay > 0) {
       this.waveDelay -= dt;
       if (this.waveDelay <= 0) this.spawnWave(waves[this.waveIdx]);
@@ -387,9 +306,30 @@ export class Game {
       if (this.waveIdx < waves.length - 1) {
         this.waveIdx++;
         this.waveDelay = 0.7;
-      } else if (this.room.type !== 'boss') {
+      } else {
         this.roomCleared();
       }
+    }
+  }
+
+  // Abre/cierra las puertas y detecta si el jugador cruza una
+  updateDoors(dt) {
+    const target = this.room.cleared ? 1 : 0;
+    const before = this.doorOpen;
+    this.doorOpen = clamp(this.doorOpen + Math.sign(target - this.doorOpen) * dt * (target ? 2.5 : 6), 0, 1);
+    if (before === 1 && this.doorOpen < 1) { sfx.slam(); this.shake(4); } // ¡portazo!
+
+    const p = this.player;
+    if (this.doorOpen < 1 || p.dead) return;
+    const half = DOOR_W / 2 - 8;
+    const at = {
+      up: p.y - p.r <= WALL + 2 && Math.abs(p.x - W / 2) < half,
+      down: p.y + p.r >= H - WALL - 2 && Math.abs(p.x - W / 2) < half,
+      left: p.x - p.r <= WALL + 2 && Math.abs(p.y - H / 2) < half,
+      right: p.x + p.r >= W - WALL - 2 && Math.abs(p.y - H / 2) < half,
+    };
+    for (const dir of Object.keys(DIRS)) {
+      if (this.room.doors[dir] && at[dir]) { this.goThroughDoor(dir); return; }
     }
   }
 
@@ -418,7 +358,7 @@ export class Game {
       b.y += b.vy * dt;
       b.life -= dt;
       const outside = b.x < WALL || b.x > W - WALL || b.y < WALL || b.y > H - WALL;
-      if (outside || this.room.obstacles.some((o) => dist(o, b) < o.r + b.r * 0.5)) {
+      if (outside || this.room.layout.obstacles.some((o) => dist(o, b) < o.r + b.r * 0.5)) {
         b.dead = true;
         this.puff(b.x, b.y, b.color);
         continue;
@@ -444,40 +384,31 @@ export class Game {
 
   updatePickups(dt) {
     const p = this.player;
+    const needsHp = p.hp < this.stats.maxHp;
     for (const pk of this.pickups) {
       pk.t += dt;
       const fr = Math.exp(-dt * 5);
       pk.vx *= fr; pk.vy *= fr;
       const dx = p.x - pk.x, dy = p.y - pk.y;
       const d = Math.hypot(dx, dy) || 1;
-      // Al terminar la sala, todo vuela hacia el jugador
-      const range = this.cleared ? Infinity : this.stats.magnet;
-      if (!p.dead && pk.t > 0.4 && d < range) {
+      // Los corazones solo vienen a ti si te falta vida
+      if (!p.dead && needsHp && pk.t > 0.4 && d < this.stats.magnet) {
         pk.vx += (dx / d) * 2200 * dt;
         pk.vy += (dy / d) * 2200 * dt;
         const sp = Math.hypot(pk.vx, pk.vy);
         if (sp > 650) { pk.vx *= 650 / sp; pk.vy *= 650 / sp; }
       }
-      pk.x += pk.vx * dt;
-      pk.y += pk.vy * dt;
-      pk.x = clamp(pk.x, WALL + 10, W - WALL - 10);
-      pk.y = clamp(pk.y, WALL + 10, H - WALL - 10);
-      if (!p.dead && pk.t > 0.25 && d < p.r + 12) this.collect(pk);
+      pk.x = clamp(pk.x + pk.vx * dt, WALL + 14, W - WALL - 14);
+      pk.y = clamp(pk.y + pk.vy * dt, WALL + 14, H - WALL - 14);
+      if (!p.dead && needsHp && pk.t > 0.25 && d < p.r + 12) this.collect(pk);
     }
     this.pickups = this.pickups.filter((pk) => !pk.dead);
+    this.room.pickups = this.pickups;
   }
 
   collect(pk) {
     pk.dead = true;
-    if (pk.kind === 'coin') {
-      this.coins += pk.value;
-      sfx.coin();
-    } else if (pk.kind === 'gem') {
-      this.runGems++;
-      addGems(1); // las gemas se guardan al momento, ¡nunca se pierden!
-      this.floatText(pk.x, pk.y - 20, '+1 💎', '#4cc9f0', 20);
-      sfx.gem();
-    } else if (pk.kind === 'heart') {
+    if (pk.kind === 'heart') {
       this.healPlayer(20);
       sfx.gem();
     }
@@ -500,34 +431,12 @@ export class Game {
     this.texts = this.texts.filter((t) => t.t < t.life);
   }
 
-  checkDoors(dt) {
-    const p = this.player;
-    for (const d of this.doors) {
-      d.open = Math.min(1, d.open + dt * 2.5);
-      const atDoor = Math.abs(p.x - d.x) < DOOR_W / 2 - 6 && p.y - p.r <= WALL + 2;
-      if (d.open >= 1 && atDoor && !this.transition && !p.dead && this.pickups.length === 0) {
-        this.transition = { phase: 'out', t: 0, next: d.type, x: p.x, y: p.y };
-        sfx.door();
-      }
-    }
-  }
-
-  checkInteract() {
-    const it = this.interact;
-    if (!it) return;
-    const p = this.player;
-    const near = dist(it, p) <= it.r + p.r + 6;
-    if (near && !it.inside) this.useInteract(it);
-    it.inside = near;
-  }
-
   // ═════════════ Combate ═════════════
 
-  collideWorld(ent, solid) {
+  collideWorld(ent) {
     ent.x = clamp(ent.x, WALL + ent.r, W - WALL - ent.r);
     ent.y = clamp(ent.y, WALL + ent.r, H - WALL - ent.r);
-    for (const o of this.room.obstacles) pushOut(ent, o);
-    if (solid && this.interact) pushOut(ent, this.interact);
+    for (const o of this.room.layout.obstacles) pushOut(ent, o);
   }
 
   nearestEnemy(x, y, range) {
@@ -577,29 +486,11 @@ export class Game {
     if (e.dead) return;
     e.dead = true;
     this.kills++;
-    const boss = e.type === 'boss';
-    this.burst(e.x, e.y, e.color, boss ? 40 : 12, e.r);
-    this.shake(boss ? 20 : 3);
+    this.burst(e.x, e.y, e.color, 12, e.r);
+    this.shake(3);
     sfx.kill();
-    let n = randInt(e.coins[0], e.coins[1]);
-    if (e.elite) n = Math.ceil(n * 1.5);
-    this.dropCoins(e.x, e.y, n);
-    if (Math.random() < (e.elite ? 0.2 : 0.07)) this.dropPickup('gem', e.x, e.y);
-    if (Math.random() < 0.06) this.dropPickup('heart', e.x, e.y);
+    if (Math.random() < 0.08) this.dropPickup('heart', e.x, e.y);
     if (this.stats.lifesteal && !this.player.dead) this.healPlayer(this.stats.lifesteal);
-    if (boss) this.bossDefeated(e);
-  }
-
-  bossDefeated(boss) {
-    for (const e of this.enemies) {
-      if (!e.dead) { e.dead = true; this.burst(e.x, e.y, e.color, 10, e.r); }
-    }
-    this.bullets = this.bullets.filter((b) => b.friendly);
-    for (let i = 0; i < 5; i++) this.dropPickup('gem', boss.x, boss.y);
-    this.cleared = true;
-    this.banner = { title: '¡VICTORIA!', sub: 'Has derrotado al Rey Gelatina', t: 0 };
-    sfx.clear();
-    this.later(2.6, () => this.endRun(true));
   }
 
   onPlayerDeath() {
@@ -610,13 +501,9 @@ export class Game {
     this.later(1.4, () => this.endRun(false));
   }
 
-  dropCoins(x, y, n) {
-    for (let i = 0; i < n; i++) this.dropPickup('coin', x, y);
-  }
-
   dropPickup(kind, x, y) {
     const a = rand(0, Math.PI * 2), s = rand(80, 220);
-    this.pickups.push({ kind, value: 1, x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0, seed: rand(0, 6) });
+    this.pickups.push({ kind, x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0, seed: rand(0, 6) });
   }
 
   // ═════════════ Efectos ═════════════
@@ -636,7 +523,7 @@ export class Game {
         r: rand(4, 9), color, life: rand(0.35, 0.7), max: 0.7, outline: true,
       });
     }
-    this.particles.push({ x, y, vx: 0, vy: 0, r: r, ring: true, color: '#ffffff', life: 0.3, max: 0.3 });
+    this.particles.push({ x, y, vx: 0, vy: 0, r, ring: true, color: '#ffffff', life: 0.3, max: 0.3 });
   }
 
   floatText(x, y, text, color, size = 18) {
@@ -650,12 +537,38 @@ export class Game {
     ctx.setTransform(this.scale, 0, 0, this.scale, 0, 0);
     ctx.clearRect(0, 0, W, H);
 
-    ctx.save();
-    if (this.shakeAmt > 0.3) ctx.translate(rand(-1, 1) * this.shakeAmt, rand(-1, 1) * this.shakeAmt);
+    const tr = this.transition;
+    if (tr) {
+      // Deslizamiento de cámara: la sala vieja sale y la nueva entra
+      const k = clamp(tr.t / SLIDE, 0, 1);
+      const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      const [dx, dy] = DIRS[tr.dir];
+      ctx.save();
+      ctx.translate(-dx * W * e, -dy * H * e);
+      drawRoom(ctx, tr.from, this.time);
+      drawDoors(ctx, tr.from, 1);
+      ctx.restore();
+      ctx.save();
+      ctx.translate(dx * W * (1 - e), dy * H * (1 - e));
+      this.drawWorld(ctx);
+      ctx.restore();
+    } else {
+      ctx.save();
+      if (this.shakeAmt > 0.3) ctx.translate(rand(-1, 1) * this.shakeAmt, rand(-1, 1) * this.shakeAmt);
+      this.drawWorld(ctx);
+      ctx.restore();
+    }
 
+    if (this.state !== 'menu' && this.floor) {
+      drawMinimap(ctx, this.floor, this.room, `PLANTA ${this.floorNum}`, this.time);
+    }
+    this.drawBossBar(ctx);
+    this.drawBanner(ctx);
+  }
+
+  drawWorld(ctx) {
     drawRoom(ctx, this.room, this.time);
-    drawDoors(ctx, this.doors, this.time);
-    if (this.interact) drawInteract(ctx, this.interact, this.time);
+    drawDoors(ctx, this.room, this.doorOpen);
     for (const pk of this.pickups) drawPickup(ctx, pk, this.time);
 
     // Ordenamos por "y" para que lo de abajo se dibuje delante (falsa profundidad)
@@ -672,11 +585,6 @@ export class Game {
       outlinedText(ctx, t.text, t.x, t.y, t.size * (0.6 + 0.4 * pop), t.color, { lw: 5 });
       ctx.globalAlpha = 1;
     }
-    ctx.restore();
-
-    this.drawBossBar(ctx);
-    this.drawBanner(ctx);
-    this.drawTransition(ctx);
   }
 
   drawParticles(ctx) {
@@ -699,10 +607,11 @@ export class Game {
     ctx.globalAlpha = 1;
   }
 
+  // Barra de vida de jefes (se usará a partir de la fase 2)
   drawBossBar(ctx) {
     const boss = this.enemies.find((e) => e.type === 'boss' && e.active);
     if (!boss) return;
-    const w = 420, x = W / 2 - w / 2, y = WALL + 36;
+    const w = 420, x = W / 2 - w / 2, y = H - WALL - 40;
     ctx.beginPath(); ctx.roundRect(x - 4, y - 4, w + 8, 26, 13);
     ctx.fillStyle = OUTLINE; ctx.fill();
     ctx.beginPath(); ctx.roundRect(x, y, w * Math.max(0, boss.hp / boss.maxHp), 18, 9);
@@ -717,27 +626,11 @@ export class Game {
     const fade = b.t > 1.8 ? 1 - (b.t - 1.8) / 0.4 : 1;
     ctx.save();
     ctx.globalAlpha = Math.max(0, fade);
-    const y = H * 0.3;
     const s = 0.6 + 0.4 * (1 - Math.pow(1 - appear, 3));
-    ctx.translate(W / 2, y);
+    ctx.translate(W / 2, H * 0.3);
     ctx.scale(s, s);
     outlinedText(ctx, b.title, 0, 0, 56, '#ffd23f', { lw: 12 });
-    if (b.sub) outlinedText(ctx, b.sub, 0, 46, 22, '#ffffff', { lw: 7 });
+    if (b.sub) outlinedText(ctx, b.sub, 0, 46, 24, '#ffffff', { lw: 7 });
     ctx.restore();
-  }
-
-  drawTransition(ctx) {
-    const tr = this.transition;
-    if (!tr) return;
-    const k = clamp(tr.t / TRANS, 0, 1);
-    const maxR = Math.hypot(W, H);
-    const r = tr.phase === 'out' ? (1 - k) * maxR : k * maxR;
-    const cx = tr.phase === 'out' ? tr.x : this.player.x;
-    const cy = tr.phase === 'out' ? tr.y : this.player.y;
-    ctx.beginPath();
-    ctx.rect(0, 0, W, H);
-    ctx.arc(cx, cy, Math.max(0.1, r), 0, Math.PI * 2);
-    ctx.fillStyle = OUTLINE;
-    ctx.fill('evenodd');
   }
 }

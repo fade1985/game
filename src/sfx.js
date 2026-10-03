@@ -55,6 +55,7 @@ export const sfx = {
   card: () => tone(700, 0.1, 'triangle', 0.05, 300),
   buy: () => { tone(880, 0.07, 'square', 0.03); tone(1175, 0.1, 'square', 0.03, 0, 0.07); },
   nope: () => tone(150, 0.15, 'square', 0.04, -40),
+  slam: () => { tone(110, 0.16, 'square', 0.07, -50); tone(70, 0.22, 'triangle', 0.08, -20, 0.03); },
   boss: () => { tone(110, 0.6, 'sawtooth', 0.06, -40); tone(82, 0.8, 'sawtooth', 0.05, -20, 0.2); },
   enemyShot: throttled('eshot', 80, () => tone(330, 0.08, 'sine', 0.025, -150)),
 };

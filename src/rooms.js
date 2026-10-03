@@ -1,81 +1,80 @@
 // ─────────────────────────────────────────────
-//  Generación de salas (el corazón del roguelike)
+//  Contenido de cada sala: estilo, obstáculos, decoración y oleadas
 // ─────────────────────────────────────────────
-import { W, H, WALL, TOTAL_ROOMS, biomeFor } from './config.js';
-import { mulberry32, pick, weighted } from './utils.js';
+import { W, H, WALL, APARTMENT_STYLES } from './config.js';
+import { mulberry32, pick } from './utils.js';
 
+// Tipos de sala (en la fase 2 se añaden objeto, superviviente y mini jefe)
 export const ROOM_TYPES = {
-  combat:   { icon: '⚔️', name: 'Combate' },
-  elite:    { icon: '💀', name: 'Élite' },
-  treasure: { icon: '🎁', name: 'Tesoro' },
-  shop:     { icon: '🛒', name: 'Tienda' },
-  rest:     { icon: '🔥', name: 'Hoguera' },
-  boss:     { icon: '👑', name: 'Jefe final' },
-  menu:     { icon: '', name: '' },
+  start:    { icon: '🚪', name: 'Entrada' },
+  monsters: { icon: '🧟', name: 'Monstruos' },
 };
 
 // Coste de cada enemigo para "comprar" oleadas con un presupuesto
 const COST = { slime: 1, bat: 1, shooter: 2, charger: 3 };
 
-// Qué puertas aparecen al terminar una sala → el jugador elige su camino
-export function doorOptions(index, currentType) {
-  if (index >= TOTAL_ROOMS - 1) return ['boss'];
-  if (index === TOTAL_ROOMS - 2) return ['shop', 'rest'];
-  let pool = [['combat', 4], ['treasure', 1]];
-  if (index >= 2) pool.push(['elite', 1.6], ['shop', 1.2]);
-  if (index >= 3) pool.push(['rest', 0.9]);
-  // no repetimos tienda, hoguera o tesoro dos veces seguidas
-  if (currentType !== 'combat') pool = pool.filter(([t]) => t !== currentType);
-  const a = weighted(pool);
-  const rest = pool.filter(([t]) => t !== a);
-  return rest.length ? [a, weighted(rest)] : [a];
-}
+// Puntos de entrada de las puertas (para no tapar el paso con obstáculos)
+const DOOR_SPOTS = [
+  { x: W / 2, y: WALL }, { x: W / 2, y: H - WALL },
+  { x: WALL, y: H / 2 }, { x: W - WALL, y: H / 2 },
+];
 
-export function makeRoom(index, type) {
-  const biome = biomeFor(index);
+export function makeRoomLayout(type) {
   const rng = mulberry32(Math.floor(Math.random() * 1e9));
+  const style = type === 'start' ? APARTMENT_STYLES[3] : APARTMENT_STYLES[Math.floor(rng() * APARTMENT_STYLES.length)];
 
-  // Obstáculos (arbustos, rocas, pilares) solo en salas de combate
+  // Tablas del parquet: cada fila tiene sus juntas en posiciones distintas
+  const seams = [];
+  for (let y = WALL, row = 0; y < H - WALL; y += 32, row++) {
+    let x = WALL + rng() * 120;
+    const cuts = [];
+    while (x < W - WALL) { cuts.push(x); x += 110 + rng() * 120; }
+    seams.push({ y, cuts, shade: rng() < 0.5 });
+  }
+
+  // Obstáculos (macetas y cajas) solo en salas con monstruos
   const obstacles = [];
-  if (type === 'combat' || type === 'elite') {
+  if (type === 'monsters') {
     const n = Math.floor(rng() * 4);
-    for (let tries = 0; obstacles.length < n && tries < 50; tries++) {
+    for (let tries = 0; obstacles.length < n && tries < 60; tries++) {
       const o = {
-        x: WALL + 130 + rng() * (W - 2 * WALL - 260),
-        y: WALL + 110 + rng() * (H - 2 * WALL - 250),
-        r: 24 + rng() * 14,
+        x: WALL + 120 + rng() * (W - 2 * WALL - 240),
+        y: WALL + 100 + rng() * (H - 2 * WALL - 200),
+        r: 24 + rng() * 10,
+        kind: rng() < 0.55 ? 'plant' : 'box',
+        rot: (rng() - 0.5) * 0.4,
       };
-      const farFromSpawn = Math.hypot(o.x - W / 2, o.y - (H - WALL - 50)) > 170;
+      const freeDoors = DOOR_SPOTS.every((d) => Math.hypot(d.x - o.x, d.y - o.y) > 170);
+      const freeCenter = Math.hypot(o.x - W / 2, o.y - H / 2) > 90;
       const farFromOthers = obstacles.every((p) => Math.hypot(p.x - o.x, p.y - o.y) > p.r + o.r + 80);
-      if (farFromSpawn && farFromOthers) obstacles.push(o);
+      if (freeDoors && freeCenter && farFromOthers) obstacles.push(o);
     }
   }
 
-  // Decoración del suelo (solo visual)
-  const decor = [];
-  for (let i = 0; i < 26; i++) {
-    decor.push({
-      x: WALL + 20 + rng() * (W - 2 * WALL - 40),
-      y: WALL + 20 + rng() * (H - 2 * WALL - 40),
-      kind: rng() < 0.6 ? 0 : 1,
-      s: 0.7 + rng() * 0.6,
-    });
+  // Alfombra en algunas habitaciones
+  let rug = null;
+  if (style.rug && rng() < 0.7) {
+    const w = 260 + rng() * 160, h = 160 + rng() * 100;
+    rug = { x: W / 2 - w / 2 + (rng() - 0.5) * 80, y: H / 2 - h / 2 + (rng() - 0.5) * 50, w, h, color: style.rug };
   }
 
-  let waves = [];
-  if (type === 'combat' || type === 'elite') waves = makeWaves(index, type === 'elite');
-  if (type === 'boss') waves = [['boss']];
+  // Pequeños detalles del suelo
+  const decor = [];
+  for (let i = 0; i < 10; i++) {
+    decor.push({ x: WALL + 30 + rng() * (W - 2 * WALL - 60), y: WALL + 30 + rng() * (H - 2 * WALL - 60), s: 0.6 + rng() * 0.8 });
+  }
 
-  return { index, type, biome, obstacles, decor, waves };
+  return { style, seams, obstacles, rug, decor };
 }
 
-// Cada sala tiene un "presupuesto" de enemigos que crece con la profundidad
-function makeWaves(index, elite) {
+// Oleadas: el presupuesto crece cuanto más lejos está la sala de la entrada
+export function makeWaves(depth, floorNum = 1) {
+  const level = depth + (floorNum - 1) * 2;
   const pool = ['slime', 'bat'];
-  if (index >= 1) pool.push('shooter');
-  if (index >= 3) pool.push('charger');
-  const total = Math.round((3 + index * 1.5) * (elite ? 1.4 : 1));
-  const nWaves = index === 0 ? 1 : elite ? 3 : 2;
+  if (level >= 2) pool.push('shooter');
+  if (level >= 3) pool.push('charger');
+  const total = Math.round(3 + level * 1.2);
+  const nWaves = level <= 1 ? 1 : 2;
   const waves = [];
   for (let w = 0; w < nWaves; w++) {
     let budget = Math.ceil(total / nWaves);

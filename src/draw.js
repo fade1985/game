@@ -122,3 +122,176 @@ export function heartPath(ctx, x, y, s) {
   ctx.bezierCurveTo(x + s * 0.45, y - s * 1.0, x + s * 1.1, y - s * 0.35, x, y + s * 0.35);
   ctx.closePath();
 }
+
+// ─────────────────────────────────────────────
+//  Personaje humano estilo "chibi" visto desde arriba:
+//  cabeza grande, cuerpo pequeño, manos y pies animados.
+//  Se usa para el protagonista y, más adelante, para zombis y supervivientes.
+//
+//  (x, y) es el centro del personaje en el suelo (su círculo de colisión).
+//  Opciones:
+//    s          escala (1 = tamaño del protagonista)
+//    skin, shirt, pants, hair, shoes   colores
+//    lookX/lookY  hacia dónde mira (normalizado)
+//    moveX/moveY  hacia dónde camina (normalizado) y `moving` (0..1)
+//    walk       fase de la animación de caminar
+//    bandana    color de la cinta de la cabeza (opcional)
+//    overalls   color del mono de trabajo (opcional)
+//    flash      true = todo blanco (al recibir daño)
+// ─────────────────────────────────────────────
+export function drawHuman(ctx, x, y, o) {
+  const s = o.s || 1;
+  const white = '#ffffff';
+  const col = (c) => (o.flash ? white : c);
+  const lw = 3 * s;
+  const lookX = o.lookX || 0, lookY = o.lookY ?? 1;
+  const moving = o.moving || 0;
+  const step = Math.sin(o.walk || 0) * moving;
+  const bob = Math.abs(Math.sin(o.walk || 0)) * moving * 2 * s;
+  let mx = o.moveX || 0, my = o.moveY || 0;
+  if (!mx && !my) { mx = lookX; my = lookY; }
+
+  ctx.lineWidth = lw;
+  ctx.strokeStyle = OUTLINE;
+  ctx.lineJoin = 'round';
+
+  // sombra
+  ctx.fillStyle = 'rgba(20, 16, 40, 0.22)';
+  ctx.beginPath();
+  ctx.ellipse(x, y + 15 * s, 15 * s, 5.5 * s, 0, 0, TAU);
+  ctx.fill();
+
+  // pies (se adelantan y atrasan al andar)
+  const fx = mx * step * 4 * s, fy = my * step * 3 * s;
+  for (const side of [-1, 1]) {
+    ctx.beginPath();
+    ctx.ellipse(x + side * 6 * s + side * fx, y + 13 * s + side * fy, 5.5 * s, 4 * s, 0, 0, TAU);
+    ctx.fillStyle = col(o.shoes || '#3b3550');
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  const by = y + 2 * s - bob; // centro del cuerpo
+  const facingBack = lookY < -0.45;
+
+  // manos (balanceo opuesto a los pies)
+  const drawHands = () => {
+    for (const side of [-1, 1]) {
+      const hx = x + side * 13 * s - side * fx * 0.7;
+      const hy = by + 3 * s - side * fy * 0.7;
+      ctx.beginPath();
+      ctx.arc(hx, hy, 4.5 * s, 0, TAU);
+      ctx.fillStyle = col(o.skin);
+      ctx.fill();
+      ctx.stroke();
+    }
+  };
+  if (facingBack) drawHands();
+
+  // cuerpo
+  ctx.beginPath();
+  ctx.roundRect(x - 11 * s, by - 9 * s, 22 * s, 20 * s, 9 * s);
+  ctx.fillStyle = col(o.shirt);
+  ctx.fill();
+  if (!o.flash) {
+    ctx.save();
+    ctx.clip();
+    // pantalón (parte de abajo del cuerpo)
+    ctx.fillStyle = o.pants || '#3d4a7a';
+    ctx.fillRect(x - 12 * s, by + 4 * s, 24 * s, 10 * s);
+    // mono de trabajo: peto y tirantes
+    if (o.overalls) {
+      ctx.fillStyle = o.overalls;
+      ctx.fillRect(x - 12 * s, by + 2 * s, 24 * s, 12 * s);
+      if (!facingBack) {
+        ctx.beginPath();
+        ctx.roundRect(x - 6 * s, by - 4 * s, 12 * s, 9 * s, 2 * s);
+        ctx.fill();
+      }
+      ctx.fillRect(x - 8 * s, by - 10 * s, 3 * s, 14 * s);
+      ctx.fillRect(x + 5 * s, by - 10 * s, 3 * s, 14 * s);
+    }
+    ctx.restore();
+  }
+  ctx.beginPath();
+  ctx.roundRect(x - 11 * s, by - 9 * s, 22 * s, 20 * s, 9 * s);
+  ctx.stroke();
+
+  if (!facingBack) drawHands();
+
+  // cabeza
+  const hr = 15 * s;
+  const hx = x, hy = by - 15 * s;
+  ctx.beginPath();
+  ctx.arc(hx, hy, hr, 0, TAU);
+  ctx.fillStyle = col(o.skin);
+  ctx.fill();
+
+  if (!o.flash) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(hx, hy, hr, 0, TAU);
+    ctx.clip();
+    ctx.fillStyle = o.hair || '#6b3e26';
+    // flequillo: casquete en la parte de arriba de la cabeza
+    const capX = hx - lookX * 3 * s, capY = hy - 9 * s;
+    ctx.beginPath();
+    ctx.ellipse(capX, capY, 17 * s, 11 * s, 0, 0, TAU);
+    ctx.fill();
+    // nuca: se desplaza al lado contrario de la mirada (de espaldas tapa toda la cabeza)
+    ctx.beginPath();
+    ctx.arc(hx - lookX * 11 * s, hy - 6 * s - lookY * 8 * s, 15 * s, 0, TAU);
+    ctx.fill();
+    if (o.bandana) {
+      // cinta justo en el borde del flequillo
+      ctx.beginPath();
+      ctx.ellipse(capX, capY, 17 * s, 11 * s, 0, 0.05 * Math.PI, 0.95 * Math.PI);
+      ctx.lineWidth = 4.5 * s;
+      ctx.strokeStyle = o.bandana;
+      ctx.stroke();
+    }
+    // sombreado inferior
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    ctx.beginPath();
+    ctx.arc(hx + 2 * s, hy + 12 * s, hr, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+    // brillo
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.beginPath();
+    ctx.ellipse(hx - 6 * s, hy - 8 * s, 4 * s, 2.4 * s, -0.7, 0, TAU);
+    ctx.fill();
+  }
+
+  ctx.beginPath();
+  ctx.arc(hx, hy, hr, 0, TAU);
+  ctx.lineWidth = lw;
+  ctx.strokeStyle = OUTLINE;
+  ctx.stroke();
+
+  // nudo de la cinta en la nuca (no se ve de frente)
+  if (o.bandana && !o.flash && lookY < 0.5) {
+    const kx = hx - lookX * 14 * s, ky = hy + 1 * s;
+    for (const k of [-1, 1]) {
+      ctx.beginPath();
+      ctx.ellipse(kx - lookX * 4 * s, ky + k * 3.5 * s, 5 * s, 2.6 * s, k * 0.5 - lookX * 0.4, 0, TAU);
+      ctx.fillStyle = o.bandana;
+      ctx.fill();
+      ctx.lineWidth = 2 * s;
+      ctx.stroke();
+    }
+  }
+
+  // cara (solo si no está de espaldas)
+  if (!facingBack) {
+    eyes(ctx, hx + lookX * 4 * s, hy + 8 * s, 15 * s, lookX, lookY, { angry: o.angry, blink: o.blink });
+    if (lookY > -0.1 && !o.flash) {
+      ctx.fillStyle = 'rgba(255, 120, 140, 0.45)';
+      for (const k of [-1, 1]) {
+        ctx.beginPath();
+        ctx.ellipse(hx + lookX * 4 * s + k * 9.5 * s, hy + 11.5 * s, 2.8 * s, 1.8 * s, 0, 0, TAU);
+        ctx.fill();
+      }
+    }
+  }
+}

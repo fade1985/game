@@ -1,33 +1,21 @@
-# 🟡 Blob Quest
+# 🧹 Blob Quest
 
-Mini **roguelike de salas** para navegador, con vista desde arriba y estilo *cartoon*
-(formas redondas, contorno grueso, colores planos). Hecho con **HTML5 Canvas + JavaScript puro**,
-sin librerías ni paso de compilación: ideal para aprender.
+Roguelike de zombis para navegador al estilo *The Binding of Isaac*: vista desde arriba, estilo *cartoon*
+(formas redondas, contorno grueso, colores planos) y un conserje con su fregona contra un edificio infestado.
+Hecho con **HTML5 Canvas + JavaScript puro**, sin librerías ni paso de compilación.
 
-## 🎮 Cómo se juega
+> 🚧 En pleno rediseño por fases. El plan completo y su estado están en [`docs/PLAN.md`](docs/PLAN.md).
+
+## 🎮 Cómo se juega (fase 1)
 
 - **Moverse:** `WASD` o flechas (en móvil: arrastra en la mitad izquierda de la pantalla)
 - **Esquivar:** `Espacio` (en móvil: botón 💨). Te hace invulnerable un instante.
-- **Disparar:** ¡automático! Tú y tu equipo disparáis al enemigo más cercano.
+- **Atacar:** de momento es automático (más adelante será manual).
 - **Pausa:** `Esc` o `P`
 
-Cada partida tiene **10 salas**. Al limpiar una sala eliges **1 de 3 mejoras** y después
-**qué puerta cruzar**:
-
-| Sala | Qué hay |
-|------|---------|
-| ⚔️ Combate | Oleadas de enemigos → monedas + carta de mejora |
-| 💀 Élite | Enemigos más duros (aura dorada) → más botín y cartas mejores |
-| 🎁 Tesoro | Un cofre con monedas, una gema y una carta |
-| 🛒 Tienda | Gasta monedas en comida, mejoras o **fichar compañeros** |
-| 🔥 Hoguera | Descansar, entrenar o hacer un nuevo amigo |
-| 👑 Jefe | El Rey Gelatina (sala 10) |
-
-### Recursos
-- 🪙 **Monedas**: solo valen durante la partida (tienda).
-- 💎 **Gemas**: se guardan **para siempre** (en el navegador). Úsalas en el **Taller** del menú
-  para mejoras permanentes: más vida, más daño, monedas iniciales o empezar con un compañero.
-- 👥 **Equipo**: hasta 4 compañeros que orbitan a tu alrededor y disparan contigo.
+Cada planta es un mapa de salas generado al azar. Al entrar en una sala con enemigos **las puertas se cierran**
+y no se abren hasta que la limpias. El **minimapa** (arriba a la derecha) muestra las salas visitadas, las que
+has visto sin entrar (gris) y dónde estás (amarillo). Limpia todas las salas para completar la planta.
 
 ## 🚀 Ejecutar en local
 
@@ -41,43 +29,29 @@ python3 -m http.server 3000
 
 ## ☁️ Publicar en Vercel
 
-Es un sitio 100 % estático, así que no hace falta configurar nada:
-
-1. Sube este repositorio a GitHub (ya lo está).
-2. En [vercel.com](https://vercel.com) → **Add New… → Project** → importa el repo `game`.
-3. Configuración:
-   - **Framework Preset:** `Other`
-   - **Build Command:** *(vacío)*
-   - **Output Directory:** *(vacío / raíz)*
-4. **Deploy**. Cada `git push` volverá a publicar automáticamente.
-
-Alternativa por terminal: `npx vercel` (y `npx vercel --prod` para producción).
+Sitio 100 % estático: en Vercel → **Add New… → Project** → importa el repo, **Framework Preset: Other**,
+sin comando de build y sin carpeta de salida. Cada `git push` vuelve a publicar.
 
 ## 🗂️ Estructura del código
 
 ```
 index.html        → página, HUD y capas de menús
 style.css         → estilo cartoon de botones, cartas y paneles
+docs/PLAN.md      → plan de desarrollo por fases y decisiones
 src/
   main.js         → arranque y bucle principal (update + render)
-  game.js         → flujo de la partida: salas, oleadas, recompensas, colisiones
+  game.js         → flujo de la partida: plantas, salas, puertas, oleadas, colisiones
+  floor.js        → generador de plantas (mapa de salas al estilo Isaac)
+  rooms.js        → contenido de cada sala: estilo, obstáculos, alfombras y oleadas
   entities.js     → jugador, compañeros y enemigos (comportamiento + dibujo)
-  rooms.js        → generación de salas, oleadas y puertas
-  upgrades.js     → cartas, tienda, hoguera y mejoras permanentes (Taller)
-  render.js       → dibujo del escenario: suelo, muros, puertas, cofres...
-  draw.js         → ayudas de dibujo: "blobs", ojos, sombras, texto con contorno
-  ui.js           → menús en HTML (cartas, tienda, pausa, HUD)
+  render.js       → dibujo de habitaciones, puertas en los 4 lados y minimapa
+  draw.js         → ayudas de dibujo: personaje humano, "blobs", ojos, sombras, texto
+  upgrades.js     → atributos del jugador y cartas de mejora
+  ui.js           → menús en HTML (cartas, pausa, fin) y HUD
   input.js        → teclado + joystick táctil
   sfx.js          → sonidos generados con Web Audio (sin archivos)
   save.js         → guardado en localStorage
-  config.js       → constantes y colores
+  config.js       → constantes, colores, edificios y estilos de habitación
 ```
 
-### Ideas fáciles para empezar a modificar
-- **Nuevo enemigo:** añádelo en `ENEMY_TYPES` (`entities.js`), dale un `case` en `update()` y en `draw()`,
-  y mételo en el `pool` de `makeWaves()` (`rooms.js`).
-- **Nueva carta de mejora:** una línea más en `CARDS` (`upgrades.js`).
-- **Más salas o más difícil:** `TOTAL_ROOMS` en `config.js` y el presupuesto de `makeWaves()`.
-- **Nuevo bioma:** añade colores en `BIOMES` (`config.js`).
-
-En la consola del navegador tienes `window.game` para trastear (p. ej. `game.coins = 999`).
+En la consola del navegador tienes `window.game` para trastear (p. ej. `game.player.hp = 999`).

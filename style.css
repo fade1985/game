@@ -227,37 +227,6 @@ canvas {
   padding: 0.05em 0.5em;
   font-size: 0.85em;
 }
-.card .price {
-  margin-top: auto;
-  background: var(--yellow);
-  border: 0.16em solid var(--ink);
-  border-radius: 999px;
-  padding: 0.1em 0.8em;
-  font-size: 1.1em;
-}
-.card .price.cant { background: #d9d5e6; color: var(--muted); }
-.card.sold { opacity: 0.55; cursor: default; transform: none; }
-.cards.shop .card { width: 11em; }
-
-/* Taller */
-.workshop { display: flex; flex-direction: column; align-items: center; gap: 0.7em; max-width: 34em; }
-.rows { display: flex; flex-direction: column; gap: 0.6em; width: 100%; }
-.row {
-  display: flex;
-  align-items: center;
-  gap: 0.8em;
-  background: #fff;
-  border: 0.18em solid var(--ink);
-  border-radius: 0.9em;
-  padding: 0.5em 0.8em;
-}
-.ricon { font-size: 2em; }
-.rtext { flex: 1; }
-.rname { font-size: 1.15em; }
-.rdesc { font-family: 'Nunito', system-ui, sans-serif; font-weight: 800; font-size: 0.85em; color: var(--muted); }
-.pips { display: flex; gap: 0.25em; margin-top: 0.2em; }
-.pips i { width: 1.1em; height: 0.55em; border-radius: 999px; border: 0.12em solid var(--ink); background: #e6e2f0; }
-.pips i.on { background: var(--green); }
 
 /* Pausa / fin */
 .pause, .end { display: flex; flex-direction: column; align-items: center; gap: 0.8em; min-width: 24em; }
@@ -291,7 +260,7 @@ canvas {
   font-size: clamp(8px, 1.45cqw, 18px);
   pointer-events: none;
 }
-.hud-left, .hud-right, .hud-center { display: flex; align-items: center; gap: 0.5em; }
+.hud-left, .hud-right { display: flex; align-items: center; gap: 0.5em; }
 .hpbar {
   position: relative;
   width: 13em;
@@ -340,19 +309,6 @@ canvas {
   cursor: pointer;
 }
 .icon-btn:active { transform: translateY(0.12em); box-shadow: none; }
-.dots { display: flex; gap: 0.35em; align-items: center; }
-.dot {
-  width: 0.95em;
-  height: 0.95em;
-  border-radius: 50%;
-  border: 0.16em solid var(--ink);
-  background: rgba(255, 255, 255, 0.45);
-}
-.dot.done { background: var(--green); }
-.dot.cur { background: var(--yellow); transform: scale(1.4); }
-.dot.boss { border-radius: 0.25em; background: var(--pink); width: 1.2em; height: 1.2em; }
-.dot.boss.cur { background: var(--yellow); }
-
 /* ═════════════ Controles táctiles ═════════════ */
 #touch-ui { position: absolute; inset: 0; z-index: 6; pointer-events: none; display: none; }
 body.touch #touch-ui:not([hidden]) { display: block; }

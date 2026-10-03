@@ -1,9 +1,9 @@
 // ─────────────────────────────────────────────
 //  Personajes: jugador, compañeros y enemigos
 // ─────────────────────────────────────────────
-import { W, H, WALL, OUTLINE, PLAYER_COLOR } from './config.js';
+import { W, H, WALL, OUTLINE, PLAYER_LOOK } from './config.js';
 import { rand } from './utils.js';
-import { blob, eyes, shadow, outlinedText } from './draw.js';
+import { blob, eyes, shadow, outlinedText, drawHuman } from './draw.js';
 import { sfx } from './sfx.js';
 
 const TAU = Math.PI * 2;
@@ -14,7 +14,7 @@ export class Player {
     this.stats = stats;
     this.x = W / 2;
     this.y = H - WALL - 60;
-    this.r = 20;
+    this.r = 18;
     this.vx = 0; this.vy = 0;
     this.hp = stats.maxHp;
     this.invuln = 0;      // tiempo de invulnerabilidad tras recibir daño
@@ -62,10 +62,10 @@ export class Player {
 
     this.x += this.vx * dt;
     this.y += this.vy * dt;
-    game.collideWorld(this, true);
+    game.collideWorld(this);
 
     const sp = Math.hypot(this.vx, this.vy);
-    this.walkT += dt * (6 + sp / 25);
+    this.walkT += dt * (sp > 20 ? 4 + sp / 22 : 0);
     if (move.x || move.y) { this.lookX = move.x; this.lookY = move.y; }
 
     // Disparo automático al enemigo más cercano
@@ -99,51 +99,32 @@ export class Player {
     }
   }
 
-  draw(ctx, game) {
-    const { x, y, r } = this;
-    shadow(ctx, x, y, r);
+  draw(ctx) {
+    const { x, y } = this;
 
-    // Indicador de recarga de la esquiva
+    // Indicador de recarga de la esquiva (arco bajo los pies)
     if (this.dashCd > 0) {
       ctx.beginPath();
-      ctx.arc(x, y + r * 0.85, r * 1.15, -Math.PI / 2, -Math.PI / 2 + TAU * (1 - this.dashCd / 0.9));
-      ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+      ctx.ellipse(x, y + 15, 19, 7, 0, -Math.PI / 2, -Math.PI / 2 + TAU * (1 - this.dashCd / 0.9));
+      ctx.strokeStyle = 'rgba(255,255,255,0.75)';
       ctx.lineWidth = 3;
       ctx.stroke();
     }
 
     ctx.save();
     if (this.invuln > 0 && this.dashT <= 0 && Math.floor(this.invuln * 18) % 2 === 0) ctx.globalAlpha = 0.45;
-    const sp = Math.min(1, Math.hypot(this.vx, this.vy) / 150);
-    const bob = Math.sin(this.walkT) * sp * 0.07;
-    const hop = Math.abs(Math.sin(this.walkT)) * sp * 4;
-    const by = y - hop;
-    blob(ctx, x, by, r, PLAYER_COLOR, {
-      sx: 1 + bob - this.kick * 0.05,
-      sy: 1 - bob + this.kick * 0.05,
+    const sp = Math.hypot(this.vx, this.vy);
+    drawHuman(ctx, x, y, {
+      ...PLAYER_LOOK,
+      lookX: this.lookX,
+      lookY: this.lookY,
+      moveX: sp > 1 ? this.vx / sp : 0,
+      moveY: sp > 1 ? this.vy / sp : 0,
+      moving: Math.min(1, sp / 150),
+      walk: this.walkT,
+      blink: this.blinkT < 0,
       flash: this.hurtT > 0,
     });
-
-    // Cinta en la cabeza (para distinguir al héroe)
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(x, by, r - 2, 0, TAU);
-    ctx.clip();
-    ctx.fillStyle = '#ff5d73';
-    ctx.fillRect(x - r, by - r * 0.72, r * 2, r * 0.26);
-    ctx.restore();
-    const tx = x - this.lookX * r * 0.9;
-    for (const s of [-1, 1]) {
-      ctx.beginPath();
-      ctx.ellipse(tx, by - r * 0.6 + s * 4, 7, 3.5, s * 0.5 - this.lookX * 0.4, 0, TAU);
-      ctx.fillStyle = '#ff5d73';
-      ctx.fill();
-      ctx.lineWidth = 2.5;
-      ctx.strokeStyle = OUTLINE;
-      ctx.stroke();
-    }
-
-    eyes(ctx, x, by, r, this.lookX, this.lookY, { blink: this.blinkT < 0 });
     ctx.restore();
   }
 }
@@ -174,7 +155,7 @@ export class Ally {
     const ny = this.y + (ty - this.y) * k;
     this.vx = (nx - this.x) / dt; this.vy = (ny - this.y) / dt;
     this.x = nx; this.y = ny;
-    game.collideWorld(this, false);
+    game.collideWorld(this);
     this.walkT += dt * 10;
     this.kick = Math.max(0, this.kick - dt * 8);
 
@@ -354,7 +335,7 @@ export class Enemy {
     this.y += (this.vy + this.ky) * dt;
     const kd = Math.exp(-dt * 10);
     this.kx *= kd; this.ky *= kd;
-    game.collideWorld(this, false);
+    game.collideWorld(this);
   }
 
   hurt(dmg, crit, dirX, dirY, game) {
