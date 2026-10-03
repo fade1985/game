@@ -4,12 +4,13 @@
 import { W, H, WALL, DOOR_W, OUTLINE } from './config.js';
 import { roundBox, outlinedText, heartPath } from './draw.js';
 import { ROOM_TYPES } from './rooms.js';
+import { drawFurniture, drawFurnitureLight, drawWallDecor, drawWindowLight } from './furniture.js';
 
 const TAU = Math.PI * 2;
 
 // ═════════════ Habitación ═════════════
 export function drawRoom(ctx, room, time) {
-  const { style, seams, obstacles, rug, decor } = room.layout;
+  const { style, seams, obstacles, rug, decor, wallDecor = [] } = room.layout;
   const iw = W - WALL * 2, ih = H - WALL * 2;
 
   // Muro con papel pintado a rayas
@@ -29,6 +30,7 @@ export function drawRoom(ctx, room, time) {
   ctx.lineWidth = 14;
   ctx.strokeStyle = style.trim;
   ctx.strokeRect(7, 7, W - 14, H - 14);
+  for (const d of wallDecor) drawWallDecor(ctx, d, time);
 
   // Suelo
   ctx.save();
@@ -55,6 +57,10 @@ export function drawRoom(ctx, room, time) {
     ctx.beginPath(); ctx.arc(d.x + 10 * d.s, d.y + 4 * d.s, 3 * d.s, 0, TAU); ctx.fill();
   }
 
+  // luz de las ventanas y de las lámparas
+  for (const d of wallDecor) drawWindowLight(ctx, d);
+  for (const o of obstacles) if (o.shape === 'rect') drawFurnitureLight(ctx, o);
+
   // sombra del muro sobre el suelo (da profundidad)
   const g = ctx.createLinearGradient(0, WALL, 0, WALL + 30);
   g.addColorStop(0, 'rgba(20,16,40,0.25)');
@@ -72,7 +78,10 @@ export function drawRoom(ctx, room, time) {
   ctx.strokeRect(WALL - 8, WALL - 8, iw + 16, ih + 16);
   ctx.strokeRect(WALL, WALL, iw, ih);
 
-  for (const o of obstacles) drawObstacle(ctx, o);
+  for (const o of obstacles) {
+    if (o.shape === 'rect') drawFurniture(ctx, o);
+    else drawObstacle(ctx, o);
+  }
 }
 
 function drawFloor(ctx, style, seams, iw, ih) {
@@ -237,6 +246,33 @@ export function drawPickup(ctx, pk, time) {
   if (pk.kind === 'heart') {
     heartPath(ctx, pk.x, y + 2, 11);
     ctx.fillStyle = '#ff5d73'; ctx.fill(); ctx.lineJoin = 'round'; ctx.stroke();
+  } else if (pk.kind === 'key') {
+    // llave dorada que se balancea, con un destello
+    ctx.save();
+    ctx.translate(pk.x, y);
+    ctx.rotate(-0.6 + Math.sin(time * 3 + pk.seed) * 0.25);
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(-2, -2.5); ctx.lineTo(13, -2.5); ctx.lineTo(13, 6); ctx.lineTo(9.5, 6); ctx.lineTo(9.5, 2.5);
+    ctx.lineTo(6.5, 2.5); ctx.lineTo(6.5, 5); ctx.lineTo(3.5, 5); ctx.lineTo(3.5, 2.5); ctx.lineTo(-2, 2.5);
+    ctx.closePath();
+    ctx.fillStyle = '#ffd23f'; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-7, 0, 6.5, 0, TAU);
+    ctx.fillStyle = '#ffd23f'; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-7, 0, 2.3, 0, TAU);
+    ctx.fillStyle = '#b8860b'; ctx.fill();
+    ctx.restore();
+    const tw = (time * 1.3 + pk.seed) % 1.6;
+    if (tw < 0.4) {
+      const k = Math.sin((tw / 0.4) * Math.PI) * 5;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(pk.x + 8, y - 10 - k); ctx.lineTo(pk.x + 9.5, y - 10); ctx.lineTo(pk.x + 8, y - 10 + k); ctx.lineTo(pk.x + 6.5, y - 10);
+      ctx.closePath(); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(pk.x + 8 - k, y - 10); ctx.lineTo(pk.x + 8, y - 8.5); ctx.lineTo(pk.x + 8 + k, y - 10); ctx.lineTo(pk.x + 8, y - 11.5);
+      ctx.closePath(); ctx.fill();
+    }
   }
 }
 

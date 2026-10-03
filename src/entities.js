@@ -58,7 +58,7 @@ export class Player {
       this.vx = (dx / l) * s.speed * 3.3;
       this.vy = (dy / l) * s.speed * 3.3;
       this.dashT = 0.16;
-      this.dashCd = 0.9;
+      this.dashCd = s.dashCd;
       this.invuln = Math.max(this.invuln, 0.3);
       sfx.dash();
     }

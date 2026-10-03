@@ -192,6 +192,49 @@ canvas {
 .row-btns { display: flex; gap: 0.8em; align-items: center; }
 @media (max-width: 700px) { .pause-grid { grid-template-columns: 1fr; } }
 .end.win .title { color: var(--yellow); }
+.stat.key b small { font-family: 'Nunito', system-ui, sans-serif; font-weight: 800; font-size: 0.75em; color: var(--muted); }
+.keys-chip { background: rgba(255, 255, 255, 0.55); border-radius: 999px; padding: 0 0.45em; margin-left: 0.2em; }
+.btn small { font-size: 0.7em; opacity: 0.85; }
+
+/* ── Selector de edificios ── */
+.picker { display: flex; flex-direction: column; align-items: center; gap: 0.8em; width: min(56em, 100%); max-height: 100%; overflow-y: auto; }
+.bcards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.8em; width: 100%; }
+.bcard {
+  display: flex; flex-direction: column; align-items: center; gap: 0.25em; text-align: center;
+  font: inherit; color: var(--ink); background: #fff; cursor: pointer;
+  border: 0.18em solid var(--ink); border-radius: 1em; padding: 0.9em 0.6em 0.7em;
+  box-shadow: 0 0.25em 0 var(--ink); transition: transform 0.12s;
+  animation: cardIn 0.35s backwards;
+}
+.bcard:hover { transform: translateY(-0.2em) rotate(-1deg); }
+.bcard:nth-child(2) { animation-delay: 0.05s; } .bcard:nth-child(3) { animation-delay: 0.1s; } .bcard:nth-child(4) { animation-delay: 0.15s; }
+.bcard.done { background: #f1ffe9; }
+.bcard.soon { cursor: default; background: #ecebf3; color: var(--muted); box-shadow: 0 0.12em 0 var(--muted); border-color: var(--muted); }
+.bcard.soon:hover { transform: none; }
+.bcard.soon .bicon { filter: grayscale(1); opacity: 0.6; }
+.bicon { font-size: 3em; line-height: 1.1; animation: float 2.4s ease-in-out infinite; }
+.bcard.soon .bicon { animation: none; }
+.bname { font-family: 'Lilita One', system-ui; font-size: 1.3em; }
+.bdesc { font-family: 'Nunito', system-ui, sans-serif; font-weight: 700; font-size: 0.78em; color: var(--muted); flex: 1; }
+.bmeta { font-family: 'Nunito', system-ui, sans-serif; font-weight: 800; font-size: 0.75em; color: var(--muted); }
+.bfoot { font-family: 'Lilita One', system-ui; font-size: 0.85em; background: var(--yellow); border-radius: 999px; padding: 0.15em 0.7em; border: 0.12em solid var(--ink); }
+.bcard.soon .bfoot { background: #d7d5e3; border-color: var(--muted); }
+@media (max-width: 700px) { .bcards { grid-template-columns: repeat(2, 1fr); } }
+
+/* ── Taller ── */
+.workshop { display: flex; flex-direction: column; align-items: center; gap: 0.6em; width: min(40em, 100%); max-height: 100%; overflow-y: auto; }
+.workshop .sub { font-size: 0.85em; }
+.wallet { font-family: 'Lilita One', system-ui; font-size: 1.5em; background: var(--yellow); border: 0.12em solid var(--ink); border-radius: 999px; padding: 0.1em 0.9em; box-shadow: 0 0.15em 0 var(--ink); }
+.wrows { display: flex; flex-direction: column; gap: 0.45em; width: 100%; }
+.wrow { display: flex; align-items: center; gap: 0.7em; background: #fff; border: 0.14em solid var(--ink); border-radius: 0.8em; padding: 0.4em 0.7em; }
+.wrow.maxed { background: #f1ffe9; }
+.wicon { font-size: 2em; width: 1.3em; text-align: center; }
+.winfo { flex: 1; display: flex; flex-direction: column; font-family: 'Nunito', system-ui, sans-serif; font-weight: 700; font-size: 0.85em; color: var(--muted); }
+.winfo b { font-family: 'Lilita One', system-ui; font-weight: 400; font-size: 1.25em; color: var(--ink); }
+.pips { display: flex; gap: 0.25em; margin-top: 0.2em; }
+.pips i { width: 0.9em; height: 0.9em; border-radius: 50%; border: 0.12em solid var(--ink); background: #e4e2ee; }
+.pips i.on { background: var(--yellow); }
+.wrow .btn { min-width: 4.6em; }
 .end.lose .title { color: var(--pink); }
 
 /* ═════════════ HUD ═════════════ */

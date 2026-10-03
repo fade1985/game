@@ -13,6 +13,10 @@ Hecho con **HTML5 Canvas + JavaScript puro**, sin librerías ni paso de compilac
 - **Atacar:** de momento es automático: apuntas al enemigo más cercano (más adelante será manual).
 - **Pausa:** `Esc` o `P`
 
+Al pulsar **Jugar** eliges edificio. De momento se puede jugar **Apartamentos**; el Hospital, el Centro comercial
+y la Comisaría aparecen como *Próximamente*. Cada tarjeta muestra tu progreso: intentos, mejor planta, veces
+completado y mejor tiempo.
+
 El edificio **Apartamentos** tiene **3 plantas**. Cada planta es un mapa de salas generado al azar; al entrar
 en una sala con enemigos **las puertas se cierran** hasta que la limpias. El **minimapa** (arriba a la derecha)
 muestra lo explorado y los iconos de las salas especiales:
@@ -27,6 +31,28 @@ muestra lo explorado y los iconos de las salas especiales:
 
 Las puertas que llevan a salas especiales tienen el marco de color y un icono al lado.
 Los atributos y el equipo se conservan entre plantas; si caes, vuelves a empezar el edificio.
+
+Cada habitación está amueblada según su estilo (salón, cocina, dormitorio, pasillo o baño): sofás, camas,
+bañeras, neveras... Los muebles van pegados a las paredes, nunca tapan una puerta y **paran a los personajes
+y a las balas** (¡el vecino del 4ºB se marea si embiste contra uno!). En las paredes hay cuadros, relojes y
+ventanas por las que entra la luz.
+
+### 🔑 Llaves y Taller
+
+Los zombis sueltan a veces una **llave** 🔑 (el mini jefe suelta 3 y la portera 8). Las llaves vienen solas
+hacia ti y **se guardan al momento, aunque pierdas**. En el **Taller del conserje** (botón en el menú o al
+terminar una partida) las gastas en mejoras permanentes que se aplican al empezar cada edificio:
+
+| Mejora | Efecto por nivel | Niveles | Precio |
+|---|---|---|---|
+| 🥪 Bocadillo | +10 de vida máxima | 5 | 3 · 6 · 10 · 15 · 20 |
+| 🏋️ Pesas | +6 % de daño | 5 | 4 · 8 · 12 · 16 · 20 |
+| 👟 Cordones nuevos | +4 % de velocidad | 3 | 5 · 10 · 15 |
+| 🌀 Reflejos | La esquiva se recarga un 12 % antes | 3 | 5 · 10 · 15 |
+| 🎒 Mochila | Empiezas cada edificio con un objeto al azar | 1 | 25 |
+
+Todo se guarda en el navegador (`localStorage`): llaves, mejoras, récords y progreso de cada edificio.
+Las partidas a medias no se guardan.
 
 ### 🎒 Objetos
 
@@ -143,12 +169,13 @@ src/
   zombies.js      → los 6 tipos de zombi y sus ataques especiales
   bosses.js       → los jefes: el vecino del 4ºB y la portera (ataques, fases y dibujo)
   render.js       → dibujo de habitaciones, puertas en los 4 lados y minimapa
+  furniture.js    → muebles de cada estilo de habitación y decoración de las paredes
   draw.js         → ayudas de dibujo: personaje humano, "blobs", ojos, sombras, texto
-  upgrades.js     → atributos del jugador y objetos
-  ui.js           → menús en HTML (inicio, pausa, fin) y HUD
+  upgrades.js     → atributos del jugador, objetos y mejoras del Taller
+  ui.js           → menús en HTML (inicio, selector de edificios, Taller, pausa, fin) y HUD
   input.js        → teclado + joystick táctil
   sfx.js          → sonidos generados con Web Audio (sin archivos)
-  save.js         → guardado en localStorage
+  save.js         → guardado en localStorage (llaves, Taller, récords y edificios)
   config.js       → constantes, colores, edificios y estilos de habitación
 ```
 

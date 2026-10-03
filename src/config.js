@@ -34,14 +34,20 @@ export const DIRS = {
 };
 export const OPPOSITE = { up: 'down', down: 'up', left: 'right', right: 'left' };
 
-// Edificios. De momento solo hay uno.
+// Edificios. De momento solo se pueden jugar los Apartamentos; el resto
+// aparecen en el selector como "Próximamente".
 export const BUILDINGS = {
   apartamentos: {
+    id: 'apartamentos',
     name: 'Apartamentos',
     icon: '🏢',
+    desc: 'Vecinos zombi, un mini jefe por planta y una portera con muy mal genio',
     floors: 3,
     roomsPerFloor: [8, 10, 12],
   },
+  hospital:  { id: 'hospital',  name: 'Hospital',         icon: '🏥', desc: 'Camillas, quirófanos y enfermeras zombi', soon: true },
+  centro:    { id: 'centro',    name: 'Centro comercial', icon: '🛍️', desc: 'Escaleras mecánicas y rebajas de muerte', soon: true },
+  comisaria: { id: 'comisaria', name: 'Comisaría',        icon: '🚓', desc: 'Calabozos y un arsenal bien guardado', soon: true },
 };
 
 // Estilos de habitación de un piso: suelo + papel pintado

@@ -2,7 +2,8 @@
 //  Contenido de cada sala: estilo, obstáculos, decoración y oleadas
 // ─────────────────────────────────────────────
 import { W, H, WALL, APARTMENT_STYLES } from './config.js';
-import { mulberry32, pick } from './utils.js';
+import { mulberry32, pick, obstacleGap } from './utils.js';
+import { placeFurniture, placeWallDecor } from './furniture.js';
 
 // Tipos de sala. `frame` es el color del marco de las puertas que llevan a ella.
 export const ROOM_TYPES = {
@@ -13,6 +14,9 @@ export const ROOM_TYPES = {
   miniboss: { icon: '👹', name: 'Mini jefe', frame: '#ff5d73' },
   boss:     { icon: '👑', name: 'Jefe final', frame: '#b5179e' },
 };
+
+// Cuántos muebles hay según el tipo de sala
+const FURNITURE_COUNT = { start: [2, 3], monsters: [2, 4], item: [3, 4], survivor: [2, 3], miniboss: [1, 2], boss: [2, 2] };
 
 // Coste de cada zombi para "comprar" oleadas con un presupuesto.
 // Los lentos son baratos: aparecen en grupo.
@@ -37,11 +41,16 @@ export function makeRoomLayout(type) {
     seams.push({ y, cuts, shade: rng() < 0.5 });
   }
 
-  // Obstáculos (macetas y cajas) solo en salas con monstruos
-  const obstacles = [];
+  // Muebles pegados a las paredes (menos en las salas de jefe, que necesitan sitio)
+  const [fmin, fmax] = FURNITURE_COUNT[type] || [2, 3];
+  const obstacles = placeFurniture(style.name, rng, fmin, fmax);
+  const wallDecor = placeWallDecor(rng);
+
+  // Obstáculos sueltos (macetas y cajas) solo en salas con monstruos
   if (type === 'monsters' || type === 'survivor') {
     const n = Math.floor(rng() * (type === 'survivor' ? 3 : 4));
-    for (let tries = 0; obstacles.length < n && tries < 60; tries++) {
+    const loose = obstacles.length;
+    for (let tries = 0; obstacles.length - loose < n && tries < 60; tries++) {
       const o = {
         x: WALL + 120 + rng() * (W - 2 * WALL - 240),
         y: WALL + 100 + rng() * (H - 2 * WALL - 200),
@@ -51,7 +60,7 @@ export function makeRoomLayout(type) {
       };
       const freeDoors = DOOR_SPOTS.every((d) => Math.hypot(d.x - o.x, d.y - o.y) > 170);
       const freeCenter = Math.hypot(o.x - W / 2, o.y - H / 2) > (type === 'survivor' ? 150 : 90);
-      const farFromOthers = obstacles.every((p) => Math.hypot(p.x - o.x, p.y - o.y) > p.r + o.r + 80);
+      const farFromOthers = obstacles.every((p) => obstacleGap(p, o) > o.r + 80);
       if (freeDoors && freeCenter && farFromOthers) obstacles.push(o);
     }
   }
@@ -69,7 +78,7 @@ export function makeRoomLayout(type) {
     decor.push({ x: WALL + 30 + rng() * (W - 2 * WALL - 60), y: WALL + 30 + rng() * (H - 2 * WALL - 60), s: 0.6 + rng() * 0.8 });
   }
 
-  return { style, seams, obstacles, rug, decor };
+  return { style, seams, obstacles, rug, decor, wallDecor };
 }
 
 // Enemigos de cada sala según su tipo

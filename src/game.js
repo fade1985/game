@@ -3,16 +3,16 @@
 //  menú → edificio → plantas → salas conectadas
 // ─────────────────────────────────────────────
 import { W, H, WALL, DOOR_W, OUTLINE, MAX_ALLIES, DIRS, BUILDINGS, SURVIVORS } from './config.js';
-import { rand, clamp, dist, pushOut } from './utils.js';
+import { rand, clamp, dist, pushOut, obstacleGap } from './utils.js';
 import { Player, Ally } from './entities.js';
 import { makeBoss, BOSS_TYPES, BLEACH, drawBottle } from './bosses.js';
 import { Zombie, POISON, TENTACLE } from './zombies.js';
 import { generateFloor, neighbour } from './floor.js';
 import { makeRoomLayout, ROOM_TYPES } from './rooms.js';
-import { baseStats, rollItem } from './upgrades.js';
+import { baseStats, rollItem, applyWorkshop, WORKSHOP } from './upgrades.js';
 import { Pedestal, SurvivorNPC, Stairs, WeaponProp } from './props.js';
 import { WEAPONS, randomWeapon, weaponSummary } from './weapons.js';
-import { loadSave, writeSave } from './save.js';
+import { loadSave, updateSave, buildingSave } from './save.js';
 import { drawRoom, drawDoors, drawPickup, drawBullet, drawMinimap } from './render.js';
 import { outlinedText, roundBox } from './draw.js';
 import { getMoveVector, consumeDash, clearInput } from './input.js';
@@ -26,6 +26,10 @@ const HAZARDS = {
 
 // Vida de los jefes según la planta (la portera solo sale en la última)
 const bossHpMul = (type, floorNum) => (type === 'boss' ? 1 : 1 + (floorNum - 1) * 0.25);
+
+const KEY_CHANCE = 0.07; // probabilidad de que un zombi suelte una llave 🔑
+
+const formatTime = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
 const SLIDE = 0.4; // duración del deslizamiento de cámara entre salas
 const FADE = 0.6;  // duración de cada mitad del fundido al cambiar de planta
@@ -93,21 +97,58 @@ export class Game {
     this.paused = false;
     this.setupMenuScene();
     this.ui.showHud(false);
-    this.ui.showMenu(loadSave(), { play: () => this.newRun() });
+    this.ui.showMenu(loadSave(), { play: () => this.showBuildings(), workshop: () => this.showWorkshop() });
   }
 
-  newRun() {
-    this.building = BUILDINGS.apartamentos;
-    this.stats = baseStats();
+  // Selector de edificios
+  showBuildings() {
+    this.ui.showBuildings(loadSave(), BUILDINGS, { pick: (id) => this.newRun(id), back: () => this.goMenu() });
+  }
+
+  // Taller: mejoras permanentes que se compran con llaves
+  showWorkshop() {
+    this.ui.showWorkshop(loadSave(), WORKSHOP, {
+      buy: (id) => {
+        const up = WORKSHOP.find((u) => u.id === id);
+        let bought = false;
+        updateSave((s) => {
+          const lvl = s.workshop[id] || 0;
+          const price = up.cost[lvl];
+          if (lvl >= up.max || s.keys < price) return;
+          s.keys -= price;
+          s.workshop[id] = lvl + 1;
+          bought = true;
+        });
+        if (bought) sfx.buy(); else sfx.nope();
+        this.showWorkshop();
+        return bought;
+      },
+      back: () => this.goMenu(),
+    });
+  }
+
+  newRun(buildingId = this.building?.id || 'apartamentos') {
+    this.building = BUILDINGS[buildingId];
+    const save = updateSave((s) => { s.runs++; buildingSave(s, buildingId).runs++; });
+    this.stats = applyWorkshop(baseStats(), save.workshop);
     this.player = new Player(this.stats);
     this.allies = [];
     this.kills = 0;
+    this.runKeys = 0;          // llaves recogidas en esta partida
+    this.wallet = save.keys;   // llaves totales (para el HUD)
+    this.runTime = 0;
     this.floorNum = 1;
     this.fade = null;
     // orden en que aparecerán los supervivientes en este edificio
     this.survivorOrder = shuffle(Object.values(SURVIVORS));
     this.items = [];            // objetos conseguidos
     this.itemsSeen = new Set(); // objetos que ya han salido (para no repetir)
+    // Mejora "Mochila" del Taller: empiezas con un objeto al azar
+    if (save.workshop.mochila) {
+      const it = rollItem(this.itemsSeen);
+      it.apply(this);
+      this.items.push(it);
+    }
     this.state = 'playing';
     this.paused = false;
     clearInput();
@@ -148,7 +189,7 @@ export class Game {
     this.enterRoom(this.floor.start, null);
     this.banner = {
       title: `${this.building.icon} ${this.building.name}`,
-      sub: this.testMode ? 'Modo pruebas · teclas 1-6: invocar zombis' : `Planta ${this.floorNum}`,
+      sub: this.testMode ? 'Modo pruebas · teclas 1-6: zombis · 7-8: jefes' : `Planta ${this.floorNum}`,
       t: 0,
     };
   }
@@ -174,10 +215,20 @@ export class Game {
   endRun(win, quit = false) {
     this.state = 'over';
     this.paused = false;
-    const save = loadSave();
-    save.bestFloor = Math.max(save.bestFloor || 0, this.floorNum);
-    if (win) save.buildings.apartamentos = { unlocked: true, completed: true };
-    writeSave(save);
+    const id = this.building.id;
+    const save = updateSave((s) => {
+      s.bestFloor = Math.max(s.bestFloor || 0, this.floorNum);
+      s.kills += this.kills;
+      const b = buildingSave(s, id);
+      b.bestFloor = Math.max(b.bestFloor, win ? this.building.floors : this.floorNum);
+      if (win) {
+        s.wins++;
+        b.wins++;
+        b.completed = true;
+        b.bestTime = b.bestTime ? Math.min(b.bestTime, this.runTime) : this.runTime;
+      }
+    });
+    const record = win && save.buildings[id].bestTime === this.runTime;
     this.ui.showHud(false);
     if (quit) { this.goMenu(); return; }
     const rooms = [...this.floor.rooms.values()];
@@ -192,8 +243,11 @@ export class Game {
         explored: `${rooms.filter((r) => r.visited).length} / ${rooms.length}`,
         floors: `${win ? this.building.floors : this.floorNum - 1} / ${this.building.floors}`,
         team: this.allies.map((a) => a.def.icon).join(' ') || '—',
+        keys: this.runKeys,
+        wallet: save.keys,
+        time: win ? `${formatTime(this.runTime)}${record ? ' · ¡récord!' : ''}` : null,
       },
-      { retry: () => this.newRun(), menu: () => this.goMenu() },
+      { retry: () => this.newRun(), workshop: () => this.showWorkshop(), menu: () => this.goMenu() },
     );
   }
 
@@ -272,7 +326,7 @@ export class Game {
     for (let i = 0; i < 40; i++) {
       const pt = { x: rand(WALL + 50, W - WALL - 50), y: rand(WALL + 50, H - WALL - 50) };
       if (dist(pt, this.player) < 260) continue;
-      if (this.room.layout.obstacles.some((o) => dist(o, pt) < o.r + 40)) continue;
+      if (this.room.layout.obstacles.some((o) => obstacleGap(o, pt) < 40)) continue;
       return pt;
     }
     return { x: W - this.player.x, y: H - this.player.y };
@@ -423,6 +477,7 @@ export class Game {
     due.forEach((t) => t.fn());
     if (this.state !== 'playing' || this.paused) return;
 
+    this.runTime += dt;
     if (!p.dead) p.update(dt, this, getMoveVector(), consumeDash());
     for (const a of this.allies) a.update(dt, this);
 
@@ -511,7 +566,7 @@ export class Game {
       b.y += b.vy * dt;
       b.life -= dt;
       const outside = b.x < WALL || b.x > W - WALL || b.y < WALL || b.y > H - WALL;
-      if (outside || this.room.layout.obstacles.some((o) => dist(o, b) < o.r + b.r * 0.5)) {
+      if (outside || this.room.layout.obstacles.some((o) => obstacleGap(o, b) < b.r * 0.5)) {
         b.dead = true;
         this.puff(b.x, b.y, b.color);
         continue;
@@ -544,8 +599,9 @@ export class Game {
       pk.vx *= fr; pk.vy *= fr;
       const dx = p.x - pk.x, dy = p.y - pk.y;
       const d = Math.hypot(dx, dy) || 1;
-      // Los corazones solo vienen a ti si te falta vida
-      if (!p.dead && needsHp && pk.t > 0.4 && d < this.stats.magnet) {
+      // Las llaves siempre vienen a ti; los corazones, solo si te falta vida
+      const wanted = pk.kind === 'key' || needsHp;
+      if (!p.dead && wanted && pk.t > 0.4 && d < this.stats.magnet) {
         pk.vx += (dx / d) * 2200 * dt;
         pk.vy += (dy / d) * 2200 * dt;
         const sp = Math.hypot(pk.vx, pk.vy);
@@ -553,7 +609,7 @@ export class Game {
       }
       pk.x = clamp(pk.x + pk.vx * dt, WALL + 14, W - WALL - 14);
       pk.y = clamp(pk.y + pk.vy * dt, WALL + 14, H - WALL - 14);
-      if (!p.dead && needsHp && pk.t > 0.25 && d < p.r + 12) this.collect(pk);
+      if (!p.dead && wanted && pk.t > 0.25 && d < p.r + 12) this.collect(pk);
     }
     this.pickups = this.pickups.filter((pk) => !pk.dead);
     this.room.pickups = this.pickups;
@@ -564,6 +620,12 @@ export class Game {
     if (pk.kind === 'heart') {
       this.healPlayer(20);
       sfx.gem();
+    } else if (pk.kind === 'key') {
+      // las llaves se guardan al momento: no se pierden aunque mueras
+      this.runKeys++;
+      this.wallet = updateSave((s) => { s.keys++; s.totalKeys++; }).keys;
+      this.floatText(pk.x, pk.y - 20, '+1 🔑', '#ffd23f', 20);
+      sfx.coin();
     }
   }
 
@@ -692,7 +754,10 @@ export class Game {
     this.burst(e.x, e.y, e.color, 12, e.r);
     this.shake(3);
     sfx.kill();
-    if (Math.random() < 0.08) this.dropPickup('heart', e.x, e.y);
+    if (!e.isBoss) {
+      if (Math.random() < KEY_CHANCE) this.dropPickup('key', e.x, e.y);
+      else if (Math.random() < 0.08) this.dropPickup('heart', e.x, e.y);
+    }
     if (this.stats.lifesteal && !this.player.dead) this.healPlayer(this.stats.lifesteal);
     if (e.isBoss) this.bossDefeated(e);
   }
@@ -712,6 +777,7 @@ export class Game {
     sfx.boom();
     this.dropPickup('heart', boss.x, boss.y);
     this.dropPickup('heart', boss.x, boss.y);
+    for (let i = 0; i < (boss.type === 'boss' ? 8 : 3); i++) this.dropPickup('key', boss.x, boss.y);
     // el mini jefe siempre suelta un arma (lejos de donde saldrán las escaleras)
     if (boss.type === 'miniboss') {
       this.room.props.push(new WeaponProp(randomWeapon(this.player.weapon.id), W / 2, H / 2 + 130));

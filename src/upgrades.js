@@ -23,6 +23,24 @@ export function rollItem(seen) {
   return item;
 }
 
+// Mejoras permanentes del Taller (cuarto del conserje). Se compran con llaves 🔑
+// y se aplican al empezar cada edificio. `cost[n]` es el precio del nivel n+1.
+export const WORKSHOP = [
+  { id: 'vida',     icon: '🥪', name: 'Bocadillo',       desc: '+10 de vida máxima por nivel',              max: 5, cost: [3, 6, 10, 15, 20], apply: (s, n) => { s.maxHp += 10 * n; } },
+  { id: 'fuerza',   icon: '🏋️', name: 'Pesas',           desc: '+6% de daño por nivel',                     max: 5, cost: [4, 8, 12, 16, 20], apply: (s, n) => { s.damage *= 1 + 0.06 * n; } },
+  { id: 'cordones', icon: '👟', name: 'Cordones nuevos', desc: '+4% de velocidad por nivel',                max: 3, cost: [5, 10, 15],        apply: (s, n) => { s.speed *= 1 + 0.04 * n; } },
+  { id: 'reflejos', icon: '🌀', name: 'Reflejos',        desc: 'La esquiva se recarga un 12% antes por nivel', max: 3, cost: [5, 10, 15],     apply: (s, n) => { s.dashCd *= 1 - 0.12 * n; } },
+  { id: 'mochila',  icon: '🎒', name: 'Mochila',         desc: 'Empiezas cada edificio con un objeto al azar', max: 1, cost: [25],           apply: () => {} },
+];
+
+export function applyWorkshop(stats, levels = {}) {
+  for (const up of WORKSHOP) {
+    const n = Math.min(levels[up.id] || 0, up.max);
+    if (n) up.apply(stats, n);
+  }
+  return stats;
+}
+
 // Estadísticas iniciales al empezar un edificio
 export function baseStats() {
   return {
@@ -38,7 +56,8 @@ export function baseStats() {
     crit: 0.05,
     damageTaken: 1,      // x daño que recibes (menos es mejor)
     speed: 210,
-    magnet: 120,         // radio en el que los corazones vienen hacia ti
+    dashCd: 0.9,         // segundos que tarda en recargarse la esquiva
+    magnet: 120,         // radio en el que los corazones y las llaves vienen hacia ti
     teamDamage: 1,
     lifesteal: 0,
   };

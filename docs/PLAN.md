@@ -14,8 +14,8 @@ Forma de trabajo: **fase a fase**. Al terminar cada una → resumen + capturas +
 | 3 | Sistema de armas: fregona (cuerpo a cuerpo) y armas a distancia, animaciones, controlador de apuntado | ✅ Hecha |
 | 4 | Los 6 zombis, charcos de veneno, oleadas por planta | ✅ Hecha |
 | 5 | Objetos en pedestal y supervivientes (policía, médico, militar) | ✅ Hecha |
-| 6 | Mini jefe "El vecino del 4ºB" y jefe final "La portera" | ✅ Hecha (pendiente de tu visto bueno) |
-| 7 | Selector de edificios, guardado del progreso, muebles y ambientación | ⏳ |
+| 6 | Mini jefe "El vecino del 4ºB" y jefe final "La portera" | ✅ Hecha |
+| 7 | Selector de edificios, guardado del progreso, muebles y ambientación, llaves y Taller | ✅ Hecha (pendiente de tu visto bueno) |
 | 8 | Pulido: sonido, efectos de impacto, equilibrado, móvil | ⏳ |
 
 Después: ataque manual (cambiando solo el controlador de apuntado), más edificios, armas y zombis.
@@ -59,15 +59,20 @@ Después: ataque manual (cambiando solo el controlador de apuntado), más edific
 - Vida: el vecino 400 (+25 % por planta); la portera 1.200 fijos (solo aparece en la última planta).
 - Modo pruebas: teclas 7 (vecino) y 8 (portera).
 
-### Fase 7 · Edificios y guardado
-- Selector de edificios (Apartamentos disponible, el resto "Próximamente"), progreso guardado, muebles.
-- Decidir si vuelven las gemas/Taller como progreso permanente.
+### Fase 7 · Edificios, guardado, muebles y Taller
+- Selector de edificios: Apartamentos jugable; Hospital, Centro comercial y Comisaría "Próximamente".
+  Cada tarjeta muestra intentos, mejor planta, veces completado y mejor tiempo.
+- Guardado (`src/save.js`): llaves, mejoras del Taller, récords y progreso por edificio. Sin partidas a medias.
+- Muebles por estilo de habitación (`src/furniture.js`): obstáculos rectangulares pegados a las paredes,
+  nunca delante de las puertas. Decoración de pared: cuadros, relojes y ventanas con luz.
+- **Llaves 🔑 + Taller** (decidido): los zombis sueltan llaves (7 %), el mini jefe 3 y la portera 8. Se guardan
+  aunque pierdas y se gastan en 5 mejoras permanentes (vida, daño, velocidad, esquiva y mochila).
 
 ### Fase 8 · Pulido y equilibrado
 
 ## Decisiones tomadas
 1. Se eliminan monedas, tienda y hoguera.
-2. Gemas y Taller apartados hasta la fase 7.
+2. Progreso permanente: llaves 🔑 que se gastan en el Taller del conserje (decidido en la fase 7).
 3. Sin cartas al limpiar salas: las mejoras salen de las salas de objeto.
 4. Una sola arma a la vez (intercambio al recoger).
 5. El mini jefe suelta siempre un arma; las salas de objeto tienen un 25 % de dar un arma.
