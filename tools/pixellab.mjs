@@ -60,7 +60,7 @@ function pngSize(buf) {
   return [buf.readUInt32BE(16), buf.readUInt32BE(20)];
 }
 
-async function api(method, path, body) {
+async function api(method, path, body, tries = 8) {
   if (!KEY) throw new Error('Falta la variable de entorno PIXELLAB_API_KEY');
   const r = await fetch(API + path, {
     method,
@@ -68,6 +68,12 @@ async function api(method, path, body) {
     body: body ? JSON.stringify(body) : undefined,
   });
   const type = r.headers.get('content-type') || '';
+  // el plan gratuito solo permite un trabajo a la vez: esperamos y reintentamos
+  if (r.status === 429 && tries > 0) {
+    process.stdout.write('  (esperando a que PixelLab termine otro trabajo...)\n');
+    await sleep(10000);
+    return api(method, path, body, tries - 1);
+  }
   if (!r.ok) {
     const text = await r.text();
     throw new Error(`${method} ${path} → ${r.status}: ${text.slice(0, 500)}`);
@@ -124,11 +130,19 @@ const commands = {
     if (!reg?.character_id) throw new Error(`"${id}" no es un personaje creado con este script`);
     const dirs = o.dirs ? String(o.dirs).split(',') : undefined;
     console.log(`Animación "${template}" de "${id}" en ${dirs ? dirs.length : 'todas las'} direcciones (1 generación por dirección)`);
-    const body = { character_id: reg.character_id, template_animation_id: template, animation_name: o.name || template, ...(dirs ? { directions: dirs } : {}) };
-    const r = await api('POST', '/characters/animations', body);
-    for (const job of r.background_job_ids || []) await waitJob(job, `${id}/${template}`);
-    remember(id, { anims: { ...(reg.anims || {}), [o.name || template]: { template, fps: Number(o.fps || 10), group: r.animation_group_id } } });
-    console.log(`\n  ✔ animación lista (${(r.directions || []).join(', ')})`);
+    // Una dirección por llamada (los planes básicos no permiten más a la vez); todas en la misma animación
+    const name = o.name || template;
+    let group = reg.anims?.[name]?.group;
+    const done = [];
+    for (const dir of dirs || ['south', 'south-east', 'east', 'north-east', 'north', 'north-west', 'west', 'south-west']) {
+      const body = { character_id: reg.character_id, template_animation_id: template, animation_name: name, directions: [dir], ...(group ? { animation_group_id: group } : {}) };
+      const r = await api('POST', '/characters/animations', body);
+      group = group || r.animation_group_id;
+      for (const job of r.background_job_ids || []) await waitJob(job, `${id}/${name}/${dir}`);
+      done.push(dir);
+      remember(id, { anims: { ...(registry()[id].anims || {}), [name]: { template, fps: Number(o.fps || 10), group } } });
+    }
+    console.log(`\n  ✔ animación lista (${done.join(', ')})`);
   },
 
   // Animación descrita con texto (modo v3)
@@ -191,28 +205,26 @@ const commands = {
 };
 
 // Convierte el JSON de PixelLab al formato de src/sprites.js.
-// Fila 0 = rotaciones (sirven de "idle"); luego una fila por animación y dirección.
-// Si el formato no es el esperado se guarda tal cual en "source" para revisarlo.
+// PixelLab exporta { spritesheet: { cell_size, rows: [...] } }: la fila de tipo "rotations"
+// tiene una dirección por columna (sirve de "idle"); el resto, una fila por animación y dirección.
+// El punto de apoyo (los pies) lo calcula el juego al cargar la hoja ("pivot": "auto").
 function convertLayout(layout, reg) {
-  const cw = layout.cell_width ?? layout.cell?.width ?? layout.frame_width ?? layout.cellSize?.[0];
-  const ch = layout.cell_height ?? layout.cell?.height ?? layout.frame_height ?? layout.cellSize?.[1];
-  const rows = layout.rows || layout.layout || [];
+  const L = layout.spritesheet || layout;
+  const cw = L.cell_size?.width, ch = L.cell_size?.height;
   const anims = {};
-  rows.forEach((row, i) => {
-    const rowIndex = row.row ?? row.index ?? i;
-    if (row.type === 'rotations' || row.animation == null) {
-      // la fila de rotaciones: cada columna es una dirección → animación "idle" de 1 fotograma
-      (row.directions || []).forEach((d, col) => {
-        anims.idle = anims.idle || { fps: 1, loop: true, dirs: {} };
-        anims.idle.dirs[d] = { row: rowIndex, col, frames: 1 };
-      });
-      return;
+  for (const row of L.rows || []) {
+    if (row.type === 'rotations') {
+      anims.idle = { fps: 1, loop: true, dirs: {} };
+      (row.directions || []).forEach((d, col) => { anims.idle.dirs[d] = { row: row.row, col, frames: 1 }; });
+      continue;
     }
-    const name = Object.entries(reg.anims || {}).find(([, a]) => a.group === row.animation_group_id || a.template === row.animation)?.[0] || row.animation;
-    anims[name] = anims[name] || { fps: reg.anims?.[name]?.fps || 10, loop: true, dirs: {} };
-    anims[name].dirs[row.direction] = { row: rowIndex, frames: row.frames ?? row.frame_count ?? layout.columns };
-  });
-  return { cell: [cw, ch], pivot: [cw / 2, ch - 2], anims, source: layout };
+    // fila de animación: buscamos su nombre en el registro (por grupo o por plantilla)
+    const known = Object.entries(reg.anims || {}).find(([, a]) => (row.animation_group_id && a.group === row.animation_group_id) || a.template === row.animation || a.template === row.template_animation_id);
+    const name = known?.[0] || row.animation_name || row.animation || `anim${row.row}`;
+    anims[name] = anims[name] || { fps: known?.[1].fps || 10, loop: true, dirs: {} };
+    anims[name].dirs[row.direction] = { row: row.row, frames: row.frame_count ?? L.columns };
+  }
+  return { cell: [cw, ch], pivot: 'auto', anims, source: layout };
 }
 
 // ═════════════ arranque ═════════════

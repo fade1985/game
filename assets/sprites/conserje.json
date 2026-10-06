@@ -1,0 +1,154 @@
+{
+  "cell": [
+    32,
+    32
+  ],
+  "pivot": "auto",
+  "anims": {
+    "idle": {
+      "fps": 1,
+      "loop": true,
+      "dirs": {
+        "south": {
+          "row": 0,
+          "col": 0,
+          "frames": 1
+        },
+        "south-east": {
+          "row": 0,
+          "col": 1,
+          "frames": 1
+        },
+        "east": {
+          "row": 0,
+          "col": 2,
+          "frames": 1
+        },
+        "north-east": {
+          "row": 0,
+          "col": 3,
+          "frames": 1
+        },
+        "north": {
+          "row": 0,
+          "col": 4,
+          "frames": 1
+        },
+        "north-west": {
+          "row": 0,
+          "col": 5,
+          "frames": 1
+        },
+        "west": {
+          "row": 0,
+          "col": 6,
+          "frames": 1
+        },
+        "south-west": {
+          "row": 0,
+          "col": 7,
+          "frames": 1
+        }
+      }
+    },
+    "walk": {
+      "fps": 10,
+      "loop": true,
+      "dirs": {
+        "south": {
+          "row": 1,
+          "frames": 6
+        },
+        "east": {
+          "row": 2,
+          "frames": 6
+        },
+        "north": {
+          "row": 3,
+          "frames": 6
+        },
+        "west": {
+          "row": 4,
+          "frames": 6
+        }
+      }
+    }
+  },
+  "source": {
+    "character": {
+      "id": "d190c9d8-3ccb-4e15-b4a5-791e962de330",
+      "name": "Idle",
+      "prompt": "cheerful young janitor, chibi proportions with a big head, messy brown hair with a red bandana, cream shirt under blue work overalls, dark shoes, empty hands",
+      "size": {
+        "width": 32,
+        "height": 32
+      },
+      "directions": 8,
+      "view": "low top-down"
+    },
+    "spritesheet": {
+      "path": "cheerful_young_janitor_c-Idle.png",
+      "cell_size": {
+        "width": 32,
+        "height": 32
+      },
+      "sheet_size": {
+        "width": 256,
+        "height": 160
+      },
+      "columns": 8,
+      "pivot": "cell-center",
+      "rows": [
+        {
+          "row": 0,
+          "type": "rotations",
+          "frame_count": 8,
+          "directions": [
+            "south",
+            "south-east",
+            "east",
+            "north-east",
+            "north",
+            "north-west",
+            "west",
+            "south-west"
+          ]
+        },
+        {
+          "row": 1,
+          "type": "animation",
+          "frame_count": 6,
+          "animation": "walking",
+          "animation_group_id": "fde822fc-872d-4701-a24c-434f9ed51da3",
+          "direction": "south"
+        },
+        {
+          "row": 2,
+          "type": "animation",
+          "frame_count": 6,
+          "animation": "walking",
+          "animation_group_id": "fde822fc-872d-4701-a24c-434f9ed51da3",
+          "direction": "east"
+        },
+        {
+          "row": 3,
+          "type": "animation",
+          "frame_count": 6,
+          "animation": "walking",
+          "animation_group_id": "fde822fc-872d-4701-a24c-434f9ed51da3",
+          "direction": "north"
+        },
+        {
+          "row": 4,
+          "type": "animation",
+          "frame_count": 6,
+          "animation": "walking",
+          "animation_group_id": "fde822fc-872d-4701-a24c-434f9ed51da3",
+          "direction": "west"
+        }
+      ]
+    },
+    "export_version": "1.0",
+    "export_date": "2026-10-06T12:43:22.457216+00:00"
+  }
+}

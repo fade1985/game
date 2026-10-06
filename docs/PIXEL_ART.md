@@ -9,7 +9,7 @@ Mientras dure la migración, el modo pixel se activa añadiendo **`?pixel`** a l
 | Fase | Qué se hace | Estado |
 |---|---|---|
 | 0 · Base | Dibujo a 480×320 ampliado sin suavizado, sistema de sprites con "plan B", herramienta de PixelLab, esta guía | ✅ Hecha |
-| 1 · Prueba | Conserje, zombi normal, sofá y suelo del salón en una habitación | ⏳ Pendiente de tu visto bueno a esta guía |
+| 1 · Prueba | Conserje, zombi normal, sofá y suelo del salón en una habitación | ✅ Hecha (13 generaciones) · pendiente de tu visto bueno |
 | 2 · Escenarios | 5 suelos, paredes, puertas, escaleras y unos 20 muebles | ⏳ |
 | 3 · Personajes | Conserje, 3 supervivientes y 6 zombis con sus animaciones | ⏳ |
 | 4 · Jefes | El vecino del 4ºB y la portera | ⏳ |
@@ -69,3 +69,16 @@ la interfaz se dibujan a resolución completa para que se lean bien.
 
 **Total estimado: unas 14 generaciones.** Si algo sale mal se repite con otra semilla (cada repetición cuesta lo
 mismo). Si el suelo no encaja bien al repetirse, se retoca a mano o se dibuja con código en estilo pixel.
+
+## Resultado de la prueba (fase 1)
+
+- **Conserje y zombi:** muy buenos y coherentes entre direcciones. La animación `walking` da 6 fotogramas
+  por dirección y cuesta 1 generación por dirección. Las animaciones "a medida" cuestan 20–40 por dirección:
+  evitarlas salvo para lo imprescindible.
+- **Sofá:** sale en perspectiva (se ve el frente), no en planta. Queda muy bien en la pared de arriba, pero no
+  sirve girado para las paredes laterales: o se colocan solo arriba (y abajo) o se genera una versión lateral.
+- **Suelo:** encaja al repetirse pero es muy contrastado; el juego lo suaviza mezclándolo con el color de la
+  habitación. Para los demás suelos conviene pedir algo más liso ("simple, subtle, low contrast").
+- **Sombras:** los sprites no traen sombra; el juego la dibuja en píxeles bajo cada personaje.
+- **Plan de prueba de PixelLab:** 40 generaciones y solo un trabajo a la vez (por eso el script pide las
+  direcciones de una en una y espera si PixelLab está ocupado).

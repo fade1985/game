@@ -1,0 +1,80 @@
+{
+  "conserje": {
+    "kind": "character",
+    "character_id": "d190c9d8-3ccb-4e15-b4a5-791e962de330",
+    "request": {
+      "description": "cheerful young janitor, chibi proportions with a big head, messy brown hair with a red bandana, cream shirt under blue work overalls, dark shoes, empty hands",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "low top-down",
+      "outline": "single color black outline",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "updated": "2026-10-06T12:43:13.644Z",
+    "anims": {
+      "walk": {
+        "template": "walking",
+        "fps": 10,
+        "group": "fde822fc-872d-4701-a24c-434f9ed51da3"
+      }
+    }
+  },
+  "zombi-normal": {
+    "kind": "character",
+    "character_id": "e411ec73-088d-4126-8063-d3caeab8c489",
+    "request": {
+      "description": "cartoon zombie, chibi proportions with a big head, green skin, messy dark hair, torn blue shirt, dark blue trousers, arms stretched forward, angry eyes",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "low top-down",
+      "outline": "single color black outline",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "updated": "2026-10-06T12:51:25.322Z",
+    "anims": {
+      "walk": {
+        "template": "walking",
+        "fps": 8,
+        "group": "aa46bb2f-fdd4-4b54-b6ac-36b5f8adc18b"
+      }
+    }
+  },
+  "mueble-sofa": {
+    "kind": "image",
+    "request": {
+      "description": "red three-seat fabric sofa seen from above, backrest along the top edge, cushions, game furniture sprite",
+      "image_size": {
+        "width": 76,
+        "height": 32
+      },
+      "outline": "single color black outline",
+      "detail": "medium detail",
+      "view": "high top-down",
+      "no_background": true
+    },
+    "cost": "1 generaciones",
+    "updated": "2026-10-06T12:52:14.618Z"
+  },
+  "suelo-salon": {
+    "kind": "image",
+    "request": {
+      "description": "seamless tileable wooden parquet floor, warm light brown planks, top-down texture, no objects",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "outline": "single color black outline",
+      "detail": "medium detail",
+      "view": "high top-down",
+      "no_background": false
+    },
+    "cost": "1 generaciones",
+    "updated": "2026-10-06T12:52:50.891Z"
+  }
+}

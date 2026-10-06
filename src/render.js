@@ -114,6 +114,11 @@ function drawFloor(ctx, style, seams, iw, ih) {
     for (let y = WALL; y < WALL + ih; y += step) {
       for (let x = WALL; x < WALL + iw; x += step) drawSprite(ctx, tile, 'idle', 'south', 0, x, y);
     }
+    // suavizamos el dibujo del suelo con el color de la habitación para que los personajes destaquen
+    ctx.globalAlpha = 0.45;
+    ctx.fillStyle = style.floorA;
+    ctx.fillRect(WALL, WALL, iw, ih);
+    ctx.globalAlpha = 1;
     return;
   }
   if (style.floor === 'parquet') {

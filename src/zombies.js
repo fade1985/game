@@ -6,7 +6,7 @@
 //  peligrosos SIEMPRE avisan antes, para que se puedan esquivar.
 // ─────────────────────────────────────────────
 import { OUTLINE, PIXEL_MODE } from './config.js';
-import { drawSprite, dirFromVector } from './sprites.js';
+import { drawSprite, dirFromVector, hasSprite, pixelShadow } from './sprites.js';
 import { rand } from './utils.js';
 import { drawHuman } from './draw.js';
 import { drawSpawnWarning } from './entities.js';
@@ -257,6 +257,7 @@ export class Zombie {
     if (this.tent && this.tent.phase === 'warn') shake = rand(-1, 1);
     const sp = Math.hypot(this.vx, this.vy);
     // pixel art: un sprite por tipo de zombi ("zombi-normal", "zombi-rapido"...)
+    if (PIXEL_MODE && hasSprite(`zombi-${this.type}`)) pixelShadow(ctx, x, y + 14 * scale, 28 * scale);
     const sprited = PIXEL_MODE && drawSprite(ctx, `zombi-${this.type}`, sp > 10 ? 'walk' : 'idle',
       dirFromVector(this.lookX, this.lookY), game.time, x + shake, y + 15 * scale, { flash });
     if (!sprited) drawHuman(ctx, x + shake, y, {

@@ -75,7 +75,24 @@ export function registerSheet(id, img, meta) {
   w.globalCompositeOperation = 'source-in';
   w.fillStyle = '#ffffff';
   w.fillRect(0, 0, white.width, white.height);
+  if (!Array.isArray(meta.pivot)) meta.pivot = findFeet(img, meta);
   sheets.set(id, { img, white, meta });
+}
+
+// Punto de apoyo automático: centro horizontal y la fila más baja con píxeles
+// del primer fotograma "idle" mirando al sur (los pies del personaje)
+function findFeet(img, meta) {
+  const [cw, ch] = meta.cell;
+  const d = meta.anims.idle?.dirs.south || { row: 0, col: 0 };
+  const c = document.createElement('canvas');
+  c.width = cw; c.height = ch;
+  const x = c.getContext('2d');
+  x.drawImage(img, (d.col || 0) * cw, d.row * ch, cw, ch, 0, 0, cw, ch);
+  const data = x.getImageData(0, 0, cw, ch).data;
+  for (let y = ch - 1; y >= 0; y--) {
+    for (let i = 0; i < cw; i++) if (data[(y * cw + i) * 4 + 3] > 0) return [cw / 2, y + 1];
+  }
+  return [cw / 2, ch];
 }
 
 export const hasSprite = (id) => sheets.has(id);
@@ -105,6 +122,14 @@ export function drawSprite(ctx, id, anim, dir, t, x, y, o = {}) {
   ctx.drawImage(o.flash ? sh.white : sh.img, col * cw, d.row * ch, cw, ch, dx, dy, cw * s, ch * s);
   if (o.alpha !== undefined) ctx.globalAlpha = 1;
   return true;
+}
+
+// Sombra ovalada en el suelo, ajustada a píxeles (los sprites no la traen)
+export function pixelShadow(ctx, x, y, w) {
+  const sx = Math.round(x / PIXEL) * PIXEL, sy = Math.round(y / PIXEL) * PIXEL;
+  ctx.fillStyle = 'rgba(20, 16, 40, 0.28)';
+  ctx.fillRect(sx - w / 2 + PIXEL * 2, sy - PIXEL * 2, w - PIXEL * 4, PIXEL * 4);
+  ctx.fillRect(sx - w / 2, sy - PIXEL, w, PIXEL * 2);
 }
 
 // Duración de una animación (para saber cuándo termina una que no se repite)
