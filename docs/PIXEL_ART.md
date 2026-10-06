@@ -52,7 +52,14 @@ Mientras dure la migración, el modo pixel se activa añadiendo **`?pixel`** a l
   escupitajo, embestida...) parpadea en rojo. Los jefes salen con su icono. Con la sala limpia, las puertas
   que quedan fuera de la vista también se marcan (con el icono de la sala especial si lo es).
 - **Ataque automático y compañeros:** solo apuntan a lo que se ve en pantalla (o casi).
-- Código: `src/camera.js`; los avisos, en `Game.drawOffscreen`.
+- **Sin marco:** el juego ocupa toda la ventana. Se ve siempre la misma altura de sala y el ancho depende de la
+  forma de la pantalla (en una panorámica se ve más sala a los lados; si la pantalla es más ancha que la sala,
+  la sala se centra).
+- **Movimiento suave:** la sala (suelo, paredes, muebles, manchas) se dibuja una vez en un lienzo de pixel art y se
+  guarda; cada fotograma se recorta lo que se ve y se amplía con un desplazamiento exacto, así el fondo se mueve
+  con suavidad aunque cada píxel del dibujo ocupe varios de pantalla. Los personajes, balas y partículas se
+  dibujan a resolución de pantalla en su posición exacta (sus píxeles siguen nítidos), para que no "tiemblen".
+- Código: `src/camera.js`; el dibujo, en `Game.renderPixel`; los avisos, en `Game.drawOffscreen`.
 
 ## Lo que sigue dibujándose con código
 

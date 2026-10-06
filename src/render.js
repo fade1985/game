@@ -337,7 +337,7 @@ export function drawBullet(ctx, b) {
 // Hueco que ocupa el minimapa (para que los avisos del borde no lo tapen)
 export let minimapRect = null;
 
-export function drawMinimap(ctx, floor, current, title, time) {
+export function drawMinimap(ctx, floor, current, title, time, screenW = W) {
   const shown = [...floor.rooms.values()].filter((r) => r.visited || r.seen);
   if (!shown.length) return;
   const CW = 24, CH = 16, GAP = 5;
@@ -347,7 +347,7 @@ export function drawMinimap(ctx, floor, current, title, time) {
   const pad = 10, head = 22;
   const pw = Math.max(120, cols * (CW + GAP) - GAP + pad * 2);
   const ph = rows * (CH + GAP) - GAP + pad * 2 + head;
-  const px = W - pw - 12, py = 10;
+  const px = screenW - pw - 12, py = 10;
   minimapRect = { x: px, y: py, w: pw, h: ph };
 
   ctx.save();

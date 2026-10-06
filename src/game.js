@@ -16,6 +16,7 @@ import { loadSave, updateSave, buildingSave } from './save.js';
 import { drawRoom, drawDoors, drawPickup, drawBullet, drawMinimap, drawEmoji as drawEmojiAt, minimapRect } from './render.js';
 import { Camera, ZOOM, BOSS_ZOOM } from './camera.js';
 import { outlinedText, roundBox, setTextFont } from './draw.js';
+import { setGridSnap } from './sprites.js';
 import { getMoveVector, consumeDash, clearInput } from './input.js';
 import { sfx, music, setMusicOn } from './sfx.js';
 
@@ -73,7 +74,16 @@ export class Game {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     this.canvas.width = Math.max(1, Math.round(r.width * dpr));
     this.canvas.height = Math.max(1, Math.round(r.height * dpr));
-    this.scale = this.canvas.width / W;
+    // En pixel art el juego ocupa toda la ventana: la interfaz mide H de alto y lo que haga falta de ancho
+    if (PIXEL_MODE) {
+      this.scale = this.canvas.height / H;
+      this.ow = this.canvas.width / this.scale;
+      this.camera.aspect = this.canvas.width / this.canvas.height;
+      this.camera.clampToRoom();
+    } else {
+      this.scale = this.canvas.width / W;
+      this.ow = W;
+    }
   }
 
   // ═════════════ Pantallas ═════════════
@@ -1043,62 +1053,120 @@ export class Game {
   // ═════════════ Dibujo ═════════════
 
   render() {
-    const out = this.ctx;
-    const cam = this.camera;
-    // En pixel art el mundo va a un lienzo pequeño (tantos píxeles como se ven con la cámara)
-    // que luego se amplía sin suavizado; el resto (textos, minimapa...) a resolución completa
-    const ctx = PIXEL_MODE ? this.lowCtx : out;
-    const vw = PIXEL_MODE ? cam.vw : W, vh = PIXEL_MODE ? cam.vh : H;
-    if (PIXEL_MODE) {
-      const bw = Math.round(vw / PIXEL), bh = Math.round(vh / PIXEL);
-      if (this.low.width !== bw || this.low.height !== bh) { this.low.width = bw; this.low.height = bh; }
-      ctx.setTransform(1 / PIXEL, 0, 0, 1 / PIXEL, 0, 0);
-      ctx.clearRect(0, 0, vw, vh);
-      ctx.imageSmoothingEnabled = false;
-    } else {
-      out.setTransform(this.scale, 0, 0, this.scale, 0, 0);
-      out.clearRect(0, 0, W, H);
-    }
-    // en pixel art todo se mueve de píxel en píxel
-    const snap = (v) => (PIXEL_MODE ? Math.round(v / PIXEL) * PIXEL : v);
-    const left = PIXEL_MODE ? cam.left : 0, top = PIXEL_MODE ? cam.top : 0;
-
+    if (PIXEL_MODE) { this.renderPixel(); return; }
+    const ctx = this.ctx;
+    ctx.setTransform(this.scale, 0, 0, this.scale, 0, 0);
+    ctx.clearRect(0, 0, W, H);
     let offX = 0, offY = 0;
     const tr = this.transition;
     if (tr) {
-      // Deslizamiento entre salas: la vieja sale (con su cámara) y la nueva entra
-      const k = clamp(tr.t / SLIDE, 0, 1);
-      const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      // Deslizamiento de cámara: la sala vieja sale y la nueva entra
+      const e = this.slideEase(tr);
       const [dx, dy] = DIRS[tr.dir];
-      const prev = tr.cam || { left: 0, top: 0 };
       ctx.save();
-      ctx.translate(snap(-dx * vw * e) - prev.left, snap(-dy * vh * e) - prev.top);
+      ctx.translate(-dx * W * e, -dy * H * e);
       drawRoom(ctx, tr.from, this.time);
       drawDoors(ctx, tr.from, 1);
       ctx.restore();
-      offX = snap(dx * vw * (1 - e)); offY = snap(dy * vh * (1 - e));
+      offX = dx * W * (1 - e); offY = dy * H * (1 - e);
     } else if (this.shakeAmt > 0.3) {
-      offX = snap(rand(-1, 1) * this.shakeAmt); offY = snap(rand(-1, 1) * this.shakeAmt);
+      offX = rand(-1, 1) * this.shakeAmt; offY = rand(-1, 1) * this.shakeAmt;
     }
     ctx.save();
-    ctx.translate(offX - left, offY - top);
-    this.drawWorld(ctx);
+    ctx.translate(offX, offY);
+    drawRoom(ctx, this.room, this.time);
+    this.drawBackground(ctx);
+    this.drawActors(ctx);
+    this.drawTexts(ctx);
     ctx.restore();
+    this.drawOverlay(ctx);
+  }
 
-    if (PIXEL_MODE) {
-      out.setTransform(1, 0, 0, 1, 0, 0);
-      out.clearRect(0, 0, out.canvas.width, out.canvas.height);
-      out.imageSmoothingEnabled = false;
-      out.drawImage(this.low, 0, 0, out.canvas.width, out.canvas.height);
+  slideEase(tr) {
+    const k = clamp(tr.t / SLIDE, 0, 1);
+    return k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+  }
+
+  // Pixel art con cámara:
+  //  1) el fondo (sala guardada como imagen + puertas, charcos, objetos del suelo) se dibuja en un
+  //     lienzo pequeño alineado a la cuadrícula de píxeles y se amplía con un desplazamiento exacto,
+  //     así se mueve con suavidad aunque cada píxel del dibujo ocupe varios de pantalla;
+  //  2) los personajes, balas y partículas se dibujan a resolución de pantalla en su posición exacta.
+  renderPixel() {
+    const out = this.ctx, cam = this.camera;
+    const vw = cam.vw, vh = cam.vh;
+    const k = out.canvas.height / vh; // píxeles de pantalla por unidad del juego
+
+    // temblor y paso entre salas
+    let offX = 0, offY = 0;
+    const tr = this.transition;
+    if (tr) {
+      const e = this.slideEase(tr);
+      const [dx, dy] = DIRS[tr.dir];
+      offX = dx * vw * (1 - e); offY = dy * vh * (1 - e);
+      tr.e = e;
+    } else if (this.shakeAmt > 0.3) {
+      offX = rand(-1, 1) * this.shakeAmt; offY = rand(-1, 1) * this.shakeAmt;
     }
-    // textos flotantes con la misma cámara, pero a resolución completa
-    const z = W / vw;
-    out.setTransform(this.scale * z, 0, 0, this.scale * z, 0, 0);
-    out.translate(offX - left, offY - top);
+    const camX = cam.left - offX, camY = cam.top - offY; // esquina exacta de lo que se ve
+
+    // 1) fondo en el lienzo pequeño
+    const sx = Math.floor(camX / PIXEL) * PIXEL, sy = Math.floor(camY / PIXEL) * PIXEL;
+    const bw = Math.ceil(vw / PIXEL) + 2, bh = Math.ceil(vh / PIXEL) + 2;
+    if (this.low.width !== bw || this.low.height !== bh) { this.low.width = bw; this.low.height = bh; }
+    const ctx = this.lowCtx;
+    ctx.setTransform(1 / PIXEL, 0, 0, 1 / PIXEL, -sx / PIXEL, -sy / PIXEL);
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = OUTLINE;
+    ctx.fillRect(sx, sy, bw * PIXEL, bh * PIXEL);
+    if (tr) {
+      // la sala vieja sale con su propia cámara
+      const [dx, dy] = DIRS[tr.dir];
+      const prev = tr.cam || { left: 0, top: 0 };
+      const tx = Math.round((camX - prev.left - dx * vw * tr.e) / PIXEL) * PIXEL;
+      const ty = Math.round((camY - prev.top - dy * vh * tr.e) / PIXEL) * PIXEL;
+      ctx.save();
+      ctx.translate(tx, ty);
+      ctx.drawImage(this.roomImage(tr.from), 0, 0, W, H);
+      drawDoors(ctx, tr.from, 1);
+      ctx.restore();
+    }
+    ctx.drawImage(this.roomImage(this.room), 0, 0, W, H);
+    this.drawBackground(ctx);
+
+    out.setTransform(1, 0, 0, 1, 0, 0);
+    out.clearRect(0, 0, out.canvas.width, out.canvas.height);
+    out.imageSmoothingEnabled = false;
+    out.drawImage(this.low, (sx - camX) * k, (sy - camY) * k, bw * PIXEL * k, bh * PIXEL * k);
+
+    // 2) personajes y efectos a resolución de pantalla
+    out.setTransform(k, 0, 0, k, -camX * k, -camY * k);
+    out.imageSmoothingEnabled = false;
+    setGridSnap(false);
+    this.drawActors(out);
+    setGridSnap(true);
     this.drawTexts(out);
+
+    // 3) interfaz
     out.setTransform(this.scale, 0, 0, this.scale, 0, 0);
-    if (PIXEL_MODE && this.state === 'playing' && !tr) this.drawOffscreen(out);
+    if (this.state === 'playing' && !tr) this.drawOffscreen(out);
     this.drawOverlay(out);
+  }
+
+  // La sala (suelo, paredes, muebles, manchas) se dibuja una vez y se guarda como imagen
+  roomImage(room) {
+    const key = `${(room.decals || []).length}:${(this.spriteIds || []).length}`;
+    if (!room.cache || room.cacheKey !== key) {
+      const c = room.cache || document.createElement('canvas');
+      c.width = ART_W; c.height = ART_H;
+      const x = c.getContext('2d');
+      x.setTransform(1 / PIXEL, 0, 0, 1 / PIXEL, 0, 0);
+      x.imageSmoothingEnabled = false;
+      drawRoom(x, room, this.time);
+      room.cache = c;
+      room.cacheKey = key;
+    }
+    return room.cache;
   }
 
   // ¿Está preparando un ataque? (para avisar aunque esté fuera de la pantalla)
@@ -1113,9 +1181,9 @@ export class Game {
     const cam = this.camera;
     const p = this.player;
     // zona donde se colocan los avisos (sin tapar el minimapa ni el HUD)
-    const x0 = 26, x1 = W - 26, y0 = 26, y1 = H - 64 - 22;
+    const x0 = 26, x1 = this.ow - 26, y0 = 26, y1 = H - 64 - 22;
     const edge = (sx, sy) => {
-      const cx = W / 2, cy = H / 2;
+      const cx = this.ow / 2, cy = H / 2;
       const dx = sx - cx, dy = sy - cy;
       const t = Math.min(dx ? Math.abs(((dx > 0 ? x1 : x0) - cx) / dx) : 1e9, dy ? Math.abs(((dy > 0 ? y1 : y0) - cy) / dy) : 1e9);
       const m = { x: cx + dx * t, y: cy + dy * t, a: Math.atan2(dy, dx) };
@@ -1179,7 +1247,7 @@ export class Game {
   drawOverlay(ctx) {
     if (this.state !== 'menu' && this.floor) {
       this.drawItemBar(ctx);
-      drawMinimap(ctx, this.floor, this.room, `PLANTA ${this.floorNum}/${this.building.floors}`, this.time);
+      drawMinimap(ctx, this.floor, this.room, `PLANTA ${this.floorNum}/${this.building.floors}`, this.time, this.ow);
     }
     this.drawVignette(ctx);
     this.drawBossBar(ctx);
@@ -1188,21 +1256,24 @@ export class Game {
       const k = clamp(this.fade.t / FADE, 0, 1);
       ctx.globalAlpha = this.fade.phase === 'out' ? k : 1 - k;
       ctx.fillStyle = OUTLINE;
-      ctx.fillRect(0, 0, W, H);
+      ctx.fillRect(0, 0, this.ow, H);
       ctx.globalAlpha = 1;
     }
   }
 
-  drawWorld(ctx) {
-    drawRoom(ctx, this.room, this.time);
+  // Lo que va pegado al suelo: puertas, objetos planos (escaleras), charcos y cosas para recoger
+  drawBackground(ctx) {
     drawDoors(ctx, this.room, this.doorOpen);
-    const props = this.room.props.filter((pr) => !(pr.kind === 'survivor' && pr.taken));
-    for (const pr of props) if (pr.flat) pr.draw(ctx, this);
+    for (const pr of this.room.props) if (pr.flat && !(pr.kind === 'survivor' && pr.taken)) pr.draw(ctx, this);
     this.drawHazards(ctx);
     for (const pk of this.pickups) drawPickup(ctx, pk, this.time);
+  }
 
+  // Personajes, objetos con altura, balas y partículas
+  drawActors(ctx) {
+    const props = this.room.props.filter((pr) => !pr.flat && !(pr.kind === 'survivor' && pr.taken));
     // Ordenamos por "y" para que lo de abajo se dibuje delante (falsa profundidad)
-    const list = [...this.enemies, ...this.allies, ...props.filter((pr) => !pr.flat)];
+    const list = [...this.enemies, ...this.allies, ...props];
     if (!this.player.dead) list.push(this.player);
     list.sort((a, b) => a.y - b.y);
     for (const e of list) e.draw(ctx, this);
@@ -1271,20 +1342,22 @@ export class Game {
     const pulse = low ? 0.25 + 0.2 * Math.max(0, Math.sin(this.time * 7)) : 0;
     const a = Math.max(pulse, (this.hurtFlash || 0) * 1.4);
     if (a <= 0.01) return;
-    const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, W * 0.62);
+    const ow = this.ow;
+    const g = ctx.createRadialGradient(ow / 2, H / 2, H * 0.35, ow / 2, H / 2, ow * 0.62);
     g.addColorStop(0, 'rgba(255, 30, 60, 0)');
     g.addColorStop(1, `rgba(255, 30, 60, ${Math.min(0.7, a)})`);
     ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, H);
+    ctx.fillRect(0, 0, ow, H);
   }
 
   // Barra de vida de jefes y mini jefes
   drawBossBar(ctx) {
     const boss = this.enemies.find((e) => e.isBoss && e.active);
     if (!boss) return;
-    const w = 420, x = W / 2 - w / 2, y = H - WALL - 40;
+    const w = 420, x = this.ow / 2 - w / 2, y = H - WALL - 40;
     // se vuelve transparente si hay alguien debajo, para no tapar el combate
-    const under = [this.player, ...this.enemies].some((e) => e.x > x - 30 && e.x < x + w + 30 && e.y > y - 60);
+    const toScreen = (e) => (PIXEL_MODE ? this.camera.toScreen(e.x, e.y) : e);
+    const under = [this.player, ...this.enemies].some((e) => { const s = toScreen(e); return s.x > x - 30 && s.x < x + w + 30 && s.y > y - 60; });
     ctx.save();
     ctx.globalAlpha = under ? 0.35 : 1;
     ctx.beginPath(); ctx.roundRect(x - 4, y - 4, w + 8, 26, 13);
@@ -1296,7 +1369,7 @@ export class Game {
       ctx.fillStyle = OUTLINE;
       ctx.fillRect(x + w / 2 - 2, y - 2, 4, 22);
     }
-    outlinedText(ctx, `${boss.icon} ${boss.name}${boss.phase === 2 ? ' 💢' : ''}`, W / 2, y - 16, 22, '#ffd23f', { lw: 6 });
+    outlinedText(ctx, `${boss.icon} ${boss.name}${boss.phase === 2 ? ' 💢' : ''}`, this.ow / 2, y - 16, 22, '#ffd23f', { lw: 6 });
     ctx.restore();
   }
 
@@ -1308,7 +1381,7 @@ export class Game {
     ctx.save();
     ctx.globalAlpha = Math.max(0, fade);
     const s = 0.6 + 0.4 * (1 - Math.pow(1 - appear, 3));
-    ctx.translate(W / 2, H * 0.3);
+    ctx.translate(this.ow / 2, H * 0.3);
     ctx.scale(s, s);
     outlinedText(ctx, b.title, 0, 0, 56, '#ffd23f', { lw: 12 });
     if (b.sub) outlinedText(ctx, b.sub, 0, 46, 24, '#ffffff', { lw: 7 });

@@ -371,3 +371,15 @@ body.touch #touch-ui:not([hidden]) { display: block; }
 /* ═════════════ Pixel art (modo ?pixel, en migración) ═════════════ */
 body.pixel, body.pixel * { font-family: 'Pixelify Sans', system-ui, sans-serif !important; }
 body.pixel #game { image-rendering: pixelated; }
+/* sin marco: el juego ocupa toda la ventana */
+body.pixel #game-wrap,
+body.pixel.touch #game-wrap {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: #1d1b2c;
+}

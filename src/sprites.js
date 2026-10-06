@@ -20,6 +20,13 @@
 import { PIXEL } from './config.js';
 
 const sheets = new Map();     // id → { img, white, meta }
+
+// En el lienzo pequeño (fondo) los sprites se ajustan a la cuadrícula de píxeles del dibujo.
+// Los personajes se dibujan a resolución de pantalla en su posición exacta: así se mueven
+// con suavidad y sus píxeles siguen nítidos.
+let gridSnap = true;
+export function setGridSnap(on) { gridSnap = on; }
+const snap = (v) => (gridSnap ? Math.round(v / PIXEL) * PIXEL : v);
 const BASE = 'assets/sprites/';
 
 // Direcciones en el orden de los ángulos (0 = este, sentido horario porque y crece hacia abajo)
@@ -116,7 +123,7 @@ export function drawSprite(ctx, id, anim, dir, t, x, y, o = {}) {
   const col = (d.col || 0) + f;
   const s = (o.scale || 1) * PIXEL; // 1 píxel de dibujo = PIXEL unidades lógicas
   // ajustamos a la cuadrícula de píxeles para que no se vea borroso
-  const dx = Math.round((x - px * s) / PIXEL) * PIXEL, dy = Math.round((y - py * s) / PIXEL) * PIXEL;
+  const dx = snap(x - px * s), dy = snap(y - py * s);
   if (o.alpha !== undefined) ctx.globalAlpha = o.alpha;
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(o.flash ? sh.white : sh.img, col * cw, d.row * ch, cw, ch, dx, dy, cw * s, ch * s);
@@ -126,7 +133,7 @@ export function drawSprite(ctx, id, anim, dir, t, x, y, o = {}) {
 
 // Sombra ovalada en el suelo, ajustada a píxeles (los sprites no la traen)
 export function pixelShadow(ctx, x, y, w) {
-  const sx = Math.round(x / PIXEL) * PIXEL, sy = Math.round(y / PIXEL) * PIXEL;
+  const sx = snap(x), sy = snap(y);
   ctx.fillStyle = 'rgba(20, 16, 40, 0.28)';
   ctx.fillRect(sx - w / 2 + PIXEL * 2, sy - PIXEL * 2, w - PIXEL * 4, PIXEL * 4);
   ctx.fillRect(sx - w / 2, sy - PIXEL, w, PIXEL * 2);
