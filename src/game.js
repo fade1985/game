@@ -13,7 +13,8 @@ import { baseStats, rollItem, applyWorkshop, WORKSHOP } from './upgrades.js';
 import { Pedestal, SurvivorNPC, Stairs, WeaponProp } from './props.js';
 import { WEAPONS, randomWeapon, weaponSummary } from './weapons.js';
 import { loadSave, updateSave, buildingSave } from './save.js';
-import { drawRoom, drawDoors, drawPickup, drawBullet, drawMinimap } from './render.js';
+import { drawRoom, drawDoors, drawPickup, drawBullet, drawMinimap, drawEmoji as drawEmojiAt, minimapRect } from './render.js';
+import { Camera, ZOOM, BOSS_ZOOM } from './camera.js';
 import { outlinedText, roundBox, setTextFont } from './draw.js';
 import { getMoveVector, consumeDash, clearInput } from './input.js';
 import { sfx, music, setMusicOn } from './sfx.js';
@@ -53,6 +54,7 @@ export class Game {
     this.paused = false;
     this.time = 0;
     this.shakeAmt = 0;
+    this.camera = new Camera();
     // Pixel art: el mundo se dibuja en un lienzo pequeño (480×320) que luego se amplía sin suavizado
     if (PIXEL_MODE) {
       this.low = document.createElement('canvas');
@@ -100,6 +102,8 @@ export class Game {
     this.player.x = W / 2; this.player.y = H / 2 + 60;
     this.allies = [];
     this.menuTarget = { x: W / 2, y: H / 2, t: 0 };
+    this.camera.targetZoom = ZOOM;
+    this.camera.snap(this.player);
   }
 
   goMenu() {
@@ -306,6 +310,9 @@ export class Game {
     this.waveIdx = 0;
     this.waveDelay = room.cleared ? 0 : 0.6;
     if (!room.decals) room.decals = [];
+    // cámara: en las salas de jefe (sin limpiar) se aleja un poco para ver sus ataques
+    this.camera.targetZoom = !room.cleared && (room.type === 'miniboss' || room.type === 'boss') ? BOSS_ZOOM : ZOOM;
+    this.camera.snap(this.player);
     music.play(!room.cleared && (room.type === 'miniboss' || room.type === 'boss') ? 'boss' : 'explore');
     // Las puertas entran abiertas y se cierran de golpe si hay enemigos
     this.doorOpen = 1;
@@ -314,7 +321,7 @@ export class Game {
   goThroughDoor(dir) {
     const next = neighbour(this.floor, this.room, dir);
     if (!next) return;
-    this.transition = { dir, t: 0, from: this.room };
+    this.transition = { dir, t: 0, from: this.room, cam: { left: this.camera.left, top: this.camera.top } };
     this.enterRoom(next, dir);
     sfx.door();
   }
@@ -358,6 +365,7 @@ export class Game {
 
   roomCleared() {
     this.room.cleared = true;
+    this.camera.targetZoom = ZOOM;
     for (const a of this.allies) if (a.onRoomCleared) a.onRoomCleared(this);
     sfx.clear();
     this.floatText(this.player.x, this.player.y - 50, '¡Despejada!', '#80ed99', 24);
@@ -489,6 +497,7 @@ export class Game {
     const d = Math.hypot(dx, dy);
     const mv = d > 20 ? { x: (dx / d) * 0.6, y: (dy / d) * 0.6 } : { x: 0, y: 0 };
     this.player.update(dt, this, mv, false);
+    this.camera.update(dt, this.player);
     this.updateParticles(dt);
   }
 
@@ -504,6 +513,7 @@ export class Game {
 
     this.runTime += dt;
     if (!p.dead) p.update(dt, this, getMoveVector(), consumeDash());
+    this.camera.update(dt, p);
     for (const a of this.allies) a.update(dt, this);
 
     this.updateWaves(dt);
@@ -690,6 +700,8 @@ export class Game {
     let best = null, bd = range;
     for (const e of this.enemies) {
       if (!e.active) continue;
+      // con la cámara cerca (pixel art) solo se apunta a lo que se ve en pantalla
+      if (PIXEL_MODE && !this.camera.inView(e, 30)) continue;
       const d = Math.hypot(e.x - x, e.y - y) - e.r;
       if (d < bd) { bd = d; best = e; }
     }
@@ -1032,51 +1044,135 @@ export class Game {
 
   render() {
     const out = this.ctx;
-    out.setTransform(this.scale, 0, 0, this.scale, 0, 0);
-    out.clearRect(0, 0, W, H);
-    // En pixel art el mundo va al lienzo pequeño; el resto (textos, minimapa...) a resolución completa
+    const cam = this.camera;
+    // En pixel art el mundo va a un lienzo pequeño (tantos píxeles como se ven con la cámara)
+    // que luego se amplía sin suavizado; el resto (textos, minimapa...) a resolución completa
     const ctx = PIXEL_MODE ? this.lowCtx : out;
+    const vw = PIXEL_MODE ? cam.vw : W, vh = PIXEL_MODE ? cam.vh : H;
     if (PIXEL_MODE) {
+      const bw = Math.round(vw / PIXEL), bh = Math.round(vh / PIXEL);
+      if (this.low.width !== bw || this.low.height !== bh) { this.low.width = bw; this.low.height = bh; }
       ctx.setTransform(1 / PIXEL, 0, 0, 1 / PIXEL, 0, 0);
-      ctx.clearRect(0, 0, W, H);
+      ctx.clearRect(0, 0, vw, vh);
       ctx.imageSmoothingEnabled = false;
+    } else {
+      out.setTransform(this.scale, 0, 0, this.scale, 0, 0);
+      out.clearRect(0, 0, W, H);
     }
-    // en pixel art la cámara solo se mueve de píxel en píxel
+    // en pixel art todo se mueve de píxel en píxel
     const snap = (v) => (PIXEL_MODE ? Math.round(v / PIXEL) * PIXEL : v);
+    const left = PIXEL_MODE ? cam.left : 0, top = PIXEL_MODE ? cam.top : 0;
 
-    let camX = 0, camY = 0;
+    let offX = 0, offY = 0;
     const tr = this.transition;
     if (tr) {
-      // Deslizamiento de cámara: la sala vieja sale y la nueva entra
+      // Deslizamiento entre salas: la vieja sale (con su cámara) y la nueva entra
       const k = clamp(tr.t / SLIDE, 0, 1);
       const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
       const [dx, dy] = DIRS[tr.dir];
+      const prev = tr.cam || { left: 0, top: 0 };
       ctx.save();
-      ctx.translate(snap(-dx * W * e), snap(-dy * H * e));
+      ctx.translate(snap(-dx * vw * e) - prev.left, snap(-dy * vh * e) - prev.top);
       drawRoom(ctx, tr.from, this.time);
       drawDoors(ctx, tr.from, 1);
       ctx.restore();
-      camX = snap(dx * W * (1 - e)); camY = snap(dy * H * (1 - e));
+      offX = snap(dx * vw * (1 - e)); offY = snap(dy * vh * (1 - e));
     } else if (this.shakeAmt > 0.3) {
-      camX = snap(rand(-1, 1) * this.shakeAmt); camY = snap(rand(-1, 1) * this.shakeAmt);
+      offX = snap(rand(-1, 1) * this.shakeAmt); offY = snap(rand(-1, 1) * this.shakeAmt);
     }
     ctx.save();
-    ctx.translate(camX, camY);
+    ctx.translate(offX - left, offY - top);
     this.drawWorld(ctx);
     ctx.restore();
 
     if (PIXEL_MODE) {
-      out.save();
       out.setTransform(1, 0, 0, 1, 0, 0);
+      out.clearRect(0, 0, out.canvas.width, out.canvas.height);
       out.imageSmoothingEnabled = false;
       out.drawImage(this.low, 0, 0, out.canvas.width, out.canvas.height);
-      out.restore();
     }
-    out.save();
-    out.translate(camX, camY);
+    // textos flotantes con la misma cámara, pero a resolución completa
+    const z = W / vw;
+    out.setTransform(this.scale * z, 0, 0, this.scale * z, 0, 0);
+    out.translate(offX - left, offY - top);
     this.drawTexts(out);
-    out.restore();
+    out.setTransform(this.scale, 0, 0, this.scale, 0, 0);
+    if (PIXEL_MODE && this.state === 'playing' && !tr) this.drawOffscreen(out);
     this.drawOverlay(out);
+  }
+
+  // ¿Está preparando un ataque? (para avisar aunque esté fuera de la pantalla)
+  isWindingUp(e) {
+    if (e.fuse > 0 || e.spitT > 0 || (e.tent && e.tent.phase === 'warn')) return true;
+    return !!(e.state && /Warn$|^charge$|^spin$/.test(e.state.name));
+  }
+
+  // Avisos en el borde de la pantalla: enemigos que no se ven (con "!") y,
+  // con la sala limpia, las puertas abiertas que quedan fuera de la vista
+  drawOffscreen(ctx) {
+    const cam = this.camera;
+    const p = this.player;
+    // zona donde se colocan los avisos (sin tapar el minimapa ni el HUD)
+    const x0 = 26, x1 = W - 26, y0 = 26, y1 = H - 64 - 22;
+    const edge = (sx, sy) => {
+      const cx = W / 2, cy = H / 2;
+      const dx = sx - cx, dy = sy - cy;
+      const t = Math.min(dx ? Math.abs(((dx > 0 ? x1 : x0) - cx) / dx) : 1e9, dy ? Math.abs(((dy > 0 ? y1 : y0) - cy) / dy) : 1e9);
+      const m = { x: cx + dx * t, y: cy + dy * t, a: Math.atan2(dy, dx) };
+      // si cae encima del minimapa, se coloca justo debajo
+      const mm = minimapRect;
+      if (mm && m.x > mm.x - 20 && m.y < mm.y + mm.h + 20) m.y = mm.y + mm.h + 22;
+      return m;
+    };
+    const marker = (m, r, fill, label, pulse) => {
+      // flechita hacia el objetivo
+      ctx.save();
+      ctx.translate(m.x, m.y);
+      ctx.rotate(m.a);
+      ctx.beginPath();
+      ctx.moveTo(r + 9, 0); ctx.lineTo(r - 2, -7); ctx.lineTo(r - 2, 7); ctx.closePath();
+      ctx.fillStyle = fill; ctx.fill();
+      ctx.lineWidth = 3; ctx.strokeStyle = OUTLINE; ctx.stroke();
+      ctx.restore();
+      if (pulse) {
+        ctx.beginPath();
+        ctx.arc(m.x, m.y, r + 5 + Math.sin(this.time * 18) * 3, 0, Math.PI * 2);
+        ctx.lineWidth = 4; ctx.strokeStyle = '#ff2d4b'; ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = pulse && Math.floor(this.time * 8) % 2 ? '#ff2d4b' : fill;
+      ctx.fill();
+      ctx.lineWidth = 3; ctx.strokeStyle = OUTLINE; ctx.stroke();
+      if (label === '!') outlinedText(ctx, '!', m.x, m.y + 1, r * 1.5, '#ffffff', { lw: 4 });
+      else drawEmojiAt(ctx, label, m.x, m.y + 1, r * 1.1);
+    };
+    for (const e of this.enemies) {
+      if (e.dead || cam.inView(e, -4)) continue;
+      const s = cam.toScreen(e.x, e.y);
+      const m = edge(s.x, s.y);
+      const d = Math.hypot(e.x - p.x, e.y - p.y);
+      const near = clamp(1 - (d - 250) / 500, 0, 1); // crece al acercarse
+      if (e.isBoss) marker(m, 18, e.color, e.icon, this.isWindingUp(e));
+      else {
+        ctx.globalAlpha = e.spawnT > 0 ? 0.5 : 1;
+        marker(m, 9 + near * 5, e.color, '!', this.isWindingUp(e));
+        ctx.globalAlpha = 1;
+      }
+    }
+    if (this.room.cleared && this.doorOpen >= 1) {
+      const spots = { up: [W / 2, WALL / 2], down: [W / 2, H - WALL / 2], left: [WALL / 2, H / 2], right: [W - WALL / 2, H / 2] };
+      for (const [dir, has] of Object.entries(this.room.doors)) {
+        if (!has) continue;
+        const [wx, wy] = spots[dir];
+        if (cam.inView({ x: wx, y: wy, r: 0 })) continue;
+        const special = ROOM_TYPES[this.room.doorTypes[dir]];
+        const s = cam.toScreen(wx, wy);
+        ctx.globalAlpha = 0.85;
+        marker(edge(s.x, s.y), 11, (special && special.frame) || '#80ed99', (special && special.frame) ? special.icon : '🚪', false);
+        ctx.globalAlpha = 1;
+      }
+    }
   }
 
   // Interfaz dibujada en el lienzo: barra de objetos, minimapa, jefe, carteles y fundidos

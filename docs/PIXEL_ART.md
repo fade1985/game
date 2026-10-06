@@ -42,6 +42,18 @@ Mientras dure la migración, el modo pixel se activa añadiendo **`?pixel`** a l
   pañuelo `#ff5d73` · camisa `#fff3d6` · piel zombi `#8fc46a` · camisa zombi `#5b7db1` · parquet `#dba36a`/`#cf955c` ·
   amarillo `#ffd23f` · verde `#80ed99`.
 
+## Cámara (solo en la versión pixel)
+
+- Acercamiento **×1,5**: se ve unas dos terceras partes de la sala (320×213 píxeles de dibujo, sin deformar).
+- Sigue al conserje con suavidad y se adelanta un poco hacia donde camina; nunca enseña lo de fuera de la sala.
+- En las salas de jefe (mientras no estén limpias) se aleja a **×1,15** para que se vean sus ataques.
+- **Avisos en el borde:** cada enemigo fuera de la vista sale como un "!" de su color con una flechita (crece
+  al acercarse y es semitransparente mientras aparece). Si está **preparando un ataque** (mecha, latigazo,
+  escupitajo, embestida...) parpadea en rojo. Los jefes salen con su icono. Con la sala limpia, las puertas
+  que quedan fuera de la vista también se marcan (con el icono de la sala especial si lo es).
+- **Ataque automático y compañeros:** solo apuntan a lo que se ve en pantalla (o casi).
+- Código: `src/camera.js`; los avisos, en `Game.drawOffscreen`.
+
 ## Lo que sigue dibujándose con código
 
 Partículas, números de daño, avisos rojos en el suelo, luces, la viñeta roja y los carteles. En el modo pixel

@@ -334,6 +334,9 @@ export function drawBullet(ctx, b) {
 
 // ═════════════ Minimapa ═════════════
 // Muestra las salas visitadas, las vistas (vecinas de una visitada) y la actual.
+// Hueco que ocupa el minimapa (para que los avisos del borde no lo tapen)
+export let minimapRect = null;
+
 export function drawMinimap(ctx, floor, current, title, time) {
   const shown = [...floor.rooms.values()].filter((r) => r.visited || r.seen);
   if (!shown.length) return;
@@ -345,6 +348,7 @@ export function drawMinimap(ctx, floor, current, title, time) {
   const pw = Math.max(120, cols * (CW + GAP) - GAP + pad * 2);
   const ph = rows * (CH + GAP) - GAP + pad * 2 + head;
   const px = W - pw - 12, py = 10;
+  minimapRect = { x: px, y: py, w: pw, h: ph };
 
   ctx.save();
   ctx.globalAlpha = 0.92;
