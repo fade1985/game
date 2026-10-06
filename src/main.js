@@ -6,12 +6,15 @@ import { createUI } from './ui.js';
 import { initInput } from './input.js';
 import { unlockAudio, setMusicOn } from './sfx.js';
 import { loadSave } from './save.js';
+import { PIXEL_MODE } from './config.js';
+import { loadSprites } from './sprites.js';
 
 const root = document.getElementById('game-wrap');
 const canvas = document.getElementById('game');
 const touchUI = document.getElementById('touch-ui');
 
 if (window.matchMedia('(pointer: coarse)').matches) document.body.classList.add('touch');
+if (PIXEL_MODE) document.body.classList.add('pixel');
 
 setMusicOn(loadSave().settings.music);
 
@@ -53,6 +56,8 @@ function frame(now) {
 
 game.goMenu();
 requestAnimationFrame(frame);
+// Sprites de pixel art (si todavía no hay, todo se dibuja como siempre)
+if (PIXEL_MODE) loadSprites().then((ids) => { game.spriteIds = ids; });
 
 // Para depurar desde la consola del navegador: window.game
 window.game = game;

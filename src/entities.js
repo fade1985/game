@@ -1,7 +1,8 @@
 // ─────────────────────────────────────────────
 //  Personajes: jugador, compañeros y enemigos
 // ─────────────────────────────────────────────
-import { W, H, WALL, OUTLINE, PLAYER_LOOK } from './config.js';
+import { W, H, WALL, OUTLINE, PLAYER_LOOK, PIXEL_MODE } from './config.js';
+import { drawSprite, dirFromVector } from './sprites.js';
 import { rand } from './utils.js';
 import { drawHuman } from './draw.js';
 import { sfx } from './sfx.js';
@@ -197,7 +198,7 @@ export class Player {
     }
   }
 
-  draw(ctx) {
+  draw(ctx, game) {
     const { x, y } = this;
 
     // Indicador de recarga de la esquiva (arco bajo los pies)
@@ -216,7 +217,10 @@ export class Player {
     const behind = Math.sin(a) < -0.3; // si apunta hacia arriba, el arma va detrás del cuerpo
     if (behind) this.drawArm(ctx, a);
     const sp = Math.hypot(this.vx, this.vy);
-    drawHuman(ctx, x, y, {
+    // pixel art: sprite del conserje (los pies van 16 unidades por debajo del centro)
+    const sprited = PIXEL_MODE && drawSprite(ctx, 'conserje', sp > 20 ? 'walk' : 'idle',
+      dirFromVector(this.lookX, this.lookY), game ? game.time : 0, x, y + 16, { flash: this.hurtT > 0 });
+    if (!sprited) drawHuman(ctx, x, y, {
       ...PLAYER_LOOK,
       lookX: this.lookX,
       lookY: this.lookY,

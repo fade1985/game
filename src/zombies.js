@@ -5,7 +5,8 @@
 //  y cada tipo tiene su color, tamaño y comportamiento. Los ataques
 //  peligrosos SIEMPRE avisan antes, para que se puedan esquivar.
 // ─────────────────────────────────────────────
-import { OUTLINE } from './config.js';
+import { OUTLINE, PIXEL_MODE } from './config.js';
+import { drawSprite, dirFromVector } from './sprites.js';
 import { rand } from './utils.js';
 import { drawHuman } from './draw.js';
 import { drawSpawnWarning } from './entities.js';
@@ -255,7 +256,10 @@ export class Zombie {
     }
     if (this.tent && this.tent.phase === 'warn') shake = rand(-1, 1);
     const sp = Math.hypot(this.vx, this.vy);
-    drawHuman(ctx, x + shake, y, {
+    // pixel art: un sprite por tipo de zombi ("zombi-normal", "zombi-rapido"...)
+    const sprited = PIXEL_MODE && drawSprite(ctx, `zombi-${this.type}`, sp > 10 ? 'walk' : 'idle',
+      dirFromVector(this.lookX, this.lookY), game.time, x + shake, y + 15 * scale, { flash });
+    if (!sprited) drawHuman(ctx, x + shake, y, {
       ...this.def.look,
       s: scale,
       zombie: true,
@@ -270,8 +274,8 @@ export class Zombie {
     });
 
     // ── detalles de cada tipo ──
-    if (this.type === 'explosivo' && !flash) this.drawBombVest(ctx, x + shake, y, scale, game.time);
-    if (this.type === 'venenoso') this.drawSlime(ctx, x, y, scale);
+    if (this.type === 'explosivo' && !flash && !sprited) this.drawBombVest(ctx, x + shake, y, scale, game.time);
+    if (this.type === 'venenoso' && !sprited) this.drawSlime(ctx, x, y, scale);
     if (this.tent && this.tent.phase === 'strike') this.drawStrike(ctx);
 
     // barra de vida pequeña

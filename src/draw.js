@@ -90,8 +90,12 @@ export function eyes(ctx, x, y, r, lx, ly, { angry = false, blink = false } = {}
 }
 
 // Texto con contorno grueso, como en los juegos casual
+// Tipo de letra de los textos del lienzo (en pixel art se cambia por uno pixelado)
+let textFont = '"Lilita One"';
+export function setTextFont(family) { textFont = family; }
+
 export function outlinedText(ctx, text, x, y, size, fill, { lw = 6, align = 'center', stroke = OUTLINE } = {}) {
-  ctx.font = `${size}px "Lilita One", system-ui, sans-serif`;
+  ctx.font = `${size}px ${textFont}, system-ui, sans-serif`;
   ctx.textAlign = align;
   ctx.textBaseline = 'middle';
   ctx.lineJoin = 'round';

@@ -6,10 +6,21 @@
 // pero toda la lógica trabaja siempre con estas medidas.
 export const W = 960;
 export const H = 640;
-export const WALL = 56;         // grosor de los muros de cada sala
+export const WALL = 64;         // grosor de los muros de cada sala (2 baldosas en pixel art)
 export const DOOR_W = 96;       // ancho de las puertas
 export const GRID = 9;          // la planta se genera en una cuadrícula de GRID x GRID
 export const MAX_ALLIES = 4;    // tamaño máximo del equipo
+
+// ── Pixel art ──
+// El mundo se dibuja a la mitad de resolución (480×320) y se amplía sin suavizado:
+// 1 píxel del dibujo = PIXEL unidades lógicas. Las baldosas miden TILE píxeles.
+// Así el interior de una sala mide 26×16 baldosas y las puertas 3 baldosas.
+// Mientras dure la migración, el modo pixel se activa añadiendo ?pixel a la dirección.
+export const PIXEL = 2;
+export const ART_W = W / PIXEL;
+export const ART_H = H / PIXEL;
+export const TILE = 16;
+export const PIXEL_MODE = typeof location !== 'undefined' && new URLSearchParams(location.search).has('pixel');
 
 export const OUTLINE = '#1d1b2c'; // color del contorno "de dibujo animado"
 export const ALLY_COLORS = ['#4cc9f0', '#80ed99', '#ff8fab', '#c77dff', '#ff9f1c'];

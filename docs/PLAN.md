@@ -18,6 +18,8 @@ Forma de trabajo: **fase a fase**. Al terminar cada una → resumen + capturas +
 | 7 | Selector de edificios, guardado del progreso, muebles y ambientación, llaves y Taller | ✅ Hecha |
 | 8 | Pulido: sonido, efectos de impacto, equilibrado, móvil | ✅ Hecha (pendiente de tu visto bueno) |
 
+**Siguiente: pixel art.** El plan, las medidas y el estilo están en [`docs/PIXEL_ART.md`](PIXEL_ART.md).
+
 Después: ataque manual (cambiando solo el controlador de apuntado), más edificios, armas y zombis.
 
 ## Fases en detalle

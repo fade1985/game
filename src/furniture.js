@@ -6,13 +6,14 @@
 //  Cada mueble se dibuja "mirando" a la habitación: en coordenadas locales,
 //  -dep/2 es el lado de la pared y +dep/2 el lado de la sala.
 // ─────────────────────────────────────────────
-import { W, H, WALL, DOOR_W, OUTLINE } from './config.js';
+import { W, H, WALL, DOOR_W, OUTLINE, PIXEL_MODE } from './config.js';
+import { drawSprite } from './sprites.js';
 
 const TAU = Math.PI * 2;
 
 // Catálogo: largo a lo largo de la pared (len) y fondo hacia la sala (dep)
 const PIECES = {
-  sofa:      { len: 150, dep: 62 },
+  sofa:      { len: 152, dep: 64 },
   tv:        { len: 120, dep: 40 },
   armchair:  { len: 64,  dep: 60 },
   bookshelf: { len: 120, dep: 34 },
@@ -134,6 +135,17 @@ export function drawFurniture(ctx, f) {
   ctx.beginPath();
   ctx.roundRect(f.x - f.w / 2 + 3, f.y - f.h / 2 + 7, f.w, f.h, 8);
   ctx.fill();
+
+  // pixel art: el sprite está dibujado "de espaldas a la pared de arriba" y se gira
+  // de 90 en 90 grados según su pared (así los píxeles no se deforman)
+  if (PIXEL_MODE) {
+    ctx.save();
+    ctx.translate(f.x, f.y);
+    ctx.rotate(ROT[f.side]);
+    const ok = drawSprite(ctx, `mueble-${f.kind}`, 'idle', 'south', 0, 0, 0);
+    ctx.restore();
+    if (ok) return;
+  }
 
   ctx.save();
   ctx.translate(f.x, f.y);

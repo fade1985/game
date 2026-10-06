@@ -1,7 +1,8 @@
 // ─────────────────────────────────────────────
 //  Dibujo del escenario: habitaciones, puertas, objetos y minimapa
 // ─────────────────────────────────────────────
-import { W, H, WALL, DOOR_W, OUTLINE } from './config.js';
+import { W, H, WALL, DOOR_W, OUTLINE, PIXEL, PIXEL_MODE, TILE } from './config.js';
+import { drawSprite, hasSprite } from './sprites.js';
 import { roundBox, outlinedText, heartPath } from './draw.js';
 import { ROOM_TYPES } from './rooms.js';
 import { drawFurniture, drawFurnitureLight, drawWallDecor, drawWindowLight } from './furniture.js';
@@ -102,7 +103,19 @@ export function drawRoom(ctx, room, time) {
   }
 }
 
+// Nombre de sprite a partir del nombre del estilo: "Baño" → "bano"
+const slug = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
 function drawFloor(ctx, style, seams, iw, ih) {
+  // pixel art: baldosa del estilo repetida por todo el suelo
+  const tile = `suelo-${slug(style.name)}`;
+  if (PIXEL_MODE && hasSprite(tile)) {
+    const step = TILE * 2 * PIXEL; // las baldosas de suelo miden 32×32 píxeles de dibujo
+    for (let y = WALL; y < WALL + ih; y += step) {
+      for (let x = WALL; x < WALL + iw; x += step) drawSprite(ctx, tile, 'idle', 'south', 0, x, y);
+    }
+    return;
+  }
   if (style.floor === 'parquet') {
     for (const row of seams) {
       ctx.fillStyle = row.shade ? style.floorA : style.floorB;

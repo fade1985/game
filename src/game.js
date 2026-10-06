@@ -2,7 +2,7 @@
 //  Game: controla el flujo de la partida
 //  menú → edificio → plantas → salas conectadas
 // ─────────────────────────────────────────────
-import { W, H, WALL, DOOR_W, OUTLINE, MAX_ALLIES, DIRS, BUILDINGS, SURVIVORS } from './config.js';
+import { W, H, WALL, DOOR_W, OUTLINE, MAX_ALLIES, DIRS, BUILDINGS, SURVIVORS, PIXEL, ART_W, ART_H, PIXEL_MODE } from './config.js';
 import { rand, clamp, dist, pushOut, obstacleGap } from './utils.js';
 import { Player, Ally } from './entities.js';
 import { makeBoss, BOSS_TYPES, BLEACH, drawBottle } from './bosses.js';
@@ -14,7 +14,7 @@ import { Pedestal, SurvivorNPC, Stairs, WeaponProp } from './props.js';
 import { WEAPONS, randomWeapon, weaponSummary } from './weapons.js';
 import { loadSave, updateSave, buildingSave } from './save.js';
 import { drawRoom, drawDoors, drawPickup, drawBullet, drawMinimap } from './render.js';
-import { outlinedText, roundBox } from './draw.js';
+import { outlinedText, roundBox, setTextFont } from './draw.js';
 import { getMoveVector, consumeDash, clearInput } from './input.js';
 import { sfx, music, setMusicOn } from './sfx.js';
 
@@ -53,6 +53,14 @@ export class Game {
     this.paused = false;
     this.time = 0;
     this.shakeAmt = 0;
+    // Pixel art: el mundo se dibuja en un lienzo pequeño (480×320) que luego se amplía sin suavizado
+    if (PIXEL_MODE) {
+      this.low = document.createElement('canvas');
+      this.low.width = ART_W;
+      this.low.height = ART_H;
+      this.lowCtx = this.low.getContext('2d');
+      setTextFont('"Pixelify Sans"');
+    }
     new ResizeObserver(() => this.resize()).observe(canvas);
     this.resize();
     this.setupMenuScene();
@@ -1023,10 +1031,20 @@ export class Game {
   // ═════════════ Dibujo ═════════════
 
   render() {
-    const ctx = this.ctx;
-    ctx.setTransform(this.scale, 0, 0, this.scale, 0, 0);
-    ctx.clearRect(0, 0, W, H);
+    const out = this.ctx;
+    out.setTransform(this.scale, 0, 0, this.scale, 0, 0);
+    out.clearRect(0, 0, W, H);
+    // En pixel art el mundo va al lienzo pequeño; el resto (textos, minimapa...) a resolución completa
+    const ctx = PIXEL_MODE ? this.lowCtx : out;
+    if (PIXEL_MODE) {
+      ctx.setTransform(1 / PIXEL, 0, 0, 1 / PIXEL, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      ctx.imageSmoothingEnabled = false;
+    }
+    // en pixel art la cámara solo se mueve de píxel en píxel
+    const snap = (v) => (PIXEL_MODE ? Math.round(v / PIXEL) * PIXEL : v);
 
+    let camX = 0, camY = 0;
     const tr = this.transition;
     if (tr) {
       // Deslizamiento de cámara: la sala vieja sale y la nueva entra
@@ -1034,21 +1052,35 @@ export class Game {
       const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
       const [dx, dy] = DIRS[tr.dir];
       ctx.save();
-      ctx.translate(-dx * W * e, -dy * H * e);
+      ctx.translate(snap(-dx * W * e), snap(-dy * H * e));
       drawRoom(ctx, tr.from, this.time);
       drawDoors(ctx, tr.from, 1);
       ctx.restore();
-      ctx.save();
-      ctx.translate(dx * W * (1 - e), dy * H * (1 - e));
-      this.drawWorld(ctx);
-      ctx.restore();
-    } else {
-      ctx.save();
-      if (this.shakeAmt > 0.3) ctx.translate(rand(-1, 1) * this.shakeAmt, rand(-1, 1) * this.shakeAmt);
-      this.drawWorld(ctx);
-      ctx.restore();
+      camX = snap(dx * W * (1 - e)); camY = snap(dy * H * (1 - e));
+    } else if (this.shakeAmt > 0.3) {
+      camX = snap(rand(-1, 1) * this.shakeAmt); camY = snap(rand(-1, 1) * this.shakeAmt);
     }
+    ctx.save();
+    ctx.translate(camX, camY);
+    this.drawWorld(ctx);
+    ctx.restore();
 
+    if (PIXEL_MODE) {
+      out.save();
+      out.setTransform(1, 0, 0, 1, 0, 0);
+      out.imageSmoothingEnabled = false;
+      out.drawImage(this.low, 0, 0, out.canvas.width, out.canvas.height);
+      out.restore();
+    }
+    out.save();
+    out.translate(camX, camY);
+    this.drawTexts(out);
+    out.restore();
+    this.drawOverlay(out);
+  }
+
+  // Interfaz dibujada en el lienzo: barra de objetos, minimapa, jefe, carteles y fundidos
+  drawOverlay(ctx) {
     if (this.state !== 'menu' && this.floor) {
       this.drawItemBar(ctx);
       drawMinimap(ctx, this.floor, this.room, `PLANTA ${this.floorNum}/${this.building.floors}`, this.time);
@@ -1082,6 +1114,10 @@ export class Game {
     for (const b of this.bullets) drawBullet(ctx, b);
     this.drawLobs(ctx);
     this.drawParticles(ctx);
+  }
+
+  // Números de daño y textos flotantes
+  drawTexts(ctx) {
     for (const t of this.texts) {
       const pop = Math.min(1, t.t / 0.08);
       ctx.globalAlpha = t.t > t.life - 0.25 ? (t.life - t.t) / 0.25 : 1;
