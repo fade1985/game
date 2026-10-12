@@ -5,8 +5,8 @@ Claude Code lee este archivo automáticamente al abrir la carpeta.
 
 ## Qué es
 
-Roguelike de zombis para navegador al estilo *The Binding of Isaac*: un conserje con su fregona limpia un
-edificio infestado, sala a sala. **HTML5 Canvas + JavaScript puro** (módulos ES), sin librerías ni compilación.
+Roguelike de zombis para navegador, a medio camino entre *The Binding of Isaac* y *Hotline Miami*: un conserje
+con su fregona limpia un edificio infestado, apartamento a apartamento. **HTML5 Canvas + JavaScript puro** (módulos ES), sin librerías ni compilación.
 Se publica en **Vercel** como web estática (preset "Other").
 
 - Rama de trabajo: `main` (se trabaja directamente en ella; lo que se sube a `main` se publica en Vercel).
@@ -23,10 +23,11 @@ Se publica en **Vercel** como web estática (preset "Other").
 - Antes de cambios grandes, **contar el plan y preguntar**. Si dice "no hagas nada, solo dime", solo se responde.
 - No crear pull requests si no los pide.
 - **La versión cartoon ya no existe** (retirada el 12 de octubre de 2026 por decisión del dueño): el juego es solo
-  pixel art. `?cartoon` no hace nada. Queda código suyo por limpiar (se hará en la fase 2 del mapa nuevo); lo que
-  aún no tiene sprite se sigue viendo con el dibujo de antes hasta que tenga el suyo.
+  pixel art y ya no hay `PIXEL_MODE` ni `?cartoon`. Lo que aún no tiene sprite se sigue dibujando a mano, con el
+  dibujo de antes, hasta que tenga el suyo: esos dibujos no se pueden borrar todavía.
 - **Mapa nuevo en marcha:** pasillo y apartamentos en vez de salas sueltas. Diseño, decisiones y fases en
-  [`docs/MAPA.md`](docs/MAPA.md). Lo lleva una sesión distinta de la de las armas: las dos trabajan en la misma
+  [`docs/MAPA.md`](docs/MAPA.md). **Fases 1 y 2 hechas** (la 2, pendiente de visto bueno): el juego ya se juega
+  entero con el mapa nuevo. Siguiente: fase 3, combate (zombis repartidos por las habitaciones y equilibrado). Lo lleva una sesión distinta de la de las armas: las dos trabajan en la misma
   carpeta, así que al hacer commit hay que añadir solo los archivos propios (nada de `git add -A`).
 
 ## Arrancar y probar
@@ -36,9 +37,10 @@ npm run dev            # sirve la carpeta en http://localhost:3000 (también val
 ```
 
 - `http://localhost:3000/` → el juego (cámara que sigue al personaje, pantalla completa).
+- `http://localhost:3000/assets/pruebas/apartamentos` → planos de apartamentos con colores planos (sin `.html`).
 - `?pruebas` → modo pruebas: las teclas **1–6** sacan cada tipo de zombi, **7** el mini jefe y **8** la portera.
   Se puede combinar: `?pruebas&armas`.
-- `?armas` → todas las armas abiertas en la entrada (sin tocar el guardado). `?pruebas` también las abre.
+- `?armas` → todas las armas abiertas en la sala de mantenimiento (sin tocar el guardado). `?pruebas` también las abre.
 - `?sala=venenoso` → sala de exposición (solo versión pixel): se salta el menú y pone el sprite `zombi-venenoso`
   quieto y girando junto al conserje, sin atacar. Vale para cualquier zombi con sprite: `?sala=normal`...
 - Para probar sin mirar: Playwright con Chromium. En la consola del navegador el juego está en `window.game`;
@@ -50,16 +52,18 @@ npm run dev            # sirve la carpeta en http://localhost:3000 (también val
 
 | Archivo | Qué hace |
 |---|---|
-| `config.js` | Medidas (sala 960×640, `WALL = 64`, puertas de 96), edificios, armas, supervivientes, `PIXEL_MODE` |
+| `config.js` | Medidas (sala base 960×640, `WALL = 64`, puertas de 96), edificios, estilos de habitación, supervivientes |
 | `main.js` | Arranque, bucle, teclas de prueba, carga de sprites |
-| `game.js` | El corazón: estados, salas, combate y dibujo (`renderPixel`, `drawOffscreen`; `render` es el de la versión cartoon retirada) |
-| `apartment.js` | Generador de apartamentos del mapa nuevo (ver `docs/MAPA.md`); aún sin conectar al juego |
-| `camera.js` | Cámara de la versión pixel (zoom ×1,5, ×1,15 en salas de jefe; sigue al conserje) |
+| `game.js` | El corazón: estados, mapas y puertas (`enterRoom`, `updateDoors`), combate y dibujo (`render`, `drawOffscreen`) |
+| `building.js` | Genera cada planta: pasillo, lo que hay tras sus cuatro puertas, llave, superviviente, escaleras; y la azotea |
+| `apartment.js` | Generador de apartamentos: habitaciones, tabiques y puertas (ver `docs/MAPA.md`) |
+| `rooms.js` | Monta cada mapa (pasillo, apartamento, mantenimiento, azotea): puertas (`makeExit`), muebles y oleadas |
+| `camera.js` | Cámara (zoom ×1,5, ×1,15 con un jefe delante; sigue al conserje) |
 | `sprites.js` | Carga y dibuja las hojas de sprites de pixel art; si falta un sprite, se usa el dibujo de siempre |
-| `floor.js` / `rooms.js` | Generación de plantas y salas |
-| `shapes.js` | Forma de las salas (solo pixel): cuadrícula de suelo/muro, muros interiores y camino de los zombis |
-| `render.js` | Suelo, paredes, puertas, minimapa |
-| `furniture.js` / `props.js` | Muebles por estilo de habitación, decoración de pared, luces |
+| `shapes.js` | La cuadrícula de cada mapa (suelo/muro), los choques con tabiques y el camino de los zombis (rodean muebles) |
+| `render.js` | Suelo (uno por habitación), paredes, puertas, minimapa |
+| `furniture.js` | Muebles por estilo de habitación, decoración de pared, luces |
+| `props.js` | Superviviente, la llave del mini jefe, armas en el suelo y muebles con arma |
 | `entities.js` / `zombies.js` / `bosses.js` | Conserje, supervivientes, los 6 zombis, el vecino del 4ºB y la portera |
 | `weapons.js` / `aim.js` | Armas y apuntado automático |
 | `upgrades.js` | Objetos de pedestal y mejoras del Taller |
@@ -259,8 +263,9 @@ La versión pixel ya es la de por defecto; lo que aún no tiene sprite se ve con
 - **Elegir arma en la entrada: hecho.** Cada arma espera en su mueble (`stash` en `weapons.js`, dibujo en
   `WeaponStash` de `props.js`). Se desbloquean al encontrarlas en una partida (`weapons` en el guardado).
   Más adelante puede que se compren o que se creen armas nuevas: por eso el mueble es un dato de cada arma.
-- **Salas con forma libre y procedurales: primera versión hecha** (`shapes.js`). **Solo en la versión pixel**;
-  la cartoon sigue con sus salas rectangulares.
+- **Salas con forma libre y procedurales:** se hicieron para las salas sueltas y **se han retirado con el mapa
+  nuevo** (pasillo y apartamentos, `docs/MAPA.md`). Lo de abajo se queda como historia; de aquello sigue en uso
+  la cuadrícula de casillas y el camino de los zombis (`shapes.js`).
   - Cada sala es una cuadrícula de casillas de 32 unidades (30×20), suelo o muro. La forma sale de "morder" el
     rectángulo de 960×640 con bloques de muro: esquinas recortadas (L, T, cruz), entrantes en los lados sin
     puerta (U) y columnas. La mitad de las salas son simétricas.

@@ -49,8 +49,8 @@ Las otras tres son dos apartamentos y el del mini jefe. Dentro hay:
 
 | Fase | Qué se hace | Estado |
 |---|---|---|
-| 1 · Generador de apartamentos | `src/apartment.js` y una página de pruebas con colores planos | **Hecha.** Tamaño aprobado; pendiente el visto bueno a los planos con un baño por dormitorio |
-| 2 · La planta | Pasillo, 4 puertas, llave, escaleras, ascensor averiado, 5 plantas y azotea. Fuera la sala de objeto y el código de la versión cartoon | |
+| 1 · Generador de apartamentos | `src/apartment.js` y una página de pruebas con colores planos | **Hecha y aprobada** |
+| 2 · La planta | Pasillo, 4 puertas, llave, escaleras, ascensor averiado, 5 plantas y azotea. Fuera la sala de objeto y el código de la versión cartoon | **Hecha**, pendiente de visto bueno |
 | 3 · Combate | Zombis por habitación, puerta que se cierra al entrar, equilibrado con partidas simuladas | |
 | 4 · Sala de mantenimiento | Tablet, arcón y taquillas | |
 | 5 · Minimapa y arte | Minimapa nuevo y, después, el arte de los escenarios por piezas | |
@@ -80,3 +80,40 @@ Las otras tres son dos apartamentos y el del mini jefe. Dentro hay:
   `assets/pruebas/apartamentos.png`. Aún no está conectado al juego.
 - **Primera versión, descartada:** partía el rectángulo con tabiques al azar y ponía un solo baño. Salían
   dormitorios a los que solo se llegaba cruzando la cocina, y el dueño pidió que todo colgara del salón.
+
+## Fase 2: la planta
+
+El juego ya usa el mapa nuevo de principio a fin. Capturas: `assets/pruebas/mapa-fase2.jpg`.
+
+- **Cómo está montado.** Cada sitio es un mapa aparte (el pasillo, cada apartamento, la sala de mantenimiento,
+  la azotea) y al cruzar una puerta la cámara se desliza de uno a otro. `src/building.js` genera la planta y
+  dice qué hay tras cada puerta; `src/rooms.js` monta cada mapa (suelo, muebles, decoración, oleadas).
+- **Las puertas** de un mapa están en `room.exits` (ver `makeExit` en `rooms.js`): en qué muro, a dónde llevan
+  y si tienen cerrojo (`locked`: `'key'`, `'boss'`, `'never'`).
+- **El pasillo** mide 56×12 casillas: puertas A y B arriba, C y D abajo, el ascensor averiado en medio, por
+  donde se ha llegado a la izquierda (en la planta baja, el portal) y las escaleras de emergencia a la derecha.
+- **Planta baja:** la puerta A es la sala de mantenimiento. De momento es una sala sencilla con los muebles de
+  las armas de siempre; la tablet, el arcón y las taquillas son la fase 4.
+- **El mini jefe** está en una puerta al azar, menos en la 4ª planta, que vive en el 4ºB (es "el vecino del 4ºB").
+- **La llave** ("Llave del 2ºC") está en el suelo de una habitación que no sea el salón, en uno de los otros
+  apartamentos. Se gasta al abrir la puerta. Mientras se lleva, sale debajo del minimapa.
+- **El superviviente** está en cualquier habitación de un apartamento normal.
+- **Nombres:** las plantas son "Planta baja", "1ª planta"... "4ª planta" y "Azotea" (por dentro, del 1 al 6);
+  las puertas, "Bajo B", "1ºA"...
+- **Muebles:** cada habitación lleva los de su estilo, arrimados a paredes y tabiques. Nunca delante de una
+  puerta, y se comprueba que se puede seguir andando de cualquier puerta a cualquier otra.
+- **Zombis:** rodean tabiques y muebles para llegar al conserje, y no atacan (escupir, tentáculo, mecha) si
+  hay un tabique en medio.
+- **Minimapa:** un plano de la planta con el pasillo y una casilla por puerta. Es provisional (fase 5).
+- **Limpieza:** fuera la sala de objeto y su pedestal, el generador de salas sueltas (`floor.js`), las salas
+  con forma de `shapes.js` y el interruptor `PIXEL_MODE` de la versión cartoon. Lo que aún no tiene sprite se
+  sigue dibujando a mano; esos dibujos no se pueden quitar hasta que haya sprite.
+
+### Provisional, para la fase 3
+
+- **Los zombis siguen saliendo por oleadas** al entrar en el apartamento, por todo el piso. En la fase 3
+  estarán ya dentro, repartidos por las habitaciones, y las que no se han pisado se verán oscurecidas.
+- **El equilibrado está sin probar con partidas simuladas.** Ahora hay cinco plantas con mini jefe en vez de
+  tres, así que se ha suavizado lo que crece cada planta (`FLOOR_HP` en `game.js`, `makeWaves` en `rooms.js`).
+- **Sin sala de objeto**, los objetos solo llegan por la mejora Mochila del Taller.
+- **El apartamento del mini jefe** es un salón grande y vacío: faltan los escombros de "lo ha reventado todo".

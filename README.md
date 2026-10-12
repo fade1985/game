@@ -20,19 +20,23 @@ Al pulsar **Jugar** eliges edificio. De momento se puede jugar **Apartamentos**;
 y la Comisaría aparecen como *Próximamente*. Cada tarjeta muestra tu progreso: intentos, mejor planta, veces
 completado y mejor tiempo.
 
-El edificio **Apartamentos** tiene **3 plantas**. Cada planta es un mapa de salas generado al azar; al entrar
-en una sala con enemigos **las puertas se cierran** hasta que la limpias. El **minimapa** (arriba a la derecha)
-muestra lo explorado y los iconos de las salas especiales:
+El edificio **Apartamentos** tiene la **planta baja, cuatro plantas más y la azotea**. Cada planta es un
+**pasillo** largo con cuatro puertas; detrás de cada una hay un apartamento entero, distinto en cada partida,
+con su salón, su cocina y de uno a tres dormitorios con baño. Al entrar en un apartamento con zombis **la
+puerta se cierra** y no se abre hasta que lo limpias.
 
-| Sala | Qué hay |
+| Qué | Cómo funciona |
 |---|---|
-| 🧟 Monstruos | Oleadas de enemigos |
-| 🎁 Objeto | Un pedestal con un objeto (o, a veces, un arma): pásale por encima para cogerlo |
-| 🙋 Superviviente | Limpia la sala y acércate para que se una a tu equipo |
-| 👹 Mini jefe | Uno por planta: **El vecino del 4ºB**. Al derrotarlo aparecen las **escaleras** a la siguiente planta |
-| 👑 Jefe final | En la última planta, detrás del mini jefe: **La portera**. Derrótala para completar el edificio |
+| 🧰 Sala de mantenimiento | Aquí empiezas, en la planta baja: cada arma espera en su mueble |
+| 🧟 Apartamentos | Con oleadas de zombis. No hace falta limpiarlos todos |
+| 🗝️ La llave | El apartamento del mini jefe está **cerrado con llave**. La llave está en el suelo de alguna habitación de otro apartamento |
+| 🙋 Superviviente | Uno por planta, en alguna habitación: limpia el apartamento y acércate para que se una a tu equipo |
+| 👹 Mini jefe | Uno por planta: **El vecino del 4ºB**, cada vez más duro. Al derrotarlo se abren las **escaleras de emergencia**, al fondo del pasillo |
+| 👑 Azotea | Arriba del todo espera **La portera**. Derrótala para completar el edificio |
 
-Las puertas que llevan a salas especiales tienen el marco de color y un icono al lado.
+El **minimapa** (arriba a la derecha) es un plano de la planta: gris lo que no has visitado, rojo lo que
+tiene zombis, blanco lo limpio y amarillo donde estás. En el pasillo hay además un ascensor averiado y,
+en la planta baja, el portal del edificio, que no se abre.
 Los atributos y el equipo se conservan entre plantas; si caes, vuelves a empezar el edificio.
 
 Cada habitación está amueblada según su estilo (salón, cocina, dormitorio, pasillo o baño): sofás, camas,
@@ -59,7 +63,7 @@ Las partidas a medias no se guardan.
 
 ### 🎒 Objetos
 
-Cada planta tiene una sala de objeto con un pedestal (no se repiten en la misma partida). Los que llevas se
+De momento los objetos solo se consiguen con la mejora Mochila del Taller: la sala de objeto se ha retirado y más adelante los soltarán los zombis. Los que llevas se
 ven arriba a la izquierda y en la pausa.
 
 | Objeto | Efecto |
@@ -82,9 +86,9 @@ ven arriba a la izquierda y en la pausa.
 ### 🧹 Armas
 
 Empiezas cada edificio con la **fregona**. Al pasar por encima de un arma del suelo la cambias por la tuya
-(la vieja se queda en el suelo). El mini jefe siempre suelta un arma y a veces la sala de objeto guarda una.
+(la vieja se queda en el suelo). El mini jefe siempre suelta un arma.
 
-**Elegir arma al empezar:** en la sala de entrada cada arma espera en su mueble, pegado a la pared de arriba:
+**Elegir arma al empezar:** en la sala de mantenimiento cada arma espera en su mueble, pegado a la pared de arriba:
 la fregona en su cubo, el bate en el paragüero, el cuchillo en la encimera, la pistola en el cajón de la cómoda
 y la escopeta en la taquilla. Arrímate a un mueble abierto para coger su arma (la que llevabas vuelve a su sitio).
 Los muebles con candado guardan armas que aún no has encontrado: **la primera vez que coges un arma en una
@@ -112,7 +116,7 @@ ataque, alcance) multiplican las estadísticas del arma que lleves.
 | Tentáculos | Tentáculos morados en la espalda | Marca una franja roja y, al rato, lanza un latigazo por ella |
 | Venenoso | Verde chillón, con babas | Mantiene la distancia y escupe mocos que dejan un charco que quema al pisarlo |
 
-Los tipos más peligrosos aparecen en las salas más lejanas y en las plantas superiores.
+Los tipos más peligrosos aparecen en las plantas superiores.
 Todos los ataques especiales avisan antes: ¡muévete o usa la esquiva!
 
 ### 👹 Jefes
@@ -141,11 +145,11 @@ pisotón suelta cascotes en todas direcciones.
 Al bajar del 50 % grita "¡QUE ACABO DE FREGAR!", te aparta, borra los proyectiles y pasa a la fase 2: más
 rápida, abanicos más anchos y más botellas. Los barridos de las armas cuerpo a cuerpo también deshacen las bolas de polvo.
 
-**Pixel art (en migración):** el juego se abre en pixel art por defecto. Lo que todavía no tiene sprite se
-dibuja como siempre. Para ver la versión cartoon original, añade `?cartoon` a la dirección. Ver [`docs/PIXEL_ART.md`](docs/PIXEL_ART.md).
+**Pixel art (en migración):** el juego es pixel art. Lo que todavía no tiene sprite se dibuja a mano, como
+en la versión cartoon original, que ya no existe. Ver [`docs/PIXEL_ART.md`](docs/PIXEL_ART.md).
 
 **Modo de pruebas:** añade `?pruebas` a la dirección (por ejemplo `http://localhost:3000/?pruebas`): todas
-las armas estarán abiertas en la sala de entrada, las teclas **1 a 6** invocan cada tipo de zombi, la **7** al vecino del 4ºB
+las armas estarán abiertas en la sala de mantenimiento, las teclas **1 a 6** invocan cada tipo de zombi, la **7** al vecino del 4ºB
 y la **8** a la portera.
 
 ## 🚀 Ejecutar en local
@@ -172,11 +176,12 @@ style.css         → estilo cartoon de botones, paneles y HUD
 docs/PLAN.md      → plan de desarrollo por fases y decisiones
 src/
   main.js         → arranque y bucle principal (update + render)
-  game.js         → flujo de la partida: plantas, salas, puertas, oleadas, colisiones
-  floor.js        → generador de plantas (mapa de salas al estilo Isaac)
-  rooms.js        → tipos de sala y su contenido: estilo, obstáculos, alfombras y oleadas
-  shapes.js       → forma de las salas en la versión pixel (en L, en T, en cruz, con columnas...)
-  props.js        → objetos fijos de las salas: pedestal, superviviente, escaleras y armas
+  game.js         → flujo de la partida: plantas, mapas, puertas, oleadas, colisiones
+  building.js     → generador de plantas: pasillo, cuatro puertas, llave, escaleras y azotea
+  apartment.js    → generador de apartamentos (habitaciones, tabiques y puertas)
+  rooms.js        → lo que hay en cada mapa: estilo, muebles, decoración y oleadas
+  shapes.js       → la cuadrícula de cada mapa (suelo o muro) y el camino de los zombis
+  props.js        → cosas de los mapas: superviviente, la llave del mini jefe y armas
   weapons.js      → catálogo de armas (datos) y su dibujo
   aim.js          → controlador de apuntado (automático; el manual irá aquí)
   entities.js     → jugador y compañeros (comportamiento + dibujo)
