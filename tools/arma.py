@@ -68,7 +68,9 @@ def load(folder, d):
 still = {d: cell(rot[d]) for d in DIRS}
 
 # ═════════════ Reposo (como tools/idle.py, pero sin confundir la mopa con la cabeza) ═════════════
-NECK = cfg['reposo']['cuello']
+NECK = cfg.get('reposo', {}).get('cuello', {
+    'south': 13, 'south-east': 13, 'south-west': 13, 'east': 14, 'west': 14,
+    'north': 12, 'north-east': 12, 'north-west': 12})
 HEAD = range(PX - 5, PX + 6)   # columnas de la cabeza: el arma queda a los lados
 
 

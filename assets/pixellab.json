@@ -185,7 +185,7 @@
         "action_description": "Seen from behind the whole time: he keeps his back to the camera and never turns around, his face is never visible. He heaves the mop up over his head with both hands, then swings it straight down in front of him, away from the camera, in one fast vertical overhead arc. The soaking wet grey mop head leaves a bright, thick crescent-shaped trail of light blue water behind it along the whole arc of the swing. The mop head slams onto the floor just beyond his feet, toward the top of the image, partly hidden behind his body, with a big light blue water splash and droplets flying out to both sides. His knees bend and his back leans forward into the blow. The water trail fades away quickly, he pulls the mop back up and settles cleanly into the starting guard stance, still seen from behind. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down back view throughout."
       },
       "sin_estela": {
-        "nota": "El primer ataque, sin estela: estuvo en el juego unas horas y lo sustituyó el de arriba. Sus animaciones SIGUEN en PixelLab sin usar (pendiente de preguntar al dueño si se borran); los fotogramas están en el historial de git.",
+        "nota": "El primer ataque, sin estela: estuvo en el juego unas horas y lo sustituyó el de arriba. BORRADO de PixelLab el 2026-10-12 con confirmación del dueño; los fotogramas están en el historial de git.",
         "groups": [
           "0973e15c-a4c9-425a-b946-71a75809a252 (7 direcciones)",
           "a501ee01-6a32-48f6-bea0-5ff251afc1c0 (north)"
@@ -199,7 +199,7 @@
     "character_id": "1f681f9f-21fb-4ae3-a7f4-20b284806658",
     "source_character_id": "4e6c78c6-d6c6-46d3-99c1-40a2d86f0e6c",
     "state_name": "Bate en guardia",
-    "nota": "Estado de Johnny creado el 2026-10-12 con la skill /arma-nueva (paso 1): bate de béisbol en alto sobre el hombro, lienzo de 64x64. Con use_color_palette_from_reference conserva unos 42 colores (la fregona se quedó en 18). Rotaciones en assets/sources/conserje-48-bate/rotations/ y hoja ampliada en assets/pruebas/bate-en-guardia.png. Visto bueno del dueño al estado. Paso 2 hecho: prueba de ataque de perfil y de espaldas, pendiente de su visto bueno (assets/pruebas/bate-ataque-prueba.png).",
+    "nota": "Estado de Johnny con el bate de béisbol en alto sobre el hombro (2026-10-12), hecho con la skill /arma-nueva. Lienzo de 64x64; con use_color_palette_from_reference conserva unos 42 colores. EN EL JUEGO (sprite conserje-48-bate): reposo, andar y ataque en las 8 direcciones. Se monta con: py tools/arma.py conserje-48-bate",
     "request": {
       "edit_description": "holding a wooden baseball bat like a weapon, gripping the handle with both hands in a batter's ready stance, knees slightly bent; the bat is raised up and tilted back over one shoulder, the thick end of the bat pointing up above shoulder height, away from his face; the bat stays raised over the shoulder in every view: front, side and back; plain light brown wooden bat with a dark outline; same face, same hair and red bandana, same clothes, same body size and proportions",
       "override_width": 64,
@@ -209,7 +209,7 @@
     "cost": "10 generaciones",
     "updated": "2026-10-12",
     "ataque": {
-      "nota": "Barrido horizontal con estela blanca de aire. PixMiniMax, 12 fotogramas más el de partida, lienzo de 96x96. Fotogramas en assets/sources/conserje-48-bate/ataque/.",
+      "nota": "Barrido horizontal con estela blanca de aire, las 8 direcciones. PixMiniMax, 12 fotogramas más el de partida, lienzo de 96x96. Fotogramas en assets/sources/conserje-48-bate/ataque/. Tres textos: el común (east, y también south, south-east, west y south-west cambiando initial_pose), el de las diagonales de espaldas y el de espaldas. De frente salieron dos barridos seguidos: se usa solo el primero. En las diagonales de espaldas Johnny gira un poco el cuerpo durante el barrido; se dio por bueno.",
       "subject_description": "a young male janitor with brown hair and a red bandana, cream shirt and blue work overalls, holding a wooden baseball bat",
       "east": {
         "group": "3ab0f34f-7276-4a99-b317-a27f8925f710",
@@ -222,10 +222,31 @@
         "group": "d608248c-6b33-4e78-b1b2-2fa7bf066764",
         "animation_name": "ataque-bate-norte-2",
         "cost": "2 generaciones (la buena es la segunda)",
-        "nota": "El primer intento (grupo f19dba52-ec9a-4518-9bb7-8af1aa97967d, sigue en PixelLab; fotogramas en descartes/) giraba a Johnny de lado durante el barrido. El segundo insiste en que no rota el cuerpo y mueve sobre todo los brazos.",
+        "nota": "El primer intento giraba a Johnny de lado durante el barrido (BORRADO de PixelLab el 2026-10-12; fotogramas en descartes/). El segundo insiste en que no rota el cuerpo y mueve sobre todo los brazos.",
         "initial_pose": "standing in a batter's guard stance seen from behind, his back to the camera, facing away toward the top of the image, gripping the bat with both hands, the bat raised up over his shoulder on the right side of the image",
         "action_description": "Strict back view the whole time: we only ever see the back of his head, the knot of the red bandana and the back of his overalls; his face and chest are never visible and his body never turns sideways. His feet stay planted. Using mostly his arms and shoulders, he swings the bat hard and fast in one wide horizontal arc at chest height, from the right side of the image across to the left side, passing in front of him on the far side of his body, away from the camera, so the bat is hidden behind his torso in the middle of the swing. The bat leaves a bright white crescent-shaped swoosh of air along the whole arc, visible on both sides of his body. The swoosh fades away quickly, he brings the bat back up over his shoulder and settles cleanly into the starting guard stance. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down back view throughout."
+      },
+      "group": "3ab0f34f-7276-4a99-b317-a27f8925f710 (7 direcciones; north va en su grupo)",
+      "initial_pose": {
+        "south": "standing in a batter's guard stance facing the camera, gripping the bat with both hands, the bat raised up over his shoulder on the left side of the image",
+        "south-east": "standing in a batter's guard stance in three-quarter front view, facing toward the camera and to the right, gripping the bat with both hands, the bat raised up over his rear shoulder on the left side of the image",
+        "south-west": "standing in a batter's guard stance in three-quarter front view, facing toward the camera and to the left, gripping the bat with both hands, the bat raised up over his rear shoulder on the right side of the image",
+        "west": "standing in a batter's guard stance facing left, gripping the bat with both hands, the bat raised up and tilted back over his rear shoulder",
+        "north-east": "standing in a batter's guard stance in three-quarter back view, facing away from the camera and to the right, gripping the bat with both hands, the bat raised up over his rear shoulder on the left side of the image",
+        "north-west": "standing in a batter's guard stance in three-quarter back view, facing away from the camera and to the left, gripping the bat with both hands, the bat raised up over his rear shoulder on the right side of the image"
+      },
+      "diagonales_de_espaldas": {
+        "nota": "north-east y north-west (cambiando 'to the right' por 'to the left').",
+        "action_description": "He keeps the same three-quarter back view the whole time, facing away from the camera and to the right, and never turns to face the camera. He winds up with the bat cocked over his rear shoulder, then steps forward with the lead foot and swings the bat hard and fast in one wide horizontal arc at chest height, sweeping across in front of him from one side to the other, mostly with his arms and shoulders. The wooden bat leaves a bright white crescent-shaped swoosh of air behind it along the whole arc of the swing. He follows through, the tail of the red bandana flicking with the motion. The swoosh fades away quickly, he brings the bat back up and settles cleanly into the starting guard stance. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation."
       }
+    },
+    "cost_total": "27 generaciones: 10 del estado, 9 del ataque (una repetida, de espaldas) y 8 del andar",
+    "andar": {
+      "nota": "PixMiniMax, 12 fotogramas más el de partida, las 8 direcciones en una sola llamada. Todas bien a la primera. Fotogramas en assets/sources/conserje-48-bate/walk/; tools/arma.py elige solo el tramo que hace ciclo.",
+      "group": "3b573c40-641d-4dd3-9db8-73d5da0fab2b",
+      "animation_name": "andar-bate",
+      "cost": "8 generaciones",
+      "action_description": "He walks forward in place at a steady pace in a smooth, seamless looping walk cycle: his legs stride alternately, knees lifting and boots stepping one after the other, with a slight bob of the torso on each step. He keeps facing exactly the same direction the whole time and never turns. He keeps holding the wooden baseball bat in the same guard grip with both hands the whole time: the bat stays raised up and tilted back over his shoulder in the same place, only swaying very slightly with each step. His arms do not swing and never let go of the bat. The tail of the red bandana sways a little. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation."
     }
   },
   "zombi-venenoso-48": {

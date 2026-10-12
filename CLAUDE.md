@@ -130,7 +130,7 @@ Los sprites se generan con PixelLab. Desde el 12 de octubre de 2026 está conect
 ## Dónde lo dejamos (12 de octubre de 2026) · preguntar al dueño al retomar
 
 **Al retomar, empezar preguntándole por el punto 1.**
-Los ids, textos y costes de todo lo de abajo están en `assets/pixellab.json`. Quedaban 1.900 generaciones.
+Los ids, textos y costes de todo lo de abajo están en `assets/pixellab.json`. Quedaban 1.886 generaciones.
 
 Johnny con la fregona **ya está en el juego** (solo versión pixel): sprite `conserje-48-guardia`, estado
 "Fregona en guardia" del personaje "Johnny" en PixelLab. Tiene reposo, andar y ataque en las 8 direcciones.
@@ -146,25 +146,24 @@ Johnny con la fregona **ya está en el juego** (solo versión pixel): sprite `co
 - **Ataque:** 9 fotogramas elegidos de los 13 de PixelLab, medio segundo, con estela de agua. La dirección de
   espaldas lleva un texto propio (con el común se daba la vuelta). Vista previa de los fotogramas sin recortar:
   `http://localhost:3000/assets/pruebas/ataque-fregona` (sin `.html`: el servidor lo quita).
-- Johnny sin arma (`conserje-48`) sigue igual y es el que se ve con las demás armas.
+- **Johnny con el bate** (`conserje-48-bate`, estado "Bate en guardia") va igual: mismas carpetas, mismo script.
+  Su `arma.json` solo dice qué fotogramas del ataque se usan; lo demás lo pone el script.
+- Johnny sin arma (`conserje-48`) sigue igual y es el que se ve con las demás armas (cuchillo, pistola, escopeta).
 
 Preguntas pendientes, por orden:
 
-1. **Visto bueno a la prueba de ataque del bate** (paso 2 de la skill): `assets/pruebas/bate-ataque-prueba.png`,
-   de perfil y de espaldas, barrido de lado con estela blanca de aire. El estado "Bate en guardia"
-   (`conserje-48-bate`) ya tiene su visto bueno. Si le vale, seguir sin parar con el paso 3: las otras 6
-   direcciones del ataque y las 8 de andar (14 generaciones), montaje, juego y cierre. De espaldas hay que usar
-   el texto estricto (segundo intento), que está en `assets/pixellab.json` (`conserje-48-bate` → `ataque` → `north`).
-   - **La fregona ya tiene la estela de agua dentro del dibujo** y está en el juego (las 8 direcciones, con su
-     visto bueno a la prueba de perfil). Decidido por el dueño: las estelas van siempre en el sprite y creíbles
-     para cada arma (agua, aire, fuego...), nunca pintadas por el juego.
-   - **Preguntarle si se borra de PixelLab el ataque antiguo de la fregona, sin estela** (8 animaciones en dos
-     grupos) y el primer intento del bate de espaldas. Están apuntados en `assets/pixellab.json`.
+1. **Visto bueno final al bate dentro del juego** (paso 6 de la skill). Johnny con el bate ya está en el juego
+   (sprite `conserje-48-bate`): reposo, andar y ataque con estela blanca de aire en las 8 direcciones. Costó 27
+   generaciones. Cosas que mirar: en las diagonales de espaldas Johnny gira un poco el cuerpo al barrer, y de
+   espaldas el arco pasa por delante de él. Para probarlo: `?pruebas&armas` y coger el bate del paragüero.
+   - **La fregona tiene la estela de agua dentro del dibujo** (las 8 direcciones). Decidido por el dueño: las
+     estelas van siempre en el sprite y creíbles para cada arma (agua, aire, fuego...), nunca pintadas por el juego.
+   - **Siguiente arma:** quedan cuchillo (cuerpo a cuerpo, sale con la skill tal cual), pistola y escopeta (a
+     distancia: la primera vez hay que programar en el juego la animación de disparo; contar el plan antes).
 2. **La skill `/arma-nueva` ya existe** (`.claude/skills/arma-nueva/SKILL.md`). Si en una sesión nueva no
    aparece en la lista, leer ese archivo y seguirlo igual.
-3. **Limpieza del estado "Fregona en guardia": hecha** el 12 de octubre de 2026 con su confirmación. En PixelLab
-   quedan solo las animaciones que usa el juego (el ataque en dos grupos y el andar con PixMiniMax). El resto de
-   la limpieza sigue pendiente (punto 6).
+3. **Limpieza de los estados de la fregona y del bate: hecha** el 12 de octubre de 2026 con su confirmación. En
+   PixelLab quedan solo las animaciones que usa el juego. El resto de la limpieza sigue pendiente (punto 6).
 4. **Dos pegas del estado "Fregona en guardia"** que vio y no ha dicho si le molestan: usa 18 colores frente a
    los 50 del Johnny sin arma (ropa más plana), y la mopa cambia de lado entre la vista de frente y las diagonales.
 5. **Reposo:** sigue el hecho a mano ("de momento sirve"). Hay una prueba de frente con PixMiniMax que respeta

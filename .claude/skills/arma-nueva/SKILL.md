@@ -55,6 +55,7 @@ El texto del ataque (ver las plantillas más abajo) va en inglés, largo y por p
 - **Andar:** las 8 direcciones en una sola llamada con PixMiniMax (8 generaciones), sin fotograma de partida ni de
   llegada. **Nunca con plantilla** (`walking-8-frames` y compañía): le quitan el arma y cambian el tamaño.
 - Revisar **todas** las direcciones en una hoja ampliada y repetir las que desentonen (1 generación cada una).
+  PixelLab admite 8 trabajos a la vez: lanzar primero el andar (8 de golpe) y el ataque según queden huecos.
   Lo que suele fallar: de espaldas Johnny se da la vuelta, el arma desaparece, o la ropa cambia.
 - Los fotogramas del andar van a `assets/sources/conserje-48-<arma>/walk/<dirección>-<n>.png`.
 
@@ -68,7 +69,7 @@ quieto, reposo (calculado, gratis), andar y ataque. El script:
 - avisa si algún fotograma se sale de la casilla de 96×96.
 
 Lo único que hay que escribir a mano es `assets/sources/conserje-48-<arma>/arma.json` (copiar el de
-`conserje-48-guardia` como ejemplo), con la parte `ataque`:
+`conserje-48-bate`, que es el más corto), con la parte `ataque`:
 
 - `fotogramas`: de los 12 de cada dirección, los 8–10 que se usan. Quitar los repetidos y los flojos de la
   recogida. **El golpe tiene que caer en el mismo índice en las 8 direcciones.**
@@ -128,6 +129,8 @@ fregona está en `assets/pixellab.json` (`conserje-48-guardia` → `ataque` → 
 En los golpes de lado (bate) eso no basta, porque al barrer gira el cuerpo. Hay que ser más estricto: "Strict
 back view the whole time: we only ever see the back of his head... his body never turns sideways. His feet stay
 planted. Using mostly his arms and shoulders, he swings..." (entero en `conserje-48-bate` → `ataque` → `north`).
+Y en las diagonales de espaldas (`north-east`, `north-west`) conviene empezar con "He keeps the same
+three-quarter back view the whole time... and never turns to face the camera" y quitar lo de girar caderas.
 
 ### `subject_description` e `initial_pose`
 

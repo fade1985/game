@@ -1,0 +1,18 @@
+{
+  "nota": "Datos para montar la hoja de sprites de Johnny con el bate (lo lee tools/arma.py). Las medidas y el ciclo del andar no se ponen: valen las de siempre y el script elige el ciclo solo.",
+  "ataque": {
+    "nota": "Qué fotogramas de PixelLab se usan en cada dirección y en qué orden. En todas, la estela grande del barrido cae en el cuarto (índice 3). De frente PixelLab dibujó dos barridos seguidos: se usa solo el primero.",
+    "duracion": 0.5,
+    "impacto": 3,
+    "fotogramas": {
+      "south":      [0, 1, 2, 3, 4, 8, 9, 10, 11],
+      "south-east": [1, 2, 3, 4, 5, 6, 8, 10, 11],
+      "east":       [1, 2, 3, 4, 5, 6, 8, 10, 11],
+      "north-east": [1, 2, 3, 4, 5, 6, 8, 10, 11],
+      "north":      [0, 1, 2, 3, 4, 5, 7, 9, 11],
+      "north-west": [1, 2, 3, 4, 5, 6, 7, 9, 11],
+      "west":       [1, 2, 3, 4, 5, 6, 7, 9, 11],
+      "south-west": [1, 2, 3, 4, 5, 6, 8, 10, 11]
+    }
+  }
+}

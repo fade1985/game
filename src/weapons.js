@@ -24,7 +24,7 @@ export const WEAPONS = {
     damage: 8, rate: 1.8, reach: 62, arc: 140, knock: 2.0, trail: '#3fb5ec',
   },
   bate: {
-    id: 'bate', stash: 'paraguero', name: 'Bate', icon: '🏏', type: 'melee',
+    id: 'bate', stash: 'paraguero', name: 'Bate', icon: '🏏', type: 'melee', sprite: 'conserje-48-bate',
     damage: 16, rate: 1.6, reach: 66, arc: 110, knock: 1.5, trail: '#ffb347',
   },
   cuchillo: {
