@@ -413,5 +413,179 @@
     },
     "cost": "6 generaciones (estimación de PixelLab)",
     "updated": "2026-10-12"
+  },
+  "muebles": {
+    "nota": "Los 20 muebles, vistos desde arriba para poder girarlos a cualquier pared. Cada uno se pidio con su guia como imagen de partida (init_image): asi sale con el tamano exacto. Los de \"sin_fondo\": false se pidieron con la guia sobre un fondo azul liso (96,112,150) y el fondo lo quita tools/mueble.py; con no_background PixelLab se comia los tableros lisos. Montaje: py tools/mueble.py",
+    "comun": {
+      "herramienta": "create_image_pixflux (MCP)",
+      "outline": "single color black outline",
+      "detail": "medium detail",
+      "view": "high top-down",
+      "guia": "assets/sources/muebles/guias/<tipo>.png (el dibujo a mano a mitad de tamano)"
+    },
+    "coste": "35 generaciones en total, contando 12 pruebas descartadas",
+    "fecha": "2026-10-12",
+    "piezas": {
+      "sofa": {
+        "job_id": "d7c791b4-9681-4874-9f82-e85c49428113",
+        "init_image_strength": 90,
+        "sin_fondo": true,
+        "description": "red three-seat fabric sofa seen directly from above, backrest along the top edge, two armrests, three seat cushions, top-down game furniture sprite"
+      },
+      "tv": {
+        "job_id": "30d63496-8cd2-47b7-ba71-8b2f66ebc21d",
+        "init_image_strength": 150,
+        "sin_fondo": false,
+        "description": "flat rectangular wooden sideboard tabletop seen from straight above, bird's-eye plan view, a thin black flat-screen TV seen from above as a narrow dark bar along the top edge, two small speakers at the bottom corners, no front face, no drawers, top-down game furniture sprite, plain blue background"
+      },
+      "armchair": {
+        "job_id": "c6e084a7-8fb2-4c5b-9e6e-95ec444d8154",
+        "init_image_strength": 90,
+        "sin_fondo": true,
+        "description": "cozy blue fabric armchair seen directly from above, backrest along the top edge, two armrests, one seat cushion, top-down game furniture sprite"
+      },
+      "bookshelf": {
+        "job_id": "4950ec59-f4ca-4133-8d64-8f1deab878a4",
+        "init_image_strength": 90,
+        "sin_fondo": true,
+        "description": "narrow wooden bookshelf seen directly from above, a row of colorful book spines packed side by side, top-down game furniture sprite"
+      },
+      "lamp": {
+        "job_id": "657d3f3c-76b6-47a9-bbc0-efa65f44338c",
+        "init_image_strength": 110,
+        "sin_fondo": true,
+        "description": "floor lamp seen directly from above, round warm yellow lampshade glowing, small, centered, top-down game furniture sprite"
+      },
+      "counter": {
+        "job_id": "bfa27448-8123-4a90-8cd6-1527d92c321b",
+        "init_image_strength": 90,
+        "sin_fondo": true,
+        "description": "white kitchen counter seen directly from above, stainless steel sink with faucet on the left, wooden cutting board with a tomato on the right, top-down game furniture sprite"
+      },
+      "fridge": {
+        "job_id": "a031ab2f-2885-4d5d-be39-bcd8866d6ec5",
+        "init_image_strength": 120,
+        "sin_fondo": true,
+        "description": "white refrigerator seen directly from above, top-down view of its flat top, a couple of fridge magnets, game furniture sprite"
+      },
+      "stove": {
+        "job_id": "f4bb9a47-0f5f-4291-b9b9-4f5f27508824",
+        "init_image_strength": 90,
+        "sin_fondo": true,
+        "description": "black kitchen stove cooktop seen directly from above, four round gas burners with grates, top-down game furniture sprite"
+      },
+      "bed": {
+        "job_id": "ed7e38a2-f236-498e-95d5-8c27306f8a11",
+        "init_image_strength": 70,
+        "sin_fondo": true,
+        "description": "single bed seen directly from above, wooden bed frame, white sheet and soft pillow at the top, blue quilt with folds covering the rest, top-down game furniture sprite"
+      },
+      "wardrobe": {
+        "job_id": "61bdbb33-63ea-4c42-819e-56b0de1ced34",
+        "init_image_strength": 110,
+        "sin_fondo": false,
+        "description": "wooden wardrobe seen directly from above, flat rectangular light brown wooden top with wood grain planks, a centre line where the two doors meet, two small brass knobs at the bottom edge, top-down game furniture sprite, plain blue background"
+      },
+      "nightstand": {
+        "job_id": "310de2eb-7f96-487d-9608-0c5f7fb7551d",
+        "init_image_strength": 90,
+        "sin_fondo": true,
+        "description": "small wooden nightstand seen directly from above, a round bedside lamp with a glowing yellow shade on top, top-down game furniture sprite"
+      },
+      "desk": {
+        "job_id": "86a80bba-3582-47f1-9e7b-da591fc9c424",
+        "init_image_strength": 110,
+        "sin_fondo": false,
+        "description": "wooden office desk seen directly from above, flat rectangular brown wooden tabletop with wood grain, open grey laptop with blue screen on the left, white coffee mug on the right, top-down game furniture sprite, plain blue background"
+      },
+      "shoerack": {
+        "job_id": "8432ee65-d0b7-40ce-a83e-7601909e5473",
+        "init_image_strength": 90,
+        "sin_fondo": true,
+        "description": "low wooden shoe rack seen directly from above, four pairs of colorful shoes lined up on it, top-down game furniture sprite"
+      },
+      "coatstand": {
+        "job_id": "9e791214-cb89-436d-9fe0-76dc03ac7ca5",
+        "init_image_strength": 150,
+        "sin_fondo": false,
+        "description": "coat rack seen from straight above, bird's-eye plan view, round wooden top in the centre with three coats draped around it as round blobs in red, blue and yellow, top-down game furniture sprite, plain blue background"
+      },
+      "console": {
+        "job_id": "ca57eded-d80f-4dfb-9b9f-f9e95da5f5d3",
+        "init_image_strength": 90,
+        "sin_fondo": true,
+        "description": "narrow wooden hallway console table seen directly from above, a light blue vase with a pink flower on the left, a brass bowl with keys in the middle, top-down game furniture sprite"
+      },
+      "bathtub": {
+        "job_id": "02a88801-add2-4a44-b0ac-db4584a3662f",
+        "init_image_strength": 90,
+        "sin_fondo": true,
+        "description": "white porcelain bathtub seen directly from above, full of light blue water with soap foam bubbles, chrome tap at the top left, a yellow rubber duck floating on the right, top-down game furniture sprite"
+      },
+      "toilet": {
+        "job_id": "05ed6d93-455d-4f2b-a585-bc4e1233d2f3",
+        "init_image_strength": 120,
+        "sin_fondo": true,
+        "description": "white porcelain toilet seen directly from above, water tank along the top edge, oval bowl below, top-down game furniture sprite"
+      },
+      "sink": {
+        "job_id": "329c2c51-0532-4347-b28e-4e89bf66bb4e",
+        "init_image_strength": 90,
+        "sin_fondo": true,
+        "description": "bathroom vanity seen directly from above, light grey countertop with a white oval washbasin, chrome tap at the top, a pink toothbrush cup on the right, top-down game furniture sprite"
+      },
+      "washer": {
+        "job_id": "9530c00c-a29c-4880-b77b-0872cef8164e",
+        "init_image_strength": 110,
+        "sin_fondo": false,
+        "description": "white square washing machine seen directly from above, white metal body, big round glass porthole lid with blue soapy water inside, top-down game furniture sprite, plain blue background"
+      },
+      "plant": {
+        "job_id": "e9a58b85-cad2-43fd-9f1a-4814c6f5af6c",
+        "init_image_strength": 110,
+        "sin_fondo": false,
+        "description": "potted house plant seen from straight above, round terracotta pot with dark soil, six big green leaves spreading out in a star, top-down game furniture sprite, plain blue background"
+      }
+    },
+    "descartados": {
+      "sin guia (salen en perspectiva y de otro tamano)": [
+        "b3b9ca1e-34c3-45ac-ba9a-1f3f11e1ca6f",
+        "90886b4b-3a0a-4bd2-8add-4b097fda9bbf",
+        "14f50aa3-70c8-44b8-aa24-53dac1a8ce7a"
+      ],
+      "primeras versiones": [
+        "a4b4e70f-8f57-4b45-a10e-0d2df8a76e41",
+        "258d1b08-f40b-4282-8d27-c0193e828441",
+        "e98df100-4678-4f81-ae68-3dfd2dbd8b88",
+        "5eb86924-c21c-47aa-9419-b52810a214ce",
+        "1568761c-52e6-4435-9f3f-0dddc1f00e0c",
+        "76829160-e8eb-417d-a8c7-e178727a1d00",
+        "9ce1324c-84df-40b8-b8eb-3e538ac1a3c8"
+      ]
+    }
+  },
+  "suelo-mantenimiento": {
+    "herramienta": "create_image_pixflux (MCP)",
+    "size": "32x32",
+    "outline": "lineless",
+    "detail": "low detail",
+    "view": "high top-down",
+    "cost": "1 generacion",
+    "fecha": "2026-10-12",
+    "job_id": "7b02cd1c-23c3-44a0-ac86-527aebdaa149",
+    "descartado": "07f6802b-00ef-477d-a7a6-4643178b1a25",
+    "description": "seamless tileable floor texture, plain smooth light grey painted concrete, almost uniform flat colour with very faint speckles, no lines, no tiles, no grid, simple, subtle, low contrast, flat top-down texture, no objects"
+  },
+  "suelo-azotea": {
+    "herramienta": "create_image_pixflux (MCP)",
+    "size": "32x32",
+    "outline": "lineless",
+    "detail": "low detail",
+    "view": "high top-down",
+    "cost": "1 generacion",
+    "fecha": "2026-10-12",
+    "job_id": "e5267570-afc8-45a5-8101-b6d0c4043dd3",
+    "descartado": "16930f9e-334a-4c0f-a72d-46066cd87cb3",
+    "description": "seamless tileable floor texture, plain dark grey asphalt rooftop, almost uniform flat colour with very faint tiny gravel speckles, no lines, no tiles, no bricks, no grid, simple, subtle, low contrast, flat top-down texture, no objects"
   }
 }

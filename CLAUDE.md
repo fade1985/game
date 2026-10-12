@@ -102,6 +102,17 @@ Los sprites se generan con PixelLab. Desde el 12 de octubre de 2026 está conect
   - Objeto o mueble (`create_1_direction_object`, `create_8_direction_object`): 10–25.
   - Antes de lanzar tandas grandes, calcular el total y **decírselo al dueño**.
 - Todo lo generado se apunta en `assets/pixellab.json` (texto, semilla, ids) para poder repetirlo.
+- **Muebles y suelos: como imagen suelta (`create_image_pixflux`, 1 generación cada uno), no como "objeto"**
+  (10–25). Los 20 muebles y los 7 suelos ya tienen sprite (12 de octubre de 2026). Receta de los muebles:
+  - Se pide con una **guía** como imagen de partida (`init_image_base64`, fuerza 90–150): el dibujo a mano de
+    siempre a mitad de tamaño (`assets/sources/muebles/guias/`). Así sale visto desde arriba, de espaldas a la
+    pared de arriba y con el tamaño exacto, y el juego lo puede girar a cualquier pared. Sin guía PixelLab lo
+    hace en perspectiva y de otro tamaño.
+  - Si el mueble tiene un tablero liso (escritorio, armario, lavadora), pedirlo **con fondo** (la guía sobre un
+    azul liso) y no con `no_background`: PixelLab se come el tablero al quitar el fondo. El fondo lo quita
+    `py tools/mueble.py`, que monta todos los sprites desde `assets/sources/muebles/`.
+  - PixelLab solo deja 8 generaciones a la vez.
+  - El armario (`wardrobe`) quedó flojo: es un tablón de madera. Pendiente de repetir o retocar.
 - **Animaciones muy sutiles (reposo): mejor hacerlas a mano que pedirlas.** Las de PixelLab redibujan el
   personaje en cada fotograma y a 48 píxeles la cara "baila". La de reposo de Johnny (`conserje-48`) la hace
   `tools/idle.py` a partir de sus 8 rotaciones: respiración de 1 píxel y parpadeo, sin tocar ningún otro píxel.

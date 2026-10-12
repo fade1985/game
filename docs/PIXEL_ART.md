@@ -10,7 +10,7 @@ pudiendo ver añadiendo **`?cartoon`** a la dirección (por ejemplo `http://loca
 |---|---|---|
 | 0 · Base | Dibujo a 480×320 ampliado sin suavizado, sistema de sprites con "plan B", herramienta de PixelLab, esta guía | ✅ Hecha |
 | 1 · Prueba | Conserje, zombi normal, sofá y suelo del salón en una habitación | ✅ Hecha (13 generaciones) · pendiente de tu visto bueno |
-| 2 · Escenarios | 5 suelos, paredes, puertas, escaleras y unos 20 muebles | ⏳ |
+| 2 · Escenarios | 5 suelos, paredes, puertas, escaleras y unos 20 muebles | 🟡 Suelos (7) y los 20 muebles hechos el 12 de octubre de 2026 (38 generaciones); faltan paredes, puertas, alfombras y decoración de pared |
 | 3 · Personajes | Conserje, 3 supervivientes y 6 zombis con sus animaciones | ⏳ |
 | 4 · Jefes | El vecino del 4ºB y la portera | ⏳ |
 | 5 · Objetos e interfaz | Armas, objetos, corazón, llave, proyectiles, charcos, efectos, iconos y fuente | ⏳ |
