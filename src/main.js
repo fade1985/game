@@ -4,7 +4,7 @@
 import { Game } from './game.js';
 import { createUI } from './ui.js';
 import { initInput } from './input.js';
-import { unlockAudio, setMusicOn } from './sfx.js';
+import { unlockAudio, setMusicOn, toggleMute } from './sfx.js';
 import { loadSave } from './save.js';
 import { loadSprites } from './sprites.js';
 
@@ -16,6 +16,11 @@ if (window.matchMedia('(pointer: coarse)').matches) document.body.classList.add(
 document.body.classList.add('pixel'); // estilos de la interfaz en pixel art (style.css)
 
 setMusicOn(loadSave().settings.music);
+// Con ?mudo en la dirección el juego arranca sin sonido ni música (para probar sin molestar)
+if (new URLSearchParams(location.search).has('mudo')) {
+  toggleMute();
+  document.getElementById('btn-mute').textContent = '🔇';
+}
 
 const ui = createUI(root);
 const game = new Game(canvas, ui);

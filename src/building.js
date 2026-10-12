@@ -11,7 +11,7 @@
 import { makeApartment } from './apartment.js';
 import { pick } from './utils.js';
 import { CELL } from './shapes.js';
-import { ROOM_TYPES, CORRIDOR_COLS, CORRIDOR_ROWS, makeApartmentLayout, makeCorridorLayout, makePlainLayout, makeExit, makeRoomWaves, zoneSpot } from './rooms.js';
+import { ROOM_TYPES, CORRIDOR_COLS, CORRIDOR_ROWS, makeApartmentLayout, makeCorridorLayout, makePlainLayout, makeExit, makeRoomWaves, makeHorde, zoneSpot } from './rooms.js';
 
 const OPPOSITE = { up: 'down', down: 'up', left: 'right', right: 'left' };
 const DOOR_AT = 14 * CELL; // a qué distancia de cada extremo del pasillo están las puertas
@@ -28,9 +28,10 @@ function shuffle(arr) {
   return arr;
 }
 
-// Un mapa del juego: su tipo (ROOM_TYPES), su nombre, lo que hay dentro y sus puertas
+// Un mapa del juego: su tipo (ROOM_TYPES), su nombre, lo que hay dentro y sus puertas.
+// `horde` son los zombis que ya esperan dentro; `waves`, los que aparecen al entrar (los jefes).
 function newRoom(type, name, layout, cleared = true) {
-  return { type, name, layout, exits: [], props: [], pickups: [], decals: [], waves: [], dist: 0, visited: false, cleared };
+  return { type, name, layout, exits: [], props: [], pickups: [], decals: [], waves: [], horde: [], dist: 0, visited: false, cleared };
 }
 
 // Une dos mapas con una puerta en cada uno
@@ -59,7 +60,7 @@ export function generateFloor(num, floors) {
     const roof = newRoom('boss', name, layout, false);
     const door = makeExit(layout, 'down', layout.w / 2, { kind: 'back', locked: 'never', icon: '🪜', msg: 'Ya no hay vuelta atrás' });
     roof.exits.push(door);
-    roof.waves = makeRoomWaves(roof, num);
+    roof.waves = makeRoomWaves(roof);
     return Object.assign(floor, { rooms: [roof], start: roof, startExit: door });
   }
 
@@ -111,7 +112,10 @@ export function generateFloor(num, floors) {
   shuffle([...normal]).forEach((r, i) => { r.dist = i + 1; });
   const boss = floor.apartments.find((r) => r.type === 'miniboss');
   boss.dist = normal.length + 1;
-  for (const r of floor.apartments) r.waves = makeRoomWaves(r, num);
+  for (const r of floor.apartments) {
+    r.waves = makeRoomWaves(r);
+    if (r.type === 'apartment') r.horde = makeHorde(r.layout, r.dist, num);
+  }
 
   // La llave del mini jefe, en una habitación (que no sea el salón) de otro apartamento
   const keyRoom = pick(normal);

@@ -8,9 +8,10 @@
 //  De la cuadrícula salen tres cosas:
 //    grid    la cuadrícula, para saber si un punto es muro y calcular caminos
 //    blocks  los muros interiores como rectángulos, para los choques
-//    y el camino que siguen los zombis para rodear las esquinas (wayTo)
+//    y el camino que siguen los zombis para rodear tabiques y muebles (wayTo)
 // ─────────────────────────────────────────────
 import { W, H, WALL } from './config.js';
+import { obstacleGap } from './utils.js';
 
 export const CELL = 32;
 const EDGE = WALL / CELL; // grosor en casillas de los muros de fuera
@@ -56,8 +57,10 @@ export function toBlocks(g, cols, rows) {
 // ═════════════ Consultas ═════════════
 // `layout` es el mapa: { grid, cols, rows, w, h, blocks }
 
+// (vale también para la cuadrícula de caminos, que lleva su propio tamaño de casilla en `cell`)
 export function isWall(layout, x, y) {
-  const c = Math.floor(x / CELL), r = Math.floor(y / CELL);
+  const s = layout.cell || CELL;
+  const c = Math.floor(x / s), r = Math.floor(y / s);
   return c < 0 || r < 0 || c >= layout.cols || r >= layout.rows || layout.grid[r * layout.cols + c] === 1;
 }
 
@@ -102,69 +105,89 @@ export function randomFloorPoint(layout, pad, rnd = Math.random) {
 }
 
 // ═════════════ Caminos ═════════════
+// Los caminos se buscan en una cuadrícula más fina que la del mapa (media casilla) en la que solo cuenta
+// como suelo el sitio donde cabe un personaje: lejos de muros y de muebles. Así nadie intenta colarse
+// por un hueco en el que no cabe. (Las balas y las miradas siguen usando la cuadrícula de los muros:
+// por encima de un sofá se ve y se dispara.)
+const NAV = CELL / 2; // lado de las casillas de la cuadrícula de caminos
+const BODY = 16;      // hueco que necesita un personaje a cada lado para pasar
 
-// Pasos que hay desde cada casilla hasta la del objetivo (-1 = muro o inalcanzable).
-// Se guarda en la propia sala y solo se recalcula cuando el objetivo cambia de casilla.
-function stepsTo(layout, x, y) {
-  const { cols, grid } = layout;
-  const goal = Math.floor(y / CELL) * cols + Math.floor(x / CELL);
-  if (layout.flowGoal === goal) return layout.flow;
-  const f = layout.flow || (layout.flow = new Int16Array(grid.length));
+function navOf(layout) {
+  if (layout.nav) return layout.nav;
+  const cols = layout.cols * 2, rows = layout.rows * 2;
+  const grid = new Uint8Array(cols * rows);
+  const things = layout.obstacles || [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const pt = { x: (c + 0.5) * NAV, y: (r + 0.5) * NAV };
+      if (!isOpen(layout, pt.x, pt.y, BODY) || things.some((o) => obstacleGap(o, pt) < BODY)) grid[r * cols + c] = 1;
+    }
+  }
+  // `blocks` solo dice si hay algo que rodear (lineClear lo mira para no trabajar en balde)
+  const any = layout.blocks.length > 0 || things.length > 0;
+  return (layout.nav = { grid, cols, rows, cell: NAV, w: layout.w, h: layout.h, blocks: any ? [true] : [] });
+}
+
+// Pasos que hay desde cada casilla hasta la del objetivo (-1 = no se puede pisar o no se llega).
+// Se guarda en el propio mapa y solo se recalcula cuando el objetivo cambia de casilla.
+function stepsTo(nav, x, y) {
+  const { cols, grid } = nav;
+  const gc = Math.floor(x / NAV), gr = Math.floor(y / NAV);
+  const goal = gr * cols + gc;
+  if (nav.flowGoal === goal) return nav.flow;
+  const f = nav.flow || (nav.flow = new Int16Array(grid.length));
   f.fill(-1);
-  layout.flowGoal = goal;
-  if (grid[goal] !== 0) return f;
-  f[goal] = 0;
-  const queue = [goal];
+  nav.flowGoal = goal;
+  // el objetivo puede estar arrimado a un muro, en una casilla que no cuenta como suelo:
+  // entonces se parte de las libres que tenga alrededor
+  const queue = [];
+  for (let ring = 0; ring <= 2 && !queue.length; ring++) {
+    for (let dr = -ring; dr <= ring; dr++) {
+      for (let dc = -ring; dc <= ring; dc++) {
+        const c = gc + dc, r = gr + dr;
+        if (c < 0 || r < 0 || c >= cols || r >= nav.rows || grid[r * cols + c]) continue;
+        f[r * cols + c] = 0;
+        queue.push(r * cols + c);
+      }
+    }
+  }
   for (let q = 0; q < queue.length; q++) {
-    const i = queue[q];
-    for (const j of [i - 1, i + 1, i - cols, i + cols]) if (!grid[j] && f[j] < 0) { f[j] = f[i] + 1; queue.push(j); }
+    const i = queue[q], c = i % cols;
+    for (const j of [c > 0 ? i - 1 : -1, c < cols - 1 ? i + 1 : -1, i - cols, i + cols]) {
+      if (j >= 0 && j < grid.length && !grid[j] && f[j] < 0) { f[j] = f[i] + 1; queue.push(j); }
+    }
   }
   return f;
 }
 
-// La cuadrícula con la que se buscan los caminos: los muros y, además, las casillas que tapa un mueble.
-// (Las balas y las miradas siguen usando la de los muros: por encima de un sofá se ve y se dispara.)
-function navOf(layout) {
-  if (layout.nav) return layout.nav;
-  const { cols, rows } = layout;
-  const grid = layout.grid.slice();
-  let any = layout.blocks.length > 0;
-  for (const o of layout.obstacles || []) {
-    if (o.shape !== 'rect') continue;
-    for (let r = Math.max(0, Math.floor((o.y - o.h / 2) / CELL)); r <= Math.min(rows - 1, Math.floor((o.y + o.h / 2) / CELL)); r++) {
-      for (let c = Math.max(0, Math.floor((o.x - o.w / 2) / CELL)); c <= Math.min(cols - 1, Math.floor((o.x + o.w / 2) / CELL)); c++) {
-        // tapada: el mueble le pisa el centro
-        if (Math.abs((c + 0.5) * CELL - o.x) < o.w / 2 && Math.abs((r + 0.5) * CELL - o.y) < o.h / 2) { grid[r * cols + c] = 1; any = true; }
-      }
-    }
-  }
-  // `blocks` solo dice si hay algo que rodear (lineClear lo mira para no trabajar en balde)
-  return (layout.nav = { grid, cols, rows, w: layout.w, h: layout.h, blocks: any ? [true] : [] });
-}
-
 // Hacia dónde tiene que andar `e` para llegar a `target` rodeando muros y muebles.
 // Devuelve null si puede ir en línea recta (lo normal): entonces cada uno se mueve como siempre.
-export function wayTo(map, e, target) {
-  const layout = navOf(map);
-  if (!layout.blocks.length) return null;
-  const pad = e.r * 0.8;
-  if (lineClear(layout, e.x, e.y, target.x, target.y, pad)) return null;
-  const cols = layout.cols;
-  const f = stepsTo(layout, target.x, target.y);
-  let cur = Math.floor(e.y / CELL) * cols + Math.floor(e.x / CELL);
+export function wayTo(layout, e, target) {
+  const nav = navOf(layout);
+  if (!nav.blocks.length) return null;
+  // de cerca y sin tabique en medio, derecho a por él
+  if (Math.hypot(target.x - e.x, target.y - e.y) < 70 && lineClear(layout, e.x, e.y, target.x, target.y)) return null;
+  if (lineClear(nav, e.x, e.y, target.x, target.y)) return null;
+  const cols = nav.cols;
+  const f = stepsTo(nav, target.x, target.y);
+  const center = (i) => ({ x: ((i % cols) + 0.5) * NAV, y: (Math.floor(i / cols) + 0.5) * NAV });
+  const head = (pt) => { const dx = pt.x - e.x, dy = pt.y - e.y, d = Math.hypot(dx, dy) || 1; return { x: dx / d, y: dy / d }; };
+  let cur = Math.floor(e.y / NAV) * cols + Math.floor(e.x / NAV);
   if (!(f[cur] >= 0)) {
-    // pisa una casilla tapada (va pegado a un mueble): sale hacia la casilla libre vecina que más le acerca
+    // va arrimado a un muro o a un mueble: sale hacia la casilla libre de alrededor que más le acerca
     let out = -1;
-    for (const d of [1, -1, cols, -cols, cols + 1, cols - 1, -cols + 1, -cols - 1]) if (f[cur + d] >= 0 && (out < 0 || f[cur + d] < f[out])) out = cur + d;
-    if (out < 0) return null;
-    const ox = ((out % cols) + 0.5) * CELL - e.x, oy = (Math.floor(out / cols) + 0.5) * CELL - e.y;
-    const od = Math.hypot(ox, oy) || 1;
-    return { x: ox / od, y: oy / od };
+    for (let dr = -2; dr <= 2; dr++) {
+      for (let dc = -2; dc <= 2; dc++) {
+        const j = cur + dc + dr * cols;
+        if (f[j] >= 0 && (out < 0 || f[j] < f[out])) out = j;
+      }
+    }
+    return out < 0 ? null : head(center(out));
   }
   // avanza unas casillas por el camino y apunta a la más lejana a la que llega en línea recta:
   // así corta las esquinas con naturalidad en vez de ir de casilla en casilla
   let aim = null;
-  for (let n = 0; n < 5 && f[cur] > 0; n++) {
+  for (let n = 0; n < 10 && f[cur] > 0; n++) {
     let best = cur;
     for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) {
       const j = cur + dc + dr * cols;
@@ -173,13 +196,10 @@ export function wayTo(map, e, target) {
       best = j;
     }
     if (best === cur) break;
-    const px = ((best % cols) + 0.5) * CELL, py = (Math.floor(best / cols) + 0.5) * CELL;
-    if (aim && !lineClear(layout, e.x, e.y, px, py, pad)) break;
-    aim = { x: px, y: py };
+    const pt = center(best);
+    if (aim && !lineClear(nav, e.x, e.y, pt.x, pt.y)) break;
+    aim = pt;
     cur = best;
   }
-  if (!aim) return null;
-  const dx = aim.x - e.x, dy = aim.y - e.y;
-  const d = Math.hypot(dx, dy) || 1;
-  return { x: dx / d, y: dy / d };
+  return aim ? head(aim) : null;
 }

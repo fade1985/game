@@ -76,6 +76,18 @@ export class Zombie {
     this.tent = null;            // tentáculos: ataque en curso
     this.spitT = 0;              // venenoso: preparando el escupitajo
     this.strafe = Math.random() < 0.5 ? -1 : 1;
+    this.asleep = false;         // los de los apartamentos esperan quietos hasta que notan al conserje
+    this.wakeT = 0;              // el respingo al despertar: un instante antes de echar a andar
+    this.zone = -1;              // en qué habitación esperaba
+  }
+
+  // Despierta (al ver al conserje, al recibir un golpe o porque se ha despertado el de al lado)
+  wake(game) {
+    if (!this.asleep) return;
+    this.asleep = false;
+    this.wakeT = rand(0.35, 0.6);
+    game.floatText(this.x, this.y - 44 * this.s, '!', '#ff5d73', 24);
+    game.wakeNear(this);
   }
 
   get active() { return this.spawnT <= 0 && !this.dead; }
@@ -85,6 +97,19 @@ export class Zombie {
     if (this.spawnT > 0) { this.spawnT -= dt; return; }
     this.t += dt;
     this.hitFlash -= dt;
+    if (this.asleep || this.wakeT > 0) {
+      // dormido: se balancea en su sitio, mirando a ninguna parte
+      if (this.asleep) {
+        this.lookX = Math.cos(this.t * 0.5);
+        this.lookY = Math.sin(this.t * 0.5);
+        if (game.notices(this)) this.wake(game);
+      } else this.wakeT -= dt;
+      this.x += this.kx * dt; this.y += this.ky * dt;
+      const kd = Math.exp(-dt * 10);
+      this.kx *= kd; this.ky *= kd;
+      game.collideWorld(this);
+      return;
+    }
     this.cd -= dt;
 
     const p = game.player;
@@ -204,6 +229,7 @@ export class Zombie {
 
   hurt(dmg, crit, dirX, dirY, game, knock = 1) {
     if (this.dead) return;
+    this.wake(game);
     this.hp -= dmg;
     this.hitFlash = 0.08;
     const push = this.def.push * knock;

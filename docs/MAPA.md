@@ -50,8 +50,8 @@ Las otras tres son dos apartamentos y el del mini jefe. Dentro hay:
 | Fase | Qué se hace | Estado |
 |---|---|---|
 | 1 · Generador de apartamentos | `src/apartment.js` y una página de pruebas con colores planos | **Hecha y aprobada** |
-| 2 · La planta | Pasillo, 4 puertas, llave, escaleras, ascensor averiado, 5 plantas y azotea. Fuera la sala de objeto y el código de la versión cartoon | **Hecha**, pendiente de visto bueno |
-| 3 · Combate | Zombis por habitación, puerta que se cierra al entrar, equilibrado con partidas simuladas | |
+| 2 · La planta | Pasillo, 4 puertas, llave, escaleras, ascensor averiado, 5 plantas y azotea. Fuera la sala de objeto y el código de la versión cartoon | **Hecha y aprobada** |
+| 3 · Combate | Zombis por habitación, puerta que se cierra al entrar, equilibrado con partidas simuladas | **Hecha**, pendiente de visto bueno |
 | 4 · Sala de mantenimiento | Tablet, arcón y taquillas | |
 | 5 · Minimapa y arte | Minimapa nuevo y, después, el arte de los escenarios por piezas | |
 
@@ -110,11 +110,52 @@ El juego ya usa el mapa nuevo de principio a fin. Capturas: `assets/pruebas/mapa
   con forma de `shapes.js` y el interruptor `PIXEL_MODE` de la versión cartoon. Lo que aún no tiene sprite se
   sigue dibujando a mano; esos dibujos no se pueden quitar hasta que haya sprite.
 
-### Provisional, para la fase 3
+## Fase 3: el combate
 
-- **Los zombis siguen saliendo por oleadas** al entrar en el apartamento, por todo el piso. En la fase 3
-  estarán ya dentro, repartidos por las habitaciones, y las que no se han pisado se verán oscurecidas.
-- **El equilibrado está sin probar con partidas simuladas.** Ahora hay cinco plantas con mini jefe en vez de
-  tres, así que se ha suavizado lo que crece cada planta (`FLOOR_HP` en `game.js`, `makeWaves` en `rooms.js`).
-- **Sin sala de objeto**, los objetos solo llegan por la mejora Mochila del Taller.
+Capturas: `assets/pruebas/mapa-fase3.jpg`.
+
+- **Los zombis ya están dentro.** Al generar la planta, cada apartamento recibe sus zombis repartidos por las
+  habitaciones según su tamaño (`makeHorde` en `rooms.js`; en los baños, pocos). Nadie espera a menos de 340
+  unidades de la puerta de entrada.
+- **Dormidos hasta que te notan.** Se quedan en su sitio hasta que entras en su habitación o te ven a menos de
+  330 unidades sin tabique en medio. Al despertar sueltan un "!" y tardan medio segundo en echar a andar; el
+  que despierta arrastra a los que tiene al lado. Un golpe también los despierta, y **un disparo se oye**: despierta
+  a los que haya a 430 unidades aunque haya tabiques (las armas cuerpo a cuerpo son silenciosas).
+- **Habitaciones a oscuras.** Lo que no has pisado se ve negro, con los muebles apenas insinuados, y lo que hay
+  dentro (zombis, la llave, el superviviente) no se dibuja ni se le apunta. Se descubre al entrar o al
+  arrimarse a su puerta. El salón se ve desde el principio.
+- **El apartamento queda limpio** cuando no queda ningún zombi; entonces se abre la puerta. Los jefes siguen
+  apareciendo al entrar, como antes.
+- **Caminos.** Zombis (y el bot) buscan el camino en una cuadrícula fina, de media casilla, en la que solo
+  cuenta el sitio donde cabe un personaje (`navOf` en `shapes.js`). Los muebles ya no pueden dejar un rincón
+  de suelo aislado (`walkChecker` en `rooms.js`): antes podía caer ahí un zombi y el apartamento no se podía limpiar.
+- **Lo que sueltan los zombis** ya no se queda debajo de un mueble.
+
+### Equilibrado
+
+Hecho con `tools/bot.js`, un bot que juega solo pulsando las teclas (cómo usarlo, en su cabecera). Juega peor
+que una persona: sus números sirven para comparar unas plantas con otras, no como verdad absoluta. Con la
+fregona, rellenándole la vida en cada puerta y saltándose a los jefes (contra ellos pelea fatal):
+
+| Planta | Zombis por apartamento | Segundos | Vida que pierde el bot |
+|---|---|---|---|
+| Baja | 11 | 38 | 9 |
+| 1ª | 11 | 41 | 16–25 |
+| 2ª | 12 | 40 | 14–25 |
+| 3ª | 12 | 41 | 23 |
+| 4ª | 13–14 | 42 | 18–21 |
+
+- El presupuesto de zombis está en `HORDE` (`rooms.js`): 5 de base y 1,1 por nivel; el nivel es el orden del
+  apartamento en la planta (1 a 3) más uno por planta. Los pisos grandes llevan hasta un 40 % más.
+- Con los valores de partida (1,3 por nivel y nivel y medio por planta) el bot perdía 39 de vida por
+  apartamento en la 4ª planta y moría en uno de cada cuatro: se suavizó.
+- En 42 partidas seguidas del bot con los valores definitivos no se atascó en ningún apartamento.
+
+### Pendiente
+
+- **Los jefes no se han tocado** ni medido: el bot no sabe esquivarlos. La vida del vecino sigue subiendo un 25 %
+  por planta, y ahora hay cinco: habrá que verlo jugando.
+- **Sin sala de objeto**, los objetos solo llegan por la mejora Mochila del Taller (los soltarán los zombis).
 - **El apartamento del mini jefe** es un salón grande y vacío: faltan los escombros de "lo ha reventado todo".
+- **Los supervivientes y el vecino** dentro de un apartamento con tabiques van en línea recta (solo los zombis
+  rodean); el mini jefe no importa porque su piso es diáfano.

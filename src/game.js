@@ -13,11 +13,11 @@ import { baseStats, rollItem, applyWorkshop, WORKSHOP } from './upgrades.js';
 import { SurvivorNPC, DoorKey, WeaponProp, WeaponStash, Maniqui } from './props.js';
 import { WEAPONS, randomWeapon, weaponSummary } from './weapons.js';
 import { loadSave, updateSave, buildingSave } from './save.js';
-import { drawRoom, drawDoors, drawDoorLabels, drawPickup, drawBullet, drawMinimap, drawEmoji as drawEmojiAt, minimapRect } from './render.js';
+import { drawRoom, drawDoors, drawDoorLabels, drawFog, drawPickup, drawBullet, drawMinimap, drawEmoji as drawEmojiAt, minimapRect } from './render.js';
 import { Camera, ZOOM, BOSS_ZOOM } from './camera.js';
 import { outlinedText, roundBox, setTextFont } from './draw.js';
 import { setGridSnap } from './sprites.js';
-import { isWall, isOpen, lineClear, randomFloorPoint, wayTo } from './shapes.js';
+import { CELL, isWall, isOpen, lineClear, randomFloorPoint, wayTo } from './shapes.js';
 import { getMoveVector, consumeDash, clearInput } from './input.js';
 import { sfx, music, setMusicOn } from './sfx.js';
 
@@ -36,6 +36,9 @@ const bossHpMul = (type, floorNum) => (type === 'boss' ? 1 : 1 + (floorNum - 1) 
 // Cuánto más duros son los zombis en cada planta (provisional: se equilibra en la fase 3 del mapa nuevo)
 const FLOOR_HP = 0.15;
 const NOPE_EVERY = 1.6;    // cada cuánto se repite el aviso de una puerta que no se abre
+const NOTICE = 330;        // a qué distancia nota un zombi dormido al conserje, si lo ve
+const ALERT = 170;         // un zombi que despierta despierta a los que tiene así de cerca
+const NOISE = 430;         // hasta dónde se oye un disparo (despierta aunque haya tabiques)
 
 const KEY_CHANCE = 0.07;   // probabilidad de que un zombi suelte una llave 🔑
 const HEART_CHANCE = 0.05; // ...o un corazón
@@ -337,6 +340,17 @@ export class Game {
 
     this.waveIdx = 0;
     this.waveDelay = room.cleared ? 0 : 0.6;
+    // Los zombis de un apartamento ya están dentro, dormidos, cada uno en su habitación
+    if (!room.cleared) {
+      for (const s of room.horde) {
+        const z = new Zombie(s.type, s.x, s.y, 1 + (room.dist - 1) * 0.12 + (this.floorNum - 1) * FLOOR_HP);
+        z.spawnT = 0;
+        z.asleep = true;
+        z.zone = s.zone;
+        this.enemies.push(z);
+      }
+    }
+    this.updateFog(0);
     // cámara: con un jefe delante se aleja un poco para ver sus ataques
     this.camera.targetZoom = !room.cleared && isBoss ? BOSS_ZOOM : ZOOM;
     this.camera.setRoom(RW, RH);
@@ -574,6 +588,7 @@ export class Game {
     for (const a of this.allies) a.update(dt, this);
 
     this.updateWaves(dt);
+    this.updateFog(dt);
 
     for (const e of this.enemies) {
       e.update(dt, this);
@@ -600,9 +615,15 @@ export class Game {
     this.ui.updateHud(this);
   }
 
+  // Los jefes aparecen al entrar; los zombis de un apartamento ya estaban dentro. En los dos casos
+  // el mapa queda limpio cuando no queda ninguno.
   updateWaves(dt) {
     const waves = this.room.waves;
-    if (this.room.cleared || !waves.length) return;
+    if (this.room.cleared) return;
+    if (!waves.length) {
+      if (this.enemies.length === 0) this.roomCleared();
+      return;
+    }
     if (this.waveDelay > 0) {
       this.waveDelay -= dt;
       if (this.waveDelay <= 0) this.spawnWave(waves[this.waveIdx]);
@@ -724,6 +745,7 @@ export class Game {
       pk.x = clamp(pk.x + pk.vx * dt, WALL + 14, this.rw - WALL - 14);
       pk.y = clamp(pk.y + pk.vy * dt, WALL + 14, this.rh - WALL - 14);
       for (const b of this.room.layout.blocks) pushOut(pk, b);
+      for (const o of this.room.layout.obstacles) pushOut(pk, o); // que nada se quede debajo de un mueble
       if (!p.dead && wanted && pk.t > 0.25 && d < p.r + 12) this.collect(pk);
     }
     this.pickups = this.pickups.filter((pk) => !pk.dead);
@@ -782,14 +804,66 @@ export class Game {
     return lineClear(this.room.layout, ent.x, ent.y, this.player.x, this.player.y);
   }
 
+  // ═════════════ Habitaciones de un apartamento ═════════════
+
+  // En qué habitación del apartamento cae un punto (null en un tabique, en el hueco de una puerta
+  // o en un mapa sin habitaciones)
+  zoneAt(x, y) {
+    const l = this.room.layout;
+    if (!l.zones) return null;
+    return l.zones[l.owner[Math.floor(y / CELL) * l.cols + Math.floor(x / CELL)]] || null;
+  }
+
+  // ¿Está esto en una habitación que aún no se ha pisado? (entonces ni se dibuja ni se le apunta)
+  hidden(ent) {
+    const z = this.zoneAt(ent.x, ent.y);
+    return !!z && z.fog > 0.5;
+  }
+
+  // Descubre la habitación en la que está el conserje y, si está en una puerta o pegado a ella,
+  // las dos que comunica; y va aclarando las descubiertas
+  updateFog(dt) {
+    const l = this.room && this.room.layout;
+    if (!l || !l.zones) return;
+    const p = this.player;
+    const c = Math.floor(p.x / CELL), r = Math.floor(p.y / CELL);
+    const here = l.zones[l.owner[r * l.cols + c]];
+    if (here) here.seen = true;
+    for (const d of l.inner) {
+      if (c >= d.c - 1 && c <= d.c + d.w && r >= d.r - 1 && r <= d.r + d.h) l.zones[d.a].seen = l.zones[d.b].seen = true;
+    }
+    for (const z of l.zones) if (z.seen && z.fog > 0) z.fog = Math.max(0, z.fog - dt * 3.5);
+  }
+
+  // ¿Nota este zombi dormido al conserje? Si entra en su habitación, o si lo ve de cerca
+  notices(z) {
+    const p = this.player;
+    if (p.dead) return false;
+    const zone = this.zoneAt(p.x, p.y);
+    if (zone && zone.id === z.zone) return true;
+    return dist(z, p) < NOTICE && this.sees(z);
+  }
+
+  // Un zombi que despierta arrastra a los dormidos que tiene cerca y a la vista (con un pequeño retraso)
+  wakeNear(z) {
+    for (const e of this.enemies) {
+      if (e !== z && e.asleep && dist(e, z) < ALERT && lineClear(this.room.layout, e.x, e.y, z.x, z.y)) this.later(rand(0.15, 0.4), () => e.wake(this));
+    }
+  }
+
+  // Un ruido fuerte (un disparo) despierta a los dormidos que haya cerca, aunque no vean nada
+  noise(x, y, radius = NOISE) {
+    for (const e of this.enemies) if (e.asleep && Math.hypot(e.x - x, e.y - y) < radius) this.later(rand(0.1, 0.5), () => e.wake(this));
+  }
+
   nearestEnemy(x, y, range) {
     let best = null, bd = range;
     for (const e of this.enemies) {
       if (!e.active) continue;
       // con la cámara cerca solo se apunta a lo que se ve en pantalla
       if (!this.camera.inView(e, 30)) continue;
-      // ni a lo que queda detrás de un muro
-      if (!lineClear(this.room.layout, x, y, e.x, e.y)) continue;
+      // ni a lo que queda detrás de un muro o en una habitación a oscuras
+      if (!lineClear(this.room.layout, x, y, e.x, e.y) || this.hidden(e)) continue;
       const d = Math.hypot(e.x - x, e.y - y) - e.r;
       if (d < bd) { bd = d; best = e; }
     }
@@ -799,6 +873,7 @@ export class Game {
   // Dispara una o varias balas aliadas. `o` admite: dmg, count, spread, jitter,
   // speed, life, pierce, knock, color, r, x, y (punto de salida) y lift (altura a la que se dibuja al salir)
   fireVolley(src, angle, o) {
+    if (src === this.player) this.noise(src.x, src.y);
     const n = o.count || 1;
     const spread = o.spread ?? 0.16;
     for (let i = 0; i < n; i++) {
@@ -1265,7 +1340,7 @@ export class Game {
       else drawEmojiAt(ctx, label, m.x, m.y + 1, r * 1.1);
     };
     for (const e of this.enemies) {
-      if (e.dead || cam.inView(e, -4)) continue;
+      if (e.dead || e.asleep || this.hidden(e) || cam.inView(e, -4)) continue; // los dormidos no se delatan
       const s = cam.toScreen(e.x, e.y);
       const m = edge(s.x, s.y);
       const d = Math.hypot(e.x - p.x, e.y - p.y);
@@ -1292,7 +1367,7 @@ export class Game {
       if (show) point(ex.x, ex.y, ex.frame || '#80ed99', ex.locked ? '🔒' : ex.icon || '🚪');
     }
     for (const pr of this.room.props) {
-      if (pr.taken) continue;
+      if (pr.taken || this.hidden(pr)) continue;
       if (pr.kind === 'doorkey') point(pr.x, pr.y, '#dfe7f2', '🗝️');
       else if (pr.kind === 'survivor') point(pr.x, pr.y, pr.def.color, pr.def.icon);
     }
@@ -1324,6 +1399,7 @@ export class Game {
 
   // Lo que va pegado al suelo: puertas, charcos y cosas para recoger
   drawBackground(ctx) {
+    drawFog(ctx, this.room.layout);
     drawDoors(ctx, this.room, this.doorOpen);
     this.drawHazards(ctx);
     for (const pk of this.pickups) drawPickup(ctx, pk, this.time);
@@ -1333,9 +1409,10 @@ export class Game {
   drawActors(ctx) {
     drawDoorLabels(ctx, this.room);
     // el superviviente rescatado y la llave recogida ya no están en el suelo
-    const props = this.room.props.filter((pr) => !(pr.taken && (pr.kind === 'survivor' || pr.kind === 'doorkey')));
+    // ...y lo que hay en una habitación a oscuras no se ve hasta entrar
+    const props = this.room.props.filter((pr) => !(pr.taken && (pr.kind === 'survivor' || pr.kind === 'doorkey')) && !this.hidden(pr));
     // Ordenamos por "y" para que lo de abajo se dibuje delante (falsa profundidad)
-    const list = [...this.enemies, ...this.allies, ...props];
+    const list = [...this.enemies.filter((e) => !this.hidden(e)), ...this.allies, ...props];
     if (!this.player.dead) list.push(this.player);
     list.sort((a, b) => a.y - b.y);
     for (const e of list) e.draw(ctx, this);

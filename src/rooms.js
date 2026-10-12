@@ -1,10 +1,10 @@
 // ─────────────────────────────────────────────
 //  Los mapas del edificio: el pasillo de cada planta, los apartamentos, la sala de mantenimiento
-//  y la azotea. Aquí se monta lo que hay dentro de cada uno: estilo, muebles, decoración y oleadas.
+//  y la azotea. Aquí se monta lo que hay dentro de cada uno: estilo, muebles, decoración y zombis.
 //  Cómo se reparten por la planta está en building.js.
 // ─────────────────────────────────────────────
 import { W, H, WALL, DOOR_W, STYLES } from './config.js';
-import { mulberry32, pick, obstacleGap } from './utils.js';
+import { mulberry32, pick, clamp, obstacleGap } from './utils.js';
 import { placeFurniture, placeWallDecor } from './furniture.js';
 import { CELL, BASE_COLS, BASE_ROWS, plainGrid, toBlocks, isWall, isOpen } from './shapes.js';
 
@@ -26,9 +26,13 @@ const ROOF_COLS = 44, ROOF_ROWS = 30;
 // Cuántos muebles lleva cada habitación de un apartamento: [mínimo, máximo]
 const FURNITURE = { salon: [4, 7], cocina: [2, 4], dormitorio: [2, 4], bano: [1, 3], jefe: [2, 3] };
 
-// Coste de cada zombi para "comprar" oleadas con un presupuesto.
+// Coste de cada zombi para "comprar" los de un apartamento con un presupuesto.
 // Los lentos son baratos: aparecen en grupo.
 const COST = { lento: 0.5, normal: 1, rapido: 1, venenoso: 2, explosivo: 2, tentaculos: 3 };
+// Presupuesto de zombis de un apartamento: `base` más `perLevel` por nivel (el nivel sube con la planta y con
+// el orden del apartamento dentro de ella). Equilibrado con partidas simuladas (docs/MAPA.md, fase 3).
+export const HORDE = { base: 5, perLevel: 1.1, floorStep: 1 };
+const FAR = 340; // nadie espera a menos de esta distancia de la puerta de entrada
 
 // ═════════════ Puertas ═════════════
 
@@ -92,27 +96,33 @@ function makeWallDecor(rng, geo, spots, windows = true) {
 }
 
 // Comprueba que los muebles no cortan el paso. Devuelve una función que, para cada mueble nuevo, dice si
-// después de ponerlo se sigue pudiendo andar entre todos los `points` (y, si es así, lo da por puesto).
+// después de ponerlo se sigue pudiendo andar entre todos los `points` y no queda ningún rincón de suelo
+// aislado (un zombi o la llave podrían caer ahí); si es así, lo da por puesto.
 // Trabaja en una cuadrícula fina, de media casilla, con el hueco que necesita un personaje para pasar.
 function walkChecker(geo, points, pad = 20) {
   const S = CELL / 2, cols = geo.w / S, rows = geo.h / S;
   const free = new Uint8Array(cols * rows); // 1 = ahí cabe un personaje
-  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) free[r * cols + c] = isOpen(geo, (c + 0.5) * S, (r + 0.5) * S, pad) ? 1 : 0;
+  let room = 0;                             // cuántas casillas libres quedan
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) if (isOpen(geo, (c + 0.5) * S, (r + 0.5) * S, pad)) { free[r * cols + c] = 1; room++; }
+  }
   const goals = points.map((p) => Math.floor(p.y / S) * cols + Math.floor(p.x / S));
   const seen = new Uint8Array(cols * rows);
-  const linked = () => {
+  // a cuántas casillas se llega andando desde la primera
+  const reach = () => {
     seen.fill(0);
     const stack = [goals[0]];
     seen[goals[0]] = 1;
+    let n = 1;
     while (stack.length) {
       const i = stack.pop(), c = i % cols;
       for (const j of [i - cols, i + cols, c > 0 ? i - 1 : -1, c < cols - 1 ? i + 1 : -1]) {
-        if (j >= 0 && j < free.length && free[j] && !seen[j]) { seen[j] = 1; stack.push(j); }
+        if (j >= 0 && j < free.length && free[j] && !seen[j]) { seen[j] = 1; n++; stack.push(j); }
       }
     }
-    return goals.every((g) => seen[g]);
+    return n;
   };
-  if (goals.some((g) => !free[g]) || !linked()) return () => true; // no debería pasar: mejor muebles de más que ninguno
+  if (goals.some((g) => !free[g]) || reach() !== room) return () => true; // no debería pasar: mejor muebles de más que ninguno
   return (o) => {
     const hw = o.w / 2 + pad, hh = o.h / 2 + pad;
     const taken = [];
@@ -122,7 +132,7 @@ function walkChecker(geo, points, pad = 20) {
         if (free[i] && Math.abs((c + 0.5) * S - o.x) < hw && Math.abs((r + 0.5) * S - o.y) < hh) { free[i] = 0; taken.push(i); }
       }
     }
-    if (linked()) return true;
+    if (goals.every((g) => free[g]) && reach() === room - taken.length) { room -= taken.length; return true; }
     for (const i of taken) free[i] = 1;
     return false;
   };
@@ -166,7 +176,7 @@ export function makeCorridorLayout(spots) {
 // ═════════════ Apartamentos ═════════════
 
 // Convierte un apartamento de apartment.js en un mapa del juego: tabiques, suelo de cada habitación y muebles.
-// Las habitaciones quedan en `zones` ([{ id, use, name, style, x, y, w, h, cx, cy }], en unidades).
+// Las habitaciones quedan en `zones` ([{ id, use, name, style, cells, x, y, w, h, cx, cy, seen, fog }], en unidades).
 export function makeApartmentLayout(apt) {
   const rng = mulberry32(apt.seed + 17);
   const { cols, rows } = apt;
@@ -201,7 +211,8 @@ export function makeApartmentLayout(apt) {
     // en las habitaciones grandes cabe algún mueble más
     const extra = Math.min(2, Math.floor(rm.cells / 220));
     obstacles.push(...placeFurniture(st.name, rng, min + extra, max + extra, { layout: geo, zone: rm.id, clear, fits }));
-    return { id: rm.id, use: rm.use, name: rm.name, style: st, x: rm.c0 * CELL, y: rm.r0 * CELL, w: rm.w * CELL, h: rm.h * CELL, cx: rm.x, cy: rm.y };
+    // seen y fog: las habitaciones que aún no se han pisado se ven a oscuras (fog va de 1, negro, a 0)
+    return { id: rm.id, use: rm.use, name: rm.name, style: st, cells: rm.cells, x: rm.c0 * CELL, y: rm.r0 * CELL, w: rm.w * CELL, h: rm.h * CELL, cx: rm.x, cy: rm.y, seen: false, fog: 1 };
   });
 
   return {
@@ -225,41 +236,58 @@ export function zoneSpot(layout, zone, rnd = Math.random) {
   return { x: zone.cx, y: zone.cy };
 }
 
-// ═════════════ Oleadas ═════════════
+// ═════════════ Zombis ═════════════
 
-// Enemigos de cada mapa según su tipo
-export function makeRoomWaves(room, floorNum) {
-  switch (room.type) {
-    // en los apartamentos grandes hay algún zombi más (hasta el doble de superficie que la sala de siempre)
-    case 'apartment': return makeWaves(room.dist, floorNum, Math.min(2.2, (room.layout.w * room.layout.h) / (W * H)));
-    case 'miniboss': return [['miniboss']];
-    case 'boss': return [['boss']];
-    default: return [];
-  }
+// Enemigos que aparecen al entrar, por oleadas: solo los jefes. Los zombis de los apartamentos
+// ya están dentro (makeHorde).
+export function makeRoomWaves(room) {
+  if (room.type === 'miniboss') return [['miniboss']];
+  if (room.type === 'boss') return [['boss']];
+  return [];
 }
 
-// Oleadas: el presupuesto crece con la planta y con el orden del apartamento dentro de ella.
-// `big` es cuántas veces más grande que la sala de siempre es el mapa.
-// (Provisional: en la fase 3 del mapa nuevo los zombis estarán repartidos por las habitaciones.)
-export function makeWaves(depth, floorNum = 1, big = 1) {
-  const level = depth + Math.round((floorNum - 1) * 1.5);
+// Los zombis de un apartamento: ya están dentro, repartidos por las habitaciones según su tamaño, y no se
+// mueven hasta que notan al conserje. Devuelve [{ type, zone, x, y }].
+// `depth` es el orden del apartamento dentro de la planta (1, 2, 3): cuanto más alto, más y peores.
+export function makeHorde(layout, depth, floorNum = 1) {
+  const level = depth + Math.round((floorNum - 1) * HORDE.floorStep);
   // Los tipos más peligrosos van apareciendo según se avanza
   const pool = ['lento', 'normal'];
   if (level >= 2) pool.push('rapido', 'venenoso');
   if (level >= 3) pool.push('explosivo');
   if (level >= 4) pool.push('tentaculos');
-  const total = Math.round((3 + level * 1.2) * (1 + (big - 1) * 0.6));
-  const nWaves = level <= 1 ? 1 : 2;
-  const waves = [];
-  for (let w = 0; w < nWaves; w++) {
-    let budget = Math.ceil(total / nWaves);
-    const wave = [];
-    while (budget > 0) {
-      const t = pick(pool.filter((e) => COST[e] <= budget));
-      wave.push(t);
-      budget -= COST[t];
+  const { zones, entry } = layout;
+  const area = zones.reduce((s, z) => s + z.cells, 0);
+  // en los pisos grandes hay más, pero no en proporción: si no, los de 3 dormitorios serían eternos
+  const budget = (HORDE.base + level * HORDE.perLevel) * clamp(area / 700, 0.8, 1.4);
+  const weight = (z) => z.cells * (z.use === 'bano' ? 0.5 : 1); // en los baños, pocos
+  const total = zones.reduce((s, z) => s + weight(z), 0);
+  const door = { x: entry.at, y: entry.dir === 'down' ? layout.h - WALL - 52 : WALL + 52 };
+
+  const spawns = [];
+  const spot = (z) => {
+    for (let i = 0; i < 200; i++) {
+      const x = z.x + Math.random() * z.w, y = z.y + Math.random() * z.h;
+      if (layout.owner[Math.floor(y / CELL) * layout.cols + Math.floor(x / CELL)] !== z.id || !isOpen(layout, x, y, 26)) continue;
+      if (Math.hypot(x - door.x, y - door.y) < FAR) continue;
+      if (layout.obstacles.some((o) => obstacleGap(o, { x, y }) < 34)) continue;
+      if (spawns.some((s) => Math.hypot(s.x - x, s.y - y) < 60)) continue;
+      return { x, y };
     }
-    waves.push(wave);
+    return null;
+  };
+  for (const z of zones) {
+    // lo que le toca a esta habitación; el pico que sobra se echa a suertes
+    const share = (budget * weight(z)) / total;
+    let left = Math.floor(share * 2) / 2 + (Math.random() < (share * 2) % 1 ? 0.5 : 0);
+    while (left > 0) {
+      const options = pool.filter((t) => COST[t] <= left);
+      const at = options.length && spot(z);
+      if (!at) break;
+      const type = pick(options);
+      spawns.push({ type, zone: z.id, ...at });
+      left -= COST[type];
+    }
   }
-  return waves;
+  return spawns;
 }

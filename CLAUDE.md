@@ -26,8 +26,9 @@ Se publica en **Vercel** como web estática (preset "Other").
   pixel art y ya no hay `PIXEL_MODE` ni `?cartoon`. Lo que aún no tiene sprite se sigue dibujando a mano, con el
   dibujo de antes, hasta que tenga el suyo: esos dibujos no se pueden borrar todavía.
 - **Mapa nuevo en marcha:** pasillo y apartamentos en vez de salas sueltas. Diseño, decisiones y fases en
-  [`docs/MAPA.md`](docs/MAPA.md). **Fases 1 y 2 hechas** (la 2, pendiente de visto bueno): el juego ya se juega
-  entero con el mapa nuevo. Siguiente: fase 3, combate (zombis repartidos por las habitaciones y equilibrado). Lo lleva una sesión distinta de la de las armas: las dos trabajan en la misma
+  [`docs/MAPA.md`](docs/MAPA.md). **Fases 1, 2 y 3 hechas** (la 3, pendiente de visto bueno): el juego se juega
+  entero con el mapa nuevo, con los zombis dormidos en sus habitaciones y las habitaciones sin pisar a oscuras.
+  Siguiente: fase 4, la sala de mantenimiento (tablet, arcón y taquillas). Lo lleva una sesión distinta de la de las armas: las dos trabajan en la misma
   carpeta, así que al hacer commit hay que añadir solo los archivos propios (nada de `git add -A`).
 
 ## Arrancar y probar
@@ -40,12 +41,15 @@ npm run dev            # sirve la carpeta en http://localhost:3000 (también val
 - `http://localhost:3000/assets/pruebas/apartamentos` → planos de apartamentos con colores planos (sin `.html`).
 - `?pruebas` → modo pruebas: las teclas **1–6** sacan cada tipo de zombi, **7** el mini jefe y **8** la portera.
   Se puede combinar: `?pruebas&armas`.
-- `?armas` → todas las armas abiertas en la sala de mantenimiento (sin tocar el guardado). `?pruebas` también las abre.
+- `?armas` → todas las armas abiertas en la sala de mantenimiento (sin tocar el guardado).
+- `?mudo` → sin sonido ni música. **Al probar el juego, abrirlo siempre con `?mudo`** (lo pidió el dueño el 12 de
+  octubre de 2026: la música del navegador integrado le molesta mientras trabaja). Se combina: `?pruebas&mudo`. `?pruebas` también las abre.
 - `?sala=venenoso` → sala de exposición (solo versión pixel): se salta el menú y pone el sprite `zombi-venenoso`
   quieto y girando junto al conserje, sin atacar. Vale para cualquier zombi con sprite: `?sala=normal`...
-- Para probar sin mirar: Playwright con Chromium. En la consola del navegador el juego está en `window.game`;
-  se puede adelantar llamando a `game.update(1/60)` muchas veces (así se hicieron las simulaciones de partidas
-  con un "bot" para equilibrar). Después de cada cambio visual, sacar capturas a 1920×1080 y en móvil horizontal.
+- Para probar sin mirar: en la consola del navegador el juego está en `window.game`; se puede adelantar
+  llamando a `game.update(1/60)` muchas veces. **`tools/bot.js` es un bot que juega solo** para medir el
+  equilibrado: `const { runBot } = await import('/tools/bot.js'); await runBot(game, { runs: 10, skipBoss: true })`.
+  Tarda unos 2 segundos por partida y bloquea la página mientras tanto (tandas de 15 como mucho por llamada). Después de cada cambio visual, sacar capturas a 1920×1080 y en móvil horizontal.
 - Guardado en `localStorage`, clave `blobquest-save-v2` (se mantiene el nombre viejo para no perder partidas guardadas; llaves, Taller, récords por edificio, música).
 
 ## Mapa del código (`src/`)

@@ -168,6 +168,18 @@ function zonePath(layout, z) {
   return (z.path = path);
 }
 
+// Oscurece las habitaciones de un apartamento en las que aún no se ha entrado
+export function drawFog(ctx, layout) {
+  if (!layout.zones) return;
+  ctx.fillStyle = '#12101c';
+  for (const z of layout.zones) {
+    if (z.fog <= 0) continue;
+    ctx.globalAlpha = 0.9 * z.fog;
+    ctx.fill(zonePath(layout, z));
+  }
+  ctx.globalAlpha = 1;
+}
+
 // Contorno del suelo de un mapa con tabiques, a partir de su cuadrícula:
 //   floor    el suelo (para recortar lo que se dibuja encima)
 //   walls    todo lo que no es suelo (para pintar el rodapié solo por el lado del muro)
