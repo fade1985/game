@@ -6,6 +6,44 @@
   "pivot": "auto",
   "anims": {
     "idle": {
+      "fps": 5,
+      "loop": true,
+      "dirs": {
+        "south": {
+          "row": 1,
+          "frames": 20
+        },
+        "south-east": {
+          "row": 2,
+          "frames": 20
+        },
+        "east": {
+          "row": 3,
+          "frames": 20
+        },
+        "north-east": {
+          "row": 4,
+          "frames": 20
+        },
+        "north": {
+          "row": 5,
+          "frames": 20
+        },
+        "north-west": {
+          "row": 6,
+          "frames": 20
+        },
+        "west": {
+          "row": 7,
+          "frames": 20
+        },
+        "south-west": {
+          "row": 8,
+          "frames": 20
+        }
+      }
+    },
+    "still": {
       "fps": 1,
       "loop": true,
       "dirs": {
@@ -50,11 +88,49 @@
           "frames": 1
         }
       }
+    },
+    "walk": {
+      "fps": 12,
+      "loop": true,
+      "dirs": {
+        "south": {
+          "row": 9,
+          "frames": 8
+        },
+        "south-east": {
+          "row": 10,
+          "frames": 8
+        },
+        "east": {
+          "row": 11,
+          "frames": 8
+        },
+        "north-east": {
+          "row": 12,
+          "frames": 8
+        },
+        "north": {
+          "row": 13,
+          "frames": 8
+        },
+        "north-west": {
+          "row": 14,
+          "frames": 8
+        },
+        "west": {
+          "row": 15,
+          "frames": 8
+        },
+        "south-west": {
+          "row": 16,
+          "frames": 8
+        }
+      }
     }
   },
   "source": {
     "character": {
-      "id": "18b9d762-9495-4a05-a309-ec77382fead7",
+      "id": "4e6c78c6-d6c6-46d3-99c1-40a2d86f0e6c",
       "name": "Idle",
       "prompt": "young male janitor, realistic adult body proportions, tall and slim, small head, messy brown hair with a red bandana tied on the head, cream shirt under blue work overalls, dark work boots, empty hands, arms relaxed at his sides, detailed shading",
       "size": {
@@ -95,6 +171,7 @@
       ]
     },
     "export_version": "1.0",
-    "export_date": "2026-10-06T18:29:04.531296+00:00"
+    "export_date": "2026-10-06T18:29:04.531296+00:00",
+    "idle": "Hecha con tools/idle.py a partir de las rotaciones: respiración (1 píxel) y parpadeo"
   }
 }

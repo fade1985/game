@@ -89,6 +89,16 @@ Los sprites se generan con PixelLab. Desde el 12 de octubre de 2026 está conect
   - Objeto o mueble (`create_1_direction_object`, `create_8_direction_object`): 10–25.
   - Antes de lanzar tandas grandes, calcular el total y **decírselo al dueño**.
 - Todo lo generado se apunta en `assets/pixellab.json` (texto, semilla, ids) para poder repetirlo.
+- **Animaciones muy sutiles (reposo): mejor hacerlas a mano que pedirlas.** Las de PixelLab redibujan el
+  personaje en cada fotograma y a 48 píxeles la cara "baila". La de reposo de Johnny (`conserje-48`) la hace
+  `tools/idle.py` a partir de sus 8 rotaciones: respiración de 1 píxel y parpadeo, sin tocar ningún otro píxel.
+  PixelLab sigue siendo lo indicado para animaciones con movimiento de verdad (andar, atacar, morir).
+- **Andar de Johnny:** plantilla `walking-8-frames` de PixelLab en las 8 direcciones. Los fotogramas tal cual
+  salen se guardan en `assets/sources/conserje-48/walk/` y `tools/walk.py conserje-48` los monta en la hoja
+  (iguala los colores a los del dibujo quieto y alinea los pies). En el juego el paso avanza según la distancia
+  recorrida (`STEP` en `entities.js`), no según el reloj: así arranca y frena con el personaje.
+- **Receta para animar un personaje nuevo:** probar 3 o 4 plantillas en una sola dirección (de perfil, `east`),
+  elegir la mejor y lanzar las otras 7 direcciones en el mismo grupo (`animation_group_id`).
 - **Vía antigua (sigue valiendo):** `tools/pixellab.mjs` llama a la API directamente
   (`balance`, `character`, `animate`, `animate-text`, `export`, `image`; uso en la cabecera del archivo).
   Necesita la clave en la variable de entorno **`PIXELLAB_API_KEY`**. **Nunca** pegarla en el chat, en el código ni

@@ -10,6 +10,9 @@ import { WEAPONS, RIFLE, drawHeld } from './weapons.js';
 import { autoAim } from './aim.js';
 
 const TAU = Math.PI * 2;
+// Unidades que avanza el conserje por cada fotograma de la animación de andar: a su velocidad normal (210)
+// salen 12 fotogramas por segundo, es decir, tres pasos por segundo (un trote ligero)
+const STEP = 17.5;
 
 // ═════════════ JUGADOR ═════════════
 const wrapAngle = (a) => Math.atan2(Math.sin(a), Math.cos(a));
@@ -80,6 +83,9 @@ export class Player {
 
     const sp = Math.hypot(this.vx, this.vy);
     this.walkT += dt * (sp > 20 ? 4 + sp / 22 : 0);
+    // pixel art: el paso avanza según lo que se desplaza de verdad (más despacio al arrancar y al frenar);
+    // al pararse vuelve al principio para empezar el siguiente paso con los pies juntos
+    this.stepT = sp > 20 ? (this.stepT || 0) + sp * dt : 0;
     if (move.x || move.y) {
       this.lookX = move.x; this.lookY = move.y;
       this.aimAngle = Math.atan2(move.y, move.x);
@@ -220,8 +226,10 @@ export class Player {
     // pixel art: sprite del conserje (los pies van 16 unidades por debajo del centro)
     const sprite = hasSprite('conserje-48') ? 'conserje-48' : 'conserje'; // prueba del estilo nuevo (48×48)
     if (PIXEL_MODE && hasSprite(sprite)) pixelShadow(ctx, x, y + 15, 28);
-    const sprited = PIXEL_MODE && drawSprite(ctx, sprite, sp > 20 ? 'walk' : 'idle',
-      dirFromVector(this.lookX, this.lookY), game ? game.time : 0, x, y + 16, { flash: this.hurtT > 0 });
+    const walking = sp > 20;
+    const sprited = PIXEL_MODE && drawSprite(ctx, sprite, walking ? 'walk' : 'idle',
+      dirFromVector(this.lookX, this.lookY), game ? game.time : 0, x, y + 16,
+      { flash: this.hurtT > 0, frame: walking ? Math.floor((this.stepT || 0) / STEP) : undefined });
     if (!sprited) drawHuman(ctx, x, y, {
       ...PLAYER_LOOK,
       lookX: this.lookX,
