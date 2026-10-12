@@ -135,8 +135,8 @@ pisotón suelta cascotes en todas direcciones.
 Al bajar del 50 % grita "¡QUE ACABO DE FREGAR!", te aparta, borra los proyectiles y pasa a la fase 2: más
 rápida, abanicos más anchos y más botellas. Los barridos de las armas cuerpo a cuerpo también deshacen las bolas de polvo.
 
-**Pixel art (en migración):** añade `?pixel` a la dirección para ver el juego en pixel art. Lo que todavía no
-tiene sprite se dibuja como siempre. Ver [`docs/PIXEL_ART.md`](docs/PIXEL_ART.md).
+**Pixel art (en migración):** el juego se abre en pixel art por defecto. Lo que todavía no tiene sprite se
+dibuja como siempre. Para ver la versión cartoon original, añade `?cartoon` a la dirección. Ver [`docs/PIXEL_ART.md`](docs/PIXEL_ART.md).
 
 **Modo de pruebas:** añade `?pruebas` a la dirección (por ejemplo `http://localhost:3000/?pruebas`): todas
 las armas aparecerán en la sala de entrada, las teclas **1 a 6** invocan cada tipo de zombi, la **7** al vecino del 4ºB
@@ -182,7 +182,7 @@ src/
   ui.js           → menús en HTML (inicio, selector de edificios, Taller, pausa, fin) y HUD
   input.js        → teclado + joystick táctil
   sfx.js          → sonidos y música generados con Web Audio (sin archivos)
-  sprites.js      → carga y dibujo de los sprites de pixel art (modo ?pixel)
+  sprites.js      → carga y dibujo de los sprites de pixel art (modo por defecto)
 assets/sprites/   → sprites de pixel art (PNG + JSON) y su lista (manifest.json)
 tools/pixellab.mjs → herramienta para generar sprites con la API de PixelLab
   save.js         → guardado en localStorage (llaves, Taller, récords y edificios)

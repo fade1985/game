@@ -1,8 +1,8 @@
 # Guía de estilo · Pixel art
 
 Plan para pasar Blob Quest de su estilo cartoon (dibujado con código) a **pixel art**, poco a poco.
-Mientras dure la migración, el modo pixel se activa añadiendo **`?pixel`** a la dirección
-(por ejemplo `http://localhost:3000/?pixel`). Sin `?pixel` el juego sigue siendo el cartoon de siempre.
+El modo pixel es ya el de por defecto (`http://localhost:3000/`). La versión cartoon de siempre se sigue
+pudiendo ver añadiendo **`?cartoon`** a la dirección (por ejemplo `http://localhost:3000/?cartoon`).
 
 ## Fases
 

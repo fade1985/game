@@ -15,12 +15,12 @@ export const MAX_ALLIES = 4;    // tamaño máximo del equipo
 // El mundo se dibuja a la mitad de resolución (480×320) y se amplía sin suavizado:
 // 1 píxel del dibujo = PIXEL unidades lógicas. Las baldosas miden TILE píxeles.
 // Así el interior de una sala mide 26×16 baldosas y las puertas 3 baldosas.
-// Mientras dure la migración, el modo pixel se activa añadiendo ?pixel a la dirección.
+// El modo pixel es el de por defecto; la versión cartoon de siempre se ve añadiendo ?cartoon a la dirección.
 export const PIXEL = 2;
 export const ART_W = W / PIXEL;
 export const ART_H = H / PIXEL;
 export const TILE = 16;
-export const PIXEL_MODE = typeof location !== 'undefined' && new URLSearchParams(location.search).has('pixel');
+export const PIXEL_MODE = typeof location !== 'undefined' && !new URLSearchParams(location.search).has('cartoon');
 
 export const OUTLINE = '#1d1b2c'; // color del contorno "de dibujo animado"
 export const ALLY_COLORS = ['#4cc9f0', '#80ed99', '#ff8fab', '#c77dff', '#ff9f1c'];

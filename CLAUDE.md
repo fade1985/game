@@ -22,7 +22,7 @@ Se publica en **Vercel** como web estática (preset "Other").
   visto bueno** antes de empezar la siguiente.
 - Antes de cambios grandes, **contar el plan y preguntar**. Si dice "no hagas nada, solo dime", solo se responde.
 - No crear pull requests si no los pide.
-- La **versión cartoon** (sin `?pixel`) es la de siempre y no se toca salvo que lo pida. Todo lo del pixel art y la
+- La **versión cartoon** (con `?cartoon`) es la de siempre y no se toca salvo que lo pida. Todo lo del pixel art y la
   cámara va **solo en la versión pixel**.
 
 ## Arrancar y probar
@@ -31,10 +31,10 @@ Se publica en **Vercel** como web estática (preset "Other").
 npm run dev            # sirve la carpeta en http://localhost:3000 (también vale: python -m http.server 3000)
 ```
 
-- `http://localhost:3000/` → versión cartoon.
-- `http://localhost:3000/?pixel` → versión pixel art (cámara que sigue al personaje, pantalla completa).
+- `http://localhost:3000/` → versión pixel art, la de por defecto (cámara que sigue al personaje, pantalla completa).
+- `http://localhost:3000/?cartoon` → versión cartoon, la original.
 - `?pruebas` → modo pruebas: las teclas **1–6** sacan cada tipo de zombi, **7** el mini jefe y **8** la portera.
-  Se puede combinar: `?pixel&pruebas`.
+  Se puede combinar: `?cartoon&pruebas`.
 - Para probar sin mirar: Playwright con Chromium. En la consola del navegador el juego está en `window.game`;
   se puede adelantar llamando a `game.update(1/60)` muchas veces (así se hicieron las simulaciones de partidas
   con un "bot" para equilibrar). Después de cada cambio visual, sacar capturas a 1920×1080 y en móvil horizontal.
@@ -106,7 +106,7 @@ Los sprites se generan con la API de PixelLab mediante `tools/pixellab.mjs`
 | 4 · Jefes | El vecino del 4ºB y la portera (48×48 o 64×64) |
 | 5 · Objetos e interfaz | Armas, objetos, corazón, llave, proyectiles, charcos, efectos, iconos y fuente |
 
-Al terminar, cuando todo tenga sprite, se puede hacer que la versión pixel sea la de por defecto.
+La versión pixel ya es la de por defecto; lo que aún no tiene sprite se ve con el dibujo cartoon.
 
 ### 3. Pequeños pendientes
 

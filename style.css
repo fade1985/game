@@ -368,7 +368,7 @@ body.touch #touch-ui:not([hidden]) { display: block; }
 @keyframes cardIn { from { transform: translateY(2em) scale(0.8); opacity: 0; } }
 @keyframes float { 50% { transform: translateY(-0.25em); } }
 
-/* ═════════════ Pixel art (modo ?pixel, en migración) ═════════════ */
+/* ═════════════ Pixel art (modo por defecto, en migración) ═════════════ */
 body.pixel, body.pixel * { font-family: 'Pixelify Sans', system-ui, sans-serif !important; }
 body.pixel #game { image-rendering: pixelated; }
 /* sin marco: el juego ocupa toda la ventana */
