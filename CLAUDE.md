@@ -22,8 +22,12 @@ Se publica en **Vercel** como web estática (preset "Other").
   visto bueno** antes de empezar la siguiente.
 - Antes de cambios grandes, **contar el plan y preguntar**. Si dice "no hagas nada, solo dime", solo se responde.
 - No crear pull requests si no los pide.
-- La **versión cartoon** (con `?cartoon`) es la de siempre y no se toca salvo que lo pida. Todo lo del pixel art y la
-  cámara va **solo en la versión pixel**.
+- **La versión cartoon ya no existe** (retirada el 12 de octubre de 2026 por decisión del dueño): el juego es solo
+  pixel art. `?cartoon` no hace nada. Queda código suyo por limpiar (se hará en la fase 2 del mapa nuevo); lo que
+  aún no tiene sprite se sigue viendo con el dibujo de antes hasta que tenga el suyo.
+- **Mapa nuevo en marcha:** pasillo y apartamentos en vez de salas sueltas. Diseño, decisiones y fases en
+  [`docs/MAPA.md`](docs/MAPA.md). Lo lleva una sesión distinta de la de las armas: las dos trabajan en la misma
+  carpeta, así que al hacer commit hay que añadir solo los archivos propios (nada de `git add -A`).
 
 ## Arrancar y probar
 
@@ -31,8 +35,7 @@ Se publica en **Vercel** como web estática (preset "Other").
 npm run dev            # sirve la carpeta en http://localhost:3000 (también vale: python -m http.server 3000)
 ```
 
-- `http://localhost:3000/` → versión pixel art, la de por defecto (cámara que sigue al personaje, pantalla completa).
-- `http://localhost:3000/?cartoon` → versión cartoon, la original.
+- `http://localhost:3000/` → el juego (cámara que sigue al personaje, pantalla completa).
 - `?pruebas` → modo pruebas: las teclas **1–6** sacan cada tipo de zombi, **7** el mini jefe y **8** la portera.
   Se puede combinar: `?cartoon&pruebas`.
 - `?armas` → todas las armas abiertas en la entrada (sin tocar el guardado). `?pruebas` también las abre.
@@ -130,7 +133,7 @@ Los sprites se generan con PixelLab. Desde el 12 de octubre de 2026 está conect
 ## Dónde lo dejamos (12 de octubre de 2026) · preguntar al dueño al retomar
 
 **Al retomar, empezar preguntándole por el punto 1.**
-Los ids, textos y costes de todo lo de abajo están en `assets/pixellab.json`. Quedaban 1.886 generaciones.
+Los ids, textos y costes de todo lo de abajo están en `assets/pixellab.json`. Quedaban 1.876 generaciones.
 
 Johnny con la fregona **ya está en el juego** (solo versión pixel): sprite `conserje-48-guardia`, estado
 "Fregona en guardia" del personaje "Johnny" en PixelLab. Tiene reposo, andar y ataque en las 8 direcciones.
@@ -152,14 +155,19 @@ Johnny con la fregona **ya está en el juego** (solo versión pixel): sprite `co
 
 Preguntas pendientes, por orden:
 
-1. **Visto bueno final al bate dentro del juego** (paso 6 de la skill). Johnny con el bate ya está en el juego
-   (sprite `conserje-48-bate`): reposo, andar y ataque con estela blanca de aire en las 8 direcciones. Costó 27
-   generaciones. Cosas que mirar: en las diagonales de espaldas Johnny gira un poco el cuerpo al barrer, y de
-   espaldas el arco pasa por delante de él. Para probarlo: `?pruebas&armas` y coger el bate del paragüero.
+1. **Visto bueno al estado "Pistola en guardia"** (`conserje-48-pistola`, paso 1 de la skill; el dueño pidió una
+   "pistola 9 mm típica"): hoja en `assets/pruebas/pistola-en-guardia.png`. Si le vale, el paso 2 es la prueba de
+   disparo de perfil y de espaldas (2 generaciones): retroceso corto, fogonazo y humo en la boca del arma.
+   - **Es la primera arma a distancia: hay que programar el juego** (plan contado al dueño, pendiente de su
+     respuesta). En `Player` de `entities.js`: al disparar con un arma con hoja propia, poner la animación
+     `attack` (como ya se hace con los golpes) sin retrasar la bala; no dibujar el arma cartoon ni su fogonazo; y
+     sacar la bala de la boca de la pistola del dibujo (un punto por dirección, apuntado en `arma.json` → JSON
+     del sprite) en vez de `handPos` + `muzzle`.
+   - **El bate está en el juego** (sprite `conserje-48-bate`, 27 generaciones). El dueño pasó a la pistola sin
+     comentar nada del bate: se da por bueno salvo que diga otra cosa.
    - **La fregona tiene la estela de agua dentro del dibujo** (las 8 direcciones). Decidido por el dueño: las
      estelas van siempre en el sprite y creíbles para cada arma (agua, aire, fuego...), nunca pintadas por el juego.
-   - **Siguiente arma:** quedan cuchillo (cuerpo a cuerpo, sale con la skill tal cual), pistola y escopeta (a
-     distancia: la primera vez hay que programar en el juego la animación de disparo; contar el plan antes).
+   - **Armas que quedan después:** cuchillo (cuerpo a cuerpo, sale con la skill tal cual) y escopeta.
 2. **La skill `/arma-nueva` ya existe** (`.claude/skills/arma-nueva/SKILL.md`). Si en una sesión nueva no
    aparece en la lista, leer ese archivo y seguirlo igual.
 3. **Limpieza de los estados de la fregona y del bate: hecha** el 12 de octubre de 2026 con su confirmación. En

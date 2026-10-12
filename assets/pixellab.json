@@ -249,6 +249,21 @@
       "action_description": "He walks forward in place at a steady pace in a smooth, seamless looping walk cycle: his legs stride alternately, knees lifting and boots stepping one after the other, with a slight bob of the torso on each step. He keeps facing exactly the same direction the whole time and never turns. He keeps holding the wooden baseball bat in the same guard grip with both hands the whole time: the bat stays raised up and tilted back over his shoulder in the same place, only swaying very slightly with each step. His arms do not swing and never let go of the bat. The tail of the red bandana sways a little. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation."
     }
   },
+  "conserje-48-pistola": {
+    "kind": "character_state",
+    "character_id": "beabd4dc-d39f-40ea-beb2-046608f0fe1c",
+    "source_character_id": "4e6c78c6-d6c6-46d3-99c1-40a2d86f0e6c",
+    "state_name": "Pistola en guardia",
+    "nota": "Estado de Johnny creado el 2026-10-12 con la skill /arma-nueva (paso 1): pistola de 9 mm sujeta con las dos manos y apuntando al frente, lienzo de 64x64, unos 40 colores. Rotaciones en assets/sources/conserje-48-pistola/rotations/ y hoja ampliada en assets/pruebas/pistola-en-guardia.png. De frente la pistola casi no se ve (apunta a la cámara) y de espaldas la tapa el cuerpo. Pendiente del visto bueno del dueño; sin animaciones todavía.",
+    "request": {
+      "edit_description": "holding a typical black 9mm semi-automatic pistol with both hands in a two-handed shooting stance, knees slightly bent, both arms extended forward at chest height, the pistol aimed straight ahead in the direction he is facing; the pistol stays aimed forward in every view: front, side and back; small compact matte black handgun with a dark grey slide; same face, same hair and red bandana, same clothes, same body size and proportions",
+      "override_width": 64,
+      "override_height": 64,
+      "use_color_palette_from_reference": true
+    },
+    "cost": "10 generaciones",
+    "updated": "2026-10-12"
+  },
   "zombi-venenoso-48": {
     "kind": "character",
     "character_id": "d8d5f941-74ff-400e-b52b-20d9dc6d6b06",
