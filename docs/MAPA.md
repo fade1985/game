@@ -66,10 +66,11 @@ Las otras tres son dos apartamentos y el del mini jefe. Dentro hay:
   habitaciones. A cada dormitorio se le recorta el baño en la esquina que menos da al salón. Después se abren
   las puertas: del salón a cada habitación, de cada dormitorio a su baño y, la mitad de las veces, una más
   entre dos habitaciones vecinas.
-- **Reglas:** la cocina mide entre 7 y 12 casillas de lado y los dormitorios entre 10 y 15 (con su baño de 5 a
-  7 dentro); ninguna es más de 2,2 veces más larga que ancha. El salón ocupa al menos el 30 % del apartamento
-  (lo normal es la mitad), no tiene pasos de menos de 5 casillas y delante de cada habitación deja 8 de fondo.
-  Las puertas miden 3 casillas (96 unidades), como las de siempre.
+- **Reglas:** la cocina mide entre 9 y 16 casillas de lado y los dormitorios entre 11 y 20, con su baño de 6 a
+  9 dentro; ninguna es más de 2,2 veces más larga que ancha. **El salón se queda con un tercio del apartamento**
+  (entre el 22 % y el 42 %; de media, el 35 %): en la primera versión se llevaba la mitad o más y el dueño lo
+  vio "gigantesco", así que las habitaciones crecen todo lo que el salón deja. El salón no tiene pasos de menos
+  de 5 casillas y delante de cada habitación deja 7 de fondo. Las puertas miden 3 casillas (96 unidades).
 - **Tamaños:** entre 36×24 y 52×32 casillas (de 1.152×768 a 1.664×1.024 unidades) según las habitaciones. El
   del jefe mide 44×30. En pantalla se ven unas 24×13 casillas. El dueño dio el tamaño por bueno ("luego vemos
   si reducimos o no").

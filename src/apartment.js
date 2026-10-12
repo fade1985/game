@@ -24,13 +24,15 @@ const EDGE = 2;           // grosor del muro exterior, en casillas (64 unidades)
 const MIN = 7;            // lado mínimo de un trozo de salón, en casillas
 const DOOR = 3;           // ancho de las puertas, en casillas (96 unidades)
 const MAX_LONG = 2.2;     // cuántas veces más larga que ancha puede ser una habitación
-const HALL = 8;           // fondo mínimo del salón delante de una habitación, en casillas
+const HALL = 7;           // fondo mínimo del salón delante de una habitación, en casillas
 const GAP = 6;            // hueco mínimo de salón entre dos habitaciones del mismo lateral
 const WIDE = 5;           // el salón no tiene pasos ni rincones de menos de 5 casillas
-const SALON = 0.3;        // parte del apartamento que, como poco, es salón
+const SALON = [0.22, 0.42]; // parte del apartamento que es salón: como poco y como mucho
 
 // Lado mínimo y máximo de cada habitación, en casillas (al dormitorio le tiene que caber el baño)
-const SIZE = { cocina: { min: 7, max: 12 }, dormitorio: { min: 10, max: 15 } };
+const SIZE = { cocina: { min: 9, max: 16 }, dormitorio: { min: 11, max: 20 } };
+// Medidas del baño: [mínimo, máximo] de ancho y de fondo
+const BATH = { w: [6, 9], h: [6, 8] };
 
 // Para qué sirve cada habitación. `style` es el estilo de suelo y muebles (APARTMENT_STYLES de config.js).
 export const USES = {
@@ -66,7 +68,7 @@ const shuffle = (rng, arr) => {
 //   entrance    { c, r, w, h, side } hueco de la puerta de entrada
 //   spawn       { x, y } dónde aparece el conserje al entrar
 export function makeApartment({ seed = Math.floor(Math.random() * 1e9), bedrooms, boss = false, side = 'down' } = {}) {
-  for (let attempt = 0; attempt < 400; attempt++) {
+  for (let attempt = 0; attempt < 1500; attempt++) {
     const rng = mulberry32(seed + attempt * 7919);
     const apt = tryApartment(rng, boss ? 0 : bedrooms || randInt(rng, 1, 3), boss);
     if (!apt || checkApartment(apt).length) continue;
@@ -92,12 +94,12 @@ function layout(rng, bedrooms, iw, ih) {
   if (mid < 0) return null;
   const kinds = [left, ...Array(mid).fill('top'), right];
   // a veces el salón llega hasta el fondo entre dos habitaciones (y siempre, si no le queda sitio delante)
-  if (rng() < 0.3 || !kinds.some((k) => k === 'top' || k === 'none')) kinds.splice(randInt(rng, 1, kinds.length - 1), 0, 'none');
+  if (rng() < 0.12 || !kinds.some((k) => k === 'top' || k === 'none')) kinds.splice(randInt(rng, 1, kinds.length - 1), 0, 'none');
   const strips = kinds
     .filter((k, i) => !(k === 'none' && kinds[i - 1] === 'none'))
     .map((kind) => ({ kind, uses: uses.splice(0, HOLDS[kind]) }));
 
-  // Anchos: el mínimo de cada franja y lo que sobra se reparte al azar
+  // Anchos: el mínimo de cada franja; lo que sobra se reparte al azar, primero entre las que tienen habitación
   let spare = iw - (strips.length - 1);
   for (const s of strips) {
     s.w = s.uses.length ? Math.max(...s.uses.map((u) => SIZE[u].min)) : MIN;
@@ -106,12 +108,13 @@ function layout(rng, bedrooms, iw, ih) {
   }
   if (spare < 0) return null;
   for (; spare > 0; spare--) {
-    const can = strips.filter((s) => s.w < s.max);
+    const rooms = strips.filter((s) => s.uses.length && s.w < s.max);
+    const can = rooms.length ? rooms : strips.filter((s) => s.w < s.max);
     if (!can.length) return null;
     pick(rng, can).w++;
   }
 
-  // Fondos: entre lo que pide cada habitación y lo que deja el salón
+  // Fondos: lo más que deja el salón, o poco menos
   const span = (use, w) => [Math.max(SIZE[use].min, Math.ceil(w / MAX_LONG)), Math.min(SIZE[use].max, Math.floor(w * MAX_LONG))];
   const out = [];
   let c = 0;
@@ -121,12 +124,12 @@ function layout(rng, bedrooms, iw, ih) {
       const [lo, hi] = span(a, s.w);
       const max = Math.min(hi, ih - 1 - (s.kind === 'top' ? HALL : MIN));
       if (max < lo) return null;
-      const h = randInt(rng, lo, max);
+      const h = randInt(rng, Math.max(lo, max - 3), max);
       out.push({ use: a, c0: c, r0: s.kind === 'top' ? 0 : ih - h, w: s.w, h });
     } else if (s.kind === 'both') {
       const [lo1, hi1] = span(a, s.w), [lo2, hi2] = span(b, s.w);
       let h1, h2;
-      if (rng() < 0.35 && ih - lo1 - lo2 - 2 >= GAP) {
+      if (rng() < 0.2 && ih - lo1 - lo2 - 2 >= GAP) {
         // separadas, con un trozo de salón entre las dos
         h1 = lo1 + randInt(rng, 0, Math.min(hi1 - lo1, ih - lo1 - lo2 - 2 - GAP));
         h2 = lo2 + randInt(rng, 0, Math.min(hi2 - lo2, ih - h1 - lo2 - 2 - GAP));
@@ -144,7 +147,7 @@ function layout(rng, bedrooms, iw, ih) {
   return out;
 }
 
-// ¿Es el salón una sola pieza, sin pasos ni rincones estrechos, y lo bastante grande?
+// ¿Es el salón una sola pieza, sin pasos ni rincones estrechos, y ni muy pequeño ni enorme?
 function salonOk(owner, cols, rows, id) {
   const is = (c, r) => owner[r * cols + c] === id;
   // cada casilla tiene que caber dentro de algún cuadrado de WIDE × WIDE que sea todo salón
@@ -162,7 +165,8 @@ function salonOk(owner, cols, rows, id) {
     if (first < 0) first = i;
     total++;
   }
-  if (total < SALON * (cols - EDGE * 2) * (rows - EDGE * 2)) return false;
+  const share = total / ((cols - EDGE * 2) * (rows - EDGE * 2));
+  if (share < SALON[0] || share > SALON[1]) return false;
   // y se llega andando de cualquier punto a cualquier otro
   const seen = new Uint8Array(cols * rows);
   const stack = [first];
@@ -206,7 +210,8 @@ function tryApartment(rng, bedrooms, boss) {
 
     // 3. Un baño en cada dormitorio, recortado en la esquina que menos da al salón
     for (const host of rooms.filter((rm) => rm.use === 'dormitorio')) {
-      const bw = randInt(rng, 5, Math.min(7, host.w - 5)), bh = randInt(rng, 5, Math.min(6, host.h - 5));
+      // al dormitorio le quedan al menos 4 casillas a cada lado del baño
+      const bw = randInt(rng, BATH.w[0], Math.min(BATH.w[1], host.w - 5)), bh = randInt(rng, BATH.h[0], Math.min(BATH.h[1], host.h - 5));
       const corners = shuffle(rng, [[0, 0], [1, 0], [0, 1], [1, 1]]).map(([right, low]) => {
         const c0 = right ? host.c0 + host.w - bw : host.c0, r0 = low ? host.r0 + host.h - bh : host.r0;
         let near = 0; // casillas de salón al otro lado del tabique
