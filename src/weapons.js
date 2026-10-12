@@ -32,7 +32,7 @@ export const WEAPONS = {
     damage: 9, rate: 4, reach: 46, arc: 60, knock: 0.5, trail: '#c9b6ff',
   },
   pistola: {
-    id: 'pistola', stash: 'comoda', name: 'Pistola', icon: '🔫', type: 'ranged',
+    id: 'pistola', stash: 'comoda', name: 'Pistola', icon: '🔫', type: 'ranged', sprite: 'conserje-48-pistola',
     damage: 10, rate: 2.5, range: 420, speed: 620, pellets: 1, spread: 0, knock: 0.8, muzzle: 24,
   },
   escopeta: {

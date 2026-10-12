@@ -254,7 +254,7 @@
     "character_id": "beabd4dc-d39f-40ea-beb2-046608f0fe1c",
     "source_character_id": "4e6c78c6-d6c6-46d3-99c1-40a2d86f0e6c",
     "state_name": "Pistola en guardia",
-    "nota": "Estado de Johnny creado el 2026-10-12 con la skill /arma-nueva (paso 1): pistola de 9 mm sujeta con las dos manos y apuntando al frente, lienzo de 64x64, unos 40 colores. Rotaciones en assets/sources/conserje-48-pistola/rotations/ y hoja ampliada en assets/pruebas/pistola-en-guardia.png. De frente la pistola casi no se ve (apunta a la cámara) y de espaldas la tapa el cuerpo. Visto bueno del dueño al estado. Paso 2 hecho: prueba de disparo de perfil y de espaldas, pendiente de su visto bueno (assets/pruebas/pistola-disparo-prueba.png).",
+    "nota": "Estado de Johnny con una pistola de 9 mm sujeta con las dos manos y apuntando al frente (2026-10-12), hecho con la skill /arma-nueva. Lienzo de 64x64, unos 40 colores. EN EL JUEGO (sprite conserje-48-pistola): reposo, andar y disparo en las 8 direcciones. Se monta con: py tools/arma.py conserje-48-pistola. De frente la pistola casi no se ve (apunta a la cámara) y de espaldas la tapa el cuerpo.",
     "request": {
       "edit_description": "holding a typical black 9mm semi-automatic pistol with both hands in a two-handed shooting stance, knees slightly bent, both arms extended forward at chest height, the pistol aimed straight ahead in the direction he is facing; the pistol stays aimed forward in every view: front, side and back; small compact matte black handgun with a dark grey slide; same face, same hair and red bandana, same clothes, same body size and proportions",
       "override_width": 64,
@@ -264,7 +264,7 @@
     "cost": "10 generaciones",
     "updated": "2026-10-12",
     "ataque": {
-      "nota": "Disparo: retroceso corto, fogonazo, humo y casquillo. PixMiniMax, 8 fotogramas más el de partida (con 8 basta: el gesto es corto), lienzo de 96x96. Fotogramas en assets/sources/conserje-48-pistola/ataque/. De perfil el fogonazo sale en el fotograma 3 (los dos primeros casi no se mueven: se quitan al montar); de espaldas, en el 1 y el 2.",
+      "nota": "Disparo: retroceso corto, fogonazo, humo y casquillo, las 8 direcciones. PixMiniMax, 8 fotogramas más el de partida (con 8 basta: el gesto es corto), lienzo de 96x96. Fotogramas en assets/sources/conserje-48-pistola/ataque/. Se usan 6, empezando por el del fogonazo. Texto común (east) para south, south-east, west y south-west cambiando initial_pose; en north-east y north-west se le antepone 'He keeps the same three-quarter back view the whole time, facing away from the camera and to the right/left, and never turns to face the camera.'; north tiene el suyo. En west y south-west PixelLab tiñó a Johnny de amarillo en el fotograma del fogonazo: lo arregla tools/arma.py al montar (deja el dibujo quieto y solo conserva el fogonazo).",
       "east": {
         "group": "58157f43-76af-46c6-a1d1-2248007dd932",
         "animation_name": "disparo-pistola",
@@ -280,7 +280,34 @@
         "subject_description": "a young male janitor seen from behind, brown hair and a red bandana, cream shirt and blue work overalls, holding a black 9mm pistol with both hands in front of him",
         "initial_pose": "standing in a two-handed shooting stance seen from behind, his back to the camera, facing away toward the top of the image, both arms extended forward holding the pistol in front of him, hidden by his body",
         "action_description": "Strict back view the whole time: we only ever see the back of his head, the knot of the red bandana and the back of his overalls; he never turns around and his face is never visible. He fires one single shot with the pistol away from the camera, toward the top of the image. The gun kicks back with a sharp recoil: his elbows and shoulders jerk back and up a little, while his feet stay planted. A bright yellow and orange muzzle flash bursts out for an instant just beyond his hands, glowing above his head and shoulders, then a small puff of light grey smoke rises and a tiny brass casing flips out to the side. The flash and the smoke fade away quickly and he settles cleanly into the starting two-handed aiming stance, still seen from behind. Only one shot. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down back view throughout."
+      },
+      "group": "58157f43-76af-46c6-a1d1-2248007dd932 (7 direcciones; north va en el grupo 92e28860-4c41-4e9c-ae21-4236ee6d763b)",
+      "initial_pose": {
+        "south": "standing in a two-handed shooting stance facing the camera, both arms extended forward, aiming the pistol straight at the camera",
+        "south-east": "standing in a two-handed shooting stance in three-quarter front view, facing toward the camera and to the right, both arms extended forward, aiming the pistol down and to the right of the image",
+        "south-west": "standing in a two-handed shooting stance in three-quarter front view, facing toward the camera and to the left, both arms extended forward, aiming the pistol down and to the left of the image",
+        "west": "standing in a two-handed shooting stance facing left, both arms extended forward, aiming the pistol to the left",
+        "north-east": "standing in a two-handed shooting stance in three-quarter back view, facing away from the camera and to the right, both arms extended forward, aiming the pistol up and to the right of the image",
+        "north-west": "standing in a two-handed shooting stance in three-quarter back view, facing away from the camera and to the left, both arms extended forward, aiming the pistol up and to the left of the image"
+      },
+      "descartado": {
+        "nota": "DESCARTADO (sigue en PixelLab, sin borrar). Repetición de west y south-west pidiendo que la ropa no se tiñera de amarillo: salió peor, aún más amarillo. Lección: no nombrar en el texto lo que no se quiere ver.",
+        "groups": [
+          "f3c49ec7-90cc-41d3-980e-8e2e57363f7d (west)",
+          "46f3886b-08bb-4545-bfd5-ada1ed840ea3 (south-west)"
+        ],
+        "animation_name": "disparo-pistola-2",
+        "cost": "2 generaciones"
       }
+    },
+    "cost_total": "32 generaciones: 10 del estado, 8 del disparo, 8 del andar, 4 de repetir el andar y 2 de un disparo descartado",
+    "andar": {
+      "nota": "PixMiniMax, 12 fotogramas más el de partida. Fotogramas en assets/sources/conserje-48-pistola/walk/; tools/arma.py elige solo el tramo que hace ciclo. La primera tanda (las 8 direcciones) decía 'never fires it: no muzzle flash, no smoke' y PixelLab coló fogonazos sueltos en east, north-east, north-west y west. Se repitieron east, north-west, west y south-west con el texto de abajo, que no menciona disparar: salieron limpias. De la primera tanda se usan south, south-east, north-east y north.",
+      "group_primera_tanda": "2b607843-892c-432a-90bc-4d4502ea8a2b (se usan 4 direcciones; east, north-west, west y south-west SIGUEN en PixelLab sin usar)",
+      "group": "a951b11f-a43c-45f3-8993-a15f77a7c755",
+      "animation_name": "andar-pistola-2",
+      "cost": "12 generaciones (8 + 4)",
+      "action_description": "He walks forward in place at a steady, calm pace in a smooth, seamless looping walk cycle: his legs stride alternately in a regular rhythm, knees lifting and boots stepping one after the other, with a slight bob of the torso on each step. He keeps facing exactly the same direction the whole time and never turns. His upper body stays almost still: he quietly carries the black pistol with both hands in the same two-handed stance the whole time, both arms extended forward, the pistol held steady in the same place and only swaying very slightly with each step. The pistol is silent and idle. The tail of the red bandana sways a little. Nothing else appears in the image: only the walking man on an empty background. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation."
     }
   },
   "zombi-venenoso-48": {

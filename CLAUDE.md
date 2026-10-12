@@ -134,7 +134,7 @@ Los sprites se generan con PixelLab. Desde el 12 de octubre de 2026 está conect
 ## Dónde lo dejamos (12 de octubre de 2026) · preguntar al dueño al retomar
 
 **Al retomar, empezar preguntándole por el punto 1.**
-Los ids, textos y costes de todo lo de abajo están en `assets/pixellab.json`. Quedaban 1.874 generaciones.
+Los ids, textos y costes de todo lo de abajo están en `assets/pixellab.json`. Quedaban 1.854 generaciones.
 
 Johnny con la fregona **ya está en el juego** (solo versión pixel): sprite `conserje-48-guardia`, estado
 "Fregona en guardia" del personaje "Johnny" en PixelLab. Tiene reposo, andar y ataque en las 8 direcciones.
@@ -156,19 +156,25 @@ Johnny con la fregona **ya está en el juego** (solo versión pixel): sprite `co
 
 Preguntas pendientes, por orden:
 
-1. **Visto bueno a la prueba de disparo de la pistola** (paso 2 de la skill): `assets/pruebas/pistola-disparo-prueba.png`,
-   de perfil y de espaldas. El estado "Pistola en guardia" (`conserje-48-pistola`) ya tiene su visto bueno. Si le
-   vale, seguir sin parar: las otras 6 direcciones del disparo (8 fotogramas, con sus `upload:` de partida
-   recién subidos) y las 8 de andar (14 generaciones), montaje, programar el juego y cierre.
-   - **Es la primera arma a distancia: hay que programar el juego** (plan contado al dueño; no puso pegas). En `Player` de `entities.js`: al disparar con un arma con hoja propia, poner la animación
-     `attack` (como ya se hace con los golpes) sin retrasar la bala; no dibujar el arma cartoon ni su fogonazo; y
-     sacar la bala de la boca de la pistola del dibujo (un punto por dirección, apuntado en `arma.json` → JSON
-     del sprite) en vez de `handPos` + `muzzle`.
-   - **El bate está en el juego** (sprite `conserje-48-bate`, 27 generaciones) y tiene el visto bueno del dueño
-     ("está perfecto").
-   - **La fregona tiene la estela de agua dentro del dibujo** (las 8 direcciones). Decidido por el dueño: las
-     estelas van siempre en el sprite y creíbles para cada arma (agua, aire, fuego...), nunca pintadas por el juego.
-   - **Armas que quedan después:** cuchillo (cuerpo a cuerpo, sale con la skill tal cual) y escopeta.
+1. **Visto bueno final a la pistola dentro del juego** (paso 6 de la skill). Johnny con la pistola de 9 mm ya está
+   en el juego (sprite `conserje-48-pistola`): reposo, andar y disparo con fogonazo, humo y casquillo en las 8
+   direcciones. Costó 32 generaciones. Cosas que mirar: de frente y de espaldas la pistola casi no se ve; andando
+   hacia la derecha y hacia arriba-izquierda el ciclo es corto y cierra algo peor; y las balas se dibujan
+   saliendo del cañón y bajan enseguida a la altura del cuerpo. Para probarlo: `?pruebas` y coger la pistola de
+   la cómoda.
+   - **Armas a distancia, cómo quedó programado:** al disparar con un arma con hoja propia se pone la animación
+     `attack` sin retrasar la bala, y no se dibuja el arma de siempre ni su fogonazo ni su casquillo. La bala
+     nace en la boca del arma del dibujo: `"boca": "fogonazo"` en `arma.json` hace que `tools/arma.py` la busque
+     sola (el centro del fogonazo) y la apunte en el JSON del sprite (`muzzle`). Como el dibujo es alto, la bala
+     se mueve por el suelo como siempre pero se **dibuja** levantada (`lift`: `MUZZLE_LIFT` en `entities.js`,
+     `BULLET_LIFT` en `game.js`, `drawBullet` en `render.js`).
+   - **Preguntarle si se borra de PixelLab lo descartado de la pistola:** las dos repeticiones del disparo
+     (`disparo-pistola-2`) y las 4 direcciones del primer andar que se sustituyeron. Están en `assets/pixellab.json`.
+   - **El bate está en el juego** (sprite `conserje-48-bate`, 27 generaciones) y tiene el visto bueno del dueño.
+   - **La fregona tiene la estela de agua dentro del dibujo.** Decidido por el dueño: las estelas van siempre en
+     el sprite y creíbles para cada arma (agua, aire, fuego...), nunca pintadas por el juego.
+   - **Armas que quedan:** cuchillo (cuerpo a cuerpo, sale con la skill tal cual) y escopeta (a distancia: ya
+     vale lo programado para la pistola; solo cambia que dispara 5 perdigones).
 2. **La skill `/arma-nueva` ya existe** (`.claude/skills/arma-nueva/SKILL.md`). Si en una sesión nueva no
    aparece en la lista, leer ese archivo y seguirlo igual.
 3. **Limpieza de los estados de la fregona y del bate: hecha** el 12 de octubre de 2026 con su confirmación. En

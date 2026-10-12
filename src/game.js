@@ -37,6 +37,7 @@ const bossHpMul = (type, floorNum) => (type === 'boss' ? 1 : 1 + (floorNum - 1) 
 const KEY_CHANCE = 0.07;   // probabilidad de que un zombi suelte una llave 🔑
 const HEART_CHANCE = 0.05; // ...o un corazón
 const HEART_HEAL = 15;
+const BULLET_LIFT = 22;    // pixel art: altura a la que se dibujan las balas de un arma dibujada (la del cuerpo de un zombi)
 
 const formatTime = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
@@ -673,6 +674,8 @@ export class Game {
       b.x += b.vx * dt;
       b.y += b.vy * dt;
       b.life -= dt;
+      // pixel art: la bala sale a la altura del cañón y baja enseguida a la del cuerpo (solo el dibujo)
+      if (b.lift > BULLET_LIFT) b.lift += (BULLET_LIFT - b.lift) * (1 - Math.exp(-dt * 14));
       const outside = isWall(this.room.layout, b.x, b.y);
       if (outside || this.room.layout.obstacles.some((o) => obstacleGap(o, b) < b.r * 0.5)) {
         b.dead = true;
@@ -786,7 +789,7 @@ export class Game {
   }
 
   // Dispara una o varias balas aliadas. `o` admite: dmg, count, spread, jitter,
-  // speed, life, pierce, knock, color, r, x, y (punto de salida)
+  // speed, life, pierce, knock, color, r, x, y (punto de salida) y lift (altura a la que se dibuja al salir)
   fireVolley(src, angle, o) {
     const n = o.count || 1;
     const spread = o.spread ?? 0.16;
@@ -810,6 +813,7 @@ export class Game {
         color: crit ? '#ffd23f' : (o.color || '#fff6d5'),
         life: o.life || 1.2,
         hit: new Set(),
+        lift: o.lift || 0,
       });
     }
   }

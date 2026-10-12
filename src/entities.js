@@ -2,7 +2,7 @@
 //  Personajes: jugador, compañeros y enemigos
 // ─────────────────────────────────────────────
 import { W, H, WALL, OUTLINE, PLAYER_LOOK, PIXEL_MODE } from './config.js';
-import { drawSprite, dirFromVector, hasSprite, pixelShadow, animFrames, animHit } from './sprites.js';
+import { drawSprite, dirFromVector, hasSprite, pixelShadow, animFrames, animHit, animDuration, spriteMuzzle } from './sprites.js';
 import { rand } from './utils.js';
 import { drawHuman } from './draw.js';
 import { sfx } from './sfx.js';
@@ -13,6 +13,11 @@ const TAU = Math.PI * 2;
 // Unidades que avanza el conserje en un ciclo de andar (dos pasos): a su velocidad normal (210) son
 // tres pasos por segundo, un trote ligero. Con 8 fotogramas por ciclo salen 12 por segundo
 const STEP = 140;
+
+// pixel art: los personajes son altos y la pistola del dibujo queda a la altura del pecho, unas 50 unidades por
+// encima de donde el juego calcula los choques (los pies y la cintura). La bala se mueve por el suelo, como
+// siempre, pero se dibuja levantada: sale del cañón y baja enseguida hasta la altura del cuerpo de los zombis
+const MUZZLE_LIFT = 50;
 
 // ═════════════ JUGADOR ═════════════
 const wrapAngle = (a) => Math.atan2(Math.sin(a), Math.cos(a));
@@ -141,6 +146,12 @@ export class Player {
       // Disparo desde la boca del arma
       const h = this.handPos(angle);
       const n = w.pellets + s.shots;
+      // pixel art: si el arma tiene hoja propia, la bala nace en la boca del arma del dibujo (los pies del
+      // sprite van 16 unidades por debajo del centro) y se ve la animación de disparo, con su fogonazo
+      const armed = PIXEL_MODE && w.sprite && hasSprite(w.sprite);
+      const m = armed ? spriteMuzzle(w.sprite, dirFromVector(Math.cos(angle), Math.sin(angle))) : null;
+      const bx = m ? this.x + m[0] : h.x + Math.cos(angle) * w.muzzle;
+      const by = m ? this.y + 16 + m[1] + MUZZLE_LIFT : h.y + Math.sin(angle) * w.muzzle;
       game.fireVolley(this, angle, {
         dmg: w.damage * s.damage,
         count: n,
@@ -151,12 +162,19 @@ export class Player {
         pierce: s.pierce,
         knock: w.knock,
         r: w.pellets > 1 ? 5 : 7,
-        x: h.x + Math.cos(angle) * w.muzzle,
-        y: h.y + Math.sin(angle) * w.muzzle,
+        x: bx,
+        y: by,
+        lift: m ? MUZZLE_LIFT : 0,
       });
-      this.recoil = 1;
-      this.muzzleT = 0.06;
-      game.casing(h.x, h.y, angle);
+      if (armed) {
+        // la bala ya ha salido: la animación solo acompaña, y nunca dura más que el hueco entre disparos
+        const dur = Math.min(animDuration(w.sprite, 'attack') || 0.4, 0.95 / (w.rate * s.fireRate));
+        this.atkAnim = { t: 0, dur, hit: null, at: 0 };
+      } else {
+        this.recoil = 1;
+        this.muzzleT = 0.06;
+        game.casing(h.x, h.y, angle);
+      }
       if (w.pellets > 1) { sfx.shotgun(); game.shake(4); } else sfx.gun();
     }
   }

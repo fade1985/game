@@ -380,21 +380,22 @@ export function drawPickup(ctx, pk, time) {
 }
 
 export function drawBullet(ctx, b) {
+  const y = b.y - (b.lift || 0); // pixel art: las balas de un arma dibujada se ven a la altura del arma
   ctx.globalAlpha = 0.35;
   ctx.beginPath();
-  ctx.arc(b.x - b.vx * 0.018, b.y - b.vy * 0.018, b.r * 0.8, 0, TAU);
+  ctx.arc(b.x - b.vx * 0.018, y - b.vy * 0.018, b.r * 0.8, 0, TAU);
   ctx.fillStyle = b.color;
   ctx.fill();
   ctx.globalAlpha = 1;
   ctx.beginPath();
-  ctx.arc(b.x, b.y, b.r, 0, TAU);
+  ctx.arc(b.x, y, b.r, 0, TAU);
   ctx.fillStyle = b.color;
   ctx.fill();
   ctx.lineWidth = 3;
   ctx.strokeStyle = OUTLINE;
   ctx.stroke();
   if (!b.friendly) {
-    ctx.beginPath(); ctx.arc(b.x - 2, b.y - 2, b.r * 0.35, 0, TAU);
+    ctx.beginPath(); ctx.arc(b.x - 2, y - 2, b.r * 0.35, 0, TAU);
     ctx.fillStyle = '#fff'; ctx.fill();
   }
 }

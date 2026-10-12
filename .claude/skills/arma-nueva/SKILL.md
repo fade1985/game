@@ -83,10 +83,13 @@ Mirar la hoja montada antes de seguir.
 - Añadir el sprite a `assets/sprites/manifest.json` y poner `sprite: 'conserje-48-<arma>'` en el arma (`weapons.js`).
 - Con eso basta para las armas cuerpo a cuerpo: `Player` en `entities.js` ya elige la hoja según el arma, deja de
   dibujar el arma cartoon y la estela, y retrasa el daño hasta el fotograma del golpe.
-- **Armas a distancia (pistola, escopeta): la primera vez hay que programarlo.** Falta que la animación se vea al
-  disparar y que la bala salga de la boca del arma del dibujo. Contar el plan al dueño antes.
+- **Armas a distancia (pistola, escopeta):** el juego ya sabe (se programó con la pistola). Al disparar pone la
+  animación `attack` sin retrasar la bala, no dibuja el arma de siempre y saca la bala de la boca del arma del
+  dibujo. Para eso, en `arma.json` → `ataque`: `"boca": "fogonazo"` (el script busca sola la boca del arma en
+  cada dirección), `"impacto": 0` y los fotogramas **empezando por el del fogonazo**, sin preparación. Unos 6
+  fotogramas y `duracion` 0.4 como mucho (nunca más que 1 / `rate`).
 - Probar en el navegador con `?pruebas` (tecla 1 saca un zombi) y `?armas` para coger el arma: reposo, andar en
-  varias direcciones y ataque. Comprobar que `?cartoon` sigue igual. **Cerrar la pestaña al terminar**: si no,
+  varias direcciones y ataque (la versión cartoon ya no existe). **Cerrar la pestaña al terminar**: si no,
   la música del juego sigue sonando.
 
 ### 6. Cierre · PARAR
@@ -108,7 +111,8 @@ Cinco partes, en este orden:
    - bate, palos → aire: "leaves a bright white crescent-shaped swoosh of air behind it along the whole arc"
    - cuchillo → un destello fino: "leaves a thin, sharp white slash line along its path"
    - armas con fuego → "leaves a crescent-shaped trail of orange and yellow flames"
-   - pistola, escopeta → fogonazo y humo en la boca del arma, sin estela
+   - pistola, escopeta → fogonazo y humo en la boca del arma, sin estela. Pedir 8 fotogramas, no 12 (el gesto
+     es corto), y "Only one shot, no second flash". El texto de la pistola está en `assets/pixellab.json`.
 4. **La vuelta:** "The trail fades away quickly, he ... and settles cleanly into the starting guard stance."
 5. **El cierre, siempre igual:** "Static camera, completely locked-off shot. Maintain the crisp 2D pixel art
    aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down
@@ -148,6 +152,12 @@ three-quarter back view the whole time... and never turns to face the camera" y 
 alternately... He keeps facing exactly the same direction the whole time and never turns. He keeps holding
 <el arma> in the same guard grip the whole time... His arms do not swing and never let go of <el arma>." más el
 cierre de siempre. El de la fregona está entero en `assets/pixellab.json` (`conserje-48-guardia` → `andar`).
+
+**Con armas de fuego, no nombrar en el texto lo que no se quiere ver.** Decir "never fires, no muzzle flash" hizo
+que PixelLab colase fogonazos al andar, y pedir "never tinted yellow" tiñó a Johnny aún más. Usar el texto del
+andar de la pistola (`conserje-48-pistola` → `andar`): "quietly carries the pistol... The pistol is silent and
+idle. Nothing else appears in the image". Si aun así se cuela algo, `tools/arma.py` descarta esos fotogramas al
+elegir el ciclo y quita el tinte amarillo del fogonazo.
 
 ## Avisos
 

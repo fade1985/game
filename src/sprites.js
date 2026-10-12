@@ -149,6 +149,13 @@ export function animFrames(id, anim) {
 // En qué punto de una animación de ataque (de 0 a 1) llega el golpe. Lo dice la hoja ("hit"); si no, a un tercio
 export const animHit = (id, anim) => sheets.get(id)?.meta.anims[anim]?.hit ?? 1 / 3;
 
+// Boca del arma de una hoja (armas a distancia): dónde nace la bala respecto a los pies del personaje, en
+// unidades del juego, para la dirección dada. Lo dice la hoja ("muzzle"); null si no lo tiene.
+export function spriteMuzzle(id, dir) {
+  const m = sheets.get(id)?.meta.muzzle?.[dir];
+  return m ? [m[0] * PIXEL, m[1] * PIXEL] : null;
+}
+
 // Duración de una animación (para saber cuándo termina una que no se repite)
 export function animDuration(id, anim) {
   const a = sheets.get(id)?.meta.anims[anim];

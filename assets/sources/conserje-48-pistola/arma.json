@@ -1,0 +1,19 @@
+{
+  "nota": "Datos para montar la hoja de sprites de Johnny con la pistola (lo lee tools/arma.py). Las medidas y el ciclo del andar no se ponen: valen las de siempre y el script elige el ciclo solo (descartando los fotogramas en los que PixelLab coló un fogonazo).",
+  "ataque": {
+    "nota": "Disparo. De los 8 fotogramas de PixelLab se usan 6, empezando por el del fogonazo: la bala sale al instante, así que la animación no puede tener preparación. 'boca': 'fogonazo' hace que el script busque dónde está la boca de la pistola en cada dirección (el centro del fogonazo) para que la bala nazca ahí.",
+    "duracion": 0.4,
+    "impacto": 0,
+    "boca": "fogonazo",
+    "fotogramas": {
+      "south":      [3, 4, 5, 6, 7, 8],
+      "south-east": [2, 3, 4, 5, 6, 7],
+      "east":       [3, 4, 5, 6, 7, 8],
+      "north-east": [1, 2, 3, 4, 5, 6],
+      "north":      [1, 2, 3, 4, 5, 6],
+      "north-west": [3, 4, 5, 6, 7, 8],
+      "west":       [1, 2, 3, 4, 5, 6],
+      "south-west": [3, 4, 5, 6, 7, 8]
+    }
+  }
+}
