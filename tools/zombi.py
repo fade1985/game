@@ -16,7 +16,9 @@ Y escribe assets/sprites/<sprite>.png y .json con seis animaciones:
   death   morir: no se repite, se queda en el último fotograma (tendido en el suelo)
 
 Limpieza: PixelLab mete sangre de un rojo muy vivo y algún destello aunque se le pida que no. En golpe y muerte
-se quita todo lo que no sea de un color parecido a los del zombi; en el ataque solo los destellos blancos.
+la sangre se oscurece (decidido por el dueño: se queda, pero en un rojo apagado que no desentone) y se quita
+cualquier otro efecto de un color ajeno al zombi; en el ataque solo se quitan los destellos blancos.
+Con "sangre": "quitar" o "viva" en zombi.json se cambia eso.
 
 Uso (desde la carpeta del proyecto; necesita Python con Pillow):
   py tools/zombi.py zombi-normal-48 zombi-normal                 rehace la hoja zombi-normal
@@ -36,8 +38,11 @@ PX, PY = 48, 78            # los pies dentro de la casilla
 WAIST = 26                 # fila de la cintura en el dibujo quieto (para el reposo)
 
 rot = {d: Image.open(f'{SRC}/rotations/{d}.png').convert('RGBA') for d in DIRS}
-# todos los colores del zombi, de sus 8 vistas
-PALETTE = sorted({c[:3] for d in DIRS for _, c in rot[d].getcolors(4096) if c[3]})
+# Sangre: "oscura" (rojo apagado, lo normal), "quitar" (sin sangre) o "viva" (el rojo chillón de PixelLab)
+SANGRE = cfg.get('sangre', 'oscura')
+BLOOD = [(134, 20, 12), (104, 12, 6), (74, 8, 4)]   # de más clara a más oscura
+# todos los colores del zombi, de sus 8 vistas (más los de la sangre, si se queda)
+PALETTE = sorted({c[:3] for d in DIRS for _, c in rot[d].getcolors(4096) if c[3]} | set(BLOOD if SANGRE == 'oscura' else []))
 
 
 def cell(im, x=0, y=0):
@@ -109,7 +114,27 @@ def clean(f, is_fx):
     return out
 
 
-blood = lambda c: nearest(c)[0] > 60 ** 2                      # nada que ver con los colores del zombi
+alien = lambda c: nearest(c)[0] > 60 ** 2                      # nada que ver con los colores del zombi
+red = lambda c: c[0] > 150 and c[1] < 90 and c[2] < 90         # el rojo vivo de la sangre de PixelLab
+
+
+def gore(f):
+    """Golpe y muerte: deja la sangre como diga SANGRE, quita los demás efectos e iguala los colores."""
+    if SANGRE == 'viva':
+        return clean(f, lambda c: alien(c) and not red(c))
+    if SANGRE == 'oscura':
+        f = f.copy()
+        px = f.load()
+        for y in range(f.height):
+            for x in range(f.width):
+                r, g, b, a = px[x, y]
+                if a >= 128 and red((r, g, b)):
+                    # el borde de cada mancha, un tono más oscuro que el centro
+                    edge = any(not (0 <= x + i < f.width and 0 <= y + j < f.height) or px[x + i, y + j][3] < 128
+                               for i, j in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+                    px[x, y] = (*BLOOD[2 if edge else 1 if r < 235 else 0], 255)
+        return same_colors(clean(f, alien))
+    return specks(same_colors(clean(f, alien)))
 spark = lambda c: min(c) > 215 and nearest(c)[0] > 40 ** 2     # destello blanco
 
 
@@ -194,8 +219,8 @@ def block(folder, key, default, fix):
 
 
 attack = block('ataque', 'ataque', (1, 7), lambda f: specks(clean(f, spark)))
-hurt = block('golpe', 'golpe', (1, 6), lambda f: specks(same_colors(clean(f, blood))))
-death = block('muerte', 'muerte', (1, 12), lambda f: specks(same_colors(clean(f, blood))))
+hurt = block('golpe', 'golpe', (1, 6), gore)
+death = block('muerte', 'muerte', (1, 12), gore)
 DUR = {'attack': cfg.get('ataque', {}).get('duracion', 0.55), 'hurt': cfg.get('golpe', {}).get('duracion', 0.35),
        'death': cfg.get('muerte', {}).get('duracion', 0.9)}
 HIT = cfg.get('ataque', {}).get('impacto', 3)   # en qué fotograma (de los elegidos) llega el zarpazo

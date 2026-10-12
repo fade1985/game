@@ -459,7 +459,7 @@
       "ataque": "grupo a1a3d624 (east, south, south-east, west, south-west) y uno por dirección de espaldas: da86b6cf (north-east), 87c1b8a3 (north-west), fb62c544 (north). 8 fotogramas, partida y final iguales.",
       "golpe": "grupo 43558c2e (east, south, south-east, west, south-west); de espaldas: df2b1d17 (north-east), 4c08ffcb (north-west), 3a88f228 (north). 8 fotogramas, partida y final iguales.",
       "muerte": "grupo 8b6ae0b4 (east, south, south-east, west, south-west); de espaldas: 1e9b682d (north-east), c4c59642 (north-west), e53b8d26 (north). 12 fotogramas, sin fotograma final. En las de espaldas el texto dice hacia dónde quedan la cabeza y los pies.",
-      "sangre": "PixelLab mete sangre de un rojo muy vivo y destellos aunque no se pidan. tools/zombi.py los quita al montar (los fotogramas originales se conservan).",
+      "sangre": "PixelLab mete sangre de un rojo muy vivo y destellos aunque no se pidan. Decidido por el dueño el 2026-10-12: la sangre se queda pero oscurecida (rojo apagado). Lo hace tools/zombi.py al montar; con \"sangre\": \"quitar\" o \"viva\" en zombi.json se cambia. Los fotogramas originales se conservan. La cantidad no es pareja entre direcciones (de perfil a la derecha sale mucha más).",
       "sin_usar_en_pixellab": "andar de plantilla scary-walk (grupo 25fe7361, solo east) y los cuatro andares descartados dentro del grupo 66e3fa72 (south, south-east, north-east, north). Borrar solo con confirmación del dueño."
     }
   },
