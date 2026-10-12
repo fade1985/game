@@ -156,15 +156,16 @@ Preguntas pendientes, por orden:
    recuperar); y el daño llega 0,17 s después de pulsar, cuando baja la mopa.
 2. **Si le vale, crear la skill `/arma-nueva`** con lo aprendido (ver el apartado siguiente) y hacer la segunda
    arma por ese flujo.
-3. **Borrar de PixelLab lo descartado** (ver el punto 6): ahora también el andar de plantilla y el primer ataque
-   de espaldas.
+3. **Limpieza del estado "Fregona en guardia": hecha** el 12 de octubre de 2026 con su confirmación. En PixelLab
+   quedan solo las animaciones que usa el juego (el ataque en dos grupos y el andar con PixMiniMax). El resto de
+   la limpieza sigue pendiente (punto 6).
 4. **Dos pegas del estado "Fregona en guardia"** que vio y no ha dicho si le molestan: usa 18 colores frente a
    los 50 del Johnny sin arma (ropa más plana), y la mopa cambia de lado entre la vista de frente y las diagonales.
 5. **Reposo:** sigue el hecho a mano ("de momento sirve"). Hay una prueba de frente con PixMiniMax que respeta
    mucho mejor a Johnny que la plantilla, pero parpadea demasiado. Propuesta sin contestar: repetirla sin
    parpadeo (1 generación) y, si gusta, las otras 7 direcciones.
 6. **Limpieza en PixelLab (borrar no se puede deshacer: solo con su confirmación expresa):** el estado
-   descartado "Con fregona" (mopa abajo), la prueba de ataque con v3, el andar de plantilla con la fregona y, según lo que decida en el punto 5, la
+   descartado "Con fregona" (mopa abajo) y, según lo que decida en el punto 5, la
    prueba de reposo con PixMiniMax y el reposo de plantilla. También el conserje antiguo de 32 píxeles.
 7. **De antes, sin decidir:** rehacer el zombi venenoso (salió con la piel beige en vez de verde) y si su sprite
    de prueba debe verse en las partidas normales; si la elección de arma se queda también en la versión cartoon;

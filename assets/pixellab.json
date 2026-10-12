@@ -138,7 +138,7 @@
       "v3": {
         "group": "2aa3d50a-4a2f-439e-aca8-9bbff820bc6c",
         "cost": "2 generaciones",
-        "resultado": "Descartable: a partir del segundo fotograma Johnny pierde la camisa (espalda y brazos desnudos), se gira de espaldas y el golpe se queda cinco fotogramas quieto en el suelo."
+        "resultado": "BORRADO de PixelLab el 2026-10-12. Descartable: a partir del segundo fotograma Johnny pierde la camisa (espalda y brazos desnudos), se gira de espaldas y el golpe se queda cinco fotogramas quieto en el suelo."
       },
       "pixminimax": {
         "group": "0973e15c-a4c9-425a-b946-71a75809a252",
@@ -155,7 +155,7 @@
       "cost": "8 generaciones",
       "action_description": "He walks forward in place at a steady pace in a smooth, seamless looping walk cycle: his legs stride alternately, knees lifting and boots stepping one after the other, with a slight bob of the torso on each step. He keeps facing exactly the same direction the whole time and never turns. He keeps holding the mop in the same guard grip with both hands the whole time: the wooden handle stays diagonal across his body and the grey mop head stays raised up beside his shoulder in the same place, only swaying very slightly with each step. His arms do not swing and never let go of the mop. The string strands of the mop and the tail of the red bandana sway a little. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation.",
       "plantilla_descartada": {
-        "nota": "DESCARTADO (sigue en PixelLab, sin borrar). La plantilla walking-8-frames sobre este estado pierde la fregona en 7 de las 8 direcciones y dibuja a Johnny más grande. Las plantillas no valen para estados con un arma en la mano.",
+        "nota": "DESCARTADO y BORRADO de PixelLab el 2026-10-12. La plantilla walking-8-frames sobre este estado pierde la fregona en 7 de las 8 direcciones y dibuja a Johnny más grande. Las plantillas no valen para estados con un arma en la mano.",
         "group": "4fac658e-d74d-4ebe-b142-19b928c68948",
         "cost": "8 generaciones"
       }
@@ -173,7 +173,7 @@
         "north-west": "standing in a guard stance in three-quarter back view, facing away from the camera and to the left, gripping the mop handle diagonally with both hands, the mop head raised up behind his shoulder on the right side of the image"
       },
       "north": {
-        "nota": "Con el texto común Johnny se daba la vuelta (se le veía la cara) y golpeaba hacia la izquierda: esa versión sigue en el grupo común de PixelLab, sin usar. La buena es esta segunda, en un grupo aparte, con un texto que insiste en que sigue de espaldas.",
+        "nota": "Con el texto común Johnny se daba la vuelta (se le veía la cara) y golpeaba hacia la izquierda: esa versión se borró de PixelLab el 2026-10-12 (el grupo común se queda con 7 direcciones). La buena es esta segunda, en un grupo aparte, con un texto que insiste en que sigue de espaldas.",
         "group": "a501ee01-6a32-48f6-bea0-5ff251afc1c0",
         "animation_name": "ataque-norte-2",
         "subject_description": "a young male janitor seen from behind, brown hair and a red bandana, cream shirt and blue work overalls, holding a long wooden mop with a grey string head",
