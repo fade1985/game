@@ -460,8 +460,37 @@ export function drawPickup(ctx, pk, time) {
   }
 }
 
+// Bala del conserje y de los compañeros, en pixel art: una trazadora. Son cuadraditos encajados en la
+// cuadrícula de píxeles del dibujo, puestos en fila hacia atrás: la punta casi blanca y una estela corta que
+// pasa de amarillo a naranja. Así vale para cualquier ángulo sin verse borrosa. Las críticas son más gordas
+// y rojizas; los perdigones, más pequeños.
+const TRACER = ['#fffbe0', '#ffe066', '#ffb020', '#f0701a', '#b8400e'];
+const TRACER_CRIT = ['#ffffff', '#ffe9a8', '#ff9a3c', '#ff4d2e', '#b3122a'];
+function drawTracer(ctx, b, y) {
+  const speed = Math.hypot(b.vx, b.vy) || 1;
+  const ux = b.vx / speed, uy = b.vy / speed;
+  const big = b.r >= 9 ? 3 : b.r >= 6 ? 2 : 1; // lado de la punta, en píxeles de dibujo
+  const colors = b.crit ? TRACER_CRIT : TRACER;
+  const step = big * PIXEL; // los trozos van pegados uno detrás de otro
+  const box = (k, size, color) => {
+    const side = size * PIXEL;
+    ctx.fillStyle = color;
+    ctx.fillRect(Math.round((b.x - ux * k * step - side / 2) / PIXEL) * PIXEL,
+      Math.round((y - uy * k * step - side / 2) / PIXEL) * PIXEL, side, side);
+  };
+  // primero el contorno oscuro de la parte gorda (punta y dos trozos más), luego los colores de atrás hacia
+  // delante para que la punta quede encima; los dos últimos trozos son más finos y se apagan
+  for (let k = 2; k >= 0; k--) box(k, big + 2, OUTLINE);
+  for (let k = colors.length - 1; k >= 0; k--) {
+    ctx.globalAlpha = k === 4 ? 0.5 : k === 3 ? 0.8 : 1;
+    box(k, k < 3 ? big : Math.max(1, big - 1), colors[k]);
+  }
+  ctx.globalAlpha = 1;
+}
+
 export function drawBullet(ctx, b) {
   const y = b.y - (b.lift || 0); // pixel art: las balas de un arma dibujada se ven a la altura del arma
+  if (b.friendly) { drawTracer(ctx, b, y); return; }
   ctx.globalAlpha = 0.35;
   ctx.beginPath();
   ctx.arc(b.x - b.vx * 0.018, y - b.vy * 0.018, b.r * 0.8, 0, TAU);

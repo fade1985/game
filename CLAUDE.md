@@ -164,12 +164,13 @@ Johnny con la fregona **ya está en el juego** (solo versión pixel): sprite `co
 
 Preguntas pendientes, por orden:
 
-1. **Visto bueno final a la pistola dentro del juego** (paso 6 de la skill). Johnny con la pistola de 9 mm ya está
-   en el juego (sprite `conserje-48-pistola`): reposo, andar y disparo con fogonazo, humo y casquillo en las 8
-   direcciones. Costó 32 generaciones. Cosas que mirar: de frente y de espaldas la pistola casi no se ve; andando
-   hacia la derecha y hacia arriba-izquierda el ciclo es corto y cierra algo peor; y las balas se dibujan
-   saliendo del cañón y bajan enseguida a la altura del cuerpo. Para probarlo: `?pruebas` y coger la pistola de
-   la cómoda.
+1. **La pistola tiene el visto bueno del dueño** ("está de lujo"). Johnny con la pistola de 9 mm está en el
+   juego (sprite `conserje-48-pistola`, 32 generaciones): reposo, andar y disparo en las 8 direcciones.
+   Lo siguiente que pidió: **la bala**. Hecha en pixel art desde el código (`drawTracer` en `render.js`, sin
+   PixelLab): una trazadora de cuadraditos encajados en la cuadrícula, punta casi blanca y estela de amarillo
+   a naranja; las críticas más gordas y rojizas, los perdigones más pequeños. Vale para todas las balas del
+   conserje y de los compañeros; los proyectiles de los zombis siguen como estaban. **Pendiente de que la vea
+   y diga si le vale.**
    - **Armas a distancia, cómo quedó programado:** al disparar con un arma con hoja propia se pone la animación
      `attack` sin retrasar la bala, y no se dibuja el arma de siempre ni su fogonazo ni su casquillo. La bala
      nace en la boca del arma del dibujo: `"boca": "fogonazo"` en `arma.json` hace que `tools/arma.py` la busque
