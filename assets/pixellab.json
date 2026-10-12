@@ -389,5 +389,29 @@
     },
     "cost": "1 generaciones",
     "updated": "2026-10-06T18:37:07.363Z"
+  },
+  "zombi-normal-48": {
+    "kind": "character",
+    "character_id": "3b7d49b1-87ef-48ea-92c1-e664b3ebbb10",
+    "name": "Zombi normal",
+    "nota": "Modelo del zombi normal a 48x48 (2026-10-12), piloto de los zombis nuevos. create_character_pro_flash con la vista de frente de Johnny (conserje-48) como imagen de estilo, copiando trazo, detalle y sombreado pero no la paleta. Mide 46 píxeles de alto, como Johnny. La piel salió beige apagado, no gris verdosa como se pidió. Rotaciones en assets/sources/zombi-normal-48/rotations/ y hoja comparada con Johnny en assets/pruebas/zombi-normal-modelo.png. Pendiente del visto bueno del dueño; sin animaciones todavía. Animaciones acordadas: andar, atacar, recibir golpe y morir.",
+    "request": {
+      "description": "adult male zombie, a dead neighbour from an apartment building, realistic adult body proportions, tall and slim, small head, sickly grey-green rotting skin, sunken dark eye sockets with pale dead eyes, open mouth with dark blood around the jaw, messy thinning dark brown hair, torn dirty light blue button shirt with dried blood stains and a ripped sleeve, dark navy trousers ripped at one knee, worn dark shoes, slightly hunched posture with the head tilted, arms hanging limp at his sides, empty hands, detailed shading",
+      "width": 48,
+      "height": 48,
+      "view": "low top-down",
+      "style_image": {
+        "url": "rotations/south.png de conserje-48 (4e6c78c6-d6c6-46d3-99c1-40a2d86f0e6c)",
+        "usage_description": "Match the pixel art style of this character: same outline thickness, same level of detail and shading, same body size and proportions. Do not copy his clothes, face or colors."
+      },
+      "style_options": {
+        "color_palette": false,
+        "detail": true,
+        "outline": true,
+        "shading": true
+      }
+    },
+    "cost": "6 generaciones (estimación de PixelLab)",
+    "updated": "2026-10-12"
   }
 }
