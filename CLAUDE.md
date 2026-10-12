@@ -134,7 +134,7 @@ Los sprites se generan con PixelLab. Desde el 12 de octubre de 2026 está conect
 ## Dónde lo dejamos (12 de octubre de 2026) · preguntar al dueño al retomar
 
 **Al retomar, empezar preguntándole por el punto 1.**
-Los ids, textos y costes de todo lo de abajo están en `assets/pixellab.json`. Quedaban 1.876 generaciones.
+Los ids, textos y costes de todo lo de abajo están en `assets/pixellab.json`. Quedaban 1.874 generaciones.
 
 Johnny con la fregona **ya está en el juego** (solo versión pixel): sprite `conserje-48-guardia`, estado
 "Fregona en guardia" del personaje "Johnny" en PixelLab. Tiene reposo, andar y ataque en las 8 direcciones.
@@ -156,16 +156,16 @@ Johnny con la fregona **ya está en el juego** (solo versión pixel): sprite `co
 
 Preguntas pendientes, por orden:
 
-1. **Visto bueno al estado "Pistola en guardia"** (`conserje-48-pistola`, paso 1 de la skill; el dueño pidió una
-   "pistola 9 mm típica"): hoja en `assets/pruebas/pistola-en-guardia.png`. Si le vale, el paso 2 es la prueba de
-   disparo de perfil y de espaldas (2 generaciones): retroceso corto, fogonazo y humo en la boca del arma.
-   - **Es la primera arma a distancia: hay que programar el juego** (plan contado al dueño, pendiente de su
-     respuesta). En `Player` de `entities.js`: al disparar con un arma con hoja propia, poner la animación
+1. **Visto bueno a la prueba de disparo de la pistola** (paso 2 de la skill): `assets/pruebas/pistola-disparo-prueba.png`,
+   de perfil y de espaldas. El estado "Pistola en guardia" (`conserje-48-pistola`) ya tiene su visto bueno. Si le
+   vale, seguir sin parar: las otras 6 direcciones del disparo (8 fotogramas, con sus `upload:` de partida
+   recién subidos) y las 8 de andar (14 generaciones), montaje, programar el juego y cierre.
+   - **Es la primera arma a distancia: hay que programar el juego** (plan contado al dueño; no puso pegas). En `Player` de `entities.js`: al disparar con un arma con hoja propia, poner la animación
      `attack` (como ya se hace con los golpes) sin retrasar la bala; no dibujar el arma cartoon ni su fogonazo; y
      sacar la bala de la boca de la pistola del dibujo (un punto por dirección, apuntado en `arma.json` → JSON
      del sprite) en vez de `handPos` + `muzzle`.
-   - **El bate está en el juego** (sprite `conserje-48-bate`, 27 generaciones). El dueño pasó a la pistola sin
-     comentar nada del bate: se da por bueno salvo que diga otra cosa.
+   - **El bate está en el juego** (sprite `conserje-48-bate`, 27 generaciones) y tiene el visto bueno del dueño
+     ("está perfecto").
    - **La fregona tiene la estela de agua dentro del dibujo** (las 8 direcciones). Decidido por el dueño: las
      estelas van siempre en el sprite y creíbles para cada arma (agua, aire, fuego...), nunca pintadas por el juego.
    - **Armas que quedan después:** cuchillo (cuerpo a cuerpo, sale con la skill tal cual) y escopeta.
