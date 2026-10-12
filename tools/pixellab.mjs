@@ -12,14 +12,13 @@
 //    node tools/pixellab.mjs animate <id> <plantilla> [--dirs south,east,north,west] [--fps 10] [--name walk]
 //    node tools/pixellab.mjs animate-text <id> "<acción>" [--frames 8] [--dirs south] [--name attack]
 //    node tools/pixellab.mjs export <id>
-//    node tools/pixellab.mjs image <id> "<descripción>" --size 64x32 [--pivot center|top-left|feet] [--view "high top-down"]
+//    node tools/pixellab.mjs image <id> "<descripción>" --size 64x32 [--pivot center|top-left|feet] [--view "high top-down"] [--outline lineless] [--background yes]
 //
 //  Antes de cada generación se indica cuántas "generaciones" (créditos) gastará, si se conoce.
 // ─────────────────────────────────────────────
-import { readFileSync, writeFileSync, mkdirSync, existsSync, mkdtempSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
-import { tmpdir } from 'node:os';
-import { execFileSync } from 'node:child_process';
+import { inflateRawSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -58,6 +57,26 @@ function addToManifest(id) {
 // Ancho y alto de un PNG (leyendo su cabecera)
 function pngSize(buf) {
   return [buf.readUInt32BE(16), buf.readUInt32BE(20)];
+}
+
+// Archivos de un ZIP en memoria: { nombre: contenido } (leyendo su índice, que va al final)
+function unzip(buf) {
+  let end = buf.length - 22;
+  while (end >= 0 && buf.readUInt32LE(end) !== 0x06054b50) end--;
+  if (end < 0) throw new Error('el archivo descargado no es un ZIP');
+  const files = {};
+  let p = buf.readUInt32LE(end + 16);
+  for (let n = buf.readUInt16LE(end + 10); n > 0; n--) {
+    const method = buf.readUInt16LE(p + 10), size = buf.readUInt32LE(p + 20);
+    const nameLen = buf.readUInt16LE(p + 28), skip = buf.readUInt16LE(p + 30) + buf.readUInt16LE(p + 32);
+    const local = buf.readUInt32LE(p + 42);
+    const name = buf.toString('utf8', p + 46, p + 46 + nameLen);
+    const start = local + 30 + buf.readUInt16LE(local + 26) + buf.readUInt16LE(local + 28);
+    const data = buf.subarray(start, start + size);
+    if (!name.endsWith('/')) files[name] = method === 0 ? data : inflateRawSync(data);
+    p += 46 + nameLen + skip;
+  }
+  return files;
 }
 
 async function api(method, path, body, tries = 8) {
@@ -164,14 +183,11 @@ const commands = {
     const reg = registry()[id];
     if (!reg?.character_id) throw new Error(`"${id}" no es un personaje creado con este script`);
     const zip = await api('GET', `/characters/${reg.character_id}/spritesheet`);
-    const dir = mkdtempSync(join(tmpdir(), 'pixellab-'));
-    writeFileSync(join(dir, 'sheet.zip'), zip);
-    execFileSync('python3', ['-I', '-c', 'import sys,zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])', join(dir, 'sheet.zip'), join(dir, 'x')]);
-    const files = readdirSync(join(dir, 'x'));
-    const png = files.find((f) => f.endsWith('.png'));
-    const layout = JSON.parse(readFileSync(join(dir, 'x', files.find((f) => f.endsWith('.json'))), 'utf8'));
+    const files = unzip(zip);
+    const names = Object.keys(files);
+    const layout = JSON.parse(files[names.find((f) => f.endsWith('.json'))].toString('utf8'));
     mkdirSync(OUT, { recursive: true });
-    writeFileSync(join(OUT, `${id}.png`), readFileSync(join(dir, 'x', png)));
+    writeFileSync(join(OUT, `${id}.png`), files[names.find((f) => f.endsWith('.png'))]);
     saveJSON(join(OUT, `${id}.json`), convertLayout(layout, reg));
     addToManifest(id);
     console.log(`  ✔ ${id}.png y ${id}.json guardados en assets/sprites/`);
@@ -184,7 +200,7 @@ const commands = {
     const body = {
       description,
       image_size: { width, height },
-      outline: STYLE.outline,
+      outline: o.outline || STYLE.outline,
       detail: o.detail || STYLE.detail,
       view: o.view || 'high top-down',
       no_background: o.background !== 'yes',

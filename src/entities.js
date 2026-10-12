@@ -218,8 +218,9 @@ export class Player {
     if (behind) this.drawArm(ctx, a);
     const sp = Math.hypot(this.vx, this.vy);
     // pixel art: sprite del conserje (los pies van 16 unidades por debajo del centro)
-    if (PIXEL_MODE && hasSprite('conserje')) pixelShadow(ctx, x, y + 15, 28);
-    const sprited = PIXEL_MODE && drawSprite(ctx, 'conserje', sp > 20 ? 'walk' : 'idle',
+    const sprite = hasSprite('conserje-48') ? 'conserje-48' : 'conserje'; // prueba del estilo nuevo (48×48)
+    if (PIXEL_MODE && hasSprite(sprite)) pixelShadow(ctx, x, y + 15, 28);
+    const sprited = PIXEL_MODE && drawSprite(ctx, sprite, sp > 20 ? 'walk' : 'idle',
       dirFromVector(this.lookX, this.lookY), game ? game.time : 0, x, y + 16, { flash: this.hurtT > 0 });
     if (!sprited) drawHuman(ctx, x, y, {
       ...PLAYER_LOOK,

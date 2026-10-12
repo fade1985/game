@@ -1,0 +1,100 @@
+{
+  "cell": [
+    48,
+    48
+  ],
+  "pivot": "auto",
+  "anims": {
+    "idle": {
+      "fps": 1,
+      "loop": true,
+      "dirs": {
+        "south": {
+          "row": 0,
+          "col": 0,
+          "frames": 1
+        },
+        "south-east": {
+          "row": 0,
+          "col": 1,
+          "frames": 1
+        },
+        "east": {
+          "row": 0,
+          "col": 2,
+          "frames": 1
+        },
+        "north-east": {
+          "row": 0,
+          "col": 3,
+          "frames": 1
+        },
+        "north": {
+          "row": 0,
+          "col": 4,
+          "frames": 1
+        },
+        "north-west": {
+          "row": 0,
+          "col": 5,
+          "frames": 1
+        },
+        "west": {
+          "row": 0,
+          "col": 6,
+          "frames": 1
+        },
+        "south-west": {
+          "row": 0,
+          "col": 7,
+          "frames": 1
+        }
+      }
+    }
+  },
+  "source": {
+    "character": {
+      "id": "18b9d762-9495-4a05-a309-ec77382fead7",
+      "name": "Idle",
+      "prompt": "young male janitor, realistic adult body proportions, tall and slim, small head, messy brown hair with a red bandana tied on the head, cream shirt under blue work overalls, dark work boots, empty hands, arms relaxed at his sides, detailed shading",
+      "size": {
+        "width": 48,
+        "height": 48
+      },
+      "directions": 8,
+      "view": "low top-down"
+    },
+    "spritesheet": {
+      "path": "young_male_janitor_reali-Idle.png",
+      "cell_size": {
+        "width": 48,
+        "height": 48
+      },
+      "sheet_size": {
+        "width": 384,
+        "height": 48
+      },
+      "columns": 8,
+      "pivot": "cell-center",
+      "rows": [
+        {
+          "row": 0,
+          "type": "rotations",
+          "frame_count": 8,
+          "directions": [
+            "south",
+            "south-east",
+            "east",
+            "north-east",
+            "north",
+            "north-west",
+            "west",
+            "south-west"
+          ]
+        }
+      ]
+    },
+    "export_version": "1.0",
+    "export_date": "2026-10-06T18:29:04.531296+00:00"
+  }
+}

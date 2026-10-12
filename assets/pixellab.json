@@ -76,5 +76,85 @@
     },
     "cost": "1 generaciones",
     "updated": "2026-10-06T12:52:50.891Z"
+  },
+  "conserje-48": {
+    "kind": "character",
+    "character_id": "18b9d762-9495-4a05-a309-ec77382fead7",
+    "request": {
+      "description": "young male janitor, realistic adult body proportions, tall and slim, small head, messy brown hair with a red bandana tied on the head, cream shirt under blue work overalls, dark work boots, empty hands, arms relaxed at his sides, detailed shading",
+      "image_size": {
+        "width": 48,
+        "height": 48
+      },
+      "view": "low top-down",
+      "outline": "single color black outline",
+      "detail": "highly detailed",
+      "no_background": true
+    },
+    "updated": "2026-10-06T18:26:39.687Z"
+  },
+  "suelo-cocina": {
+    "kind": "image",
+    "request": {
+      "description": "seamless tileable kitchen floor, white and pale blue-grey checkered ceramic tiles, thin grout lines, simple, subtle, low contrast, flat top-down texture, no objects",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "outline": "lineless",
+      "detail": "low detail",
+      "view": "high top-down",
+      "no_background": false
+    },
+    "cost": "1 generaciones",
+    "updated": "2026-10-06T18:35:40.090Z"
+  },
+  "suelo-dormitorio": {
+    "kind": "image",
+    "request": {
+      "description": "seamless tileable soft bedroom carpet, pale periwinkle blue, fine woven fabric texture, simple, subtle, low contrast, flat top-down texture, no objects",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "outline": "lineless",
+      "detail": "low detail",
+      "view": "high top-down",
+      "no_background": false
+    },
+    "cost": "1 generaciones",
+    "updated": "2026-10-06T18:36:11.639Z"
+  },
+  "suelo-pasillo": {
+    "kind": "image",
+    "request": {
+      "description": "seamless tileable wooden plank floor, medium brown horizontal boards, simple, subtle, low contrast, flat top-down texture, no objects",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "outline": "lineless",
+      "detail": "low detail",
+      "view": "high top-down",
+      "no_background": false
+    },
+    "cost": "1 generaciones",
+    "updated": "2026-10-06T18:36:36.295Z"
+  },
+  "suelo-bano": {
+    "kind": "image",
+    "request": {
+      "description": "seamless tileable bathroom floor, small pale mint green square ceramic tiles, thin grout lines, simple, subtle, low contrast, flat top-down texture, no objects",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "outline": "lineless",
+      "detail": "low detail",
+      "view": "high top-down",
+      "no_background": false
+    },
+    "cost": "1 generaciones",
+    "updated": "2026-10-06T18:37:07.363Z"
   }
 }
