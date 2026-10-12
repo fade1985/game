@@ -3,37 +3,38 @@
 //
 //  Los muebles van pegados a las paredes (nunca delante de una puerta) y son
 //  obstáculos rectangulares: paran a los personajes y a las balas.
-//  Cada mueble se dibuja "mirando" a la habitación: en coordenadas locales,
-//  -dep/2 es el lado de la pared y +dep/2 el lado de la sala.
+//  Se ven "en tres cuartos": enseñan el frente y tienen altura, como los personajes.
+//  Por eso cada uno solo puede ir en las paredes para las que tiene dibujo (ver goesOn).
 // ─────────────────────────────────────────────
 import { W, H, WALL, DOOR_W, OUTLINE } from './config.js';
-import { drawSprite } from './sprites.js';
+import { drawSprite, hasSprite } from './sprites.js';
 import { CELL, rectIsFloor } from './shapes.js';
 
 const TAU = Math.PI * 2;
 
 // Catálogo: largo a lo largo de la pared (len) y fondo hacia la sala (dep)
 const PIECES = {
-  sofa:      { len: 152, dep: 64 },
-  tv:        { len: 120, dep: 40 },
-  armchair:  { len: 64,  dep: 60 },
-  bookshelf: { len: 120, dep: 34 },
-  lamp:      { len: 38,  dep: 38 },
-  counter:   { len: 160, dep: 50 },
+  // (el largo es el ancho del dibujo de cada mueble: así se choca justo con lo que se ve)
+  sofa:      { len: 136, dep: 60 },
+  tv:        { len: 84,  dep: 40 },
+  armchair:  { len: 76,  dep: 60 },
+  bookshelf: { len: 86,  dep: 34 },
+  lamp:      { len: 30,  dep: 30 },
+  counter:   { len: 158, dep: 50 },
   fridge:    { len: 62,  dep: 58 },
-  stove:     { len: 70,  dep: 52 },
-  bed:       { len: 100, dep: 140 },
-  wardrobe:  { len: 130, dep: 44 },
-  nightstand:{ len: 42,  dep: 40 },
-  desk:      { len: 110, dep: 50 },
-  shoerack:  { len: 100, dep: 34 },
-  coatstand: { len: 38,  dep: 38 },
-  console:   { len: 110, dep: 34 },
-  bathtub:   { len: 150, dep: 72 },
-  toilet:    { len: 46,  dep: 58 },
-  sink:      { len: 70,  dep: 46 },
-  washer:    { len: 60,  dep: 58 },
-  plant:     { len: 44,  dep: 44 },
+  stove:     { len: 56,  dep: 50 },
+  bed:       { len: 84,  dep: 140 },
+  wardrobe:  { len: 96,  dep: 44 },
+  nightstand:{ len: 40,  dep: 36 },
+  desk:      { len: 92,  dep: 50 },
+  shoerack:  { len: 74,  dep: 34 },
+  coatstand: { len: 36,  dep: 30 },
+  console:   { len: 68,  dep: 34 },
+  bathtub:   { len: 116, dep: 60 },
+  toilet:    { len: 52,  dep: 58 },
+  sink:      { len: 64,  dep: 46 },
+  washer:    { len: 46,  dep: 50 },
+  plant:     { len: 40,  dep: 36 },
 };
 
 // Qué muebles puede tener cada estilo de habitación
@@ -45,6 +46,13 @@ const BY_STYLE = {
   'Baño':       ['bathtub', 'toilet', 'sink', 'washer'],
   'Mantenimiento': ['washer', 'bookshelf', 'desk', 'wardrobe', 'shoerack'],
 };
+
+// En qué paredes puede ir cada mueble. En la de arriba, todos: se les ve de frente.
+// En las laterales, los que tienen un dibujo de lado (`mueble-<tipo>-lado`; en la derecha se pone en espejo)
+// o se ven igual desde cualquier sitio. En la de abajo solo estos últimos: se verían de espaldas.
+const ANY_WALL = ['lamp', 'plant', 'coatstand'];
+const SIDE_WALL = ['sofa', 'armchair', 'bathtub', 'toilet', 'nightstand'];
+const goesOn = (kind, side) => side === 'top' || ANY_WALL.includes(kind) || (side !== 'bottom' && SIDE_WALL.includes(kind));
 
 // Tramos de pared libres (sin puerta) donde se pueden poner muebles en la sala de siempre (960×640)
 const GAP = DOOR_W / 2 + 44;
@@ -86,7 +94,7 @@ function wallSegments(layout, zone) {
     scan('left', rows, (r) => mine(c, r) && wall(c - 1, r), c * CELL);
     scan('right', rows, (r) => mine(c, r) && wall(c + 1, r), (c + 1) * CELL);
   }
-  return segs.filter((s) => s.b - s.a >= 38);
+  return segs.filter((s) => s.b - s.a >= 30);
 }
 
 // Coloca entre `min` y `max` muebles al azar (con el generador `rng` del mapa). Opciones:
@@ -101,15 +109,22 @@ export function placeFurniture(styleName, rng, min, max, { skipSide = null, layo
   const pool = (BY_STYLE[styleName] || BY_STYLE['Pasillo']).filter((k) => PIECES[k].dep <= maxDep);
   const want = min + Math.floor(rng() * (max - min + 1));
   const segments = layout ? wallSegments(layout, zone) : SEGMENTS;
+  const tops = segments.filter((s) => s.side === 'top' && s.side !== skipSide);
   const placed = [];
   for (let tries = 0; pool.length && segments.length && placed.length < want && tries < (layout ? 240 : 80); tries++) {
-    const kind = pool[Math.floor(rng() * pool.length)];
+    // primero la pared (con preferencia por las de arriba, donde cabe cualquier mueble) y luego un mueble que valga para ella
+    const from = tops.length && rng() < 0.55 ? tops : segments;
+    const seg = from[Math.floor(rng() * from.length)];
+    if (seg.side === skipSide) continue;
+    const fit = pool.filter((k) => goesOn(k, seg.side) && PIECES[k].len <= seg.b - seg.a
+      // lámparas, plantas y percheros valen en cualquier pared: que no lo llenen todo
+      && !(ANY_WALL.includes(k) && placed.some((p) => p.kind === k)));
+    if (!fit.length) continue;
+    const kind = fit[Math.floor(rng() * fit.length)];
     const pc = PIECES[kind];
-    const seg = segments[Math.floor(rng() * segments.length)];
-    if (seg.side === skipSide || seg.b - seg.a < pc.len) continue;
-    const along = seg.a + pc.len / 2 + rng() * (seg.b - seg.a - pc.len);
+    const along = Math.round((seg.a + pc.len / 2 + rng() * (seg.b - seg.a - pc.len)) / 2) * 2; // en píxeles enteros del dibujo
     const horiz = seg.side === 'top' || seg.side === 'bottom';
-    const o = { shape: 'rect', kind, side: seg.side, len: pc.len, dep: pc.dep, seed: rng() };
+    const o = { shape: 'rect', kind, side: seg.side, len: pc.len, dep: pc.dep, seed: rng(), zone };
     if (horiz) {
       o.x = along; o.w = pc.len; o.h = pc.dep;
       o.y = seg.side === 'top' ? (seg.base ?? WALL) + pc.dep / 2 : (seg.base ?? H - WALL) - pc.dep / 2;
@@ -174,21 +189,32 @@ export function drawFurnitureLight(ctx, f) {
   ctx.fillRect(f.x - 120, f.y - 120, 240, 240);
 }
 
-export function drawFurniture(ctx, f) {
-  // sombra hacia abajo
-  ctx.fillStyle = 'rgba(20, 16, 40, 0.2)';
+// Sombra del mueble en el suelo (va en la imagen fija de la sala)
+export function drawFurnitureShadow(ctx, f) {
+  ctx.fillStyle = 'rgba(20, 16, 40, 0.22)';
   ctx.beginPath();
-  ctx.roundRect(f.x - f.w / 2 + 3, f.y - f.h / 2 + 7, f.w, f.h, 8);
+  ctx.ellipse(f.x, f.y + f.h / 2 - 4, f.w / 2 + 2, 9, 0, 0, TAU);
   ctx.fill();
+}
 
-  // pixel art: el sprite está dibujado "de espaldas a la pared de arriba" y se gira
-  // de 90 en 90 grados según su pared (así los píxeles no se deforman)
-  ctx.save();
-  ctx.translate(f.x, f.y);
-  ctx.rotate(ROT[f.side]);
-  const ok = drawSprite(ctx, `mueble-${f.kind}`, 'idle', 'south', 0, 0, 0);
-  ctx.restore();
-  if (ok) return; // los muebles que aún no tienen sprite se dibujan a mano, aquí debajo
+// El sprite se apoya en el borde de abajo del hueco del mueble y sube lo que mida de alto.
+// `alpha` lo apaga en las habitaciones a oscuras.
+export function drawFurniture(ctx, f, alpha = 1) {
+  const lado = (f.side === 'left' || f.side === 'right') && hasSprite(`mueble-${f.kind}-lado`);
+  const id = `mueble-${f.kind}${lado ? '-lado' : ''}`;
+  if (hasSprite(id)) {
+    const o = alpha < 1 ? { alpha } : {};
+    if (lado && f.side === 'right') {
+      // el dibujo de lado está hecho para la pared izquierda: en la derecha, en espejo
+      ctx.save();
+      ctx.translate(f.x, 0);
+      ctx.scale(-1, 1);
+      drawSprite(ctx, id, 'idle', 'south', 0, 0, f.y + f.h / 2, o);
+      ctx.restore();
+    } else drawSprite(ctx, id, 'idle', 'south', 0, f.x, f.y + f.h / 2, o);
+    return;
+  }
+  // los muebles sin sprite se dibujan a mano, vistos desde arriba (el dibujo de antes)
 
   ctx.save();
   ctx.translate(f.x, f.y);

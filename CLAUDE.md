@@ -65,8 +65,8 @@ npm run dev            # sirve la carpeta en http://localhost:3000 (también val
 | `camera.js` | Cámara (zoom ×1,5, ×1,15 con un jefe delante; sigue al conserje) |
 | `sprites.js` | Carga y dibuja las hojas de sprites de pixel art; si falta un sprite, se usa el dibujo de siempre |
 | `shapes.js` | La cuadrícula de cada mapa (suelo/muro), los choques con tabiques y el camino de los zombis (rodean muebles) |
-| `render.js` | Suelo (uno por habitación), paredes, puertas, minimapa |
-| `furniture.js` | Muebles por estilo de habitación, decoración de pared, luces |
+| `render.js` | Suelo (uno por habitación), paredes con cara (`wallFaces`), lo que tiene altura (`sceneryOf`), puertas, minimapa |
+| `furniture.js` | Muebles por estilo de habitación y en qué pared puede ir cada uno, decoración de pared, luces |
 | `props.js` | Superviviente, la llave del mini jefe, armas en el suelo y muebles con arma |
 | `entities.js` / `zombies.js` / `bosses.js` | Conserje, supervivientes, los 6 zombis, el vecino del 4ºB y la portera |
 | `weapons.js` / `aim.js` | Armas y apuntado automático |
@@ -103,16 +103,21 @@ Los sprites se generan con PixelLab. Desde el 12 de octubre de 2026 está conect
   - Antes de lanzar tandas grandes, calcular el total y **decírselo al dueño**.
 - Todo lo generado se apunta en `assets/pixellab.json` (texto, semilla, ids) para poder repetirlo.
 - **Muebles y suelos: como imagen suelta (`create_image_pixflux`, 1 generación cada uno), no como "objeto"**
-  (10–25). Los 20 muebles y los 7 suelos ya tienen sprite (12 de octubre de 2026). Receta de los muebles:
-  - Se pide con una **guía** como imagen de partida (`init_image_base64`, fuerza 90–150): el dibujo a mano de
-    siempre a mitad de tamaño (`assets/sources/muebles/guias/`). Así sale visto desde arriba, de espaldas a la
-    pared de arriba y con el tamaño exacto, y el juego lo puede girar a cualquier pared. Sin guía PixelLab lo
-    hace en perspectiva y de otro tamaño.
-  - Si el mueble tiene un tablero liso (escritorio, armario, lavadora), pedirlo **con fondo** (la guía sobre un
-    azul liso) y no con `no_background`: PixelLab se come el tablero al quitar el fondo. El fondo lo quita
-    `py tools/mueble.py`, que monta todos los sprites desde `assets/sources/muebles/`.
-  - PixelLab solo deja 8 generaciones a la vez.
-  - El armario (`wardrobe`) quedó flojo: es un tablón de madera. Pendiente de repetir o retocar.
+  (10–25). Los 20 muebles y los 7 suelos tienen sprite.
+- **El escenario se ve "en tres cuartos"** (decidido por el dueño el 12 de octubre de 2026, al notar que los
+  personajes se veían de lado y el escenario desde arriba): el suelo desde arriba, pero las paredes enseñan su
+  cara y los muebles su frente, con altura. Los muebles en planta que se hicieron antes se retiraron.
+  - Cada mueble va apoyado en su pared: de frente en la de arriba; en las laterales solo los que tienen
+    dibujo de lado (`mueble-<tipo>-lado`: sofá, sillón, bañera, váter) o se ven igual desde cualquier sitio
+    (lámpara, planta, perchero, mesilla); en la de abajo solo estos últimos (`goesOn` en `furniture.js`).
+  - Receta: sin guía y sin fondo, con un lienzo de largo × (fondo + alto) y el texto "..., front view facing
+    the viewer, 3/4 top-down RPG perspective, game furniture sprite". Si sale girado en diagonal, con la guía
+    de `py tools/muebles3c.py guias` (un bloque del tamaño del mueble) y con fondo. Montaje:
+    `py tools/muebles3c.py monta`. El largo de cada mueble en `PIECES` es el ancho de su dibujo × 2.
+  - Pendiente: dibujos de lado de cama, estantería, armario, encimera, nevera y demás (los tres primeros se
+    pidieron y salieron mal), para que las paredes laterales no se queden tan vacías.
+  - PixelLab solo deja 8 generaciones a la vez. **La clave `PIXELLAB_API_KEY` de este ordenador es de otra
+    cuenta, sin saldo**: todo se pide por MCP.
 - **Animaciones muy sutiles (reposo): mejor hacerlas a mano que pedirlas.** Las de PixelLab redibujan el
   personaje en cada fotograma y a 48 píxeles la cara "baila". La de reposo de Johnny (`conserje-48`) la hace
   `tools/idle.py` a partir de sus 8 rotaciones: respiración de 1 píxel y parpadeo, sin tocar ningún otro píxel.

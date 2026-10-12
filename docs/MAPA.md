@@ -151,6 +151,28 @@ fregona, rellenándole la vida en cada puerta y saltándose a los jefes (contra 
   apartamento en la 4ª planta y moría en uno de cada cuatro: se suavizó.
 - En 42 partidas seguidas del bot con los valores definitivos no se atascó en ningún apartamento.
 
+## Escenario en tres cuartos (12 de octubre de 2026)
+
+Capturas: `assets/pruebas/mapa-tres-cuartos.jpg` (y la comparación previa, `perspectiva-comparacion.png`).
+
+El dueño notó que los personajes se ven de lado y el escenario desde arriba. Se pasó el escenario al estilo de
+Zelda o Isaac: suelo desde arriba, y lo que está de pie enseñando su frente.
+
+- **Paredes con cara.** Todo muro con suelo justo debajo enseña una cara con el papel pintado de esa habitación
+  (`wallFaces` y `drawFace` en `render.js`). La del muro de arriba va en la imagen fija de la sala. La de un
+  tabique sube 12 unidades por encima de su casilla (`OVER`) y tapa esa franja de la habitación de detrás.
+- **Quién tapa a quién.** Los muebles y las caras de los tabiques se ordenan por su "y" junto con los
+  personajes (`sceneryOf`): lo que está más abajo se dibuja delante. Johnny pasa por detrás de un armario o
+  asoma por encima de un tabique.
+- **Muebles con altura**, cada uno apoyado en su pared; no todos valen para todas (ver `CLAUDE.md`, apartado
+  PixelLab). Sus medidas de choque se ajustaron al ancho de los dibujos.
+- **A oscuras:** las caras y los muebles de una habitación sin pisar se apagan con ella.
+- El bot jugó 6 partidas después del cambio sin atascarse.
+
+Pendiente de esta parte: más muebles de lado (las paredes laterales quedan vacías), los muebles de las armas de
+la sala de mantenimiento (siguen en planta), las puertas de los lados y de abajo (siguen como estaban), y
+alfombras y cuadros con sprite.
+
 ### Pendiente
 
 - **Los jefes no se han tocado** ni medido: el bot no sabe esquivarlos. La vida del vecino sigue subiendo un 25 %

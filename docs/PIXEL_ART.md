@@ -10,7 +10,7 @@ pudiendo ver añadiendo **`?cartoon`** a la dirección (por ejemplo `http://loca
 |---|---|---|
 | 0 · Base | Dibujo a 480×320 ampliado sin suavizado, sistema de sprites con "plan B", herramienta de PixelLab, esta guía | ✅ Hecha |
 | 1 · Prueba | Conserje, zombi normal, sofá y suelo del salón en una habitación | ✅ Hecha (13 generaciones) · pendiente de tu visto bueno |
-| 2 · Escenarios | 5 suelos, paredes, puertas, escaleras y unos 20 muebles | 🟡 Suelos (7) y los 20 muebles hechos el 12 de octubre de 2026 (38 generaciones); faltan paredes, puertas, alfombras y decoración de pared |
+| 2 · Escenarios | 5 suelos, paredes, puertas, escaleras y unos 20 muebles | 🟡 Suelos (7), paredes con cara (pintadas con código) y los 20 muebles en tres cuartos; faltan muebles de lado, puertas, alfombras, decoración de pared y los muebles de las armas |
 | 3 · Personajes | Conserje, 3 supervivientes y 6 zombis con sus animaciones | ⏳ |
 | 4 · Jefes | El vecino del 4ºB y la portera | ⏳ |
 | 5 · Objetos e interfaz | Armas, objetos, corazón, llave, proyectiles, charcos, efectos, iconos y fuente | ⏳ |
@@ -36,8 +36,9 @@ pudiendo ver añadiendo **`?cartoon`** a la dirección (por ejemplo `http://loca
   Las animaciones se pueden hacer en 4 u 8; si falta una diagonal, el juego usa la dirección más cercana.
 - **Armas:** van aparte y se dibujan girando en la mano del personaje (como ahora). Los personajes se generan
   **con las manos vacías**.
-- **Los muebles se dibujan una sola vez**, "de espaldas a la pared de arriba", y el juego los gira de 90 en 90
-  grados para las otras paredes (girar 90° no deforma los píxeles).
+- **El escenario va "en tres cuartos"**, como los personajes: el suelo se ve desde arriba, las paredes que tienen
+  suelo debajo enseñan su cara y los muebles su frente, con altura. Cada mueble tiene un dibujo de frente (para
+  la pared de arriba) y algunos otro de lado (para las laterales; en la derecha, en espejo). Ya no se giran.
 - **Paleta de referencia** (la actual del juego): contorno `#1d1b2c` · piel `#ffd2a8` · mono `#4f86f7` ·
   pañuelo `#ff5d73` · camisa `#fff3d6` · piel zombi `#8fc46a` · camisa zombi `#5b7db1` · parquet `#dba36a`/`#cf955c` ·
   amarillo `#ffd23f` · verde `#80ed99`.

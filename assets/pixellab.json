@@ -464,7 +464,7 @@
     }
   },
   "muebles": {
-    "nota": "Los 20 muebles, vistos desde arriba para poder girarlos a cualquier pared. Cada uno se pidio con su guia como imagen de partida (init_image): asi sale con el tamano exacto. Los de \"sin_fondo\": false se pidieron con la guia sobre un fondo azul liso (96,112,150) y el fondo lo quita tools/mueble.py; con no_background PixelLab se comia los tableros lisos. Montaje: py tools/mueble.py",
+    "nota": "SUSTITUIDOS el 12 de octubre de 2026 por los de tres cuartos (\"muebles-3c\"). Los 20 muebles, vistos desde arriba para poder girarlos a cualquier pared. Cada uno se pidio con su guia como imagen de partida (init_image): asi sale con el tamano exacto. Los de \"sin_fondo\": false se pidieron con la guia sobre un fondo azul liso (96,112,150) y el fondo lo quita tools/mueble.py; con no_background PixelLab se comia los tableros lisos. Montaje: py tools/mueble.py",
     "comun": {
       "herramienta": "create_image_pixflux (MCP)",
       "outline": "single color black outline",
@@ -636,5 +636,109 @@
     "job_id": "e5267570-afc8-45a5-8101-b6d0c4043dd3",
     "descartado": "16930f9e-334a-4c0f-a72d-46066cd87cb3",
     "description": "seamless tileable floor texture, plain dark grey asphalt rooftop, almost uniform flat colour with very faint tiny gravel speckles, no lines, no tiles, no bricks, no grid, simple, subtle, low contrast, flat top-down texture, no objects"
+  },
+  "muebles-3c": {
+    "nota": "Muebles en tres cuartos (frente y, algunos, lado). create_image_pixflux, outline \"single color black outline\", detail \"medium detail\", view \"high top-down\". Textos: <mueble>, front view facing the viewer, 3/4 top-down RPG perspective, game furniture sprite. Montaje: py tools/muebles3c.py monta",
+    "fecha": "2026-10-12",
+    "coste": "47 generaciones (24 en uso, 23 descartadas o de prueba), mas 10-25 del kit de paredes cd3fc79c que no se usa",
+    "piezas": {
+      "sofa": [
+        "9e4f60b0-6bf8-4ddd-8c18-588a7f4ffcc0",
+        "sin guia, no_background true"
+      ],
+      "bookshelf": [
+        "cbe8b7fc-9daf-47ae-b146-a05f72244058",
+        "sin guia, no_background true"
+      ],
+      "tv": [
+        "a7ecb97f-070d-4e5e-b342-f1244931ef4c",
+        "sin guia, no_background true"
+      ],
+      "lamp": [
+        "0e2d6e11-5e2d-4036-92ea-57bfb2b2e112",
+        "sin guia, no_background true"
+      ],
+      "bed": [
+        "2271cf7e-0f8e-437a-aea1-649c64d1702d",
+        "sin guia, no_background true"
+      ],
+      "wardrobe": [
+        "340986a1-7a97-49c7-aa0d-721e6e206d7e",
+        "sin guia, no_background true"
+      ],
+      "nightstand": [
+        "7c3eb4e8-742c-437d-8340-a8b9f6b34bbc",
+        "sin guia, no_background true"
+      ],
+      "stove": [
+        "8c12af73-032b-449f-bfa0-3e4adf8d2152",
+        "sin guia, no_background true"
+      ],
+      "washer": [
+        "bc7b9184-cdc6-49bb-9706-ec62bc2ff849",
+        "sin guia, no_background true"
+      ],
+      "plant": [
+        "76e5894f-ff53-4c7d-ae2a-bef64e0b8aa2",
+        "sin guia, no_background true"
+      ],
+      "desk": [
+        "900b5ae0-8cf3-452a-8386-accac6b6cd7a",
+        "sin guia, no_background true"
+      ],
+      "shoerack": [
+        "c37ec3d2-1196-420e-9b61-ad57b22096a4",
+        "sin guia, no_background true"
+      ],
+      "coatstand": [
+        "f0a0953d-125a-49c2-9a51-48278480991b",
+        "sin guia, no_background true"
+      ],
+      "console": [
+        "85d3d518-b2d3-4dfa-9a59-03a682163bcb",
+        "sin guia, no_background true"
+      ],
+      "bathtub": [
+        "32b900f2-852b-465b-9c99-31fcf4d4a5b1",
+        "sin guia, no_background true"
+      ],
+      "armchair": [
+        "804acae6-f5fa-4170-994a-00d11a4be521",
+        "con guia (init_image, fuerza 50-60), con fondo"
+      ],
+      "counter": [
+        "ef4640b3-7714-48e2-bec7-f4fd84cb4cc7",
+        "con guia (init_image, fuerza 50-60), con fondo"
+      ],
+      "fridge": [
+        "1592cbb7-7689-496a-95a4-1e8caa9a18ef",
+        "con guia (init_image, fuerza 50-60), con fondo"
+      ],
+      "toilet": [
+        "a4132d88-53e8-44ea-b884-065a9d7ef66f",
+        "con guia (init_image, fuerza 50-60), con fondo"
+      ],
+      "sink": [
+        "42476ed1-34e2-4a79-9e12-f1b318e8f674",
+        "con guia (init_image, fuerza 50-60), con fondo"
+      ],
+      "sofa-lado": [
+        "8439059d-3b0d-457c-a4fa-9abc1ed1b141",
+        "sin guia, no_background true"
+      ],
+      "armchair-lado": [
+        "b056bf45-2ce7-4154-a852-3f87f1b698ad",
+        "sin guia, no_background true"
+      ],
+      "bathtub-lado": [
+        "9a4580dd-de19-4ad4-8051-e4c2fc725e76",
+        "sin guia, no_background true"
+      ],
+      "toilet-lado": [
+        "dac2bf85-abc7-4a3d-a76a-9d97f8bf5482",
+        "sin guia, no_background true"
+      ]
+    },
+    "descartados": "de lado, salieron mal (en diagonal o como torres): bed-lado 81bc10e3, bookshelf-lado 032a5bc3, wardrobe-lado 444310f9. Con guia, mas sosos que sin ella: sofa 60dde6b5, tv 21bc57b4, bookshelf 7c81d7fe, stove 35baf722. En diagonal: fridge c20c65a1, toilet 8b0c818c, sink be3cbd63, counter 4f355596"
   }
 }

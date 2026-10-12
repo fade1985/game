@@ -13,7 +13,7 @@ import { baseStats, rollItem, applyWorkshop, WORKSHOP } from './upgrades.js';
 import { SurvivorNPC, DoorKey, WeaponProp, WeaponStash, Maniqui } from './props.js';
 import { WEAPONS, randomWeapon, weaponSummary } from './weapons.js';
 import { loadSave, updateSave, buildingSave } from './save.js';
-import { drawRoom, drawDoors, drawDoorLabels, drawFog, drawPickup, drawBullet, drawMinimap, drawEmoji as drawEmojiAt, minimapRect } from './render.js';
+import { drawRoom, sceneryOf, drawDoors, drawDoorLabels, drawFog, drawPickup, drawBullet, drawMinimap, drawEmoji as drawEmojiAt, minimapRect } from './render.js';
 import { Camera, ZOOM, BOSS_ZOOM } from './camera.js';
 import { outlinedText, roundBox, setTextFont } from './draw.js';
 import { setGridSnap } from './sprites.js';
@@ -1280,6 +1280,7 @@ export class Game {
       ctx.translate(tx, ty);
       ctx.drawImage(this.roomImage(tr.from), 0, 0, tr.from.layout.w, tr.from.layout.h);
       drawDoors(ctx, tr.from, 1);
+      for (const s of [...sceneryOf(tr.from)].sort((a, b) => a.y - b.y)) s.draw(ctx, this);
       ctx.restore();
     }
     ctx.drawImage(this.roomImage(this.room), 0, 0, this.rw, this.rh);
@@ -1439,7 +1440,8 @@ export class Game {
     // ...y lo que hay en una habitación a oscuras no se ve hasta entrar
     const props = this.room.props.filter((pr) => !(pr.taken && (pr.kind === 'survivor' || pr.kind === 'doorkey')) && !this.hidden(pr));
     // Ordenamos por "y" para que lo de abajo se dibuje delante (falsa profundidad)
-    const list = [...this.enemies.filter((e) => !this.hidden(e)), ...this.allies, ...props];
+    // (entran también los muebles y las caras de los tabiques, que tienen altura)
+    const list = [...this.enemies.filter((e) => !this.hidden(e)), ...this.allies, ...props, ...sceneryOf(this.room)];
     if (!this.player.dead) list.push(this.player);
     list.sort((a, b) => a.y - b.y);
     for (const e of list) e.draw(ctx, this);

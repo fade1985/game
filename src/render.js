@@ -5,7 +5,7 @@ import { W, H, WALL, DOOR_W, OUTLINE, PIXEL, TILE } from './config.js';
 import { drawSprite, hasSprite } from './sprites.js';
 import { roundBox, outlinedText, heartPath } from './draw.js';
 import { ROOM_TYPES } from './rooms.js';
-import { drawFurniture, drawFurnitureLight, drawWallDecor, drawWindowLight } from './furniture.js';
+import { drawFurniture, drawFurnitureShadow, drawFurnitureLight, drawWallDecor, drawWindowLight } from './furniture.js';
 import { CELL } from './shapes.js';
 
 const TAU = Math.PI * 2;
@@ -17,33 +17,13 @@ export function drawRoom(ctx, room, time) {
   // con tabiques (un apartamento): contorno del suelo sacado de su cuadrícula (si es rectangular, se dibuja como siempre)
   const shape = blocks.length ? floorOutline(room.layout) : null;
 
-  // Muro con papel pintado a rayas
-  ctx.fillStyle = style.wall;
+  // Los muros, vistos desde arriba: una "tapa" oscura con un filo de luz por fuera.
+  // (Los que tienen suelo justo debajo enseñan además su cara, con el papel pintado: más abajo.)
+  ctx.fillStyle = capColor(style);
   ctx.fillRect(0, 0, RW, RH);
-  // rayas verticales en los muros de arriba/abajo y horizontales en los laterales
-  ctx.fillStyle = style.stripe;
-  for (let x = 0; x < RW; x += 28) {
-    ctx.fillRect(x, 0, 12, WALL);
-    ctx.fillRect(x, RH - WALL, 12, WALL);
-  }
-  for (let y = WALL; y < RH - WALL; y += 28) {
-    ctx.fillRect(0, y, WALL, 12);
-    ctx.fillRect(RW - WALL, y, WALL, 12);
-  }
-  // borde exterior del muro (la parte de arriba vista desde el techo)
-  ctx.lineWidth = 14;
-  ctx.strokeStyle = style.trim;
-  ctx.strokeRect(7, 7, RW - 14, RH - 14);
-  if (shape) {
-    // los muros interiores llevan el mismo papel pintado, con las rayas en vertical
-    ctx.save();
-    ctx.beginPath();
-    for (const b of blocks) ctx.rect(b.x - b.w / 2, b.y - b.h / 2, b.w, b.h);
-    ctx.clip();
-    for (let x = 0; x < RW; x += 28) ctx.fillRect(x, WALL, 12, ih);
-    ctx.restore();
-  }
-  for (const d of wallDecor) drawWallDecor(ctx, d, time);
+  ctx.fillStyle = shade(capColor(style), 0.18);
+  ctx.fillRect(4, 4, RW - 8, 4);
+  ctx.fillRect(4, 4, 4, RH - 8);
 
   // Suelo
   ctx.save();
@@ -123,32 +103,119 @@ export function drawRoom(ctx, room, time) {
   }
   ctx.restore();
 
-  // Rodapié alrededor del suelo
-  if (shape) {
-    // sigue el contorno del suelo: dos líneas oscuras con la madera en medio, por el lado del muro
-    ctx.save();
-    ctx.lineCap = 'square';
-    ctx.save();
-    ctx.clip(shape.walls, 'evenodd');
-    ctx.lineWidth = 20; ctx.strokeStyle = OUTLINE; ctx.stroke(shape.edges);
-    ctx.lineWidth = 12; ctx.strokeStyle = style.trim; ctx.stroke(shape.edges);
-    ctx.restore();
-    ctx.lineWidth = 4; ctx.strokeStyle = OUTLINE; ctx.stroke(shape.edges);
-    ctx.restore();
-  } else {
-    ctx.lineWidth = 8;
-    ctx.strokeStyle = style.trim;
-    ctx.strokeRect(WALL - 4, WALL - 4, iw + 8, ih + 8);
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = OUTLINE;
-    ctx.strokeRect(WALL - 8, WALL - 8, iw + 16, ih + 16);
-    ctx.strokeRect(WALL, WALL, iw, ih);
-  }
+  // contorno del suelo
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = OUTLINE;
+  if (shape) ctx.stroke(shape.edges);
+  else ctx.strokeRect(WALL, WALL, iw, ih);
 
+  // la cara del muro de arriba, con sus cuadros y ventanas. Las de los tabiques y los muebles tienen
+  // altura y pueden tapar a un personaje: no van en esta imagen, se dibujan con ellos (sceneryOf)
+  for (const f of wallFaces(room.layout)) if (f.outer) drawFace(ctx, f);
+  for (const d of wallDecor) drawWallDecor(ctx, d, time);
   for (const o of obstacles) {
-    if (o.shape === 'rect') drawFurniture(ctx, o);
+    if (o.shape === 'rect') drawFurnitureShadow(ctx, o);
     else drawObstacle(ctx, o);
   }
+}
+
+// ═════════════ Paredes y muebles con altura ("tres cuartos") ═════════════
+// El suelo se ve desde arriba, pero todo lo que está de pie enseña su frente, como los personajes.
+// Cada muro que tiene suelo justo debajo enseña una cara con el papel pintado de esa habitación.
+const CAP = 8;         // grosor de la tapa del muro que se ve por encima de la cara
+const OUTER_CAP = 12;  // lo mismo en el muro de fuera
+const OVER = 12;       // lo que sube la cara de un tabique por encima de su casilla (tapa esa franja de la habitación de detrás)
+
+// Aclara (k > 0) u oscurece (k < 0) un color "#rrggbb"
+function shade(hex, k) {
+  const n = parseInt(hex.slice(1), 16);
+  const f = (v) => Math.round(k > 0 ? v + (255 - v) * k : v * (1 + k));
+  return `#${((1 << 24) | (f(n >> 16) << 16) | (f((n >> 8) & 255) << 8) | f(n & 255)).toString(16).slice(1)}`;
+}
+
+// Color de la tapa de los muros: el del papel pintado, más oscuro
+const capColor = (style) => shade(style.wall, -0.38);
+
+// Las caras de un mapa: { x, w, y (borde de abajo), top (borde de arriba), outer, zone, style }
+export function wallFaces(layout) {
+  if (layout.faces) return layout.faces;
+  const { cols, rows, grid, owner, zones } = layout;
+  const faces = [];
+  if (!grid) return (layout.faces = faces);
+  const wall = (c, r) => grid[r * cols + c] === 1;
+  const zoneAt = (c, r) => (zones && owner ? owner[r * cols + c] : -1);
+  for (let r = 0; r < rows - 1; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (!wall(c, r) || wall(c, r + 1)) continue;
+      // tramo seguido de muro con suelo debajo, de una misma habitación
+      const c0 = c, z = zoneAt(c, r + 1);
+      while (c < cols && wall(c, r) && !wall(c, r + 1) && zoneAt(c, r + 1) === z) c++;
+      const outer = r < WALL / CELL;
+      const zone = (zones && zones[z]) || null;
+      faces.push({
+        x: c0 * CELL, w: (c - c0) * CELL, y: (r + 1) * CELL, top: outer ? OUTER_CAP : r * CELL - OVER,
+        outer, zone, style: (zone && zone.style) || layout.style, cap: capColor(layout.style),
+      });
+      c--;
+    }
+  }
+  return (layout.faces = faces);
+}
+
+export function drawFace(ctx, f) {
+  const { x, w, y, top, style } = f;
+  if (!f.outer) {
+    ctx.fillStyle = f.cap;
+    ctx.fillRect(x, top - CAP, w, CAP);
+  }
+  ctx.fillStyle = style.wall;
+  ctx.fillRect(x, top, w, y - top);
+  ctx.fillStyle = style.stripe;
+  for (let sx = Math.floor(x / 28) * 28; sx < x + w; sx += 28) {
+    const a = Math.max(sx, x), b = Math.min(sx + 12, x + w);
+    if (b > a) ctx.fillRect(a, top, b - a, y - top);
+  }
+  // rodapié y contorno
+  ctx.fillStyle = style.trim;
+  ctx.fillRect(x, y - 8, w, 8);
+  ctx.fillStyle = OUTLINE;
+  ctx.fillRect(x, top, w, 2);
+  ctx.fillRect(x, y - 2, w, 2);
+  if (!f.outer) {
+    ctx.fillRect(x, top - CAP, w, 2);
+    ctx.fillRect(x, top - CAP, 2, y - top + CAP);
+    ctx.fillRect(x + w - 2, top - CAP, 2, y - top + CAP);
+  }
+}
+
+// Lo que tiene altura en un mapa (caras de los tabiques y muebles), como una lista de cosas con `y` y `draw`,
+// para ordenarlas con los personajes: lo que está más abajo se dibuja delante.
+export function sceneryOf(room) {
+  if (room.scenery) return room.scenery;
+  const list = [];
+  const zones = room.layout.zones;
+  for (const f of wallFaces(room.layout)) {
+    if (f.outer) continue;
+    list.push({
+      y: f.y,
+      draw(ctx) {
+        drawFace(ctx, f);
+        if (f.zone && f.zone.fog > 0) {
+          // la habitación aún está a oscuras
+          ctx.globalAlpha = 0.9 * f.zone.fog;
+          ctx.fillStyle = '#12101c';
+          ctx.fillRect(f.x, f.top, f.w, f.y - f.top);
+          ctx.globalAlpha = 1;
+        }
+      },
+    });
+  }
+  for (const o of room.layout.obstacles) {
+    if (o.shape !== 'rect') continue;
+    const zone = zones && o.zone !== undefined ? zones[o.zone] : null;
+    list.push({ y: o.y + o.h / 2 - 1, draw(ctx) { drawFurniture(ctx, o, zone && zone.fog > 0 ? 1 - 0.85 * zone.fog : 1); } });
+  }
+  return (room.scenery = list);
 }
 
 // Las casillas de una habitación de un apartamento, para pintar solo ahí su suelo
@@ -176,6 +243,12 @@ export function drawFog(ctx, layout) {
     if (z.fog <= 0) continue;
     ctx.globalAlpha = 0.9 * z.fog;
     ctx.fill(zonePath(layout, z));
+  }
+  // ...y la cara del muro de arriba de esas habitaciones
+  for (const f of wallFaces(layout)) {
+    if (!f.outer || !f.zone || f.zone.fog <= 0) continue;
+    ctx.globalAlpha = 0.9 * f.zone.fog;
+    ctx.fillRect(f.x, f.top, f.w, f.y - f.top);
   }
   ctx.globalAlpha = 1;
 }
