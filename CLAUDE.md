@@ -37,7 +37,7 @@ npm run dev            # sirve la carpeta en http://localhost:3000 (también val
 
 - `http://localhost:3000/` → el juego (cámara que sigue al personaje, pantalla completa).
 - `?pruebas` → modo pruebas: las teclas **1–6** sacan cada tipo de zombi, **7** el mini jefe y **8** la portera.
-  Se puede combinar: `?cartoon&pruebas`.
+  Se puede combinar: `?pruebas&armas`.
 - `?armas` → todas las armas abiertas en la entrada (sin tocar el guardado). `?pruebas` también las abre.
 - `?sala=venenoso` → sala de exposición (solo versión pixel): se salta el menú y pone el sprite `zombi-venenoso`
   quieto y girando junto al conserje, sin atacar. Vale para cualquier zombi con sprite: `?sala=normal`...
@@ -52,7 +52,8 @@ npm run dev            # sirve la carpeta en http://localhost:3000 (también val
 |---|---|
 | `config.js` | Medidas (sala 960×640, `WALL = 64`, puertas de 96), edificios, armas, supervivientes, `PIXEL_MODE` |
 | `main.js` | Arranque, bucle, teclas de prueba, carga de sprites |
-| `game.js` | El corazón: estados, salas, combate, render cartoon (`render`) y pixel (`renderPixel`, `drawOffscreen`) |
+| `game.js` | El corazón: estados, salas, combate y dibujo (`renderPixel`, `drawOffscreen`; `render` es el de la versión cartoon retirada) |
+| `apartment.js` | Generador de apartamentos del mapa nuevo (ver `docs/MAPA.md`); aún sin conectar al juego |
 | `camera.js` | Cámara de la versión pixel (zoom ×1,5, ×1,15 en salas de jefe; sigue al conserje) |
 | `sprites.js` | Carga y dibuja las hojas de sprites de pixel art; si falta un sprite, se usa el dibujo de siempre |
 | `floor.js` / `rooms.js` | Generación de plantas y salas |

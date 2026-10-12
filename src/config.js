@@ -15,12 +15,13 @@ export const MAX_ALLIES = 4;    // tamaño máximo del equipo
 // El mundo se dibuja a la mitad de resolución (480×320) y se amplía sin suavizado:
 // 1 píxel del dibujo = PIXEL unidades lógicas. Las baldosas miden TILE píxeles.
 // Así el interior de una sala mide 26×16 baldosas y las puertas 3 baldosas.
-// El modo pixel es el de por defecto; la versión cartoon de siempre se ve añadiendo ?cartoon a la dirección.
+// El juego es solo pixel art: la versión cartoon se retiró el 12 de octubre de 2026 (ya no existe ?cartoon).
+// PIXEL_MODE se queda siempre encendido hasta que se limpie el código que aún la tiene en cuenta (docs/MAPA.md, fase 2).
 export const PIXEL = 2;
 export const ART_W = W / PIXEL;
 export const ART_H = H / PIXEL;
 export const TILE = 16;
-export const PIXEL_MODE = typeof location !== 'undefined' && !new URLSearchParams(location.search).has('cartoon');
+export const PIXEL_MODE = true;
 
 export const OUTLINE = '#1d1b2c'; // color del contorno "de dibujo animado"
 export const ALLY_COLORS = ['#4cc9f0', '#80ed99', '#ff8fab', '#c77dff', '#ff9f1c'];

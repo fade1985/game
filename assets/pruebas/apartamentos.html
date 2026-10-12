@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Apartamentos · generador</title>
+<style>
+  body { margin: 0; background: #2a2a32; color: #eee; font: 14px system-ui, sans-serif; }
+  header { padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; background: #1f1f26; }
+  h1 { font-size: 17px; margin: 0 12px 0 0; }
+  button, select { font: inherit; padding: 4px 10px; }
+  #planos { display: grid; grid-template-columns: repeat(auto-fill, minmax(460px, 1fr)); gap: 14px; padding: 14px; }
+  .plano { background: #1f1f26; border-radius: 8px; padding: 8px; }
+  .plano canvas { width: 100%; height: auto; display: block; image-rendering: pixelated; }
+  .pie { display: flex; justify-content: space-between; padding: 6px 2px 0; opacity: .85; }
+  .mal { color: #ff7b8a; }
+  #leyenda { margin-left: auto; opacity: .8; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Generador de apartamentos</h1>
+  <label>Dormitorios
+    <select id="dorm">
+      <option value="">al azar</option><option>1</option><option>2</option><option>3</option>
+      <option value="jefe">apartamento del jefe</option>
+    </select>
+  </label>
+  <label>Pasillo
+    <select id="lado"><option value="down">abajo</option><option value="up">arriba</option></select>
+  </label>
+  <button id="otros">Otros 6</button>
+  <span id="leyenda">El recuadro blanco es lo que se ve en pantalla · el punto rojo es Johnny · cada casilla mide 32</span>
+</header>
+<div id="planos"></div>
+<script type="module">
+import { makeApartment, checkApartment, CELL } from '../../src/apartment.js';
+
+// Colores planos por tipo de habitación: aún no hay arte, solo se mira si el plano es creíble
+const COLOR = { salon: '#dba36a', cocina: '#cfdbe4', dormitorio: '#bcc6ec', bano: '#9fd8c6', jefe: '#d98d8d' };
+const PX = 12; // píxeles por casilla en el dibujo
+// Lo que enseña la cámara del juego: siempre la misma altura de sala (640 / 1,5) y, en una pantalla 16:9, ese ancho
+const VISTA = { w: (640 / 1.5) * (16 / 9), h: 640 / 1.5 };
+
+const params = new URLSearchParams(location.search);
+let semilla = Number(params.get('semilla')) || Math.floor(Math.random() * 1e6);
+const dorm = document.getElementById('dorm'), lado = document.getElementById('lado');
+if (params.get('dormitorios')) dorm.value = params.get('dormitorios');
+
+function dibuja(apt) {
+  const c = document.createElement('canvas');
+  c.width = apt.cols * PX; c.height = apt.rows * PX;
+  const x = c.getContext('2d');
+  x.fillStyle = '#1b1b22';
+  x.fillRect(0, 0, c.width, c.height);
+  for (let r = 0; r < apt.rows; r++) {
+    for (let col = 0; col < apt.cols; col++) {
+      const o = apt.owner[r * apt.cols + col];
+      if (o === -1) continue;
+      x.fillStyle = o === -2 ? '#f6e3a8' : COLOR[apt.rooms[o].use];
+      x.fillRect(col * PX, r * PX, PX, PX);
+    }
+  }
+  // cuadrícula suave, para contar casillas
+  x.strokeStyle = 'rgba(0,0,0,0.07)';
+  for (let i = 1; i < apt.cols; i++) { x.beginPath(); x.moveTo(i * PX + .5, 0); x.lineTo(i * PX + .5, c.height); x.stroke(); }
+  for (let i = 1; i < apt.rows; i++) { x.beginPath(); x.moveTo(0, i * PX + .5); x.lineTo(c.width, i * PX + .5); x.stroke(); }
+  // puerta de entrada
+  const e = apt.entrance;
+  x.fillStyle = '#58d68d';
+  x.fillRect(e.c * PX, e.r * PX, e.w * PX, e.h * PX);
+  // nombres
+  x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#23232b';
+  for (const rm of apt.rooms) {
+    x.font = 'bold 13px system-ui';
+    x.fillText(rm.name, rm.x / CELL * PX, rm.y / CELL * PX - 7);
+    x.font = '11px system-ui';
+    x.fillText(`${rm.w}×${rm.h}`, rm.x / CELL * PX, rm.y / CELL * PX + 8);
+  }
+  // Johnny en la entrada y lo que se vería en pantalla
+  const k = PX / CELL, s = apt.spawn;
+  x.fillStyle = '#e63946';
+  x.beginPath(); x.arc(s.x * k, s.y * k, 18 * k, 0, Math.PI * 2); x.fill();
+  const vx = Math.max(0, Math.min(apt.w - VISTA.w, s.x - VISTA.w / 2)), vy = Math.max(0, Math.min(apt.h - VISTA.h, s.y - VISTA.h / 2));
+  x.strokeStyle = '#ffffff'; x.lineWidth = 2; x.setLineDash([6, 4]);
+  x.strokeRect(vx * k, vy * k, VISTA.w * k, VISTA.h * k);
+  return c;
+}
+
+function genera() {
+  const planos = document.getElementById('planos');
+  planos.innerHTML = '';
+  for (let i = 0; i < 6; i++) {
+    const seed = semilla + i;
+    const boss = dorm.value === 'jefe';
+    let apt, fallos;
+    try {
+      apt = makeApartment({ seed, boss, bedrooms: boss ? undefined : Number(dorm.value) || undefined, side: lado.value });
+      fallos = checkApartment(apt);
+    } catch (err) { fallos = [err.message]; }
+    const div = document.createElement('div');
+    div.className = 'plano';
+    if (apt) div.appendChild(dibuja(apt));
+    const pie = document.createElement('div');
+    pie.className = 'pie';
+    const que = apt ? `${apt.rooms.length} habitaciones · ${apt.w}×${apt.h} unidades (${apt.cols}×${apt.rows} casillas)` : '';
+    pie.innerHTML = `<span>${que}</span><span class="${fallos.length ? 'mal' : ''}">${fallos.length ? fallos.join(', ') : 'semilla ' + seed}</span>`;
+    div.appendChild(pie);
+    planos.appendChild(div);
+  }
+}
+
+document.getElementById('otros').onclick = () => { semilla += 6; genera(); };
+dorm.onchange = lado.onchange = genera;
+genera();
+</script>
+</body>
+</html>
