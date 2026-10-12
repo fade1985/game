@@ -392,9 +392,9 @@
   },
   "zombi-normal-48": {
     "kind": "character",
-    "character_id": "3b7d49b1-87ef-48ea-92c1-e664b3ebbb10",
+    "character_id": "7a4cc1fd-b20a-46db-9451-d789783238df",
     "name": "Zombi normal",
-    "nota": "Modelo del zombi normal a 48x48 (2026-10-12), piloto de los zombis nuevos. create_character_pro_flash con la vista de frente de Johnny (conserje-48) como imagen de estilo, copiando trazo, detalle y sombreado pero no la paleta. Mide 46 píxeles de alto, como Johnny. La piel salió beige apagado, no gris verdosa como se pidió. Rotaciones en assets/sources/zombi-normal-48/rotations/ y hoja comparada con Johnny en assets/pruebas/zombi-normal-modelo.png. Pendiente del visto bueno del dueño; sin animaciones todavía. Animaciones acordadas: andar, atacar, recibir golpe y morir.",
+    "nota": "Modelo del zombi normal a 48x48 (2026-10-12), piloto de los zombis nuevos. Hecho en dos pasos. 1) create_character_pro_flash con la vista de frente de Johnny como imagen de estilo (personaje 3b7d49b1-87ef-48ea-92c1-e664b3ebbb10, 6 generaciones): salió con la piel beige; sus vistas están en rotations-original/. 2) tools/piel.py le pone la piel gris verdosa (rotations/) y esas 8 vistas se importaron como personaje nuevo con create_character en modo v3 y direction_images (0,25 generaciones): es el character_id de arriba y sobre él se hacen las animaciones. Visto bueno del dueño al diseño y a la piel. Mide 46 píxeles de alto, como Johnny.",
     "request": {
       "description": "adult male zombie, a dead neighbour from an apartment building, realistic adult body proportions, tall and slim, small head, sickly grey-green rotting skin, sunken dark eye sockets with pale dead eyes, open mouth with dark blood around the jaw, messy thinning dark brown hair, torn dirty light blue button shirt with dried blood stains and a ripped sleeve, dark navy trousers ripped at one knee, worn dark shoes, slightly hunched posture with the head tilted, arms hanging limp at his sides, empty hands, detailed shading",
       "width": 48,
@@ -411,8 +411,45 @@
         "shading": true
       }
     },
-    "cost": "6 generaciones (estimación de PixelLab)",
-    "updated": "2026-10-12"
+    "cost": "11,25 generaciones hasta ahora: 6 del modelo, 0,25 de importarlo con la piel verde y 5 de pruebas",
+    "updated": "2026-10-12",
+    "character_id_piel_beige": "3b7d49b1-87ef-48ea-92c1-e664b3ebbb10",
+    "pruebas_de_perfil": {
+      "nota": "Pruebas del 2026-10-12, solo east, 5 generaciones. Hoja: assets/pruebas/zombi-normal-animaciones-prueba.png. Pendientes del visto bueno del dueño. Atacar, golpe y morir parten del dibujo quieto pegado en (24, 32) de un lienzo de 96x96. Decir 'No blood' en el texto no evita la sangre (sale un chorro grande en golpe y muerte).",
+      "subject_description": "a male zombie with grey-green skin, messy dark brown hair, a torn light blue shirt with blood stains and dark navy trousers",
+      "initial_pose": "standing hunched facing right, head drooping, arms hanging limp at his sides",
+      "andar_plantilla": {
+        "group": "25fe7361-3dac-457c-88e3-8779219278de",
+        "template": "scary-walk",
+        "carpeta": "walk-plantilla",
+        "resultado": "le cambia el pelo y oscurece la camisa; peor que la de medida"
+      },
+      "andar": {
+        "group": "66e3fa72-9e3a-49e0-afbc-a09d5a0e2bc3",
+        "modo": "pixminimax, 12 fotogramas, sin fotograma final",
+        "carpeta": "walk",
+        "resultado": "respeta el dibujo; brazos estirados al frente",
+        "action_description": "He shambles forward in place in a slow, heavy, seamless looping zombie walk cycle: his legs drag and stride alternately, one foot scraping after the other, his hunched torso lurching and swaying from side to side with each step and his head lolling. Both arms rise and stay stretched out forward at chest height, hands grasping, swaying loosely with the steps. He keeps facing exactly the same direction the whole time and never turns. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation."
+      },
+      "ataque": {
+        "group": "a1a3d624-5f0c-4a9c-861f-9049eafac511",
+        "modo": "pixminimax, 8 fotogramas, partida y final iguales",
+        "resultado": "buen zarpazo; un destello blanco suelto en el fotograma 3",
+        "action_description": "He attacks with a savage two-handed claw swipe. He jerks both arms up and back, then lunges forward with one heavy step and slashes both clawed hands forward and down in front of him at chest height, his jaw snapping open as his head thrusts forward. His body leans far into the lunge and his hair shakes with the motion. He keeps facing exactly the same direction the whole time. Then he pulls back, his arms drop limp again and he settles cleanly into the starting hunched stance. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation."
+      },
+      "golpe": {
+        "group": "43558c2e-bfb0-4a12-90c5-796e8a462ced",
+        "modo": "pixminimax, 8 fotogramas, partida y final iguales",
+        "resultado": "se echa atrás y vuelve; salpicón grande de sangre y mancha roja que se queda en el pecho",
+        "action_description": "He takes a hard hit to the chest from the front. His head and shoulders snap backward, his torso bends back and his arms fling loosely forward, and he staggers one short step backward, off balance. His hair jolts with the impact. He keeps facing exactly the same direction the whole time and stays on his feet. Then he sways forward again, his arms drop limp and he settles cleanly into the starting hunched stance. No blood, no effects. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation."
+      },
+      "muerte": {
+        "group": "8b6ae0b4-eb53-43a7-b9eb-7482e31e9298",
+        "modo": "pixminimax, 12 fotogramas, sin fotograma final",
+        "resultado": "cae de espaldas y se queda tendido; chorro grande de sangre",
+        "action_description": "He is killed and collapses. His head snaps back from a final blow, his knees buckle and his whole body goes limp. He topples backward and falls flat onto the floor on his back, arms flopping out to the sides, legs sprawled, and he bounces very slightly as he lands. Then he lies completely still and motionless on the ground for the last frames, dead, flat on his back. He never gets up. No blood pool, no effects. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation."
+      }
+    }
   },
   "muebles": {
     "nota": "Los 20 muebles, vistos desde arriba para poder girarlos a cualquier pared. Cada uno se pidio con su guia como imagen de partida (init_image): asi sale con el tamano exacto. Los de \"sin_fondo\": false se pidieron con la guia sobre un fondo azul liso (96,112,150) y el fondo lo quita tools/mueble.py; con no_background PixelLab se comia los tableros lisos. Montaje: py tools/mueble.py",

@@ -220,6 +220,22 @@ Preguntas pendientes, por orden:
    de prueba debe verse en las partidas normales; si la elección de arma se queda también en la versión cartoon;
    probar con partidas simuladas el equilibrado de las salas grandes; y empezar el arte del salón.
 
+## Zombis en pixel art (en curso, lo lleva otra sesión distinta de las de armas y mapa)
+
+Empezado el 12 de octubre de 2026. Se hace como las armas: un zombi de piloto (el normal) hasta verlo en el
+juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y costes en `assets/pixellab.json`
+(`zombi-normal-48`).
+
+- **Decidido por el dueño:** diseños inventados (no tiene dibujos), realistas y con el estilo de Johnny, a 48
+  píxeles. Cada zombi lleva cuatro animaciones: andar, atacar, recibir golpe y morir.
+- **Modelo del zombi normal: con visto bueno.** PixelLab saca la piel beige aunque se pida verde (pasó también
+  con el venenoso): se corrige gratis con `py tools/piel.py <sprite>` y las 8 vistas corregidas se importan como
+  personaje nuevo (`create_character` en modo `v3` con `direction_images`, 0,25 generaciones).
+- **Pendiente de su visto bueno:** las pruebas de perfil, `assets/pruebas/zombi-normal-animaciones-prueba.png`.
+  Preguntas hechas: qué andar prefiere (se recomienda el B, a medida) y si quiere la sangre de golpe y muerte
+  o se repiten sin ella. Después: las 8 direcciones (unas 32 generaciones), montaje y programar en el juego
+  que los zombis muestren ataque, golpe y muerte (hoy solo andan o están quietos).
+
 ## Flujo de trabajo para las armas de Johnny (acordado el 12 de octubre de 2026)
 
 Habrá más armas y cada una necesita su estado y sus animaciones. Se acordó hacerlo siempre igual, con una
