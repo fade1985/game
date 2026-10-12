@@ -169,8 +169,10 @@ Preguntas pendientes, por orden:
    Lo siguiente que pidió: **la bala**. Hecha en pixel art desde el código (`drawTracer` en `render.js`, sin
    PixelLab): una trazadora de cuadraditos encajados en la cuadrícula, punta casi blanca y estela de amarillo
    a naranja; las críticas más gordas y rojizas, los perdigones más pequeños. Vale para todas las balas del
-   conserje y de los compañeros; los proyectiles de los zombis siguen como estaban. **Pendiente de que la vea
-   y diga si le vale.**
+   conserje y de los compañeros; los proyectiles de los zombis siguen como estaban. También su **impacto**
+   (`bulletImpact` en `game.js`): un destello cuadrado y chispas del color de la bala que rebotan hacia atrás,
+   más algo de polvo si da en un muro; son partículas `px` (cuadraditos encajados en la cuadrícula que encogen
+   en vez de desvanecerse). **Pendiente de que vea la bala y el impacto jugando y diga si le valen.**
    - **Armas a distancia, cómo quedó programado:** al disparar con un arma con hoja propia se pone la animación
      `attack` sin retrasar la bala, y no se dibuja el arma de siempre ni su fogonazo ni su casquillo. La bala
      nace en la boca del arma del dibujo: `"boca": "fogonazo"` en `arma.json` hace que `tools/arma.py` la busque
@@ -185,8 +187,7 @@ Preguntas pendientes, por orden:
      `Player.draw` pinta el andar entero, de una pieza, y encima esos efectos; el retroceso de los brazos solo
      se ve disparando parado. **No volver a partir el cuerpo.** Solo para armas de fuego; la fregona y el bate
      siguen igual. Pendiente de que el dueño lo vea jugando.
-   - **Preguntarle si se borra de PixelLab lo descartado de la pistola:** las dos repeticiones del disparo
-     (`disparo-pistola-2`) y las 4 direcciones del primer andar que se sustituyeron. Están en `assets/pixellab.json`.
+   - **Lo descartado de la pistola ya está borrado de PixelLab** (12 de octubre de 2026, con su confirmación).
    - **El bate está en el juego** (sprite `conserje-48-bate`, 27 generaciones) y tiene el visto bueno del dueño.
    - **La fregona tiene la estela de agua dentro del dibujo.** Decidido por el dueño: las estelas van siempre en
      el sprite y creíbles para cada arma (agua, aire, fuego...), nunca pintadas por el juego.
@@ -194,7 +195,7 @@ Preguntas pendientes, por orden:
      vale lo programado para la pistola; solo cambia que dispara 5 perdigones).
 2. **La skill `/arma-nueva` ya existe** (`.claude/skills/arma-nueva/SKILL.md`). Si en una sesión nueva no
    aparece en la lista, leer ese archivo y seguirlo igual.
-3. **Limpieza de los estados de la fregona y del bate: hecha** el 12 de octubre de 2026 con su confirmación. En
+3. **Limpieza de los estados de la fregona, del bate y de la pistola: hecha** el 12 de octubre de 2026 con su confirmación. En
    PixelLab quedan solo las animaciones que usa el juego. El resto de la limpieza sigue pendiente (punto 6).
 4. **Dos pegas del estado "Fregona en guardia"** que vio y no ha dicho si le molestan: usa 18 colores frente a
    los 50 del Johnny sin arma (ropa más plana), y la mopa cambia de lado entre la vista de frente y las diagonales.

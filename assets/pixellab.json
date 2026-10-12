@@ -291,7 +291,7 @@
         "north-west": "standing in a two-handed shooting stance in three-quarter back view, facing away from the camera and to the left, both arms extended forward, aiming the pistol up and to the left of the image"
       },
       "descartado": {
-        "nota": "DESCARTADO (sigue en PixelLab, sin borrar). Repetición de west y south-west pidiendo que la ropa no se tiñera de amarillo: salió peor, aún más amarillo. Lección: no nombrar en el texto lo que no se quiere ver.",
+        "nota": "DESCARTADO y BORRADO de PixelLab el 2026-10-12 con confirmación del dueño. Repetición de west y south-west pidiendo que la ropa no se tiñera de amarillo: salió peor, aún más amarillo. Lección: no nombrar en el texto lo que no se quiere ver.",
         "groups": [
           "f3c49ec7-90cc-41d3-980e-8e2e57363f7d (west)",
           "46f3886b-08bb-4545-bfd5-ada1ed840ea3 (south-west)"
@@ -303,7 +303,7 @@
     "cost_total": "32 generaciones: 10 del estado, 8 del disparo, 8 del andar, 4 de repetir el andar y 2 de un disparo descartado",
     "andar": {
       "nota": "PixMiniMax, 12 fotogramas más el de partida. Fotogramas en assets/sources/conserje-48-pistola/walk/; tools/arma.py elige solo el tramo que hace ciclo. La primera tanda (las 8 direcciones) decía 'never fires it: no muzzle flash, no smoke' y PixelLab coló fogonazos sueltos en east, north-east, north-west y west. Se repitieron east, north-west, west y south-west con el texto de abajo, que no menciona disparar: salieron limpias. De la primera tanda se usan south, south-east, north-east y north.",
-      "group_primera_tanda": "2b607843-892c-432a-90bc-4d4502ea8a2b (se usan 4 direcciones; east, north-west, west y south-west SIGUEN en PixelLab sin usar)",
+      "group_primera_tanda": "2b607843-892c-432a-90bc-4d4502ea8a2b (quedan las 4 direcciones que se usan: south, south-east, north-east y north; las otras 4 se BORRARON de PixelLab el 2026-10-12 con confirmación del dueño)",
       "group": "a951b11f-a43c-45f3-8993-a15f77a7c755",
       "animation_name": "andar-pistola-2",
       "cost": "12 generaciones (8 + 4)",

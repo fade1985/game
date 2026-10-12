@@ -703,7 +703,7 @@ export class Game {
       const outside = isWall(this.room.layout, b.x, b.y);
       if (outside || this.room.layout.obstacles.some((o) => obstacleGap(o, b) < b.r * 0.5)) {
         b.dead = true;
-        this.puff(b.x, b.y, b.color);
+        if (b.friendly) this.bulletImpact(b, true); else this.puff(b.x, b.y, b.color);
         continue;
       }
       if (b.friendly) {
@@ -713,7 +713,7 @@ export class Game {
             b.hit.add(e);
             const l = Math.hypot(b.vx, b.vy) || 1;
             e.hurt(b.dmg, b.crit, b.vx / l, b.vy / l, this, b.knock ?? 1);
-            this.hitSpark(b.x, b.y, b.crit);
+            this.bulletImpact(b, false);
             if (b.pierce-- <= 0) { b.dead = true; break; }
           }
         }
@@ -1181,6 +1181,33 @@ export class Game {
     this.particles.push({ x, y, vx: 0, vy: 0, r, ring: true, color: '#ffffff', life: 0.3, max: 0.3 });
   }
 
+  // Impacto de una bala del conserje o de un compañero, en pixel art: un destello cuadrado y unas chispas
+  // (cuadraditos del color de la bala) que rebotan hacia atrás. Contra un muro salta además algo de polvo.
+  // Se pinta a la altura a la que se ve la bala, no a la del suelo.
+  bulletImpact(b, wall) {
+    const x = b.x, y = b.y - (b.lift || 0);
+    const back = Math.atan2(-b.vy, -b.vx);
+    const colors = b.crit ? ['#ffffff', '#ffe9a8', '#ff9a3c', '#ff4d2e'] : ['#fffbe0', '#ffe066', '#ffb020', '#f0701a'];
+    this.particles.push({ x, y, vx: 0, vy: 0, px: true, size: b.crit ? 5 : 4, color: colors[0], life: 0.07, max: 0.07 });
+    const n = (b.crit ? 7 : 5) - (b.r < 6 ? 2 : 0); // los perdigones sueltan menos chispas
+    for (let i = 0; i < n; i++) {
+      const a = back + rand(-1.1, 1.1), sp = rand(110, 300);
+      this.particles.push({
+        x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, px: true, size: i < 2 ? 2 : 1,
+        color: colors[1 + (i % 3)], life: rand(0.14, 0.28), max: 0.28,
+      });
+    }
+    if (wall) {
+      for (let i = 0; i < 3; i++) {
+        const a = back + rand(-0.8, 0.8), sp = rand(30, 90);
+        this.particles.push({
+          x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 20, px: true, size: 2,
+          color: i ? '#b9bec9' : '#e3e6ec', life: rand(0.25, 0.4), max: 0.4,
+        });
+      }
+    }
+  }
+
   // Chispas en forma de estrella donde se golpea
   hitSpark(x, y, crit) {
     const n = crit ? 6 : 4;
@@ -1436,6 +1463,14 @@ export class Game {
     for (const pt of this.particles) {
       const k = pt.life / pt.max;
       ctx.globalAlpha = Math.min(1, k * 1.5);
+      if (pt.px) {
+        // pixel art: un cuadradito encajado en la cuadrícula, que encoge en vez de desvanecerse
+        const side = Math.max(1, Math.ceil(pt.size * Math.min(1, k * 1.6))) * PIXEL;
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = pt.color;
+        ctx.fillRect(Math.round((pt.x - side / 2) / PIXEL) * PIXEL, Math.round((pt.y - side / 2) / PIXEL) * PIXEL, side, side);
+        continue;
+      }
       ctx.beginPath();
       if (pt.star) {
         // destello de 4 puntas
