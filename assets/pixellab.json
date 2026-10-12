@@ -394,7 +394,7 @@
     "kind": "character",
     "character_id": "7a4cc1fd-b20a-46db-9451-d789783238df",
     "name": "Zombi normal",
-    "nota": "Modelo del zombi normal a 48x48 (2026-10-12), piloto de los zombis nuevos. Hecho en dos pasos. 1) create_character_pro_flash con la vista de frente de Johnny como imagen de estilo (personaje 3b7d49b1-87ef-48ea-92c1-e664b3ebbb10, 6 generaciones): salió con la piel beige; sus vistas están en rotations-original/. 2) tools/piel.py le pone la piel gris verdosa (rotations/) y esas 8 vistas se importaron como personaje nuevo con create_character en modo v3 y direction_images (0,25 generaciones): es el character_id de arriba y sobre él se hacen las animaciones. Visto bueno del dueño al diseño y a la piel. Mide 46 píxeles de alto, como Johnny.",
+    "nota": "Modelo del zombi normal a 48x48 (2026-10-12), piloto de los zombis nuevos. Hecho en dos pasos. 1) create_character_pro_flash con la vista de frente de Johnny como imagen de estilo (personaje 3b7d49b1-87ef-48ea-92c1-e664b3ebbb10, 6 generaciones): salió con la piel beige; sus vistas están en rotations-original/. 2) tools/piel.py le pone la piel gris verdosa (rotations/) y esas 8 vistas se importaron como personaje nuevo con create_character en modo v3 y direction_images (0,25 generaciones): es el character_id de arriba y sobre él se hacen las animaciones. Visto bueno del dueño al diseño y a la piel. Mide 46 píxeles de alto, como Johnny. EN EL JUEGO desde el 2026-10-12 como sprite zombi-normal (sustituye al de 32 píxeles): reposo, andar, atacar, recibir golpe y morir en las 8 direcciones. Se monta con: py tools/zombi.py zombi-normal-48 zombi-normal",
     "request": {
       "description": "adult male zombie, a dead neighbour from an apartment building, realistic adult body proportions, tall and slim, small head, sickly grey-green rotting skin, sunken dark eye sockets with pale dead eyes, open mouth with dark blood around the jaw, messy thinning dark brown hair, torn dirty light blue button shirt with dried blood stains and a ripped sleeve, dark navy trousers ripped at one knee, worn dark shoes, slightly hunched posture with the head tilted, arms hanging limp at his sides, empty hands, detailed shading",
       "width": 48,
@@ -411,7 +411,7 @@
         "shading": true
       }
     },
-    "cost": "11,25 generaciones hasta ahora: 6 del modelo, 0,25 de importarlo con la piel verde y 5 de pruebas",
+    "cost": "43,25 generaciones: 6 del modelo, 0,25 de importarlo con la piel verde, 5 de pruebas de perfil, 28 de la tanda completa y 4 de repetir el andar",
     "updated": "2026-10-12",
     "character_id_piel_beige": "3b7d49b1-87ef-48ea-92c1-e664b3ebbb10",
     "pruebas_de_perfil": {
@@ -449,6 +449,18 @@
         "resultado": "cae de espaldas y se queda tendido; chorro grande de sangre",
         "action_description": "He is killed and collapses. His head snaps back from a final blow, his knees buckle and his whole body goes limp. He topples backward and falls flat onto the floor on his back, arms flopping out to the sides, legs sprawled, and he bounces very slightly as he lands. Then he lies completely still and motionless on the ground for the last frames, dead, flat on his back. He never gets up. No blood pool, no effects. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation."
       }
+    },
+    "animaciones": {
+      "nota": "Todo con PixMiniMax sobre el personaje 7a4cc1fd (piel verde). Los textos de perfil están en pruebas_de_perfil; para las otras direcciones se cambia initial_pose ('facing the camera', 'three-quarter front view, facing toward the camera and to the right/left', 'facing left', 'three-quarter back view, facing away from the camera and to the right/left', 'seen from behind, his back to the camera'). En las vistas de espaldas el texto empieza con 'He keeps the same three-quarter back view the whole time... never turns to face the camera' o 'Strict back view the whole time...'. Fotogramas en assets/sources/zombi-normal-48/{walk,ataque,golpe,muerte}/.",
+      "andar": {
+        "grupo_comun": "66e3fa72-9e3a-49e0-afbc-a09d5a0e2bc3 (east, west, south-west, north-west: brazos estirados al frente)",
+        "repetidas": "Con el texto común, south, south-east, north-east y north se giraban de perfil al estirar los brazos (descartes/walk/). Se repitieron con texto propio ('Strict front view the whole time...', brazos bajos): grupos 9dba82a2 (south), 84ebc6e5 (south-east), daa2184e (north-east) y 61ec2bd5 (north). Pega: en esas cuatro anda con los brazos bajos y en las otras cuatro con los brazos estirados."
+      },
+      "ataque": "grupo a1a3d624 (east, south, south-east, west, south-west) y uno por dirección de espaldas: da86b6cf (north-east), 87c1b8a3 (north-west), fb62c544 (north). 8 fotogramas, partida y final iguales.",
+      "golpe": "grupo 43558c2e (east, south, south-east, west, south-west); de espaldas: df2b1d17 (north-east), 4c08ffcb (north-west), 3a88f228 (north). 8 fotogramas, partida y final iguales.",
+      "muerte": "grupo 8b6ae0b4 (east, south, south-east, west, south-west); de espaldas: 1e9b682d (north-east), c4c59642 (north-west), e53b8d26 (north). 12 fotogramas, sin fotograma final. En las de espaldas el texto dice hacia dónde quedan la cabeza y los pies.",
+      "sangre": "PixelLab mete sangre de un rojo muy vivo y destellos aunque no se pidan. tools/zombi.py los quita al montar (los fotogramas originales se conservan).",
+      "sin_usar_en_pixellab": "andar de plantilla scary-walk (grupo 25fe7361, solo east) y los cuatro andares descartados dentro del grupo 66e3fa72 (south, south-east, north-east, north). Borrar solo con confirmación del dueño."
     }
   },
   "muebles": {

@@ -231,10 +231,21 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
 - **Modelo del zombi normal: con visto bueno.** PixelLab saca la piel beige aunque se pida verde (pasó también
   con el venenoso): se corrige gratis con `py tools/piel.py <sprite>` y las 8 vistas corregidas se importan como
   personaje nuevo (`create_character` en modo `v3` con `direction_images`, 0,25 generaciones).
-- **Pendiente de su visto bueno:** las pruebas de perfil, `assets/pruebas/zombi-normal-animaciones-prueba.png`.
-  Preguntas hechas: qué andar prefiere (se recomienda el B, a medida) y si quiere la sangre de golpe y muerte
-  o se repiten sin ella. Después: las 8 direcciones (unas 32 generaciones), montaje y programar en el juego
-  que los zombis muestren ataque, golpe y muerte (hoy solo andan o están quietos).
+- **El zombi normal ya está en el juego** (sprite `zombi-normal`, a 48 píxeles): reposo, andar, zarpazo, golpe
+  recibido y muerte en las 8 direcciones. Costó unas 43 generaciones. **Pendiente del visto bueno final del dueño**
+  (captura en `assets/pruebas/zombi-normal-en-juego.jpg`, GIF de cada animación en `assets/pruebas/zombi-normal-*.gif`).
+  - **Cómo se monta:** `py tools/zombi.py zombi-normal-48 zombi-normal` rehace la hoja (casillas de 96×96) a partir
+    de `assets/sources/zombi-normal-48/` (`rotations/`, `walk/`, `ataque/`, `golpe/`, `muerte/`). Quita la sangre
+    de rojo vivo y los destellos que mete PixelLab y elige solo el tramo del andar que hace ciclo.
+  - **En el juego** (todo en `zombies.js`): el zarpazo se ve al llegar al conserje pero el daño sigue siendo por
+    contacto, como antes; al recibir un golpe se ve `hurt`; al morir deja un cuerpo (`Corpse`) que cae y se queda
+    tendido en la sala (12 como mucho por sala). Vale para cualquier zombi cuya hoja tenga `attack`, `hurt` y `death`.
+  - **Pegas conocidas:** de frente y de espaldas anda con los brazos bajos y en las otras direcciones con los
+    brazos estirados (con el texto común se giraba de perfil); el ciclo de andar no cierra del todo limpio.
+  - **Limpieza pendiente en PixelLab (solo con su confirmación):** el personaje de piel beige, el andar de
+    plantilla y los cuatro andares descartados.
+  - **Siguiente:** con su visto bueno, crear la skill `/zombi-nuevo` y seguir con los otros cinco (lento, rápido,
+    explosivo, tentáculos y venenoso).
 
 ## Flujo de trabajo para las armas de Johnny (acordado el 12 de octubre de 2026)
 

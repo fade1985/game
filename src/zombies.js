@@ -6,13 +6,34 @@
 //  peligrosos SIEMPRE avisan antes, para que se puedan esquivar.
 // ─────────────────────────────────────────────
 import { OUTLINE } from './config.js';
-import { drawSprite, dirFromVector, hasSprite, pixelShadow } from './sprites.js';
+import { drawSprite, dirFromVector, hasSprite, pixelShadow, animFrames, animDuration } from './sprites.js';
 import { rand } from './utils.js';
 import { drawHuman } from './draw.js';
 import { drawSpawnWarning } from './entities.js';
 import { sfx } from './sfx.js';
 
 const TAU = Math.PI * 2;
+const CORPSES = 12;   // cuántos zombis tendidos se quedan como mucho en una sala
+const REACH = 18;     // a qué distancia del conserje (además de los dos radios) lanza el zarpazo
+
+// Un zombi muerto: cae y se queda tendido en el suelo. Solo es dibujo (no estorba ni se puede coger).
+// Lo deja el propio zombi al morir si su hoja de sprites tiene la animación "death".
+class Corpse {
+  constructor(sprite, x, y, dir, time) {
+    this.kind = 'corpse';
+    this.sprite = sprite;
+    this.x = x;
+    this.y = y - 12;       // se ordena un poco más arriba: los que siguen en pie se dibujan por encima
+    this.dir = dir;
+    this.t0 = time;
+    this.solid = false;
+    this.taken = true;     // así el juego no intenta recogerlo ni señalarlo
+  }
+
+  draw(ctx, game) {
+    drawSprite(ctx, this.sprite, 'death', this.dir, game.time - this.t0, this.x, this.y + 12 + 15);
+  }
+}
 
 export const ZOMBIE_TYPES = {
   lento: {
@@ -79,6 +100,15 @@ export class Zombie {
     this.asleep = false;         // los de los apartamentos esperan quietos hasta que notan al conserje
     this.wakeT = 0;              // el respingo al despertar: un instante antes de echar a andar
     this.zone = -1;              // en qué habitación esperaba
+    this.anim = null;            // pixel art: animación en curso que no es andar (zarpazo o golpe recibido)
+  }
+
+  get sprite() { return `zombi-${this.type}`; }
+
+  // Pone una animación de la hoja de sprites (si la tiene). Solo es dibujo: no cambia lo que hace el zombi
+  play(name) {
+    const dur = animDuration(this.sprite, name);
+    if (dur && animFrames(this.sprite, name)) this.anim = { name, t: 0, dur };
   }
 
   // Despierta (al ver al conserje, al recibir un golpe o porque se ha despertado el de al lado)
@@ -97,6 +127,7 @@ export class Zombie {
     if (this.spawnT > 0) { this.spawnT -= dt; return; }
     this.t += dt;
     this.hitFlash -= dt;
+    if (this.anim && (this.anim.t += dt) >= this.anim.dur) this.anim = null;
     if (this.asleep || this.wakeT > 0) {
       // dormido: se balancea en su sitio, mirando a ninguna parte
       if (this.asleep) {
@@ -214,6 +245,8 @@ export class Zombie {
     // mira hacia el jugador (suavizado)
     this.lookX += (ux - this.lookX) * Math.min(1, dt * 8);
     this.lookY += (uy - this.lookY) * Math.min(1, dt * 8);
+    // al llegar al conserje, lanza el zarpazo (el daño sigue siendo por contacto, como siempre)
+    if (!this.anim && sees && this.dmg > 0 && !p.dead && d < this.r + p.r + REACH) this.play('attack');
   }
 
   detonate(game) {
@@ -225,6 +258,13 @@ export class Zombie {
   // Lo llama el juego al morir: el explosivo revienta también si lo matas
   onDeath(game) {
     if (this.type === 'explosivo') this.detonate(game);
+    // pixel art: el cuerpo cae y se queda en el suelo (los más antiguos se van retirando)
+    if (animFrames(this.sprite, 'death') && game.room) {
+      const props = game.room.props;
+      const old = props.filter((pr) => pr.kind === 'corpse');
+      if (old.length >= CORPSES) props.splice(props.indexOf(old[0]), 1);
+      props.push(new Corpse(this.sprite, this.x, this.y, dirFromVector(this.lookX, this.lookY), game.time));
+    }
   }
 
   hurt(dmg, crit, dirX, dirY, game, knock = 1) {
@@ -237,6 +277,7 @@ export class Zombie {
     game.floatText(this.x + rand(-8, 8), this.y - 38 * this.s, Math.round(dmg).toString(), crit ? '#ffd23f' : '#ffffff', crit ? 26 : 18);
     sfx.hit();
     if (this.hp <= 0) game.killEnemy(this);
+    else this.play('hurt');
   }
 
   draw(ctx, game) {
@@ -290,8 +331,12 @@ export class Zombie {
     const sp = Math.hypot(this.vx, this.vy);
     // pixel art: un sprite por tipo de zombi ("zombi-normal", "zombi-rapido"...)
     if (hasSprite(`zombi-${this.type}`)) pixelShadow(ctx, x, y + 14 * scale, 28 * scale);
-    const sprited = drawSprite(ctx, `zombi-${this.type}`, sp > 10 ? 'walk' : 'idle',
-      dirFromVector(this.lookX, this.lookY), game.time, x + shake, y + 15 * scale, { flash });
+    // zarpazo o golpe recibido si hay uno en marcha; si no, andar (al ritmo de sus pasos) o reposo
+    const an = this.anim;
+    const opts = an ? { flash, frame: Math.floor((an.t / an.dur) * animFrames(this.sprite, an.name)) }
+      : sp > 10 ? { flash, cycle: this.walkT / 7 } : { flash };
+    const sprited = drawSprite(ctx, this.sprite, an ? an.name : sp > 10 ? 'walk' : 'idle',
+      dirFromVector(this.lookX, this.lookY), game.time, x + shake, y + 15 * scale, opts);
     if (!sprited) drawHuman(ctx, x + shake, y, {
       ...this.def.look,
       s: scale,
