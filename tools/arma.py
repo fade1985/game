@@ -312,49 +312,68 @@ if ATK.get('boca') == 'fogonazo':
         print(f'boca   {d:11s} a {muzzle[d]} de los pies ({len(pts)} píxeles de fogonazo)')
 
 # ═════════════ Andar y atacar a la vez (armas de fuego) ═════════════
-# Con "partir": true en arma.json, la hoja lleva además a Johnny en dos mitades para que pueda disparar andando:
-#   legs  las piernas de cada fotograma de andar
-#   top   cada fotograma de ataque sin las piernas (torso, arma, fogonazo y humo)
-# El juego dibuja las piernas que andan y encima el torso que dispara. Las piernas son lo que queda por
-# debajo de la cintura dentro del ancho del cuerpo; de ahí, el ataque solo conserva lo que no tiene color de
-# pierna (el fogonazo y el humo que caen por delante).
-legs = top = None
-if ATK.get('partir') and walk:
-    HALF = 11  # medio ancho del cuerpo, en píxeles
-
-    DROP = ATK.get('cintura', {})  # filas de más que se baja el corte en una dirección (si el arma queda a la cadera)
-
-    def leg_zone(d):
-        waist = anatomy(still[d], d)[2] + DROP.get(d, 0)
-        return [(x, y) for y in range(waist + 1, CH) for x in range(PX - HALF, PX + HALF + 1)]
-
-    legs, top = {}, {}
+# Con "efectos": true en arma.json, la hoja lleva además la animación `fx`: cada fotograma de ataque con SOLO
+# los efectos (fogonazo, humo y casquillo), sin Johnny. Si dispara andando, el juego dibuja el andar entero,
+# de una pieza, y encima estos efectos: así no se le paran las piernas ni se le parte el cuerpo.
+# Son efecto los píxeles de color fuego (amarillo y naranja vivos, o blanco puro), los claros que quedan a más
+# de 5 píxeles del dibujo quieto (con el retroceso los brazos se mueven menos que eso) y los claros que caen
+# encima de Johnny con un color que él no tiene (el humo, de frente). Las motas sueltas se tiran.
+fx = None
+if ATK.get('efectos'):
+    luma = lambda c: (c[0] * 3 + c[1] * 6 + c[2]) / 10
+    fire = lambda c: (c[0] > 220 and c[1] > 110 and c[2] < 105) or min(c[:3]) > 235
+    fx = {}
     for d in DIRS:
-        zone = leg_zone(d)
         sp = still[d].load()
-        colors = {sp[p][:3] for p in zone if sp[p][3]}
-        like_leg = lambda c: any(sum(abs(c[i] - k[i]) for i in range(3)) < 70 for k in colors)
-        legs[d] = []
-        for f in walk[d]:
-            out = Image.new('RGBA', (CW, CH), (0, 0, 0, 0))
-            src, dst = f.load(), out.load()
-            for p in zone:
-                dst[p] = src[p]
-            legs[d].append(out)
-        top[d] = []
+        body = {(x, y) for y in range(CH) for x in range(CW) if sp[x, y][3]}
+        near = {(x + a, y + b) for x, y in body for a in range(-5, 6) for b in range(-5, 6)}
+        colors = {sp[q][:3] for q in body}
+        own = lambda c: any(sum(abs(c[k] - o[k]) for k in range(3)) < 70 for o in colors)
+        fx[d] = []
         for f in attack[d]:
-            out = f.copy()
-            px = out.load()
-            for p in zone:
-                if px[p][3] and like_leg(px[p][:3]):
-                    px[p] = (0, 0, 0, 0)
-            top[d].append(out)
-    print('partido: piernas del andar y torso del ataque por separado, para atacar andando')
+            src = f.load()
+            seed = set()
+            for y in range(CH):
+                for x in range(CW):
+                    c = src[x, y]
+                    if not c[3]:
+                        continue
+                    far = (x, y) not in near
+                    if fire(c) or (far and luma(c) > 90) or ((x, y) in body and luma(c) > 130 and not own(c[:3])):
+                        seed.add((x, y))
+            out = Image.new('RGBA', (CW, CH), (0, 0, 0, 0))
+            dst = out.load()
+            left = set(seed)
+            while left:  # por grupos de píxeles pegados: los grandes se quedan, las motas no
+                group, todo = set(), [left.pop()]
+                while todo:
+                    q = todo.pop()
+                    group.add(q)
+                    for n in ((q[0] + a, q[1] + b) for a in (-1, 0, 1) for b in (-1, 0, 1)):
+                        if n in left:
+                            left.discard(n)
+                            todo.append(n)
+                if len(group) >= 5 or (len(group) >= 2 and not group & near):
+                    for q in group:
+                        dst[q] = src[q]
+            # el humo que roza las manos se había quedado fuera: se completa con los píxeles claros pegados
+            # que tienen casi el mismo color (la piel y la camisa no se le parecen tanto)
+            todo = [(x, y) for y in range(CH) for x in range(CW) if dst[x, y][3] and not fire(dst[x, y])]
+            while todo:
+                q = todo.pop()
+                for n in ((q[0] + a, q[1] + b) for a in (-1, 0, 1) for b in (-1, 0, 1)):
+                    inside = 0 <= n[0] < CW and 0 <= n[1] < CH
+                    if inside and src[n][3] and not dst[n][3] and luma(src[n]) > 90 \
+                            and sum(abs(src[n][k] - src[q][k]) for k in range(3)) < 25:
+                        dst[n] = src[n]
+                        todo.append(n)
+            fx[d].append(out)
+    print('efectos: fogonazo, humo y casquillo por separado, para disparar andando')
 
 # ═════════════ Hoja y JSON ═════════════
 blocks = [('idle', idle)] + ([('walk', walk)] if walk else []) + [('attack', attack)]
-if legs:
-    blocks += [('legs', legs), ('top', top)]
+if fx:
+    blocks += [('fx', fx)]
 cols = max(len(DIRS), *(len(fs) for _, b in blocks for fs in b.values()))
 sheet = Image.new('RGBA', (cols * CW, (1 + len(blocks) * len(DIRS)) * CH), (0, 0, 0, 0))
 for i, d in enumerate(DIRS):
@@ -365,8 +384,8 @@ for name, block in blocks:
     for r, d in enumerate(DIRS):
         for i, f in enumerate(block[d]):
             sheet.alpha_composite(f, (i * CW, (row + r) * CH))
-    fps = {'idle': IDLE_FPS, 'walk': WALK_FPS, 'legs': WALK_FPS}.get(name, round(NA / ATK_DUR))
-    anims[name] = {'fps': fps, 'loop': name not in ('attack', 'top'),
+    fps = {'idle': IDLE_FPS, 'walk': WALK_FPS}.get(name, round(NA / ATK_DUR))
+    anims[name] = {'fps': fps, 'loop': name not in ('attack', 'fx'),
                    'dirs': {d: {'row': row + r, 'frames': len(block[d])} for r, d in enumerate(DIRS)}}
     row += len(DIRS)
 # en qué punto de la animación (de 0 a 1) llega el golpe: el juego hace el daño ahí

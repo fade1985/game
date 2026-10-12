@@ -263,18 +263,17 @@ export class Player {
     const hitting = armed && this.atkAnim ? animFrames(armed, 'attack') : 0;
     const dir = dirFromVector(this.lookX, this.lookY), now = game ? game.time : 0;
     let anim = walking ? 'walk' : 'idle', frame, cycle = walking ? (this.stepT || 0) / STEP : undefined;
+    // disparar andando: si la hoja trae los efectos del disparo aparte ("fx": fogonazo, humo y casquillo),
+    // Johnny sigue andando entero, de una pieza, y los efectos se pintan encima
+    let fx;
     if (hitting) {
-      anim = 'attack'; frame = Math.floor((this.atkAnim.t / this.atkAnim.dur) * hitting);
-      // disparar andando: si la hoja trae a Johnny en dos mitades, las piernas siguen andando ("legs") y
-      // encima va el torso que dispara ("top"), como en los juegos de disparos de toda la vida
-      if (walking && animFrames(armed, 'legs') > 0) {
-        drawSprite(ctx, sprite, 'legs', dir, now, x, y + 16, { flash: this.hurtT > 0, cycle });
-        anim = 'top';
-      }
-      cycle = undefined;
+      frame = Math.floor((this.atkAnim.t / this.atkAnim.dur) * hitting);
+      if (walking && animFrames(armed, 'fx') > 0) { fx = frame; frame = undefined; }
+      else { anim = 'attack'; cycle = undefined; }
     }
     const sprited = drawSprite(ctx, sprite, anim, dir, now, x, y + 16,
       { flash: this.hurtT > 0, frame, cycle });
+    if (sprited && fx !== undefined) drawSprite(ctx, sprite, 'fx', dir, now, x, y + 16, { frame: fx });
     if (!sprited) drawHuman(ctx, x, y, {
       ...PLAYER_LOOK,
       lookX: this.lookX,
