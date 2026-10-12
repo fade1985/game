@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────
-//  Objetos fijos de las salas: pedestal con objeto,
-//  superviviente atrapado y escaleras a la siguiente planta
+//  Cosas que hay en los mapas: superviviente atrapado, la llave del
+//  mini jefe, armas en el suelo y los muebles que guardan un arma
 // ─────────────────────────────────────────────
 import { W, H, WALL, OUTLINE } from './config.js';
 import { drawHuman, outlinedText, roundBox } from './draw.js';
@@ -8,39 +8,6 @@ import { drawWeapon } from './weapons.js';
 import { drawSprite, hasSprite, pixelShadow } from './sprites.js';
 
 const TAU = Math.PI * 2;
-
-// Pedestal con un objeto encima (de momento, una de las cartas de mejora)
-export class Pedestal {
-  constructor(item) {
-    this.kind = 'pedestal';
-    this.item = item;
-    this.x = W / 2; this.y = H / 2;
-    this.r = 26;
-    this.solid = true;
-    this.taken = false;
-  }
-
-  draw(ctx, game) {
-    const { x, y } = this;
-    ctx.fillStyle = 'rgba(20,16,40,0.25)';
-    ctx.beginPath(); ctx.ellipse(x, y + 18, 34, 12, 0, 0, TAU); ctx.fill();
-    // columna de piedra vista desde arriba
-    roundBox(ctx, x - 30, y - 6, 60, 30, 10, '#b8b3c9', 4);
-    roundBox(ctx, x - 34, y - 18, 68, 26, 12, '#d9d5e6', 4);
-    if (this.taken) return;
-    // brillo y objeto flotando
-    const bob = Math.sin(game.time * 3) * 5;
-    const glow = ctx.createRadialGradient(x, y - 40 + bob, 4, x, y - 40 + bob, 46);
-    glow.addColorStop(0, 'rgba(255, 230, 120, 0.7)');
-    glow.addColorStop(1, 'rgba(255, 230, 120, 0)');
-    ctx.fillStyle = glow;
-    ctx.beginPath(); ctx.arc(x, y - 40 + bob, 46, 0, TAU); ctx.fill();
-    ctx.font = '38px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(this.item.icon, x, y - 40 + bob);
-  }
-}
 
 // Superviviente atrapado: se une al equipo cuando limpias la sala y te acercas
 export class SurvivorNPC {
@@ -87,36 +54,47 @@ export class SurvivorNPC {
   }
 }
 
-// Escaleras a la siguiente planta (aparecen al derrotar al mini jefe)
-export class Stairs {
-  constructor(nextFloor) {
-    this.kind = 'stairs';
-    this.nextFloor = nextFloor;
-    this.x = W / 2; this.y = H / 2;
-    this.r = 30;
+// La llave del apartamento del mini jefe: espera en el suelo de alguna habitación de otro apartamento.
+// No es una de las llaves doradas que se gastan en el Taller: abre esa puerta y nada más.
+export class DoorKey {
+  constructor(name, x, y) {
+    this.kind = 'doorkey';
+    this.name = name;
+    this.x = x; this.y = y;
+    this.r = 20;
     this.solid = false;
-    this.flat = true; // se dibuja en el suelo, por debajo de los personajes
     this.taken = false;
-    this.appear = 0;
   }
 
   draw(ctx, game) {
-    this.appear = Math.min(1, this.appear + 0.04);
-    const { x, y } = this;
-    const k = this.appear;
+    const { x } = this;
+    const y = this.y - 8 + Math.sin(game.time * 3) * 4;
+    const glow = ctx.createRadialGradient(x, y, 4, x, y, 50);
+    glow.addColorStop(0, `rgba(190, 225, 255, ${0.6 + Math.sin(game.time * 4) * 0.15})`);
+    glow.addColorStop(1, 'rgba(190, 225, 255, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath(); ctx.arc(x, y, 50, 0, TAU); ctx.fill();
+    ctx.fillStyle = 'rgba(20,16,40,0.22)';
+    ctx.beginPath(); ctx.ellipse(x, this.y + 14, 16, 5, 0, 0, TAU); ctx.fill();
+    // llave plateada, grande, con una etiqueta roja colgando
     ctx.save();
     ctx.translate(x, y);
-    ctx.scale(k, k);
-    roundBox(ctx, -52, -44, 104, 88, 14, '#8b5a3c', 5);
-    // peldaños que suben
-    for (let i = 0; i < 5; i++) {
-      const sy = -34 + i * 15;
-      roundBox(ctx, -42, sy, 84, 13, 4, i % 2 ? '#d6a46b' : '#e2b47c', 3);
-    }
+    ctx.rotate(-0.6 + Math.sin(game.time * 2.5) * 0.15);
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = OUTLINE;
+    ctx.beginPath();
+    ctx.moveTo(-3, -4); ctx.lineTo(22, -4); ctx.lineTo(22, 10); ctx.lineTo(16, 10); ctx.lineTo(16, 4);
+    ctx.lineTo(11, 4); ctx.lineTo(11, 8); ctx.lineTo(6, 8); ctx.lineTo(6, 4); ctx.lineTo(-3, 4);
+    ctx.closePath();
+    ctx.fillStyle = '#dfe7f2'; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-12, 0, 11, 0, TAU);
+    ctx.fillStyle = '#dfe7f2'; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-12, 0, 4, 0, TAU);
+    ctx.fillStyle = '#8d99ae'; ctx.fill(); ctx.stroke();
+    roundBox(ctx, -20, 10, 16, 12, 3, '#ff5d73', 2.5);
     ctx.restore();
-    if (k >= 1) {
-      outlinedText(ctx, `▲ Planta ${this.nextFloor}`, x, y - 66 - Math.abs(Math.sin(game.time * 4)) * 5, 22, '#ffd23f');
-    }
+    outlinedText(ctx, this.name, x, this.y + 34, 15, '#dfe7f2', { lw: 4 });
   }
 }
 
@@ -154,7 +132,7 @@ export class WeaponProp {
   }
 }
 
-// Muebles de la entrada que guardan un arma para empezar la partida, vistos desde arriba
+// Muebles de la sala de mantenimiento que guardan un arma para empezar la partida, vistos desde arriba
 // y pegados a la pared de arriba. Los redondos llevan `round` (radio); el resto, largo y fondo.
 const STASHES = {
   cubo:      { round: 20, color: '#6c9bd1' },

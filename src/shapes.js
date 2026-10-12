@@ -1,21 +1,16 @@
 // ─────────────────────────────────────────────
-//  Forma y tamaño de las salas (solo en la versión pixel art)
+//  La cuadrícula de cada mapa (sala, pasillo o apartamento)
 //
-//  Cada sala es una cuadrícula de casillas de 32 unidades (una baldosa del pixel art):
-//  cada casilla es suelo o muro. Las salas de monstruos pueden ser más grandes que la
-//  de siempre (30×20 casillas). La forma se consigue "mordiendo" el rectángulo con
-//  bloques de muro: esquinas recortadas (salas en L, en T, en cruz...), entrantes en
-//  los lados sin puerta (salas en U), columnas y, en las salas grandes, islas de muro.
-//
-//  Siempre queda libre el centro de la sala y un pasillo desde cada puerta hasta él,
-//  así que todas las puertas se comunican y hay sitio para pedestales y escaleras.
+//  Todo mapa es una cuadrícula de casillas de 32 unidades (una baldosa del pixel art): cada casilla
+//  es suelo (0) o muro (1). Alrededor hay siempre un muro de 2 casillas; dentro puede haber tabiques
+//  (los de los apartamentos, ver apartment.js).
 //
 //  De la cuadrícula salen tres cosas:
-//    grid    la cuadrícula (1 = muro), para saber si un punto es muro y calcular caminos
+//    grid    la cuadrícula, para saber si un punto es muro y calcular caminos
 //    blocks  los muros interiores como rectángulos, para los choques
 //    y el camino que siguen los zombis para rodear las esquinas (wayTo)
 // ─────────────────────────────────────────────
-import { W, H, WALL, PIXEL_MODE } from './config.js';
+import { W, H, WALL } from './config.js';
 
 export const CELL = 32;
 const EDGE = WALL / CELL; // grosor en casillas de los muros de fuera
@@ -24,146 +19,15 @@ const EDGE = WALL / CELL; // grosor en casillas de los muros de fuera
 export const BASE_COLS = W / CELL;   // 30
 export const BASE_ROWS = H / CELL;   // 20
 
-const MIN_FLOOR = 0.6; // como mínimo queda este trozo del suelo original
-const SHAPED_TYPES = ['monsters', 'item', 'survivor']; // la entrada y los jefes siguen siendo rectangulares
-
-// Tamaños posibles de las salas grandes (siempre pares, para que las puertas queden centradas)
-const BIG_COLS = [30, 36, 40, 44];
-const BIG_ROWS = [20, 24, 28];
-const BIG_CHANCE = 0.55; // cuántas salas de monstruos son más grandes que la de siempre
-
-// Tamaño de una sala en casillas. Solo crecen las salas de monstruos de la versión pixel.
-export function pickSize(type, rng) {
-  if (!PIXEL_MODE || type !== 'monsters' || rng() > BIG_CHANCE) return [BASE_COLS, BASE_ROWS];
-  for (;;) {
-    const cols = BIG_COLS[Math.floor(rng() * BIG_COLS.length)], rows = BIG_ROWS[Math.floor(rng() * BIG_ROWS.length)];
-    if (cols > BASE_COLS || rows > BASE_ROWS) return [cols, rows];
-  }
-}
-
-// Dónde está cada puerta de una sala (en el centro de cada lado) y hacia dónde mira:
-// `a` es el giro para dibujarla, como si todas estuvieran en el muro de arriba
-export function doorSpots(layout) {
-  const w = layout.w ?? W, h = layout.h ?? H;
-  return {
-    up: { x: w / 2, y: WALL / 2, a: 0 },
-    down: { x: w / 2, y: h - WALL / 2, a: Math.PI },
-    left: { x: WALL / 2, y: h / 2, a: -Math.PI / 2 },
-    right: { x: w - WALL / 2, y: h / 2, a: Math.PI / 2 },
-  };
-}
-
 // Sala rectangular: muro alrededor y suelo dentro
-function plainGrid(cols, rows) {
+export function plainGrid(cols, rows) {
   const g = new Uint8Array(cols * rows).fill(1);
   for (let r = EDGE; r < rows - EDGE; r++) for (let c = EDGE; c < cols - EDGE; c++) g[r * cols + c] = 0;
   return g;
 }
 
-// Casillas que no se pueden tapar: el centro y el pasillo de cada puerta (6 casillas de ancho)
-function reservedMask(doors, cols, rows) {
-  const m = new Uint8Array(cols * rows);
-  const fill = (c0, r0, c1, r1) => { for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) m[r * cols + c] = 1; };
-  const c0 = cols / 2 - 3, c1 = cols / 2 + 2, r0 = rows / 2 - 3, r1 = rows / 2 + 2;
-  fill(c0, r0, c1, r1);
-  if (doors.up) fill(c0, EDGE, c1, r0);
-  if (doors.down) fill(c0, r1, c1, rows - EDGE - 1);
-  if (doors.left) fill(EDGE, r0, c0, r1);
-  if (doors.right) fill(c1, r0, cols - EDGE - 1, r1);
-  return m;
-}
-
-// Bloques de muro al azar: [columna, fila, ancho, alto] en casillas.
-// En las salas grandes los recortes crecen en proporción y aparecen islas de muro en medio.
-function randomCuts(rng, doors, amount, cols, rows) {
-  const sx = cols / BASE_COLS, sy = rows / BASE_ROWS;
-  const ri = (a, b) => a + Math.floor(rng() * (b - a + 1));
-  const wide = (a, b) => Math.round(ri(a, b) * sx), tall = (a, b) => Math.round(ri(a, b) * sy);
-  const C1 = cols - EDGE, R1 = rows - EDGE;
-  const cuts = [];
-  const mirror = rng() < 0.5; // la mitad de las salas son simétricas: se ven más "de arquitecto"
-  const corner = (right, bottom, w, h) => cuts.push([right ? C1 - w : EDGE, bottom ? R1 - h : EDGE, w, h]);
-
-  // esquinas recortadas, a veces con un escalón
-  for (const [right, bottom] of [[0, 0], [1, 0], [0, 1], [1, 1]]) {
-    if (mirror && right) continue;
-    if (rng() > 0.6 * amount) continue;
-    const w = wide(3, 8), h = tall(2, 5);
-    corner(right, bottom, w, h);
-    if (rng() < 0.4) corner(right, bottom, ri(2, Math.max(2, w - 2)), h + tall(1, 3));
-  }
-  // entrantes en los lados que no tienen puerta
-  for (const side of ['up', 'down', 'left', 'right']) {
-    if (doors[side] || (mirror && side === 'right') || rng() > 0.45 * amount) continue;
-    if (side === 'up' || side === 'down') {
-      const len = wide(4, 10), dep = tall(2, 4);
-      cuts.push([ri(EDGE + 3, C1 - 3 - len), side === 'up' ? EDGE : R1 - dep, len, dep]);
-    } else {
-      const len = tall(3, 6), dep = wide(2, 5);
-      cuts.push([side === 'left' ? EDGE : C1 - dep, ri(EDGE + 2, R1 - 2 - len), dep, len]);
-    }
-  }
-  // islas de muro en las salas grandes: dan cobertura y rompen las líneas de tiro
-  if (sx * sy > 1.15) {
-    for (let n = ri(0, 2); n > 0; n--) {
-      if (rng() > amount) continue;
-      const w = ri(3, 6), h = ri(2, 4);
-      cuts.push([ri(EDGE + 3, cols / 2 - 2 - w), ri(EDGE + 3, R1 - 3 - h), w, h]);
-    }
-  }
-  if (mirror) for (const [c, r, w, h] of [...cuts]) cuts.push([cols - c - w, r, w, h]);
-  // cuatro columnas alrededor del centro
-  if (rng() < 0.3 * amount) {
-    const c = wide(5, 9), r = tall(4, 5);
-    for (const [pc, pr] of [[c, r], [cols - c - 2, r], [c, rows - r - 2], [cols - c - 2, rows - r - 2]]) cuts.push([pc, pr, 2, 2]);
-  }
-  return cuts;
-}
-
-// Arregla la cuadrícula: tapa los pasos de una sola casilla (los personajes no cabrían)
-// y los rincones a los que no se puede llegar. Devuelve cuánto suelo queda (0..1).
-function tidy(g, cols, rows) {
-  const at = (c, r) => r * cols + c;
-  const C1 = cols - EDGE, R1 = rows - EDGE;
-  const floor = (c, r) => c >= 0 && r >= 0 && c < cols && r < rows && !g[at(c, r)];
-  // cuadrado de suelo de 2×2 con la esquina de arriba a la izquierda en (c, r): por ahí cabe un personaje
-  const square = (c, r) => floor(c, r) && floor(c + 1, r) && floor(c, r + 1) && floor(c + 1, r + 1);
-  const walls = (c, r) => !floor(c - 1, r) + !floor(c + 1, r) + !floor(c, r - 1) + !floor(c, r + 1);
-  for (let changed = true; changed;) {
-    changed = false;
-    for (let r = EDGE; r < R1; r++) {
-      for (let c = EDGE; c < C1; c++) {
-        if (g[at(c, r)]) continue;
-        // casilla suelta: no forma parte de ningún cuadrado de 2×2
-        if (!square(c, r) && !square(c - 1, r) && !square(c, r - 1) && !square(c - 1, r - 1)) { g[at(c, r)] = 1; changed = true; continue; }
-        // estrechamiento: dos casillas vecinas que no comparten ningún cuadrado de 2×2 (se taparía el paso
-        // con el cuerpo). Se cierra tapando la que está más encajonada.
-        if (floor(c + 1, r) && !square(c, r) && !square(c, r - 1)) {
-          g[walls(c, r) > walls(c + 1, r) ? at(c, r) : at(c + 1, r)] = 1; changed = true; continue;
-        }
-        if (floor(c, r + 1) && !square(c, r) && !square(c - 1, r)) {
-          g[walls(c, r) > walls(c, r + 1) ? at(c, r) : at(c, r + 1)] = 1; changed = true;
-        }
-      }
-    }
-  }
-  // a qué casillas se llega andando desde el centro
-  const seen = new Uint8Array(cols * rows);
-  const start = at(cols / 2, rows / 2);
-  const queue = [start];
-  seen[start] = 1;
-  let n = 0;
-  while (queue.length) {
-    const i = queue.pop();
-    n++;
-    for (const j of [i - 1, i + 1, i - cols, i + cols]) if (!g[j] && !seen[j]) { seen[j] = 1; queue.push(j); }
-  }
-  for (let i = 0; i < g.length; i++) if (!g[i] && !seen[i]) g[i] = 1;
-  return n / ((C1 - EDGE) * (R1 - EDGE));
-}
-
 // Junta las casillas de muro del interior en rectángulos grandes (para los choques)
-function toBlocks(g, cols, rows) {
+export function toBlocks(g, cols, rows) {
   const C1 = cols - EDGE, R1 = rows - EDGE;
   const blocks = [];
   let open = []; // rectángulos que siguen creciendo hacia abajo: { c0, c1, r0 }
@@ -189,26 +53,8 @@ function toBlocks(g, cols, rows) {
   return blocks;
 }
 
-// Forma de una sala de `cols` × `rows` casillas según su tipo y sus puertas. `rng` es el generador de la sala.
-export function makeShape(type, doors, rng, cols = BASE_COLS, rows = BASE_ROWS) {
-  if (PIXEL_MODE && SHAPED_TYPES.includes(type)) {
-    const reserved = reservedMask(doors, cols, rows);
-    // si una forma sale demasiado pequeña se prueba otra con menos recortes
-    for (let tries = 0; tries < 8; tries++) {
-      const g = plainGrid(cols, rows);
-      for (const [c0, r0, w, h] of randomCuts(rng, doors, 1 - tries * 0.1, cols, rows)) {
-        for (let r = Math.max(EDGE, r0); r < Math.min(rows - EDGE, r0 + h); r++) {
-          for (let c = Math.max(EDGE, c0); c < Math.min(cols - EDGE, c0 + w); c++) if (!reserved[r * cols + c]) g[r * cols + c] = 1;
-        }
-      }
-      if (tidy(g, cols, rows) >= MIN_FLOOR) return { grid: g, blocks: toBlocks(g, cols, rows) };
-    }
-  }
-  return { grid: plainGrid(cols, rows), blocks: [] };
-}
-
 // ═════════════ Consultas ═════════════
-// `layout` es la sala: { grid, cols, rows, w, h, blocks }
+// `layout` es el mapa: { grid, cols, rows, w, h, blocks }
 
 export function isWall(layout, x, y) {
   const c = Math.floor(x / CELL), r = Math.floor(y / CELL);
@@ -276,16 +122,45 @@ function stepsTo(layout, x, y) {
   return f;
 }
 
-// Hacia dónde tiene que andar `e` para llegar a `target` rodeando los muros.
+// La cuadrícula con la que se buscan los caminos: los muros y, además, las casillas que tapa un mueble.
+// (Las balas y las miradas siguen usando la de los muros: por encima de un sofá se ve y se dispara.)
+function navOf(layout) {
+  if (layout.nav) return layout.nav;
+  const { cols, rows } = layout;
+  const grid = layout.grid.slice();
+  let any = layout.blocks.length > 0;
+  for (const o of layout.obstacles || []) {
+    if (o.shape !== 'rect') continue;
+    for (let r = Math.max(0, Math.floor((o.y - o.h / 2) / CELL)); r <= Math.min(rows - 1, Math.floor((o.y + o.h / 2) / CELL)); r++) {
+      for (let c = Math.max(0, Math.floor((o.x - o.w / 2) / CELL)); c <= Math.min(cols - 1, Math.floor((o.x + o.w / 2) / CELL)); c++) {
+        // tapada: el mueble le pisa el centro
+        if (Math.abs((c + 0.5) * CELL - o.x) < o.w / 2 && Math.abs((r + 0.5) * CELL - o.y) < o.h / 2) { grid[r * cols + c] = 1; any = true; }
+      }
+    }
+  }
+  // `blocks` solo dice si hay algo que rodear (lineClear lo mira para no trabajar en balde)
+  return (layout.nav = { grid, cols, rows, w: layout.w, h: layout.h, blocks: any ? [true] : [] });
+}
+
+// Hacia dónde tiene que andar `e` para llegar a `target` rodeando muros y muebles.
 // Devuelve null si puede ir en línea recta (lo normal): entonces cada uno se mueve como siempre.
-export function wayTo(layout, e, target) {
+export function wayTo(map, e, target) {
+  const layout = navOf(map);
   if (!layout.blocks.length) return null;
   const pad = e.r * 0.8;
   if (lineClear(layout, e.x, e.y, target.x, target.y, pad)) return null;
   const cols = layout.cols;
   const f = stepsTo(layout, target.x, target.y);
   let cur = Math.floor(e.y / CELL) * cols + Math.floor(e.x / CELL);
-  if (!(f[cur] >= 0)) return null;
+  if (!(f[cur] >= 0)) {
+    // pisa una casilla tapada (va pegado a un mueble): sale hacia la casilla libre vecina que más le acerca
+    let out = -1;
+    for (const d of [1, -1, cols, -cols, cols + 1, cols - 1, -cols + 1, -cols - 1]) if (f[cur + d] >= 0 && (out < 0 || f[cur + d] < f[out])) out = cur + d;
+    if (out < 0) return null;
+    const ox = ((out % cols) + 0.5) * CELL - e.x, oy = (Math.floor(out / cols) + 0.5) * CELL - e.y;
+    const od = Math.hypot(ox, oy) || 1;
+    return { x: ox / od, y: oy / od };
+  }
   // avanza unas casillas por el camino y apunta a la más lejana a la que llega en línea recta:
   // así corta las esquinas con naturalidad en vez de ir de casilla en casilla
   let aim = null;

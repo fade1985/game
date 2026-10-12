@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────
 //  Personajes: jugador, compañeros y enemigos
 // ─────────────────────────────────────────────
-import { W, H, WALL, OUTLINE, PLAYER_LOOK, PIXEL_MODE } from './config.js';
+import { W, H, WALL, OUTLINE, PLAYER_LOOK } from './config.js';
 import { drawSprite, dirFromVector, hasSprite, pixelShadow, animFrames, animHit, animDuration, spriteMuzzle } from './sprites.js';
 import { rand } from './utils.js';
 import { drawHuman } from './draw.js';
@@ -136,7 +136,7 @@ export class Player {
       };
       this.swingDir *= -1;
       const hit = () => game.meleeHit(this, angle, half, w.reach * s.range * s.meleeRange, w.damage * s.damage, w);
-      if (PIXEL_MODE && w.sprite && hasSprite(w.sprite)) {
+      if (w.sprite && hasSprite(w.sprite)) {
         // pixel art: la animación del golpe dura medio segundo como mucho y nunca más que el hueco entre
         // ataques; el daño se hace cuando el arma llega a su sitio (lo dice la hoja), no al empezar a moverla
         this.atkAnim = { t: 0, dur: Math.min(0.5, 0.95 / (w.rate * s.fireRate)), hit, at: animHit(w.sprite, 'attack') };
@@ -148,7 +148,7 @@ export class Player {
       const n = w.pellets + s.shots;
       // pixel art: si el arma tiene hoja propia, la bala nace en la boca del arma del dibujo (los pies del
       // sprite van 16 unidades por debajo del centro) y se ve la animación de disparo, con su fogonazo
-      const armed = PIXEL_MODE && w.sprite && hasSprite(w.sprite);
+      const armed = w.sprite && hasSprite(w.sprite);
       const m = armed ? spriteMuzzle(w.sprite, dirFromVector(Math.cos(angle), Math.sin(angle))) : null;
       const bx = m ? this.x + m[0] : h.x + Math.cos(angle) * w.muzzle;
       const by = m ? this.y + 16 + m[1] + MUZZLE_LIFT : h.y + Math.sin(angle) * w.muzzle;
@@ -250,7 +250,7 @@ export class Player {
     if (this.invuln > 0 && this.dashT <= 0 && Math.floor(this.invuln * 18) % 2 === 0) ctx.globalAlpha = 0.45;
     // pixel art: si el arma tiene su propia hoja (Johnny con ella en la mano), el arma y el golpe ya van
     // en el dibujo y no hace falta pintar el brazo ni la estela por encima
-    const armed = PIXEL_MODE && this.weapon.sprite && hasSprite(this.weapon.sprite) ? this.weapon.sprite : null;
+    const armed = this.weapon.sprite && hasSprite(this.weapon.sprite) ? this.weapon.sprite : null;
     if (!armed) this.drawSwingTrail(ctx);
     const a = this.armAngle;
     const behind = Math.sin(a) < -0.3; // si apunta hacia arriba, el arma va detrás del cuerpo
@@ -258,7 +258,7 @@ export class Player {
     const sp = Math.hypot(this.vx, this.vy);
     // pixel art: sprite del conserje (los pies van 16 unidades por debajo del centro)
     const sprite = armed || (hasSprite('conserje-48') ? 'conserje-48' : 'conserje'); // prueba del estilo nuevo (48×48)
-    if (PIXEL_MODE && hasSprite(sprite)) pixelShadow(ctx, x, y + 15, 28);
+    if (hasSprite(sprite)) pixelShadow(ctx, x, y + 15, 28);
     const walking = sp > 20 && (!armed || animFrames(armed, 'walk') > 0);
     const hitting = armed && this.atkAnim ? animFrames(armed, 'attack') : 0;
     const dir = dirFromVector(this.lookX, this.lookY), now = game ? game.time : 0;
@@ -273,7 +273,7 @@ export class Player {
       }
       cycle = undefined;
     }
-    const sprited = PIXEL_MODE && drawSprite(ctx, sprite, anim, dir, now, x, y + 16,
+    const sprited = drawSprite(ctx, sprite, anim, dir, now, x, y + 16,
       { flash: this.hurtT > 0, frame, cycle });
     if (!sprited) drawHuman(ctx, x, y, {
       ...PLAYER_LOOK,

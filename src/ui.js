@@ -122,13 +122,13 @@ export function createUI(root) {
         const time = p.bestTime ? `${Math.floor(p.bestTime / 60)}:${String(Math.floor(p.bestTime % 60)).padStart(2, '0')}` : '';
         const progress = p.completed
           ? `✅ Completado ×${p.wins}${time ? ` · ⏱️ ${time}` : ''}`
-          : p.runs ? `🏆 Mejor planta: ${p.bestFloor} / ${b.floors}` : '¡Sin explorar!';
+          : p.runs ? `🏆 Has llegado al nivel ${p.bestFloor} de ${b.floors}` : '¡Sin explorar!';
         return `
           <button class="bcard ${p.completed ? 'done' : ''}" data-act="pick" data-arg="${b.id}">
             <div class="bicon">${b.icon}</div>
             <div class="bname">${b.name}</div>
             <div class="bdesc">${b.desc}</div>
-            <div class="bmeta">${b.floors} plantas · ${p.runs} intento${p.runs === 1 ? '' : 's'}</div>
+            <div class="bmeta">${b.floors - 1} plantas y azotea · ${p.runs} intento${p.runs === 1 ? '' : 's'}</div>
             <div class="bfoot">${progress}</div>
           </button>`;
       }).join('');
@@ -184,7 +184,7 @@ export function createUI(root) {
       open(`
         <div class="panel pause">
           <h2 class="title">Pausa</h2>
-          <p class="sub">${g.building.icon} ${g.building.name} · Planta ${g.floorNum}</p>
+          <p class="sub">${g.building.icon} ${g.building.name} · ${g.floorLabel}</p>
           <div class="pause-grid">
             <div class="stats">
               ${stat('❤️', 'Vida', `${Math.ceil(g.player.hp)} / ${Math.round(s.maxHp)}`)}
@@ -219,7 +219,7 @@ export function createUI(root) {
           <div class="stats">
             <div class="stat"><span>🏢 Plantas superadas</span><b>${r.floors}</b></div>
             <div class="stat"><span>🧟 Enemigos derrotados</span><b>${r.kills}</b></div>
-            <div class="stat"><span>🗺️ Salas exploradas (última planta)</span><b>${r.explored}</b></div>
+            <div class="stat"><span>🗺️ Apartamentos visitados (última planta)</span><b>${r.explored}</b></div>
             <div class="stat"><span>👥 Equipo</span><b>${r.team}</b></div>
             ${r.time ? `<div class="stat"><span>⏱️ Tiempo</span><b>${r.time}</b></div>` : ''}
             <div class="stat key"><span>🔑 Llaves conseguidas</span><b>+${r.keys} <small>(tienes ${r.wallet})</small></b></div>

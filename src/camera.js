@@ -1,25 +1,25 @@
 // ─────────────────────────────────────────────
-//  Cámara (solo en la versión pixel art)
+//  Cámara
 //
 //  Acerca la vista ×1,5 y sigue al conserje con suavidad, adelantándose un poco
-//  hacia donde camina. Nunca enseña lo que hay fuera de la sala. En las salas de
-//  jefe se aleja un poco para que se vean bien sus ataques.
-//  En la versión cartoon la cámara se queda quieta enseñando la sala entera.
+//  hacia donde camina. Nunca enseña lo que hay fuera del mapa en el que está; si el
+//  mapa es más pequeño que la pantalla (el pasillo es estrecho), lo centra. Con un
+//  jefe delante se aleja un poco para que se vean bien sus ataques.
 // ─────────────────────────────────────────────
-import { W, H, PIXEL_MODE } from './config.js';
+import { W, H } from './config.js';
 import { clamp } from './utils.js';
 
 export const ZOOM = 1.5;       // acercamiento normal
-export const BOSS_ZOOM = 1.15; // en las salas de jefe se ve más sala
+export const BOSS_ZOOM = 1.15; // con un jefe delante se ve más trozo de mapa
 
 export class Camera {
   constructor() {
-    this.zoom = PIXEL_MODE ? ZOOM : 1;
+    this.zoom = ZOOM;
     this.targetZoom = this.zoom;
     this.x = W / 2;
     this.y = H / 2;
     this.aspect = W / H; // ancho / alto de la pantalla (se actualiza al cambiar el tamaño de la ventana)
-    this.rw = W;         // tamaño de la sala que se está viendo (las hay más grandes que la de siempre)
+    this.rw = W;         // tamaño del mapa que se está viendo
     this.rh = H;
   }
 
@@ -32,21 +32,20 @@ export class Camera {
   get left() { return this.x - this.vw / 2; }
   get top() { return this.y - this.vh / 2; }
 
-  // Que la vista no se salga de la sala (si la pantalla es más ancha que la sala, se centra)
+  // Que la vista no se salga del mapa (si la pantalla es más grande que el mapa, se centra)
   clampToRoom() {
     this.x = this.vw >= this.rw ? this.rw / 2 : clamp(this.x, this.vw / 2, this.rw - this.vw / 2);
     this.y = this.vh >= this.rh ? this.rh / 2 : clamp(this.y, this.vh / 2, this.rh - this.vh / 2);
   }
 
-  // Al entrar en una sala: sus medidas, para no enseñar lo que hay fuera
+  // Al entrar en un mapa: sus medidas, para no enseñar lo que hay fuera
   setRoom(w, h) {
     this.rw = w;
     this.rh = h;
   }
 
-  // Coloca la cámara de golpe sobre alguien (al entrar en una sala)
+  // Coloca la cámara de golpe sobre alguien (al entrar en un mapa)
   snap(target) {
-    if (!PIXEL_MODE) return;
     this.zoom = this.targetZoom;
     this.x = target.x;
     this.y = target.y;
@@ -54,7 +53,6 @@ export class Camera {
   }
 
   update(dt, target) {
-    if (!PIXEL_MODE) return;
     this.zoom += (this.targetZoom - this.zoom) * (1 - Math.exp(-dt * 3));
     if (Math.abs(this.targetZoom - this.zoom) < 0.002) this.zoom = this.targetZoom;
     // un poco por delante del personaje, en la dirección en la que se mueve

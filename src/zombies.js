@@ -5,7 +5,7 @@
 //  y cada tipo tiene su color, tamaño y comportamiento. Los ataques
 //  peligrosos SIEMPRE avisan antes, para que se puedan esquivar.
 // ─────────────────────────────────────────────
-import { OUTLINE, PIXEL_MODE } from './config.js';
+import { OUTLINE } from './config.js';
 import { drawSprite, dirFromVector, hasSprite, pixelShadow } from './sprites.js';
 import { rand } from './utils.js';
 import { drawHuman } from './draw.js';
@@ -91,9 +91,11 @@ export class Zombie {
     const dx = p.x - this.x, dy = p.y - this.y;
     const d = Math.hypot(dx, dy) || 1;
     let ux = dx / d, uy = dy / d;
-    // en las salas con forma: si hay un muro en medio, rodea la esquina en vez de ir en línea recta
+    // si hay un tabique o un mueble en medio, lo rodea en vez de ir en línea recta
     const way = game.wayTo(this);
     if (way) { ux = way.x; uy = way.y; }
+    // y desde detrás de un tabique nadie ataca: primero hay que llegar a ver al conserje
+    const sees = !way || game.sees(this);
     let mx = ux, my = uy, spd = this.speed, steer = 8;
 
     switch (this.type) {
@@ -126,7 +128,7 @@ export class Zombie {
             game.killEnemy(this);
             return;
           }
-        } else if (d < EXPLOSION.trigger + p.r) {
+        } else if (sees && d < EXPLOSION.trigger + p.r) {
           this.fuse = EXPLOSION.fuse; // ¡se enciende la mecha!
         }
         break;
@@ -144,17 +146,18 @@ export class Zombie {
             this.tent = null;
             this.cd = TENTACLE.cd;
           }
-        } else if (this.cd <= 0 && d < TENTACLE.range + p.r) {
+        } else if (sees && this.cd <= 0 && d < TENTACLE.range + p.r) {
           // apunta a donde estás AHORA: si te mueves, fallará
           this.tent = { angle: Math.atan2(dy, dx), phase: 'warn', t: 0 };
-        } else if (d < 140) {
+        } else if (sees && d < 140) {
           spd = 0;
         }
         break;
 
       case 'venenoso':
         // mantiene la distancia y escupe mocos
-        if (d < 220) { mx = -ux; my = -uy; }
+        if (!sees) { mx = ux; my = uy; }
+        else if (d < 220) { mx = -ux; my = -uy; }
         else if (d > 310) { mx = ux; my = uy; }
         else { mx = -uy * this.strafe; my = ux * this.strafe; }
         if (this.spitT > 0) {
@@ -165,7 +168,7 @@ export class Zombie {
             this.cd = POISON.cd;
             sfx.spit();
           }
-        } else if (this.cd <= 0 && d < 430) {
+        } else if (sees && this.cd <= 0 && d < 430) {
           this.spitT = 0.4; // hincha los mofletes antes de escupir
         }
         break;
@@ -260,8 +263,8 @@ export class Zombie {
     if (this.tent && this.tent.phase === 'warn') shake = rand(-1, 1);
     const sp = Math.hypot(this.vx, this.vy);
     // pixel art: un sprite por tipo de zombi ("zombi-normal", "zombi-rapido"...)
-    if (PIXEL_MODE && hasSprite(`zombi-${this.type}`)) pixelShadow(ctx, x, y + 14 * scale, 28 * scale);
-    const sprited = PIXEL_MODE && drawSprite(ctx, `zombi-${this.type}`, sp > 10 ? 'walk' : 'idle',
+    if (hasSprite(`zombi-${this.type}`)) pixelShadow(ctx, x, y + 14 * scale, 28 * scale);
+    const sprited = drawSprite(ctx, `zombi-${this.type}`, sp > 10 ? 'walk' : 'idle',
       dirFromVector(this.lookX, this.lookY), game.time, x + shake, y + 15 * scale, { flash });
     if (!sprited) drawHuman(ctx, x + shake, y, {
       ...this.def.look,

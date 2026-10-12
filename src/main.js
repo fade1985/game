@@ -6,7 +6,6 @@ import { createUI } from './ui.js';
 import { initInput } from './input.js';
 import { unlockAudio, setMusicOn } from './sfx.js';
 import { loadSave } from './save.js';
-import { PIXEL_MODE } from './config.js';
 import { loadSprites } from './sprites.js';
 
 const root = document.getElementById('game-wrap');
@@ -14,7 +13,7 @@ const canvas = document.getElementById('game');
 const touchUI = document.getElementById('touch-ui');
 
 if (window.matchMedia('(pointer: coarse)').matches) document.body.classList.add('touch');
-if (PIXEL_MODE) document.body.classList.add('pixel');
+document.body.classList.add('pixel'); // estilos de la interfaz en pixel art (style.css)
 
 setMusicOn(loadSave().settings.music);
 
@@ -56,10 +55,10 @@ function frame(now) {
 
 game.goMenu();
 requestAnimationFrame(frame);
-// Sprites de pixel art (si todavía no hay, todo se dibuja como siempre)
+// Sprites de pixel art (lo que aún no tiene sprite se dibuja a mano, como antes)
 // Con ?sala=<zombi> se salta el menú y se entra directamente a la sala de exposición
 const sala = new URLSearchParams(location.search).has('sala');
-if (PIXEL_MODE) loadSprites().then((ids) => { game.spriteIds = ids; if (sala) game.newRun(); });
+loadSprites().then((ids) => { game.spriteIds = ids; if (sala) game.newRun(); });
 
 // Para depurar desde la consola del navegador: window.game
 window.game = game;

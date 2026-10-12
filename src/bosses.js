@@ -9,7 +9,7 @@
 //  Cada jefe es una pequeña máquina de estados: anda un rato, elige un
 //  ataque, lo AVISA (siempre se puede esquivar) y lo ejecuta.
 // ─────────────────────────────────────────────
-import { W, H, WALL, OUTLINE } from './config.js';
+import { WALL, OUTLINE } from './config.js';
 import { rand } from './utils.js';
 import { drawHuman } from './draw.js';
 import { drawSpawnWarning } from './entities.js';
@@ -205,13 +205,13 @@ function drawCircleWarn(ctx, x, y, r, k, color = '255, 60, 90') {
   ctx.restore();
 }
 
-// Distancia hasta la pared siguiendo un ángulo (para dibujar el aviso)
-function distToWall(x, y, a, r) {
+// Distancia hasta la pared siguiendo un ángulo (para dibujar el aviso). `w` y `h`: medidas del mapa.
+function distToWall(x, y, a, r, w, h) {
   const cx = Math.cos(a), cy = Math.sin(a);
   let t = 2000;
-  if (cx > 0.001) t = Math.min(t, (W - WALL - r - x) / cx);
+  if (cx > 0.001) t = Math.min(t, (w - WALL - r - x) / cx);
   if (cx < -0.001) t = Math.min(t, (WALL + r - x) / cx);
-  if (cy > 0.001) t = Math.min(t, (H - WALL - r - y) / cy);
+  if (cy > 0.001) t = Math.min(t, (h - WALL - r - y) / cy);
   if (cy < -0.001) t = Math.min(t, (WALL + r - y) / cy);
   return Math.max(0, t);
 }
@@ -367,7 +367,7 @@ export class Vecino extends BossBase {
     // ── avisos en el suelo ──
     if (st.name === 'chargeWarn') {
       const k = Math.min(1, st.t / st.warn);
-      drawLane(ctx, x, y + 10, st.angle, distToWall(x, y, st.angle, this.r) + this.r, this.r + 6, k);
+      drawLane(ctx, x, y + 10, st.angle, distToWall(x, y, st.angle, this.r, game.rw, game.rh) + this.r, this.r + 6, k);
     }
     if (st.name === 'stompWarn') drawCircleWarn(ctx, x, y + 10, VECINO.stompRadius, Math.min(1, st.t / VECINO.stompWarn));
 

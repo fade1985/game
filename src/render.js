@@ -1,20 +1,20 @@
 // ─────────────────────────────────────────────
 //  Dibujo del escenario: habitaciones, puertas, objetos y minimapa
 // ─────────────────────────────────────────────
-import { W, H, WALL, DOOR_W, OUTLINE, PIXEL, PIXEL_MODE, TILE } from './config.js';
+import { W, H, WALL, DOOR_W, OUTLINE, PIXEL, TILE } from './config.js';
 import { drawSprite, hasSprite } from './sprites.js';
 import { roundBox, outlinedText, heartPath } from './draw.js';
 import { ROOM_TYPES } from './rooms.js';
 import { drawFurniture, drawFurnitureLight, drawWallDecor, drawWindowLight } from './furniture.js';
-import { CELL, doorSpots } from './shapes.js';
+import { CELL } from './shapes.js';
 
 const TAU = Math.PI * 2;
 
 // ═════════════ Habitación ═════════════
 export function drawRoom(ctx, room, time) {
-  const { style, seams, obstacles, rug, decor, wallDecor = [], blocks = [], w: RW = W, h: RH = H } = room.layout;
-  const iw = RW - WALL * 2, ih = RH - WALL * 2; // RW × RH es el tamaño de esta sala (las hay más grandes que la de siempre)
-  // sala con forma: contorno del suelo sacado de su cuadrícula (si es rectangular, se dibuja como siempre)
+  const { style, seams, obstacles, rug, decor, wallDecor = [], blocks = [], zones = null, w: RW = W, h: RH = H } = room.layout;
+  const iw = RW - WALL * 2, ih = RH - WALL * 2; // RW × RH es el tamaño de este mapa
+  // con tabiques (un apartamento): contorno del suelo sacado de su cuadrícula (si es rectangular, se dibuja como siempre)
   const shape = blocks.length ? floorOutline(room.layout) : null;
 
   // Muro con papel pintado a rayas
@@ -53,7 +53,17 @@ export function drawRoom(ctx, room, time) {
     ctx.rect(WALL, WALL, iw, ih);
     ctx.clip();
   }
-  drawFloor(ctx, style, seams, iw, ih);
+  if (zones) {
+    // apartamento: cada habitación con su suelo; en los huecos de las puertas queda un umbral de madera
+    ctx.fillStyle = style.trim;
+    ctx.fillRect(WALL, WALL, iw, ih);
+    for (const z of zones) {
+      ctx.save();
+      ctx.clip(zonePath(room.layout, z));
+      drawFloor(ctx, z.style, seams, z.x, z.y, z.w, z.h);
+      ctx.restore();
+    }
+  } else drawFloor(ctx, style, seams, WALL, WALL, iw, ih);
 
   if (rug) {
     roundBox(ctx, rug.x, rug.y, rug.w, rug.h, 18, rug.color, 4);
@@ -141,7 +151,24 @@ export function drawRoom(ctx, room, time) {
   }
 }
 
-// Contorno del suelo de una sala con forma, a partir de su cuadrícula:
+// Las casillas de una habitación de un apartamento, para pintar solo ahí su suelo
+function zonePath(layout, z) {
+  if (z.path) return z.path;
+  const { cols, owner } = layout;
+  const path = new Path2D();
+  const c1 = (z.x + z.w) / CELL;
+  for (let r = z.y / CELL; r < (z.y + z.h) / CELL; r++) {
+    for (let c = z.x / CELL; c < c1; c++) {
+      if (owner[r * cols + c] !== z.id) continue;
+      const c0 = c;
+      while (c < c1 && owner[r * cols + c] === z.id) c++;
+      path.rect(c0 * CELL, r * CELL, (c - c0) * CELL, CELL);
+    }
+  }
+  return (z.path = path);
+}
+
+// Contorno del suelo de un mapa con tabiques, a partir de su cuadrícula:
 //   floor    el suelo (para recortar lo que se dibuja encima)
 //   walls    todo lo que no es suelo (para pintar el rodapié solo por el lado del muro)
 //   edges    los bordes donde el suelo toca un muro
@@ -178,47 +205,57 @@ function floorOutline(layout) {
 // Nombre de sprite a partir del nombre del estilo: "Baño" → "bano"
 const slug = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
-function drawFloor(ctx, style, seams, iw, ih) {
-  // pixel art: baldosa del estilo repetida por todo el suelo
+// Pinta el suelo de un estilo en el rectángulo (x0, y0, w, h). Quien llama recorta antes la forma exacta.
+function drawFloor(ctx, style, seams, x0, y0, w, h) {
+  // baldosa del estilo repetida por todo el suelo
   const tile = `suelo-${slug(style.name)}`;
-  if (PIXEL_MODE && hasSprite(tile)) {
+  if (hasSprite(tile)) {
     const step = TILE * 2 * PIXEL; // las baldosas de suelo miden 32×32 píxeles de dibujo
-    for (let y = WALL; y < WALL + ih; y += step) {
-      for (let x = WALL; x < WALL + iw; x += step) drawSprite(ctx, tile, 'idle', 'south', 0, x, y);
+    for (let y = Math.floor(y0 / step) * step; y < y0 + h; y += step) {
+      for (let x = Math.floor(x0 / step) * step; x < x0 + w; x += step) drawSprite(ctx, tile, 'idle', 'south', 0, x, y);
     }
     // suavizamos el dibujo del suelo con el color de la habitación para que los personajes destaquen
     ctx.globalAlpha = 0.45;
     ctx.fillStyle = style.floorA;
-    ctx.fillRect(WALL, WALL, iw, ih);
+    ctx.fillRect(x0, y0, w, h);
     ctx.globalAlpha = 1;
     return;
   }
+  // los suelos que aún no tienen baldosa dibujada se pintan a mano
   if (style.floor === 'parquet') {
     for (const row of seams) {
+      if (row.y + 32 <= y0 || row.y >= y0 + h) continue;
       ctx.fillStyle = row.shade ? style.floorA : style.floorB;
-      ctx.fillRect(WALL, row.y, iw, 32);
+      ctx.fillRect(x0, row.y, w, 32);
       ctx.fillStyle = style.seam;
-      ctx.fillRect(WALL, row.y + 30, iw, 2);
-      for (const x of row.cuts) ctx.fillRect(x, row.y, 2, 32);
+      ctx.fillRect(x0, row.y + 30, w, 2);
+      for (const x of row.cuts) if (x >= x0 && x < x0 + w) ctx.fillRect(x, row.y, 2, 32);
     }
   } else if (style.floor === 'tiles') {
     const T = 48;
-    for (let y = WALL, j = 0; y < WALL + ih; y += T, j++) {
-      for (let x = WALL, i = 0; x < WALL + iw; x += T, i++) {
+    for (let y = y0, j = 0; y < y0 + h; y += T, j++) {
+      for (let x = x0, i = 0; x < x0 + w; x += T, i++) {
         ctx.fillStyle = (i + j) % 2 ? style.floorA : style.floorB;
         ctx.fillRect(x, y, T, T);
       }
     }
     ctx.fillStyle = style.seam;
-    for (let y = WALL; y < WALL + ih; y += T) ctx.fillRect(WALL, y, iw, 2);
-    for (let x = WALL; x < WALL + iw; x += T) ctx.fillRect(x, WALL, 2, ih);
+    for (let y = y0; y < y0 + h; y += T) ctx.fillRect(x0, y, w, 2);
+    for (let x = x0; x < x0 + w; x += T) ctx.fillRect(x, y0, 2, h);
+  } else if (style.floor === 'concrete') {
+    // hormigón de la azotea: liso, con las juntas de las losas
+    ctx.fillStyle = style.floorA;
+    ctx.fillRect(x0, y0, w, h);
+    ctx.fillStyle = style.seam;
+    for (let y = y0; y < y0 + h; y += 128) ctx.fillRect(x0, y, w, 2);
+    for (let x = x0; x < x0 + w; x += 192) ctx.fillRect(x, y0, 2, h);
   } else {
     // moqueta: color liso con un punteado suave
     ctx.fillStyle = style.floorA;
-    ctx.fillRect(WALL, WALL, iw, ih);
+    ctx.fillRect(x0, y0, w, h);
     ctx.fillStyle = style.floorB;
-    for (let y = WALL + 10, j = 0; y < WALL + ih; y += 20, j++) {
-      for (let x = WALL + 10 + (j % 2) * 10; x < WALL + iw; x += 20) {
+    for (let y = y0 + 10, j = 0; y < y0 + h; y += 20, j++) {
+      for (let x = x0 + 10 + (j % 2) * 10; x < x0 + w; x += 20) {
         ctx.beginPath(); ctx.arc(x, y, 3, 0, TAU); ctx.fill();
       }
     }
@@ -266,25 +303,40 @@ function drawObstacle(ctx, o) {
 }
 
 // ═════════════ Puertas ═════════════
-// Se dibujan todas como si estuvieran en el muro de arriba y se rotan: el lado +y local
-// siempre mira hacia el suelo. La posición de cada una sale del tamaño de la sala (doorSpots).
+// Las puertas de un mapa están en `room.exits` (ver makeExit en rooms.js). Se dibujan todas como si
+// estuvieran en el muro de arriba y se giran: el lado +y local siempre mira hacia el suelo.
 
-// open: 0 = cerrada, 1 = abierta
+// open: 0 = cerradas, 1 = abiertas (las que tienen cerrojo no se abren aunque el mapa esté limpio)
 export function drawDoors(ctx, room, open) {
   const trim = room.layout.style.trim;
-  const spots = doorSpots(room.layout);
-  for (const [dir, has] of Object.entries(room.doors)) {
-    if (!has) continue;
-    const p = spots[dir];
-    const special = ROOM_TYPES[room.doorTypes[dir]];
-    const frame = special && special.frame;
-    ctx.save();
-    ctx.translate(p.x, p.y);
-    ctx.rotate(p.a);
+  for (const ex of room.exits) {
     const w = DOOR_W, h = WALL + 10;
-    // marco: de madera, o de color si lleva a una sala especial
-    roundBox(ctx, -w / 2 - 10, -h / 2 - 2, w + 20, h + 2, 6, frame || trim, 4);
-    if (frame) {
+    const gap = ex.locked ? 0 : open;
+    ctx.save();
+    ctx.translate(ex.x, ex.y);
+    ctx.rotate(ex.a);
+    if (ex.kind === 'elevator') {
+      // ascensor: puertas metálicas cerradas y una cinta de "averiado" cruzada
+      roundBox(ctx, -w / 2 - 10, -h / 2 - 2, w + 20, h + 2, 6, '#8d99ae', 4);
+      ctx.fillStyle = '#5c677d';
+      ctx.fillRect(-w / 2, -h / 2 - 2, w, h + 2);
+      ctx.fillStyle = OUTLINE;
+      ctx.fillRect(-2, -h / 2 - 2, 4, h + 2);
+      ctx.rotate(-0.16);
+      ctx.fillStyle = '#ffd23f';
+      ctx.fillRect(-w / 2 - 6, -8, w + 12, 16);
+      ctx.fillStyle = OUTLINE;
+      for (let x = -w / 2 - 6; x < w / 2; x += 20) {
+        ctx.beginPath();
+        ctx.moveTo(x + 8, -8); ctx.lineTo(x + 16, -8); ctx.lineTo(x + 8, 8); ctx.lineTo(x, 8);
+        ctx.fill();
+      }
+      ctx.restore();
+      continue;
+    }
+    // marco: de madera, o de color si lleva a un sitio especial
+    roundBox(ctx, -w / 2 - 10, -h / 2 - 2, w + 20, h + 2, 6, ex.frame || trim, 4);
+    if (ex.frame) {
       // remaches decorativos
       ctx.fillStyle = 'rgba(255,255,255,0.6)';
       for (const sx of [-w / 2 - 5, w / 2 + 5]) {
@@ -300,18 +352,18 @@ export function drawDoors(ctx, room, open) {
     ctx.fillStyle = g;
     ctx.fillRect(-w / 2, -h / 2 - 2, w, h + 2);
     // hoja de la puerta: se recoge hacia fuera al abrirse
-    if (open < 1) {
-      const ph = (h + 2) * (1 - open);
+    if (gap < 1) {
+      const ph = (h + 2) * (1 - gap);
       ctx.beginPath();
       ctx.roundRect(-w / 2 + 2, -h / 2 - 2, w - 4, ph, 3);
-      ctx.fillStyle = '#b9814f';
+      ctx.fillStyle = ex.kind === 'door' ? '#b9814f' : '#7d8a99'; // las de emergencia y el portal son metálicas
       ctx.fill();
       ctx.lineWidth = 3;
       ctx.strokeStyle = OUTLINE;
       ctx.stroke();
-      ctx.fillStyle = '#9c6a3e';
+      ctx.fillStyle = ex.kind === 'door' ? '#9c6a3e' : '#5c677d';
       for (let i = 1; i < 4; i++) ctx.fillRect(-w / 2 + 2 + i * (w - 4) / 4 - 1, -h / 2, 2, Math.max(0, ph - 4));
-      if (open < 0.3) {
+      if (gap < 0.3) {
         ctx.beginPath();
         ctx.arc(w / 2 - 14, h / 2 - 12, 4, 0, TAU);
         ctx.fillStyle = '#ffd23f';
@@ -322,19 +374,36 @@ export function drawDoors(ctx, room, open) {
     }
     ctx.restore();
 
-    // insignia con el icono de la sala, al lado de la puerta (siempre derecha)
-    if (special && special.frame) {
-      const bx = p.x + Math.cos(p.a) * (w / 2 + 34);
-      const by = p.y + Math.sin(p.a) * (w / 2 + 34);
+    // insignia con el icono de lo que hay detrás, al lado de la puerta (siempre derecha);
+    // un candado si hace falta la llave
+    const icon = ex.locked === 'key' ? '🔒' : ex.icon;
+    if (icon) {
+      const bx = ex.x + Math.cos(ex.a) * (w / 2 + 34);
+      const by = ex.y + Math.sin(ex.a) * (w / 2 + 34);
       ctx.beginPath();
       ctx.arc(bx, by, 17, 0, TAU);
-      ctx.fillStyle = special.frame;
+      ctx.fillStyle = ex.frame || '#fff8ea';
       ctx.fill();
       ctx.lineWidth = 3;
       ctx.strokeStyle = OUTLINE;
       ctx.stroke();
-      drawEmoji(ctx, special.icon, bx, by + 1, 18);
+      drawEmoji(ctx, icon, bx, by + 1, 18);
     }
+  }
+}
+
+// Letrero de cada puerta ("1ºA", "Escaleras"...), al otro lado de la insignia.
+// Va aparte porque se dibuja a resolución de pantalla, para que se pueda leer.
+export function drawDoorLabels(ctx, room) {
+  for (const ex of room.exits) {
+    if (!ex.label) continue;
+    if (ex.dir === 'left' || ex.dir === 'right') {
+      // en los muros laterales no cabe a lo ancho: va dentro, encima de la puerta
+      outlinedText(ctx, ex.label, ex.x + (ex.dir === 'left' ? 62 : -62), ex.y - DOOR_W / 2 - 22, 15, '#fff8ea', { lw: 4 });
+      continue;
+    }
+    const side = ex.kind === 'elevator' ? 0 : -(DOOR_W / 2 + 40);
+    outlinedText(ctx, ex.label, ex.x + Math.cos(ex.a) * side, ex.y + Math.sin(ex.a) * side, 15, '#fff8ea', { lw: 4 });
   }
 }
 
@@ -401,20 +470,15 @@ export function drawBullet(ctx, b) {
 }
 
 // ═════════════ Minimapa ═════════════
-// Muestra las salas visitadas, las vistas (vecinas de una visitada) y la actual.
+// Un plano de la planta: el pasillo en medio, una casilla por cada puerta y las escaleras al fondo.
+// Gris = sin visitar, rojo = con zombis dentro, blanco = limpio, amarillo = donde estás.
 // Hueco que ocupa el minimapa (para que los avisos del borde no lo tapen)
 export let minimapRect = null;
 
 export function drawMinimap(ctx, floor, current, title, time, screenW = W) {
-  const shown = [...floor.rooms.values()].filter((r) => r.visited || r.seen);
-  if (!shown.length) return;
-  const CW = 24, CH = 16, GAP = 5;
-  const minX = Math.min(...shown.map((r) => r.gx)), maxX = Math.max(...shown.map((r) => r.gx));
-  const minY = Math.min(...shown.map((r) => r.gy)), maxY = Math.max(...shown.map((r) => r.gy));
-  const cols = maxX - minX + 1, rows = maxY - minY + 1;
+  const hall = floor.corridor;
   const pad = 10, head = 22;
-  const pw = Math.max(120, cols * (CW + GAP) - GAP + pad * 2);
-  const ph = rows * (CH + GAP) - GAP + pad * 2 + head;
+  const pw = 156, ph = head + pad * 2 + (hall ? 56 : 22);
   const px = screenW - pw - 12, py = 10;
   minimapRect = { x: px, y: py, w: pw, h: ph };
 
@@ -424,42 +488,45 @@ export function drawMinimap(ctx, floor, current, title, time, screenW = W) {
   ctx.globalAlpha = 1;
   outlinedText(ctx, title, px + pw / 2, py + 15, 14, '#ffd23f', { lw: 4 });
 
-  const ox = px + (pw - (cols * (CW + GAP) - GAP)) / 2;
-  const oy = py + pad + head;
-  const pos = (r) => ({ x: ox + (r.gx - minX) * (CW + GAP), y: oy + (r.gy - minY) * (CH + GAP) });
-
-  // conexiones entre salas visitadas
-  ctx.fillStyle = 'rgba(255, 248, 234, 0.55)';
-  for (const r of shown) {
-    if (!r.visited) continue;
-    const p = pos(r);
-    if (r.doors.right) ctx.fillRect(p.x + CW, p.y + CH / 2 - 2, GAP, 4);
-    if (r.doors.down) ctx.fillRect(p.x + CW / 2 - 2, p.y + CH, 4, GAP);
-    if (r.doors.left) ctx.fillRect(p.x - GAP, p.y + CH / 2 - 2, GAP, 4);
-    if (r.doors.up) ctx.fillRect(p.x + CW / 2 - 2, p.y - GAP, 4, GAP);
-  }
-
-  for (const r of shown) {
-    const p = pos(r);
-    const isCur = r === current;
+  const box = (x, y, w, h, fill, here, icon) => {
     ctx.beginPath();
-    ctx.roundRect(p.x, p.y, CW, CH, 4);
-    ctx.fillStyle = isCur ? '#ffd23f' : r.visited ? (r.cleared ? '#fff8ea' : '#ff8a9b') : '#5d5873';
+    ctx.roundRect(x, y, w, h, 4);
+    ctx.fillStyle = here ? '#ffd23f' : fill;
     ctx.fill();
     ctx.lineWidth = 2;
-    ctx.strokeStyle = isCur ? '#ffffff' : OUTLINE;
+    ctx.strokeStyle = here ? '#ffffff' : OUTLINE;
     ctx.stroke();
-    const info = ROOM_TYPES[r.type];
-    const stairs = r.props && r.props.some((pr) => pr.kind === 'stairs');
-    if (stairs) drawEmoji(ctx, '🪜', p.x + CW / 2, p.y + CH / 2 + 1, 12);
-    else if (info.frame) drawEmoji(ctx, info.icon, p.x + CW / 2, p.y + CH / 2 + 1, 12);
-    if (isCur) {
+    if (icon) drawEmoji(ctx, icon, x + w / 2, y + h / 2 + 1, 11);
+    if (here) {
       ctx.globalAlpha = 0.5 + Math.sin(time * 6) * 0.3;
       ctx.beginPath();
-      ctx.roundRect(p.x - 3, p.y - 3, CW + 6, CH + 6, 6);
+      ctx.roundRect(x - 3, y - 3, w + 6, h + 6, 6);
       ctx.strokeStyle = '#ffd23f';
       ctx.stroke();
       ctx.globalAlpha = 1;
+    }
+  };
+  const tint = (r) => (!r.visited ? '#5d5873' : r.cleared ? '#fff8ea' : '#ff8a9b');
+  const top = py + head + pad;
+
+  if (!hall) {
+    // la azotea: un solo sitio
+    box(px + pw / 2 - 30, top, 60, 22, tint(current), true, ROOM_TYPES[current.type].icon);
+    ctx.restore();
+    return;
+  }
+  const END = 18; // ancho de las casillas de los extremos
+  const x0 = px + pad + END + 4, len = pw - (pad + END + 4) * 2;
+  box(x0, top + 22, len, 12, '#fff8ea', current === hall);
+  for (const ex of hall.exits) {
+    if (ex.kind === 'elevator') continue;
+    if (ex.dir === 'left') box(x0 - END - 4, top + 19, END, 18, '#5d5873', false, ex.icon || '🚪');
+    else if (ex.dir === 'right') box(x0 + len + 4, top + 19, END, 18, ex.locked ? '#5d5873' : '#80ed99', false, ex.locked ? '🔒' : ex.icon);
+    else {
+      const r = ex.to;
+      // la llave que aún no se ha recogido se marca en cuanto se ha entrado en su apartamento
+      const icon = ex.locked === 'key' ? '🔒' : floor.key.room === r && r.visited && !floor.hasKey && !floor.keyUsed ? '🗝️' : ROOM_TYPES[r.type].frame ? ROOM_TYPES[r.type].icon : null;
+      box(x0 + (ex.at / hall.layout.w) * len - 15, ex.dir === 'up' ? top : top + 38, 30, 18, tint(r), current === r, icon);
     }
   }
   ctx.restore();

@@ -8,20 +8,14 @@ export const W = 960;
 export const H = 640;
 export const WALL = 64;         // grosor de los muros de cada sala (2 baldosas en pixel art)
 export const DOOR_W = 96;       // ancho de las puertas
-export const GRID = 9;          // la planta se genera en una cuadrícula de GRID x GRID
 export const MAX_ALLIES = 4;    // tamaño máximo del equipo
 
 // ── Pixel art ──
-// El mundo se dibuja a la mitad de resolución (480×320) y se amplía sin suavizado:
+// El mundo se dibuja a la mitad de resolución y se amplía sin suavizado:
 // 1 píxel del dibujo = PIXEL unidades lógicas. Las baldosas miden TILE píxeles.
-// Así el interior de una sala mide 26×16 baldosas y las puertas 3 baldosas.
-// El juego es solo pixel art: la versión cartoon se retiró el 12 de octubre de 2026 (ya no existe ?cartoon).
-// PIXEL_MODE se queda siempre encendido hasta que se limpie el código que aún la tiene en cuenta (docs/MAPA.md, fase 2).
+// Así los muros miden 2 baldosas de grueso y las puertas, 3 de ancho.
 export const PIXEL = 2;
-export const ART_W = W / PIXEL;
-export const ART_H = H / PIXEL;
 export const TILE = 16;
-export const PIXEL_MODE = true;
 
 export const OUTLINE = '#1d1b2c'; // color del contorno "de dibujo animado"
 export const ALLY_COLORS = ['#4cc9f0', '#80ed99', '#ff8fab', '#c77dff', '#ff9f1c'];
@@ -37,14 +31,13 @@ export const PLAYER_LOOK = {
   bandana: '#ff5d73',
 };
 
-// Direcciones de las puertas: [dx, dy] en la cuadrícula de la planta
+// Hacia dónde se sale por una puerta según el muro en el que está: [dx, dy]
 export const DIRS = {
   up: [0, -1],
   down: [0, 1],
   left: [-1, 0],
   right: [1, 0],
 };
-export const OPPOSITE = { up: 'down', down: 'up', left: 'right', right: 'left' };
 
 // Edificios. De momento solo se pueden jugar los Apartamentos; el resto
 // aparecen en el selector como "Próximamente".
@@ -54,8 +47,7 @@ export const BUILDINGS = {
     name: 'Apartamentos',
     icon: '🏢',
     desc: 'Vecinos zombi, un mini jefe por planta y una portera con muy mal genio',
-    floors: 3,
-    roomsPerFloor: [8, 10, 12],
+    floors: 6, // planta baja, cuatro plantas más y la azotea (la última siempre es la azotea)
   },
   hospital:  { id: 'hospital',  name: 'Hospital',         icon: '🏥', desc: 'Camillas, quirófanos y enfermeras zombi', soon: true },
   centro:    { id: 'centro',    name: 'Centro comercial', icon: '🛍️', desc: 'Escaleras mecánicas y rebajas de muerte', soon: true },
@@ -70,6 +62,13 @@ export const APARTMENT_STYLES = [
   { name: 'Pasillo',    floor: 'parquet', floorA: '#c99260', floorB: '#bd8654', seam: '#9e6c3d', wall: '#f4dd9c', stripe: '#ebd189', trim: '#9a7340', rug: '#9fdcf2' },
   { name: 'Baño',       floor: 'tiles',   floorA: '#d7efe6', floorB: '#b9e0d3', seam: '#94c7b6', wall: '#bfe0f2', stripe: '#aed5ec', trim: '#4f86a8', rug: null },
 ];
+// Otros sitios del edificio
+const OTHER_STYLES = [
+  { name: 'Mantenimiento', floor: 'tiles',    floorA: '#c9ccd3', floorB: '#b6bac4', seam: '#9a9eaa', wall: '#9fb0c2', stripe: '#93a5b8', trim: '#4a5568', rug: null },
+  { name: 'Azotea',        floor: 'concrete', floorA: '#8f939c', floorB: '#858992', seam: '#6f737c', wall: '#5f6470', stripe: '#575c68', trim: '#3d414b', rug: null },
+];
+// Todos los estilos, por su nombre: STYLES['Cocina']
+export const STYLES = Object.fromEntries([...APARTMENT_STYLES, ...OTHER_STYLES].map((s) => [s.name, s]));
 
 // Supervivientes que se pueden rescatar. `ability` define lo que hace cada uno:
 //   shoot: dispara `burst` balas de `dmg` cada `every` segundos
