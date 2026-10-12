@@ -9,7 +9,7 @@ Roguelike de zombis para navegador al estilo *The Binding of Isaac*: un conserje
 edificio infestado, sala a sala. **HTML5 Canvas + JavaScript puro** (módulos ES), sin librerías ni compilación.
 Se publica en **Vercel** como web estática (preset "Other").
 
-- Rama de trabajo: `claude/roguelike-game-demo-9hgf9b` (todavía no se ha fusionado con `main`).
+- Rama de trabajo: `main` (se trabaja directamente en ella; lo que se sube a `main` se publica en Vercel).
 - Plan por fases del juego: [`docs/PLAN.md`](docs/PLAN.md) — fases 1 a 8 **hechas**.
 - Plan del pixel art: [`docs/PIXEL_ART.md`](docs/PIXEL_ART.md) — fases 0 y 1 hechas, quedan 2 a 5.
 - Cómo se juega, objetos, zombis, Taller...: [`README.md`](README.md).
@@ -112,7 +112,6 @@ Al terminar, cuando todo tenga sprite, se puede hacer que la versión pixel sea 
 
 - El **reloj** y las **nubes de las ventanas** se quedan quietos en la versión pixel (la sala se guarda como una
   imagen fija). Se ofreció volver a animarlos dibujándolos aparte cada fotograma.
-- Fusionar la rama con `main` (pull request) cuando se quiera publicar en la dirección principal de Vercel.
 - Más adelante: los otros edificios (hospital, centro comercial, comisaría) aparecen como "Próximamente".
 
 ## Sobre pasar a Godot
