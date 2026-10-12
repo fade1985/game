@@ -90,7 +90,10 @@ export class Zombie {
     const p = game.player;
     const dx = p.x - this.x, dy = p.y - this.y;
     const d = Math.hypot(dx, dy) || 1;
-    const ux = dx / d, uy = dy / d;
+    let ux = dx / d, uy = dy / d;
+    // en las salas con forma: si hay un muro en medio, rodea la esquina en vez de ir en línea recta
+    const way = game.wayTo(this);
+    if (way) { ux = way.x; uy = way.y; }
     let mx = ux, my = uy, spd = this.speed, steer = 8;
 
     switch (this.type) {

@@ -53,6 +53,7 @@ npm run dev            # sirve la carpeta en http://localhost:3000 (también val
 | `camera.js` | Cámara de la versión pixel (zoom ×1,5, ×1,15 en salas de jefe; sigue al conserje) |
 | `sprites.js` | Carga y dibuja las hojas de sprites de pixel art; si falta un sprite, se usa el dibujo de siempre |
 | `floor.js` / `rooms.js` | Generación de plantas y salas |
+| `shapes.js` | Forma de las salas (solo pixel): cuadrícula de suelo/muro, muros interiores y camino de los zombis |
 | `render.js` | Suelo, paredes, puertas, minimapa |
 | `furniture.js` / `props.js` | Muebles por estilo de habitación, decoración de pared, luces |
 | `entities.js` / `zombies.js` / `bosses.js` | Conserje, supervivientes, los 6 zombis, el vecino del 4ºB y la portera |
@@ -124,10 +125,17 @@ La versión pixel ya es la de por defecto; lo que aún no tiene sprite se ve con
 - **Elegir arma en la entrada: hecho.** Cada arma espera en su mueble (`stash` en `weapons.js`, dibujo en
   `WeaponStash` de `props.js`). Se desbloquean al encontrarlas en una partida (`weapons` en el guardado).
   Más adelante puede que se compren o que se creen armas nuevas: por eso el mueble es un dato de cada arma.
-- **Salas con forma libre y procedurales: pendiente.** Dejarán de ser siempre el rectángulo de 960×640
-  (en L, en T, con columnas, más grandes que la pantalla). **Solo en la versión pixel**; la cartoon se queda con
-  sus salas rectangulares. Supone pasar las salas a una cuadrícula de baldosas, enseñar a los zombis a rodear
-  esquinas y adaptar puertas, muebles, apariciones y minimapa.
+- **Salas con forma libre y procedurales: primera versión hecha** (`shapes.js`). **Solo en la versión pixel**;
+  la cartoon sigue con sus salas rectangulares.
+  - Cada sala es una cuadrícula de casillas de 32 unidades (30×20), suelo o muro. La forma sale de "morder" el
+    rectángulo de 960×640 con bloques de muro: esquinas recortadas (L, T, cruz), entrantes en los lados sin
+    puerta (U) y columnas. La mitad de las salas son simétricas.
+  - Siempre quedan libres el centro y un pasillo de 6 casillas desde cada puerta. No hay pasos de menos de 2
+    casillas y queda al menos el 60 % del suelo. La entrada y las salas de jefe siguen siendo rectangulares.
+  - Los zombis rodean las esquinas (`wayTo`); balas, objetos, apariciones y apuntado respetan los muros; los
+    muebles se arriman también a los muros interiores.
+  - **Pendiente:** salas más grandes que 960×640 (medio juego usa `W` y `H` fijos: jefes, cámara, imagen
+    guardada de la sala) y puertas que no estén en el centro de cada lado.
 - **Consecuencia para el arte:** los escenarios se generan como **piezas sueltas que encajan** (baldosa de suelo,
   tramos de pared, esquinas hacia dentro y hacia fuera, hueco de puerta) y muebles aparte; nunca salas enteras.
 

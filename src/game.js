@@ -17,6 +17,7 @@ import { drawRoom, drawDoors, drawPickup, drawBullet, drawMinimap, drawEmoji as 
 import { Camera, ZOOM, BOSS_ZOOM } from './camera.js';
 import { outlinedText, roundBox, setTextFont } from './draw.js';
 import { setGridSnap } from './sprites.js';
+import { isWall, isOpen, lineClear, randomFloorPoint, wayTo } from './shapes.js';
 import { getMoveVector, consumeDash, clearInput } from './input.js';
 import { sfx, music, setMusicOn } from './sfx.js';
 
@@ -379,13 +380,16 @@ export class Game {
   }
 
   findSpawnPoint() {
-    for (let i = 0; i < 40; i++) {
+    const layout = this.room.layout;
+    for (let i = 0; i < 60; i++) {
       const pt = { x: rand(WALL + 50, W - WALL - 50), y: rand(WALL + 50, H - WALL - 50) };
       if (dist(pt, this.player) < 260) continue;
-      if (this.room.layout.obstacles.some((o) => obstacleGap(o, pt) < 40)) continue;
+      if (!isOpen(layout, pt.x, pt.y, 30)) continue; // dentro de un muro o pegado a él
+      if (layout.obstacles.some((o) => obstacleGap(o, pt) < 40)) continue;
       return pt;
     }
-    return { x: W - this.player.x, y: H - this.player.y };
+    const far = { x: W - this.player.x, y: H - this.player.y };
+    return isOpen(layout, far.x, far.y, 30) ? far : randomFloorPoint(layout, 30);
   }
 
   roomCleared() {
@@ -655,7 +659,7 @@ export class Game {
       b.x += b.vx * dt;
       b.y += b.vy * dt;
       b.life -= dt;
-      const outside = b.x < WALL || b.x > W - WALL || b.y < WALL || b.y > H - WALL;
+      const outside = isWall(this.room.layout, b.x, b.y);
       if (outside || this.room.layout.obstacles.some((o) => obstacleGap(o, b) < b.r * 0.5)) {
         b.dead = true;
         this.puff(b.x, b.y, b.color);
@@ -699,6 +703,7 @@ export class Game {
       }
       pk.x = clamp(pk.x + pk.vx * dt, WALL + 14, W - WALL - 14);
       pk.y = clamp(pk.y + pk.vy * dt, WALL + 14, H - WALL - 14);
+      for (const b of this.room.layout.blocks) pushOut(pk, b);
       if (!p.dead && wanted && pk.t > 0.25 && d < p.r + 12) this.collect(pk);
     }
     this.pickups = this.pickups.filter((pk) => !pk.dead);
@@ -741,8 +746,15 @@ export class Game {
   collideWorld(ent) {
     ent.x = clamp(ent.x, WALL + ent.r, W - WALL - ent.r);
     ent.y = clamp(ent.y, WALL + ent.r, H - WALL - ent.r);
+    for (const b of this.room.layout.blocks) pushOut(ent, b); // muros interiores de las salas con forma
     for (const o of this.room.layout.obstacles) pushOut(ent, o);
     for (const pr of this.room.props) if (pr.solid) pushOut(ent, pr);
+  }
+
+  // Hacia dónde tiene que andar un enemigo para llegar al jugador rodeando los muros
+  // (null si puede ir en línea recta, que es lo normal)
+  wayTo(ent) {
+    return wayTo(this.room.layout, ent, this.player);
   }
 
   nearestEnemy(x, y, range) {
@@ -751,6 +763,8 @@ export class Game {
       if (!e.active) continue;
       // con la cámara cerca (pixel art) solo se apunta a lo que se ve en pantalla
       if (PIXEL_MODE && !this.camera.inView(e, 30)) continue;
+      // ni a lo que queda detrás de un muro
+      if (!lineClear(this.room.layout, x, y, e.x, e.y)) continue;
       const d = Math.hypot(e.x - x, e.y - y) - e.r;
       if (d < bd) { bd = d; best = e; }
     }
@@ -888,7 +902,7 @@ export class Game {
 
   dropPickup(kind, x, y) {
     const a = rand(0, Math.PI * 2), s = rand(80, 220);
-    this.pickups.push({ kind, x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0, seed: rand(0, 6) });
+    this.pickups.push({ kind, x, y, r: 14, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0, seed: rand(0, 6) });
   }
 
   // ═════════════ Ataques especiales de los zombis ═════════════

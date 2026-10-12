@@ -175,6 +175,7 @@ src/
   game.js         → flujo de la partida: plantas, salas, puertas, oleadas, colisiones
   floor.js        → generador de plantas (mapa de salas al estilo Isaac)
   rooms.js        → tipos de sala y su contenido: estilo, obstáculos, alfombras y oleadas
+  shapes.js       → forma de las salas en la versión pixel (en L, en T, en cruz, con columnas...)
   props.js        → objetos fijos de las salas: pedestal, superviviente, escaleras y armas
   weapons.js      → catálogo de armas (datos) y su dibujo
   aim.js          → controlador de apuntado (automático; el manual irá aquí)

@@ -4,6 +4,7 @@
 import { W, H, WALL, APARTMENT_STYLES } from './config.js';
 import { mulberry32, pick, obstacleGap } from './utils.js';
 import { placeFurniture, placeWallDecor } from './furniture.js';
+import { makeShape, isWall, isOpen, rectIsFloor } from './shapes.js';
 
 // Tipos de sala. `frame` es el color del marco de las puertas que llevan a ella.
 export const ROOM_TYPES = {
@@ -28,7 +29,8 @@ const DOOR_SPOTS = [
   { x: WALL, y: H / 2 }, { x: W - WALL, y: H / 2 },
 ];
 
-export function makeRoomLayout(type) {
+// `doors` dice qué lados tienen puerta ({ up, down, left, right }); hace falta para dar forma a la sala
+export function makeRoomLayout(type, doors = {}) {
   const rng = mulberry32(Math.floor(Math.random() * 1e9));
   const style = type === 'start' ? APARTMENT_STYLES[3] : APARTMENT_STYLES[Math.floor(rng() * APARTMENT_STYLES.length)];
 
@@ -43,8 +45,12 @@ export function makeRoomLayout(type) {
 
   // Muebles pegados a las paredes (menos en las salas de jefe, que necesitan sitio)
   const [fmin, fmax] = FURNITURE_COUNT[type] || [2, 3];
-  const obstacles = placeFurniture(style.name, rng, fmin, fmax, type === 'start' ? 'top' : null);
-  const wallDecor = placeWallDecor(rng);
+  // Forma de la sala: en la versión pixel muchas dejan de ser un rectángulo (ver shapes.js)
+  const { grid, blocks } = makeShape(type, doors, rng);
+  const shaped = blocks.length ? { grid, blocks, doors } : null;
+  const obstacles = placeFurniture(style.name, rng, fmin, fmax, type === 'start' ? 'top' : null, shaped);
+  // los cuadros y ventanas solo donde la pared de arriba da de verdad a la sala
+  const wallDecor = placeWallDecor(rng).filter((d) => !isWall({ grid }, d.x, WALL + 8));
 
   // Obstáculos sueltos (macetas y cajas) solo en salas con monstruos
   if (type === 'monsters' || type === 'survivor') {
@@ -61,7 +67,8 @@ export function makeRoomLayout(type) {
       const freeDoors = DOOR_SPOTS.every((d) => Math.hypot(d.x - o.x, d.y - o.y) > 170);
       const freeCenter = Math.hypot(o.x - W / 2, o.y - H / 2) > (type === 'survivor' ? 150 : 90);
       const farFromOthers = obstacles.every((p) => obstacleGap(p, o) > o.r + 80);
-      if (freeDoors && freeCenter && farFromOthers) obstacles.push(o);
+      const farFromWalls = !shaped || isOpen({ grid }, o.x, o.y, o.r + 44); // que se pueda pasar entre el muro y él
+      if (freeDoors && freeCenter && farFromOthers && farFromWalls) obstacles.push(o);
     }
   }
 
@@ -70,6 +77,10 @@ export function makeRoomLayout(type) {
   if (style.rug && rng() < 0.7) {
     const w = 260 + rng() * 160, h = 160 + rng() * 100;
     rug = { x: W / 2 - w / 2 + (rng() - 0.5) * 80, y: H / 2 - h / 2 + (rng() - 0.5) * 50, w, h, color: style.rug };
+    // en una sala con forma se encoge hasta que quepa entera en el suelo
+    while (shaped && rug.w > 120 && !rectIsFloor(shaped, rug.x + rug.w / 2, rug.y + rug.h / 2, rug.w, rug.h)) {
+      rug.x += 16; rug.y += 10; rug.w -= 32; rug.h -= 20;
+    }
   }
 
   // Pequeños detalles del suelo
@@ -78,7 +89,7 @@ export function makeRoomLayout(type) {
     decor.push({ x: WALL + 30 + rng() * (W - 2 * WALL - 60), y: WALL + 30 + rng() * (H - 2 * WALL - 60), s: 0.6 + rng() * 0.8 });
   }
 
-  return { style, seams, obstacles, rug, decor, wallDecor };
+  return { style, seams, obstacles, rug, decor, wallDecor, grid, blocks };
 }
 
 // Enemigos de cada sala según su tipo

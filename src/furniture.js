@@ -8,6 +8,7 @@
 // ─────────────────────────────────────────────
 import { W, H, WALL, DOOR_W, OUTLINE, PIXEL_MODE } from './config.js';
 import { drawSprite } from './sprites.js';
+import { CELL, COLS, ROWS, rectIsFloor } from './shapes.js';
 
 const TAU = Math.PI * 2;
 
@@ -59,27 +60,72 @@ const SEGMENTS = [
 
 const ROT = { top: 0, right: Math.PI / 2, bottom: Math.PI, left: -Math.PI / 2 };
 
+// Tramos de pared de una sala con forma: cada borde donde el suelo toca un muro, también los de
+// los muros interiores. `base` es la coordenada de la pared (y en las de arriba/abajo, x en las laterales).
+function wallSegments(layout) {
+  const segs = [];
+  const wall = (c, r) => layout.grid[r * COLS + c] === 1;
+  // recorre una fila (o columna) y junta las casillas seguidas que tienen muro en ese lado
+  const scan = (side, len, hasEdge, base) => {
+    for (let i = 0; i < len; i++) {
+      if (!hasEdge(i)) continue;
+      const i0 = i;
+      while (i < len && hasEdge(i)) i++;
+      const outer = base === WALL || base === (side === 'top' || side === 'bottom' ? H : W) - WALL;
+      const mid = side === 'top' || side === 'bottom' ? W / 2 : H / 2;
+      const a = i0 * CELL + 4, b = i * CELL - 4;
+      // en las paredes de fuera se deja libre el hueco de la puerta
+      if (outer && a < mid + GAP && b > mid - GAP) {
+        segs.push({ side, a, b: Math.min(b, mid - GAP), base }, { side, a: Math.max(a, mid + GAP), b, base });
+      } else segs.push({ side, a, b, base });
+    }
+  };
+  for (let r = 1; r < ROWS - 1; r++) {
+    scan('top', COLS, (c) => !wall(c, r) && wall(c, r - 1), r * CELL);
+    scan('bottom', COLS, (c) => !wall(c, r) && wall(c, r + 1), (r + 1) * CELL);
+  }
+  for (let c = 1; c < COLS - 1; c++) {
+    scan('left', ROWS, (r) => !wall(c, r) && wall(c - 1, r), c * CELL);
+    scan('right', ROWS, (r) => !wall(c, r) && wall(c + 1, r), (c + 1) * CELL);
+  }
+  return segs.filter((s) => s.b - s.a >= 38);
+}
+
+// ¿Estorba este mueble en el centro de la sala o en el pasillo de alguna puerta?
+function blocksTheWay(o, doors) {
+  const hits = (x0, y0, x1, y1) => o.x + o.w / 2 > x0 && o.x - o.w / 2 < x1 && o.y + o.h / 2 > y0 && o.y - o.h / 2 < y1;
+  return hits(W / 2 - 100, H / 2 - 100, W / 2 + 100, H / 2 + 100)
+    || (doors.up && hits(W / 2 - GAP, WALL, W / 2 + GAP, H / 2))
+    || (doors.down && hits(W / 2 - GAP, H / 2, W / 2 + GAP, H - WALL))
+    || (doors.left && hits(WALL, H / 2 - GAP, W / 2, H / 2 + GAP))
+    || (doors.right && hits(W / 2, H / 2 - GAP, W - WALL, H / 2 + GAP));
+}
+
 // Coloca entre `min` y `max` muebles al azar (con el generador `rng` de la sala)
-// `skipSide` deja una pared sin muebles (la de arriba en la entrada, donde van las armas)
-export function placeFurniture(styleName, rng, min, max, skipSide = null) {
+// `skipSide` deja una pared sin muebles (la de arriba en la entrada, donde van las armas).
+// `shaped` es la sala con forma ({ grid, blocks, doors }): los muebles se arriman también a sus muros interiores.
+export function placeFurniture(styleName, rng, min, max, skipSide = null, shaped = null) {
   const pool = BY_STYLE[styleName] || BY_STYLE['Pasillo'];
   const want = min + Math.floor(rng() * (max - min + 1));
+  const segments = shaped ? wallSegments(shaped) : SEGMENTS;
   const placed = [];
-  for (let tries = 0; placed.length < want && tries < 80; tries++) {
+  for (let tries = 0; segments.length && placed.length < want && tries < (shaped ? 240 : 80); tries++) {
     const kind = pool[Math.floor(rng() * pool.length)];
     const pc = PIECES[kind];
-    const seg = SEGMENTS[Math.floor(rng() * SEGMENTS.length)];
+    const seg = segments[Math.floor(rng() * segments.length)];
     if (seg.side === skipSide || seg.b - seg.a < pc.len) continue;
     const along = seg.a + pc.len / 2 + rng() * (seg.b - seg.a - pc.len);
     const horiz = seg.side === 'top' || seg.side === 'bottom';
     const o = { shape: 'rect', kind, side: seg.side, len: pc.len, dep: pc.dep, seed: rng() };
     if (horiz) {
       o.x = along; o.w = pc.len; o.h = pc.dep;
-      o.y = seg.side === 'top' ? WALL + pc.dep / 2 : H - WALL - pc.dep / 2;
+      o.y = seg.side === 'top' ? (seg.base ?? WALL) + pc.dep / 2 : (seg.base ?? H - WALL) - pc.dep / 2;
     } else {
       o.y = along; o.w = pc.dep; o.h = pc.len;
-      o.x = seg.side === 'left' ? WALL + pc.dep / 2 : W - WALL - pc.dep / 2;
+      o.x = seg.side === 'left' ? (seg.base ?? WALL) + pc.dep / 2 : (seg.base ?? W - WALL) - pc.dep / 2;
     }
+    // en una sala con forma el mueble tiene que caber entero en el suelo y no cortar el paso
+    if (shaped && (!rectIsFloor(shaped, o.x, o.y, o.w, o.h) || blocksTheWay(o, shaped.doors))) continue;
     const clash = placed.some((p) => Math.abs(p.x - o.x) < (p.w + o.w) / 2 + 10 && Math.abs(p.y - o.y) < (p.h + o.h) / 2 + 10);
     if (!clash) placed.push(o);
   }

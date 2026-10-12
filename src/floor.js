@@ -115,7 +115,7 @@ export function generateFloor(count, floorNum = 1, isFinal = false) {
     }
 
     for (const r of rooms.values()) {
-      r.layout = makeRoomLayout(r.type);
+      r.layout = makeRoomLayout(r.type, r.doors);
       r.waves = makeRoomWaves(r, floorNum);
       r.props = [];
       if (!r.waves.length) r.cleared = true; // salas sin enemigos: entrada y objeto

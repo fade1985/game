@@ -6,13 +6,16 @@ import { drawSprite, hasSprite } from './sprites.js';
 import { roundBox, outlinedText, heartPath } from './draw.js';
 import { ROOM_TYPES } from './rooms.js';
 import { drawFurniture, drawFurnitureLight, drawWallDecor, drawWindowLight } from './furniture.js';
+import { CELL, COLS, ROWS } from './shapes.js';
 
 const TAU = Math.PI * 2;
 
 // ═════════════ Habitación ═════════════
 export function drawRoom(ctx, room, time) {
-  const { style, seams, obstacles, rug, decor, wallDecor = [] } = room.layout;
+  const { style, seams, obstacles, rug, decor, wallDecor = [], blocks = [] } = room.layout;
   const iw = W - WALL * 2, ih = H - WALL * 2;
+  // sala con forma: contorno del suelo sacado de su cuadrícula (si es rectangular, se dibuja como siempre)
+  const shape = blocks.length ? floorOutline(room.layout) : null;
 
   // Muro con papel pintado a rayas
   ctx.fillStyle = style.wall;
@@ -31,13 +34,25 @@ export function drawRoom(ctx, room, time) {
   ctx.lineWidth = 14;
   ctx.strokeStyle = style.trim;
   ctx.strokeRect(7, 7, W - 14, H - 14);
+  if (shape) {
+    // los muros interiores llevan el mismo papel pintado, con las rayas en vertical
+    ctx.save();
+    ctx.beginPath();
+    for (const b of blocks) ctx.rect(b.x - b.w / 2, b.y - b.h / 2, b.w, b.h);
+    ctx.clip();
+    for (let x = 0; x < W; x += 28) ctx.fillRect(x, WALL, 12, ih);
+    ctx.restore();
+  }
   for (const d of wallDecor) drawWallDecor(ctx, d, time);
 
   // Suelo
   ctx.save();
-  ctx.beginPath();
-  ctx.rect(WALL, WALL, iw, ih);
-  ctx.clip();
+  if (shape) ctx.clip(shape.floor);
+  else {
+    ctx.beginPath();
+    ctx.rect(WALL, WALL, iw, ih);
+    ctx.clip();
+  }
   drawFloor(ctx, style, seams, iw, ih);
 
   if (rug) {
@@ -86,21 +101,77 @@ export function drawRoom(ctx, room, time) {
   g.addColorStop(1, 'rgba(20,16,40,0)');
   ctx.fillStyle = g;
   ctx.fillRect(WALL, WALL, iw, 30);
+  // ...y la de cada muro interior que tiene suelo debajo
+  if (shape) {
+    for (const [x, y, w] of shape.shadows) {
+      const sg = ctx.createLinearGradient(0, y, 0, y + 30);
+      sg.addColorStop(0, 'rgba(20,16,40,0.25)');
+      sg.addColorStop(1, 'rgba(20,16,40,0)');
+      ctx.fillStyle = sg;
+      ctx.fillRect(x, y, w, 30);
+    }
+  }
   ctx.restore();
 
   // Rodapié alrededor del suelo
-  ctx.lineWidth = 8;
-  ctx.strokeStyle = style.trim;
-  ctx.strokeRect(WALL - 4, WALL - 4, iw + 8, ih + 8);
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = OUTLINE;
-  ctx.strokeRect(WALL - 8, WALL - 8, iw + 16, ih + 16);
-  ctx.strokeRect(WALL, WALL, iw, ih);
+  if (shape) {
+    // sigue el contorno del suelo: dos líneas oscuras con la madera en medio, por el lado del muro
+    ctx.save();
+    ctx.lineCap = 'square';
+    ctx.save();
+    ctx.clip(shape.walls, 'evenodd');
+    ctx.lineWidth = 20; ctx.strokeStyle = OUTLINE; ctx.stroke(shape.edges);
+    ctx.lineWidth = 12; ctx.strokeStyle = style.trim; ctx.stroke(shape.edges);
+    ctx.restore();
+    ctx.lineWidth = 4; ctx.strokeStyle = OUTLINE; ctx.stroke(shape.edges);
+    ctx.restore();
+  } else {
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = style.trim;
+    ctx.strokeRect(WALL - 4, WALL - 4, iw + 8, ih + 8);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = OUTLINE;
+    ctx.strokeRect(WALL - 8, WALL - 8, iw + 16, ih + 16);
+    ctx.strokeRect(WALL, WALL, iw, ih);
+  }
 
   for (const o of obstacles) {
     if (o.shape === 'rect') drawFurniture(ctx, o);
     else drawObstacle(ctx, o);
   }
+}
+
+// Contorno del suelo de una sala con forma, a partir de su cuadrícula:
+//   floor    el suelo (para recortar lo que se dibuja encima)
+//   walls    todo lo que no es suelo (para pintar el rodapié solo por el lado del muro)
+//   edges    los bordes donde el suelo toca un muro
+//   shadows  [x, y, ancho] de los muros interiores que tienen suelo justo debajo
+function floorOutline(layout) {
+  if (layout.outline) return layout.outline;
+  const wall = (c, r) => layout.grid[r * COLS + c] === 1;
+  const floor = new Path2D(), walls = new Path2D(), edges = new Path2D();
+  const shadows = [];
+  walls.rect(0, 0, W, H);
+  for (let r = 1; r < ROWS - 1; r++) {
+    for (let c = 1; c < COLS - 1; c++) {
+      if (wall(c, r)) continue;
+      // tramo de suelo seguido en esta fila
+      const c0 = c;
+      while (c < COLS - 1 && !wall(c, r)) c++;
+      const x = c0 * CELL, y = r * CELL, w = (c - c0) * CELL;
+      floor.rect(x, y, w, CELL);
+      walls.rect(x, y, w, CELL);
+    }
+    for (let c = 1; c < COLS - 1; c++) {
+      if (wall(c, r)) continue;
+      const x = c * CELL, y = r * CELL;
+      if (wall(c, r - 1)) { edges.moveTo(x, y); edges.lineTo(x + CELL, y); if (r > WALL / CELL) shadows.push([x, y, CELL]); }
+      if (wall(c, r + 1)) { edges.moveTo(x, y + CELL); edges.lineTo(x + CELL, y + CELL); }
+      if (wall(c - 1, r)) { edges.moveTo(x, y); edges.lineTo(x, y + CELL); }
+      if (wall(c + 1, r)) { edges.moveTo(x + CELL, y); edges.lineTo(x + CELL, y + CELL); }
+    }
+  }
+  return (layout.outline = { floor, walls, edges, shadows });
 }
 
 // Nombre de sprite a partir del nombre del estilo: "Baño" → "bano"
