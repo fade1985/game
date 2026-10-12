@@ -90,7 +90,8 @@
         "nota": "Generada el 2026-10-12, 8 direcciones (8 generaciones). Fotogramas originales en assets/sources/conserje-48/walk/; tools/walk.py los mete en la hoja igualando los colores a los del dibujo quieto. Antes se probaron en la dirección este las plantillas 'walking', 'walk' y 'walking-6-frames' (3 generaciones, descartadas: paso más cortado o manchas negras)."
       }
     },
-    "idle": "La animación de reposo del juego NO es de PixelLab: la hace tools/idle.py a partir de las rotaciones (respiración de 1 píxel y parpadeo, 20 fotogramas a 5 por segundo). Se probaron tres de PixelLab el 2026-10-12 y se descartaron: 'idle' (plantilla breathing-idle, 8 direcciones, grupo 39d7ad63-7fa9-4190-b55f-2d425c3764b2: respira bien pero redibuja la cara en cada fotograma), 'idle-estable' (skeleton-v3, solo sur, grupo 4b4896ea-7b4b-444f-bcdb-b419b58b7d23: cambia el pelo) e 'idle-v3' (a medida, solo sur, grupo b4151f71-018d-47a5-8eaa-c968bbf30f60: cambia la cara y la estatura). Coste: 10 generaciones.",
+    "idle": "La animación de reposo del juego NO es de PixelLab: la hace tools/idle.py a partir de las rotaciones (respiración de 1 píxel y parpadeo, 20 fotogramas a 5 por segundo). Se probaron tres de PixelLab el 2026-10-12 y se descartaron: 'idle' (plantilla breathing-idle, 8 direcciones, grupo 39d7ad63-7fa9-4190-b55f-2d425c3764b2: respira bien pero redibuja la cara en cada fotograma), 'idle-estable' (skeleton-v3, solo sur, grupo 4b4896ea-7b4b-444f-bcdb-b419b58b7d23: cambia el pelo) e 'idle-v3' (a medida, solo sur, grupo b4151f71-018d-47a5-8eaa-c968bbf30f60: cambia la cara y la estatura). Coste: 10 generaciones. Las dos últimas y las tres pruebas de andar se borraron de PixelLab el 2026-10-12; allí quedan solo idle (plantilla) y andar.",
+    "idle_pixminimax": "Prueba del 2026-10-12, sin usar en el juego: modo pixminimax, solo sur, 8 fotogramas, con el dibujo quieto también como fotograma final para que cierre el ciclo. Grupo 304aff70-2123-4336-8349-12043852e825, 1 generación. Texto: 'standing still and breathing calmly: the chest gently rises and falls, the shoulders lift very slightly, one slow blink; feet stay planted, head stays steady, arms stay relaxed at the sides, then back to the starting pose'. Resultado: conserva la cara, la anchura y la estatura mucho mejor que la plantilla y que v3; fallos: tiene los ojos cerrados en 4 de los 8 fotogramas y el último no llega a ser igual que el primero.",
     "request": {
       "description": "young male janitor, realistic adult body proportions, tall and slim, small head, messy brown hair with a red bandana tied on the head, cream shirt under blue work overalls, dark work boots, empty hands, arms relaxed at his sides, detailed shading",
       "image_size": {
@@ -103,6 +104,50 @@
       "no_background": true
     },
     "updated": "2026-10-06T18:26:39.687Z"
+  },
+  "conserje-48-fregona": {
+    "kind": "character_state",
+    "character_id": "b2e9102e-4e41-4670-84a7-487a02db675a",
+    "source_character_id": "4e6c78c6-d6c6-46d3-99c1-40a2d86f0e6c",
+    "state_name": "Con fregona",
+    "nota": "DESCARTADO (sigue en PixelLab, sin borrar). Primer intento del 2026-10-12 con create_character_state, lienzo ampliado a 64x64. La mopa sale abajo en cinco vistas y arriba en las tres de espaldas, y con la mopa abajo parece que está fregando. Lo sustituye 'conserje-48-guardia'.",
+    "request": {
+      "edit_description": "holding a long wooden mop with both hands in a relaxed ready stance, the wooden handle held diagonally across his body, the grey-white string mop head pointing forward and down near the floor in front of him; same face, same hair and red bandana, same clothes, same body size and proportions",
+      "override_width": 64,
+      "override_height": 64
+    },
+    "cost": "unas 10 generaciones",
+    "updated": "2026-10-12"
+  },
+  "conserje-48-guardia": {
+    "kind": "character_state",
+    "character_id": "13d239f8-bf17-4b05-ac44-67da460b8d8b",
+    "source_character_id": "4e6c78c6-d6c6-46d3-99c1-40a2d86f0e6c",
+    "state_name": "Fregona en guardia",
+    "nota": "Estado de Johnny creado el 2026-10-12: lleva la fregona como un arma, con la mopa en alto en las 8 direcciones. Lienzo de 64x64; Johnny mide lo mismo que sin arma (46 píxeles). Sin usar todavía en el juego. A tener en cuenta: usa 18 colores frente a los 50 del Johnny sin arma, y la mopa cambia de lado entre la vista de frente y las diagonales.",
+    "request": {
+      "edit_description": "holding a long wooden mop like a weapon, gripping the wooden handle with both hands like a fighting staff, held diagonally across his chest in a combat ready stance; the grey-white string mop head is raised up above shoulder height on one side, away from his face, and the bottom end of the handle points down toward the opposite hip; the mop head stays raised up in every view: front, side and back; same face, same hair and red bandana, same clothes, same body size and proportions",
+      "override_width": 64,
+      "override_height": 64
+    },
+    "cost": "10 generaciones",
+    "updated": "2026-10-12",
+    "ataque_pruebas": {
+      "nota": "Pruebas del 2026-10-12, solo de perfil (east), 12 fotogramas más el de partida. A las dos se les dio el mismo texto y el dibujo quieto de perfil centrado en un lienzo de 96x96 (para que quepa el arco de la fregona) como fotograma de partida y de llegada. Sin usar todavía en el juego.",
+      "action_description": "Stepping forward with the lead foot, he heaves the mop up over his head with both hands, then twists his torso and shoulders and swings it straight down in front of him in one hard, fast vertical overhead arc. The wet grey mop head slams flat onto the floor ahead of his feet; the string strands whip and trail behind the swing, then splay out on impact, flinging a few small water droplets. His knees bend and his back leans into the blow, the tail of the red bandana flicking with the motion. He absorbs the impact, pulls the mop back up and settles cleanly into the starting guard stance. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation.",
+      "v3": {
+        "group": "2aa3d50a-4a2f-439e-aca8-9bbff820bc6c",
+        "cost": "2 generaciones",
+        "resultado": "Descartable: a partir del segundo fotograma Johnny pierde la camisa (espalda y brazos desnudos), se gira de espaldas y el golpe se queda cinco fotogramas quieto en el suelo."
+      },
+      "pixminimax": {
+        "group": "0973e15c-a4c9-425a-b946-71a75809a252",
+        "cost": "1 generación",
+        "subject_description": "a young male janitor with brown hair and a red bandana, cream shirt and blue work overalls, holding a long wooden mop with a grey string head",
+        "initial_pose": "standing in a guard stance facing right, gripping the mop handle diagonally with both hands, the mop head raised up behind his shoulder",
+        "resultado": "La buena: levanta la fregona sobre la cabeza, baja con estela, golpea el suelo con gotas de agua y vuelve a la guardia. Mantiene la ropa y la cara."
+      }
+    }
   },
   "zombi-venenoso-48": {
     "kind": "character",
