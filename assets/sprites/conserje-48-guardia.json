@@ -166,7 +166,8 @@
           "row": 24,
           "frames": 9
         }
-      }
+      },
+      "hit": 0.333
     }
   },
   "source": "Hecha con tools/arma.py a partir de assets/sources/conserje-48-guardia/"

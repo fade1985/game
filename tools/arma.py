@@ -17,23 +17,37 @@ Las casillas son más grandes que el personaje para que quepa el arco del arma. 
 al dibujo quieto, así que al pasar de una animación a otra Johnny no da saltitos.
 
 Uso (desde la carpeta del proyecto; necesita Python con Pillow: pip install pillow):
-  python tools/arma.py conserje-48-guardia                  rehace la hoja
-  python tools/arma.py conserje-48-guardia --gif carpeta    además guarda GIF de comprobación en esa carpeta
+  python tools/arma.py conserje-48-guardia                      rehace la hoja
+  python tools/arma.py conserje-48-guardia --gif carpeta        además guarda GIF de comprobación en esa carpeta
+  python tools/arma.py conserje-48-guardia --lienzos carpeta    solo prepara los fotogramas de partida del ataque
 """
 import json, os, sys
-from PIL import Image
+from PIL import Image, ImageChops
 
 SPRITE = sys.argv[1]
 DIRS = ['south', 'south-east', 'east', 'north-east', 'north', 'north-west', 'west', 'south-west']
 SRC = f'assets/sources/{SPRITE}'
-cfg = json.load(open(f'{SRC}/arma.json', encoding='utf-8'))
-CW, CH = cfg['celda']
-PX, PY = cfg['pivote']             # dónde quedan los pies dentro de la casilla
-FX, FY = cfg['pies_en_rotacion']   # dónde están los pies en el dibujo quieto de PixelLab
-OX, OY = PX - FX, PY - FY          # desplazamiento del dibujo quieto dentro de la casilla
+cfg = json.load(open(f'{SRC}/arma.json', encoding='utf-8')) if os.path.exists(f'{SRC}/arma.json') else {}
+# Lo que no diga arma.json sale de aquí: son las medidas de los estados de Johnny (lienzo de 64×64 en PixelLab)
+CW, CH = cfg.get('celda', [96, 96])
+PX, PY = cfg.get('pivote', [48, 72])             # dónde quedan los pies dentro de la casilla
+FX, FY = cfg.get('pies_en_rotacion', [32, 55])   # dónde están los pies en el dibujo quieto de PixelLab
+OX, OY = PX - FX, PY - FY                        # desplazamiento del dibujo quieto dentro de la casilla
 IDLE_FPS, WALK_FPS = 5, 12
 
 rot = {d: Image.open(f'{SRC}/rotations/{d}.png').convert('RGBA') for d in DIRS}
+
+if '--lienzos' in sys.argv:
+    # Fotogramas de partida para pedir el ataque a PixelLab: el dibujo quieto dentro de un lienzo mayor,
+    # para que quepa el arco del arma. Se suben y se dan como fotograma de partida y de llegada.
+    folder = sys.argv[sys.argv.index('--lienzos') + 1]
+    w, h, x, y = cfg.get('lienzo_ataque', [96, 96, 16, 20])
+    for d in DIRS:
+        c = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+        c.paste(rot[d], (x, y), rot[d])
+        c.save(f'{folder}/partida-{d}.png')
+    print(f'8 lienzos de {w}×{h} guardados en {folder} (partida-<dirección>.png)')
+    sys.exit()
 
 
 def cell(im, x=0, y=0):
@@ -156,8 +170,22 @@ def offset(fs, d):
     comparándolos sabemos cuánto se ha movido todo."""
     a, b = fs[0].getbbox(), rot[d].getbbox()
     ox, oy = a[0] - b[0], a[1] - b[1]
-    assert fs[0].crop((ox, oy, ox + rot[d].width, oy + rot[d].height)).tobytes() == rot[d].tobytes(),         f'el fotograma 0 de {d} no coincide con el dibujo quieto'
+    same = fs[0].crop((ox, oy, ox + rot[d].width, oy + rot[d].height)).tobytes() == rot[d].tobytes()
+    assert same, f'el fotograma 0 de {d} no coincide con el dibujo quieto'
     return ox, oy
+
+
+def differ(a, b):
+    """Cuántos píxeles cambian de un fotograma a otro."""
+    d = ImageChops.difference(a, b)
+    return sum(1 for p in d.get_flattened_data() if max(p) > 24)
+
+
+def find_loop(fs):
+    """El tramo que mejor hace ciclo: aquel en que el fotograma que viene justo después es casi igual
+    al primero. Devuelve (primero, cuántos, diferencia)."""
+    best = min((differ(fs[a], fs[a + n]), a, n) for a in range(1, len(fs)) for n in range(6, 11) if a + n < len(fs))
+    return best[1], best[2], best[0]
 
 
 def placed(f, ox, oy, d, n):
@@ -168,32 +196,42 @@ def placed(f, ox, oy, d, n):
     return cell(f, -ox, -oy)
 
 
-# De cada dirección se usa solo el tramo que hace ciclo (arma.json: primer fotograma y cuántos)
-LOOP = cfg['andar']['ciclo']
+# De cada dirección se usa solo el tramo que hace ciclo: el que diga arma.json ([primero, cuántos]) o,
+# si no dice nada, el que encuentre el script
+LOOP = cfg.get('andar', {}).get('ciclo', {})
 walk = {}
 for d in DIRS:
     fs = load('walk', d)
     if not fs:
         continue
     ox, oy = offset(fs, d)
-    a, n = LOOP[d]
+    if d in LOOP:
+        (a, n), how = LOOP[d], 'de arma.json'
+    else:
+        a, n, dif = find_loop(fs)
+        how = f'elegidos solos; al cerrar el ciclo cambian {dif} píxeles' + (' ← OJO, es mucho: mirar el GIF' if dif > 150 else '')
     walk[d] = [placed(same_colors(fs[i], rot[d]), ox, oy, d, i) for i in range(a, a + n)]
-    print(f'andar  {d:11s} lienzo {fs[0].size}, desplazado ({ox}, {oy}), fotogramas {a} a {a + n - 1}')
+    print(f'andar  {d:11s} lienzo {fs[0].size}, desplazado ({ox}, {oy}), fotogramas {a} a {a + n - 1} ({how})')
 if len(walk) < len(DIRS):
     print('andar: faltan direcciones en', f'{SRC}/walk', '→ la hoja sale sin la animación de andar')
     walk = {}
 
 # ═════════════ Ataque ═════════════
-PICK = cfg['ataque']['fotogramas']
+# arma.json dice qué fotogramas se usan en cada dirección, cuánto dura y en cuál llega el golpe (ahí hace
+# el daño el juego). Si aún no dice nada, van todos menos el quieto: sirve para una primera vista.
+ATK = cfg.get('ataque', {})
+PICK = ATK.get('fotogramas', {})
 attack = {}
 for d in DIRS:
     fs = load('ataque', d)
     assert fs, f'faltan los fotogramas de ataque de {d}'
     ox, oy = offset(fs, d)
-    attack[d] = [placed(fs[n], ox, oy, d, n) for n in PICK[d]]
-    print(f'ataque {d:11s} lienzo {fs[0].size}, desplazado ({ox}, {oy}), fotogramas {PICK[d]}')
+    pick = PICK.get(d, list(range(1, len(fs))))
+    attack[d] = [placed(fs[n], ox, oy, d, n) for n in pick]
+    print(f'ataque {d:11s} lienzo {fs[0].size}, desplazado ({ox}, {oy}), fotogramas {pick}')
 NA = len(attack['south'])
 assert all(len(v) == NA for v in attack.values()), 'todas las direcciones del ataque deben tener los mismos fotogramas'
+ATK_DUR, ATK_HIT = ATK.get('duracion', 0.5), ATK.get('impacto', 3)
 
 # ═════════════ Hoja y JSON ═════════════
 blocks = [('idle', idle)] + ([('walk', walk)] if walk else []) + [('attack', attack)]
@@ -207,10 +245,12 @@ for name, block in blocks:
     for r, d in enumerate(DIRS):
         for i, f in enumerate(block[d]):
             sheet.alpha_composite(f, (i * CW, (row + r) * CH))
-    fps = {'idle': IDLE_FPS, 'walk': WALK_FPS, 'attack': round(NA / cfg['ataque']['duracion'])}[name]
+    fps = {'idle': IDLE_FPS, 'walk': WALK_FPS, 'attack': round(NA / ATK_DUR)}[name]
     anims[name] = {'fps': fps, 'loop': name != 'attack',
                    'dirs': {d: {'row': row + r, 'frames': len(block[d])} for r, d in enumerate(DIRS)}}
     row += len(DIRS)
+# en qué punto de la animación (de 0 a 1) llega el golpe: el juego hace el daño ahí
+anims['attack']['hit'] = round(ATK_HIT / NA, 3)
 sheet.save(f'assets/sprites/{SPRITE}.png', optimize=True)
 meta = {'cell': [CW, CH], 'pivot': [PX, PY], 'anims': anims,
         'source': f'Hecha con tools/arma.py a partir de {SRC}/'}

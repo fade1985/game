@@ -146,6 +146,9 @@ export function animFrames(id, anim) {
   return a ? Object.values(a.dirs)[0]?.frames || 0 : 0;
 }
 
+// En qué punto de una animación de ataque (de 0 a 1) llega el golpe. Lo dice la hoja ("hit"); si no, a un tercio
+export const animHit = (id, anim) => sheets.get(id)?.meta.anims[anim]?.hit ?? 1 / 3;
+
 // Duración de una animación (para saber cuándo termina una que no se repite)
 export function animDuration(id, anim) {
   const a = sheets.get(id)?.meta.anims[anim];

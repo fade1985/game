@@ -130,7 +130,7 @@ Los sprites se generan con PixelLab. Desde el 12 de octubre de 2026 está conect
 ## Dónde lo dejamos (12 de octubre de 2026) · preguntar al dueño al retomar
 
 **Al retomar, empezar preguntándole por el punto 1.**
-Los ids, textos y costes de todo lo de abajo están en `assets/pixellab.json`. Quedaban 1.921 generaciones.
+Los ids, textos y costes de todo lo de abajo están en `assets/pixellab.json`. Quedaban 1.910 generaciones.
 
 Johnny con la fregona **ya está en el juego** (solo versión pixel): sprite `conserje-48-guardia`, estado
 "Fregona en guardia" del personaje "Johnny" en PixelLab. Tiene reposo, andar y ataque en las 8 direcciones.
@@ -140,8 +140,8 @@ Johnny con la fregona **ya está en el juego** (solo versión pixel): sprite `co
   de cada animación). El reposo lo calcula el script, como `tools/idle.py`. En este ordenador Python se llama
   con `py` (no `python`) y tiene Pillow instalado.
 - **En el juego:** el arma dice qué hoja usa (`sprite` en `weapons.js`). Con hoja propia no se dibuja el arma
-  cartoon ni la estela azul del barrido, y el daño se hace cuando la mopa llega al suelo (un tercio de la
-  animación, `HIT_AT` en `entities.js`), no al empezar. El andar avanza por ciclo (`cycle` en `drawSprite`)
+  cartoon ni la estela azul del barrido, y el daño se hace cuando la mopa llega al suelo, no al empezar (el
+  momento lo dice la hoja: `impacto` en `arma.json` → `hit` en el JSON del sprite). El andar avanza por ciclo (`cycle` en `drawSprite`)
   porque cada dirección tiene un número distinto de fotogramas (entre 6 y 10).
 - **Ataque:** 9 fotogramas elegidos de los 13 de PixelLab, medio segundo. La dirección de espaldas se repitió con
   un texto propio (con el común se daba la vuelta). Vista previa de los fotogramas sin recortar:
@@ -150,12 +150,17 @@ Johnny con la fregona **ya está en el juego** (solo versión pixel): sprite `co
 
 Preguntas pendientes, por orden:
 
-1. **Visto bueno a Johnny con la fregona dentro del juego** (reposo, andar y ataque). Cosas que mirar: en las
-   diagonales de espaldas el golpe cae más hacia el lado que hacia arriba; el andar hacia abajo es un ciclo corto
-   (6 fotogramas) y es el que peor encaja; ya no se ve la estela azul que marcaba el alcance del golpe (se puede
-   recuperar); y el daño llega 0,17 s después de pulsar, cuando baja la mopa.
-2. **Si le vale, crear la skill `/arma-nueva`** con lo aprendido (ver el apartado siguiente) y hacer la segunda
-   arma por ese flujo.
+1. **Dos vistos buenos pendientes** (dio por bueno a Johnny con la fregona en el juego y eligió el bate como
+   segunda arma):
+   - **Estado "Bate en guardia"** (`conserje-48-bate`, paso 1 de la skill): hoja en
+     `assets/pruebas/bate-en-guardia.png`. Si le vale, seguir con el paso 2 (prueba de ataque de perfil y de
+     espaldas, 2 generaciones; el bate barre de lado con una estela blanca de aire).
+   - **Estela de agua en el ataque de la fregona:** pidió que la estela del golpe vaya **dentro del dibujo** y
+     creíble para cada arma (agua, aire, fuego...). Hay una prueba de perfil en
+     `assets/pruebas/fregona-estela-comparacion.png` (arriba el ataque actual, abajo con estela). Si le gusta,
+     repetir las 8 direcciones (unas 8–9 generaciones) y cambiarlas en `assets/sources/conserje-48-guardia/ataque/`.
+2. **La skill `/arma-nueva` ya existe** (`.claude/skills/arma-nueva/SKILL.md`). Si en una sesión nueva no
+   aparece en la lista, leer ese archivo y seguirlo igual.
 3. **Limpieza del estado "Fregona en guardia": hecha** el 12 de octubre de 2026 con su confirmación. En PixelLab
    quedan solo las animaciones que usa el juego (el ataque en dos grupos y el andar con PixMiniMax). El resto de
    la limpieza sigue pendiente (punto 6).
@@ -179,9 +184,10 @@ y un par de scripts. **Sin subagentes:** lo que hace esperar es PixelLab y el vi
 subagente no lo acelera.
 
 **Orden acordado:** primero terminar la fregona entera a mano, hasta verla funcionando en el juego. Con lo que
-haya funcionado, crear la skill y los scripts. La segunda arma ya va por el flujo. **La fregona ya funciona y el
-script de montaje (`tools/arma.py`) está hecho; la skill aún no existe.** Ojo al escribirla: el andar va con
-PixMiniMax, no con plantilla, y la prueba de ataque conviene hacerla también de espaldas.
+haya funcionado, crear la skill y los scripts. La segunda arma ya va por el flujo. **Hecho: la fregona funciona,
+el script de montaje es `tools/arma.py` y la skill está en `.claude/skills/arma-nueva/SKILL.md`** (es la versión
+al día de los pasos de abajo: el andar va con PixMiniMax, la prueba de ataque incluye la vista de espaldas y la
+estela del golpe va dentro del dibujo). El dueño dijo que no hace falta parar tras la tanda completa.
 
 Pasos para un "Arma X" (unas 30–45 generaciones; el dueño solo tiene que mirar en los pasos 1, 2 y 6):
 

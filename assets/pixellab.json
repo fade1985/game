@@ -182,6 +182,30 @@
       }
     }
   },
+  "conserje-48-guardia-estela": {
+    "kind": "prueba",
+    "nota": "Prueba del 2026-10-12, sin usar en el juego: el ataque de la fregona de perfil (east) con una estela de agua dentro del dibujo, como pidió el dueño. Mismo estado y mismos fotogramas de partida y llegada que el ataque bueno. Fotogramas en assets/sources/conserje-48-guardia/ataque-estela/ y comparación en assets/pruebas/fregona-estela-comparacion.png. Pendiente de su visto bueno para repetir las 8 direcciones.",
+    "character_id": "13d239f8-bf17-4b05-ac44-67da460b8d8b",
+    "group": "bb85e76a-70de-45c1-a99c-d35b2fdfa346",
+    "animation_name": "ataque-estela-prueba",
+    "cost": "1 generación",
+    "action_description": "Stepping forward with the lead foot, he heaves the mop up over his head with both hands, then twists his torso and shoulders and swings it straight down in front of him in one hard, fast vertical overhead arc. The soaking wet grey mop head leaves a bright, thick crescent-shaped trail of light blue water behind it along the whole arc of the swing, like a water slash, from above his head down to the floor. The mop head slams flat onto the floor ahead of his feet with a big light blue water splash and flying droplets; the string strands whip and splay out on impact. His knees bend and his back leans into the blow, the tail of the red bandana flicking with the motion. The water trail fades away quickly, he pulls the mop back up and settles cleanly into the starting guard stance. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation."
+  },
+  "conserje-48-bate": {
+    "kind": "character_state",
+    "character_id": "1f681f9f-21fb-4ae3-a7f4-20b284806658",
+    "source_character_id": "4e6c78c6-d6c6-46d3-99c1-40a2d86f0e6c",
+    "state_name": "Bate en guardia",
+    "nota": "Estado de Johnny creado el 2026-10-12 con la skill /arma-nueva (paso 1): bate de béisbol en alto sobre el hombro, lienzo de 64x64. Con use_color_palette_from_reference conserva unos 42 colores (la fregona se quedó en 18). Rotaciones en assets/sources/conserje-48-bate/rotations/ y hoja ampliada en assets/pruebas/bate-en-guardia.png. Pendiente del visto bueno del dueño; sin animaciones todavía.",
+    "request": {
+      "edit_description": "holding a wooden baseball bat like a weapon, gripping the handle with both hands in a batter's ready stance, knees slightly bent; the bat is raised up and tilted back over one shoulder, the thick end of the bat pointing up above shoulder height, away from his face; the bat stays raised over the shoulder in every view: front, side and back; plain light brown wooden bat with a dark outline; same face, same hair and red bandana, same clothes, same body size and proportions",
+      "override_width": 64,
+      "override_height": 64,
+      "use_color_palette_from_reference": true
+    },
+    "cost": "10 generaciones",
+    "updated": "2026-10-12"
+  },
   "zombi-venenoso-48": {
     "kind": "character",
     "character_id": "d8d5f941-74ff-400e-b52b-20d9dc6d6b06",

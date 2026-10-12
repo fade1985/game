@@ -2,7 +2,7 @@
 //  Personajes: jugador, compañeros y enemigos
 // ─────────────────────────────────────────────
 import { W, H, WALL, OUTLINE, PLAYER_LOOK, PIXEL_MODE } from './config.js';
-import { drawSprite, dirFromVector, hasSprite, pixelShadow, animFrames } from './sprites.js';
+import { drawSprite, dirFromVector, hasSprite, pixelShadow, animFrames, animHit } from './sprites.js';
 import { rand } from './utils.js';
 import { drawHuman } from './draw.js';
 import { sfx } from './sfx.js';
@@ -13,9 +13,6 @@ const TAU = Math.PI * 2;
 // Unidades que avanza el conserje en un ciclo de andar (dos pasos): a su velocidad normal (210) son
 // tres pasos por segundo, un trote ligero. Con 8 fotogramas por ciclo salen 12 por segundo
 const STEP = 140;
-// En las animaciones de ataque de las armas con hoja propia, el golpe llega al tercio de la animación
-// (el cuarto fotograma de nueve): ahí es cuando se hace el daño, no al empezar a levantar el arma
-const HIT_AT = 1 / 3;
 
 // ═════════════ JUGADOR ═════════════
 const wrapAngle = (a) => Math.atan2(Math.sin(a), Math.cos(a));
@@ -45,7 +42,7 @@ export class Player {
     this.armAngle = -Math.PI / 2;  // ángulo actual del arma (animado)
     this.swing = null;             // barrido en curso (armas cuerpo a cuerpo)
     this.swingDir = 1;             // los barridos van y vuelven, como fregando
-    this.atkAnim = null;           // pixel art: animación de ataque en curso { t, dur }
+    this.atkAnim = null;           // pixel art: animación de ataque en curso { t, dur, hit, at }
     this.recoil = 0;               // retroceso del arma a distancia
     this.muzzleT = 0;              // fogonazo
   }
@@ -102,7 +99,7 @@ export class Player {
     const an = this.atkAnim;
     if (an) {
       an.t += dt;
-      if (an.hit && an.t >= an.dur * HIT_AT) { an.hit(); an.hit = null; }
+      if (an.hit && an.t >= an.dur * an.at) { an.hit(); an.hit = null; }
       if (an.t >= an.dur) this.atkAnim = null;
     }
     if (game.state === 'playing') {
@@ -136,8 +133,8 @@ export class Player {
       const hit = () => game.meleeHit(this, angle, half, w.reach * s.range * s.meleeRange, w.damage * s.damage, w);
       if (PIXEL_MODE && w.sprite && hasSprite(w.sprite)) {
         // pixel art: la animación del golpe dura medio segundo como mucho y nunca más que el hueco entre
-        // ataques; el daño se hace cuando el arma llega abajo
-        this.atkAnim = { t: 0, dur: Math.min(0.5, 0.95 / (w.rate * s.fireRate)), hit };
+        // ataques; el daño se hace cuando el arma llega a su sitio (lo dice la hoja), no al empezar a moverla
+        this.atkAnim = { t: 0, dur: Math.min(0.5, 0.95 / (w.rate * s.fireRate)), hit, at: animHit(w.sprite, 'attack') };
       } else hit();
       sfx.swing();
     } else {
