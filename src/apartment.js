@@ -1,14 +1,16 @@
 // ─────────────────────────────────────────────
 //  Generador de apartamentos
 //
-//  Cada apartamento es un mapa continuo: un rectángulo grande partido en habitaciones (salón, cocina,
-//  baño y de 1 a 3 dormitorios) con tabiques y puertas entre ellas. Sale distinto cada vez:
+//  Cada apartamento es un mapa continuo: un rectángulo grande con el salón en medio y, alrededor, la
+//  cocina y de 1 a 3 dormitorios, cada dormitorio con su baño. Sale distinto cada vez:
 //
-//    1. Se parte el rectángulo en trozos con tabiques rectos, en sitios al azar.
-//    2. El trozo más grande de los que dan al pasillo es el salón, y ahí va la puerta de entrada.
-//       Uno de sus vecinos es la cocina y el resto son dormitorios.
-//    3. El baño se recorta en una esquina de otra habitación (que se queda con forma de L).
-//    4. Se abren puertas entre habitaciones vecinas hasta que se puede llegar a todas desde el salón.
+//    1. El salón empieza ocupando todo el rectángulo.
+//    2. La cocina y los dormitorios se reparten en franjas, de izquierda a derecha: pegados a la pared
+//       del fondo, en las esquinas de delante o dos seguidos en un lateral. Lo que queda libre es el
+//       salón, que sale con forma de L, de T, de U... y toca todas las habitaciones.
+//    3. A cada dormitorio se le recorta un baño en una esquina (el dormitorio se queda con forma de L).
+//    4. Se abre una puerta del salón a la cocina y a cada dormitorio, y otra de cada dormitorio a su
+//       baño. A veces, una más entre dos habitaciones vecinas.
 //
 //  El apartamento del jefe es el mismo rectángulo sin tabiques: lo ha reventado todo.
 //
@@ -19,12 +21,16 @@ import { mulberry32 } from './utils.js';
 
 export const CELL = 32;   // lado de una casilla (igual que en shapes.js)
 const EDGE = 2;           // grosor del muro exterior, en casillas (64 unidades)
-const MIN = 7;            // lado mínimo de una habitación, en casillas
+const MIN = 7;            // lado mínimo de un trozo de salón, en casillas
 const DOOR = 3;           // ancho de las puertas, en casillas (96 unidades)
 const MAX_LONG = 2.2;     // cuántas veces más larga que ancha puede ser una habitación
+const HALL = 8;           // fondo mínimo del salón delante de una habitación, en casillas
+const GAP = 6;            // hueco mínimo de salón entre dos habitaciones del mismo lateral
+const WIDE = 5;           // el salón no tiene pasos ni rincones de menos de 5 casillas
+const SALON = 0.3;        // parte del apartamento que, como poco, es salón
 
-// Cuánto de alargado es un rectángulo (1 = cuadrado)
-const long = (l) => Math.max(l.w, l.h) / Math.min(l.w, l.h);
+// Lado mínimo y máximo de cada habitación, en casillas (al dormitorio le tiene que caber el baño)
+const SIZE = { cocina: { min: 7, max: 12 }, dormitorio: { min: 10, max: 15 } };
 
 // Para qué sirve cada habitación. `style` es el estilo de suelo y muebles (APARTMENT_STYLES de config.js).
 export const USES = {
@@ -37,6 +43,13 @@ export const USES = {
 
 const randInt = (rng, a, b) => a + Math.floor(rng() * (b - a + 1));
 const pick = (rng, arr) => arr[Math.floor(rng() * arr.length)];
+const shuffle = (rng, arr) => {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+};
 
 // Genera un apartamento.
 //   seed        número del que sale todo: con el mismo, sale el mismo apartamento
@@ -46,13 +59,14 @@ const pick = (rng, arr) => arr[Math.floor(rng() * arr.length)];
 // Devuelve { cols, rows, w, h, grid, owner, rooms, doors, entrance, spawn, seed }:
 //   grid        0 suelo, 1 muro (una casilla por elemento, por filas)
 //   owner       a qué habitación pertenece cada casilla (-1 muro, -2 hueco de puerta)
-//   rooms       [{ id, use, name, style, c0, r0, w, h, cells, x, y, doors }]  (c0, r0, w, h: lo que ocupa, en casillas;
-//               x, y: un punto bien dentro de la habitación, en unidades)
+//   rooms       [{ id, use, name, style, c0, r0, w, h, cells, x, y, doors }]  (c0, r0, w, h: el rectángulo que la
+//               contiene, en casillas; cells: casillas de suelo; x, y: un punto bien dentro, en unidades).
+//               La primera es siempre el salón. Los baños llevan `host` (su dormitorio) y los dormitorios, `bath`.
 //   doors       [{ a, b, c, r, w, h }] huecos de puerta entre las habitaciones a y b, en casillas
 //   entrance    { c, r, w, h, side } hueco de la puerta de entrada
 //   spawn       { x, y } dónde aparece el conserje al entrar
 export function makeApartment({ seed = Math.floor(Math.random() * 1e9), bedrooms, boss = false, side = 'down' } = {}) {
-  for (let attempt = 0; attempt < 80; attempt++) {
+  for (let attempt = 0; attempt < 400; attempt++) {
     const rng = mulberry32(seed + attempt * 7919);
     const apt = tryApartment(rng, boss ? 0 : bedrooms || randInt(rng, 1, 3), boss);
     if (!apt || checkApartment(apt).length) continue;
@@ -65,69 +79,153 @@ export function makeApartment({ seed = Math.floor(Math.random() * 1e9), bedrooms
   throw new Error(`No se pudo generar el apartamento (semilla ${seed})`);
 }
 
+// Reparte la cocina y los dormitorios alrededor del salón, en franjas de izquierda a derecha.
+// Cada franja puede llevar una habitación al fondo ('top'), una delante ('low', solo en los laterales),
+// dos, una al fondo y otra delante ('both', solo en los laterales), o ninguna ('none': todo salón).
+// Devuelve los rectángulos (en casillas, contando desde la esquina del interior) o null si esta vez no cuadra.
+function layout(rng, bedrooms, iw, ih) {
+  const uses = shuffle(rng, ['cocina', ...Array(bedrooms).fill('dormitorio')]);
+  const HOLDS = { none: 0, top: 1, low: 1, both: 2 };
+  const ends = ['none', 'top', 'top', 'low', 'both', 'both'];
+  const left = pick(rng, ends), right = pick(rng, ends);
+  const mid = uses.length - HOLDS[left] - HOLDS[right];
+  if (mid < 0) return null;
+  const kinds = [left, ...Array(mid).fill('top'), right];
+  // a veces el salón llega hasta el fondo entre dos habitaciones (y siempre, si no le queda sitio delante)
+  if (rng() < 0.3 || !kinds.some((k) => k === 'top' || k === 'none')) kinds.splice(randInt(rng, 1, kinds.length - 1), 0, 'none');
+  const strips = kinds
+    .filter((k, i) => !(k === 'none' && kinds[i - 1] === 'none'))
+    .map((kind) => ({ kind, uses: uses.splice(0, HOLDS[kind]) }));
+
+  // Anchos: el mínimo de cada franja y lo que sobra se reparte al azar
+  let spare = iw - (strips.length - 1);
+  for (const s of strips) {
+    s.w = s.uses.length ? Math.max(...s.uses.map((u) => SIZE[u].min)) : MIN;
+    s.max = s.uses.length ? Math.min(...s.uses.map((u) => SIZE[u].max)) : Infinity;
+    spare -= s.w;
+  }
+  if (spare < 0) return null;
+  for (; spare > 0; spare--) {
+    const can = strips.filter((s) => s.w < s.max);
+    if (!can.length) return null;
+    pick(rng, can).w++;
+  }
+
+  // Fondos: entre lo que pide cada habitación y lo que deja el salón
+  const span = (use, w) => [Math.max(SIZE[use].min, Math.ceil(w / MAX_LONG)), Math.min(SIZE[use].max, Math.floor(w * MAX_LONG))];
+  const out = [];
+  let c = 0;
+  for (const s of strips) {
+    const [a, b] = s.uses;
+    if (s.kind === 'top' || s.kind === 'low') {
+      const [lo, hi] = span(a, s.w);
+      const max = Math.min(hi, ih - 1 - (s.kind === 'top' ? HALL : MIN));
+      if (max < lo) return null;
+      const h = randInt(rng, lo, max);
+      out.push({ use: a, c0: c, r0: s.kind === 'top' ? 0 : ih - h, w: s.w, h });
+    } else if (s.kind === 'both') {
+      const [lo1, hi1] = span(a, s.w), [lo2, hi2] = span(b, s.w);
+      let h1, h2;
+      if (rng() < 0.35 && ih - lo1 - lo2 - 2 >= GAP) {
+        // separadas, con un trozo de salón entre las dos
+        h1 = lo1 + randInt(rng, 0, Math.min(hi1 - lo1, ih - lo1 - lo2 - 2 - GAP));
+        h2 = lo2 + randInt(rng, 0, Math.min(hi2 - lo2, ih - h1 - lo2 - 2 - GAP));
+      } else {
+        // juntas, con un tabique entre las dos
+        const lo = Math.max(lo1, ih - 1 - hi2), hi = Math.min(hi1, ih - 1 - lo2);
+        if (hi < lo) return null;
+        h1 = randInt(rng, lo, hi);
+        h2 = ih - 1 - h1;
+      }
+      out.push({ use: a, c0: c, r0: 0, w: s.w, h: h1 }, { use: b, c0: c, r0: ih - h2, w: s.w, h: h2 });
+    }
+    c += s.w + 1;
+  }
+  return out;
+}
+
+// ¿Es el salón una sola pieza, sin pasos ni rincones estrechos, y lo bastante grande?
+function salonOk(owner, cols, rows, id) {
+  const is = (c, r) => owner[r * cols + c] === id;
+  // cada casilla tiene que caber dentro de algún cuadrado de WIDE × WIDE que sea todo salón
+  const covered = new Uint8Array(cols * rows);
+  let first = -1, total = 0;
+  for (let r = 0; r <= rows - WIDE; r++) {
+    next: for (let c = 0; c <= cols - WIDE; c++) {
+      for (let dr = 0; dr < WIDE; dr++) for (let dc = 0; dc < WIDE; dc++) if (!is(c + dc, r + dr)) continue next;
+      for (let dr = 0; dr < WIDE; dr++) for (let dc = 0; dc < WIDE; dc++) covered[(r + dr) * cols + c + dc] = 1;
+    }
+  }
+  for (let i = 0; i < owner.length; i++) {
+    if (owner[i] !== id) continue;
+    if (!covered[i]) return false;
+    if (first < 0) first = i;
+    total++;
+  }
+  if (total < SALON * (cols - EDGE * 2) * (rows - EDGE * 2)) return false;
+  // y se llega andando de cualquier punto a cualquier otro
+  const seen = new Uint8Array(cols * rows);
+  const stack = [first];
+  seen[first] = 1;
+  let count = 1;
+  while (stack.length) {
+    const i = stack.pop(), c = i % cols;
+    for (const j of [i - cols, i + cols, c > 0 ? i - 1 : -1, c < cols - 1 ? i + 1 : -1]) {
+      if (j >= 0 && j < owner.length && owner[j] === id && !seen[j]) { seen[j] = 1; count++; stack.push(j); }
+    }
+  }
+  return count === total;
+}
+
 function tryApartment(rng, bedrooms, boss) {
   // Tamaño: más habitaciones, más grande. Siempre en casillas pares para que quede centrado.
-  const parts = boss ? 1 : 2 + bedrooms; // salón + cocina + dormitorios (el baño se recorta después)
+  const parts = boss ? 1 : 2 + bedrooms; // salón + cocina + dormitorios
   const cols = boss ? 44 : 20 + parts * 6 + randInt(rng, -1, 1) * 2;
   const rows = boss ? 30 : 20 + parts * 2 + randInt(rng, -1, 1) * 2;
+  const iw = cols - EDGE * 2, ih = rows - EDGE * 2;
   const owner = new Int16Array(cols * rows).fill(-1);
   const at = (c, r) => r * cols + c;
 
-  // 1. Partir el interior en trozos
-  const leaves = [{ c0: EDGE, r0: EDGE, w: cols - EDGE * 2, h: rows - EDGE * 2 }];
-  while (leaves.length < parts) {
-    const can = leaves.filter((l) => l.w >= MIN * 2 + 1 || l.h >= MIN * 2 + 1);
-    if (!can.length) return null;
-    // se parte el más grande, y antes los alargados (con algo de azar, para que no salgan siempre igual de repartidos)
-    const weight = (l) => l.w * l.h * Math.max(1, long(l) - 0.5) * (0.7 + rng() * 0.6);
-    const l = can.map((x) => [weight(x), x]).sort((a, b) => b[0] - a[0])[0][1];
-    const canV = l.w >= MIN * 2 + 1, canH = l.h >= MIN * 2 + 1;
-    // los alargados se cortan siempre por la mitad de su lado largo; los cuadrados, por donde toque
-    const vertical = canV && canH ? (long(l) >= 1.4 || rng() < 0.6) === (l.w >= l.h) : canV;
-    leaves.splice(leaves.indexOf(l), 1);
-    if (vertical) {
-      const k = randInt(rng, MIN, l.w - MIN - 1); // el tabique ocupa la columna k
-      leaves.push({ c0: l.c0, r0: l.r0, w: k, h: l.h }, { c0: l.c0 + k + 1, r0: l.r0, w: l.w - k - 1, h: l.h });
-    } else {
-      const k = randInt(rng, MIN, l.h - MIN - 1);
-      leaves.push({ c0: l.c0, r0: l.r0, w: l.w, h: k }, { c0: l.c0, r0: l.r0 + k + 1, w: l.w, h: l.h - k - 1 });
-    }
-  }
-  // nada de habitaciones con forma de pasillo
-  if (!boss && leaves.some((l) => long(l) > MAX_LONG)) return null;
-  const rooms = leaves.map((l, id) => ({ id, use: 'dormitorio', ...l, doors: [] }));
-  for (const rm of rooms) {
-    for (let r = rm.r0; r < rm.r0 + rm.h; r++) for (let c = rm.c0; c < rm.c0 + rm.w; c++) owner[at(c, r)] = rm.id;
-  }
-
-  // 2. El salón: el más grande de los que tocan la pared del pasillo (la de abajo)
-  const front = rooms.filter((rm) => rm.r0 + rm.h === rows - EDGE && rm.w >= DOOR + 4);
-  if (!front.length) return null;
-  const salon = front.reduce((a, b) => (b.w * b.h > a.w * a.h ? b : a));
-  salon.use = boss ? 'jefe' : 'salon';
+  // 1. El salón lo ocupa todo, de momento
+  const salon = { id: 0, use: boss ? 'jefe' : 'salon', c0: EDGE, r0: EDGE, w: iw, h: ih, doors: [] };
+  const rooms = [salon];
+  for (let r = EDGE; r < rows - EDGE; r++) for (let c = EDGE; c < cols - EDGE; c++) owner[at(c, r)] = salon.id;
 
   if (!boss) {
-    // 3. El baño, recortado en una esquina de otra habitación (mejor en un dormitorio o en el salón)
-    // tiene que caber un baño de 5×5 y que a la habitación le quede sitio de sobra
-    const hosts = rooms.filter((rm) => rm.w >= 13 && rm.h >= 11);
-    if (!hosts.length) return null;
-    const host = pick(rng, hosts);
-    const bw = randInt(rng, 5, Math.min(7, host.w - MIN - 1)), bh = randInt(rng, 5, Math.min(6, host.h - 6));
-    // en el salón, nunca en las esquinas de abajo: ahí va la puerta de entrada
-    const top = host === salon ? true : rng() < 0.5, left = rng() < 0.5;
-    const bath = {
-      id: rooms.length, use: 'bano', doors: [], host: host.id,
-      c0: left ? host.c0 : host.c0 + host.w - bw, r0: top ? host.r0 : host.r0 + host.h - bh, w: bw, h: bh,
-    };
-    // el tabique en L que lo separa de la habitación de la que sale
-    for (let r = bath.r0 - 1; r <= bath.r0 + bh; r++) {
-      for (let c = bath.c0 - 1; c <= bath.c0 + bw; c++) {
-        if (c < host.c0 || r < host.r0 || c >= host.c0 + host.w || r >= host.r0 + host.h) continue;
-        const inside = c >= bath.c0 && c < bath.c0 + bw && r >= bath.r0 && r < bath.r0 + bh;
-        owner[at(c, r)] = inside ? bath.id : -1;
-      }
+    // 2. La cocina y los dormitorios, alrededor: primero sus tabiques y luego su suelo
+    const plan = layout(rng, bedrooms, iw, ih);
+    if (!plan) return null;
+    for (const p of plan) rooms.push({ id: rooms.length, use: p.use, c0: p.c0 + EDGE, r0: p.r0 + EDGE, w: p.w, h: p.h, doors: [] });
+    for (const rm of rooms.slice(1)) {
+      for (let r = rm.r0 - 1; r <= rm.r0 + rm.h; r++) for (let c = rm.c0 - 1; c <= rm.c0 + rm.w; c++) owner[at(c, r)] = -1;
     }
-    rooms.push(bath);
+    for (const rm of rooms.slice(1)) {
+      for (let r = rm.r0; r < rm.r0 + rm.h; r++) for (let c = rm.c0; c < rm.c0 + rm.w; c++) owner[at(c, r)] = rm.id;
+    }
+    if (!salonOk(owner, cols, rows, salon.id)) return null;
+
+    // 3. Un baño en cada dormitorio, recortado en la esquina que menos da al salón
+    for (const host of rooms.filter((rm) => rm.use === 'dormitorio')) {
+      const bw = randInt(rng, 5, Math.min(7, host.w - 5)), bh = randInt(rng, 5, Math.min(6, host.h - 5));
+      const corners = shuffle(rng, [[0, 0], [1, 0], [0, 1], [1, 1]]).map(([right, low]) => {
+        const c0 = right ? host.c0 + host.w - bw : host.c0, r0 = low ? host.r0 + host.h - bh : host.r0;
+        let near = 0; // casillas de salón al otro lado del tabique
+        for (let r = r0 - 2; r < r0 + bh + 2; r++) for (let c = c0 - 2; c < c0 + bw + 2; c++) if (owner[at(c, r)] === salon.id) near++;
+        return { c0, r0, near };
+      });
+      const { c0, r0 } = corners.reduce((a, b) => (b.near < a.near ? b : a));
+      const bath = { id: rooms.length, use: 'bano', doors: [], host: host.id, c0, r0, w: bw, h: bh };
+      host.bath = bath.id;
+      // el tabique en L que lo separa del dormitorio
+      for (let r = r0 - 1; r <= r0 + bh; r++) {
+        for (let c = c0 - 1; c <= c0 + bw; c++) {
+          if (c < host.c0 || r < host.r0 || c >= host.c0 + host.w || r >= host.r0 + host.h) continue;
+          const inside = c >= c0 && c < c0 + bw && r >= r0 && r < r0 + bh;
+          owner[at(c, r)] = inside ? bath.id : -1;
+        }
+      }
+      rooms.push(bath);
+    }
   }
 
   // 4. Qué habitaciones se tocan: tramos de tabique con una habitación a cada lado
@@ -169,45 +267,31 @@ function tryApartment(rng, bedrooms, boss) {
   };
 
   if (!boss) {
-    // Desde el salón se va abriendo paso a todas las demás (el baño aparte: solo se entra por su habitación)
-    const main = rooms.filter((rm) => rm.use !== 'bano');
-    const reached = new Set([salon.id]);
-    const queue = [salon];
-    const linked = new Set();
-    while (queue.length) {
-      const rm = queue.shift();
-      const next = main.filter((o) => !reached.has(o.id) && between(rm.id, o.id).length);
-      for (const o of next.sort(() => rng() - 0.5)) {
-        reached.add(o.id);
-        linked.add(`${Math.min(rm.id, o.id)}-${Math.max(rm.id, o.id)}`);
-        open(rm.id, o.id);
-        queue.push(o);
-      }
-    }
-    if (reached.size < main.length) return null;
-    // A veces una puerta de más, para poder dar la vuelta y que no todo sean callejones
+    // Del salón se entra a la cocina y a cada dormitorio; al baño, solo desde su dormitorio
+    const main = rooms.filter((rm) => rm !== salon && rm.use !== 'bano');
+    const baths = rooms.filter((rm) => rm.use === 'bano');
+    if (main.some((rm) => !between(salon.id, rm.id).length)) return null;
+    if (baths.some((rm) => !between(rm.id, rm.host).length)) return null;
+    // A veces, además, una puerta entre dos habitaciones vecinas
     const extra = [];
-    for (const a of main) for (const b of main) {
-      if (a.id < b.id && !linked.has(`${a.id}-${b.id}`) && between(a.id, b.id).length) extra.push([a.id, b.id]);
-    }
+    for (const a of main) for (const b of main) if (a.id < b.id && between(a.id, b.id).length) extra.push([a.id, b.id]);
+    for (const rm of main) open(salon.id, rm.id);
+    for (const rm of baths) open(rm.id, rm.host);
     if (extra.length && rng() < 0.5) open(...pick(rng, extra));
-
-    const bath = rooms[rooms.length - 1];
-    if (!between(bath.id, bath.host).length) return null;
-    open(bath.id, bath.host);
-
-    // La cocina: una habitación pegada al salón (si puede ser, la más pequeña); el resto son dormitorios
-    const nearSalon = main.filter((rm) => rm !== salon && linked.has(`${Math.min(rm.id, salon.id)}-${Math.max(rm.id, salon.id)}`));
-    if (!nearSalon.length) return null;
-    nearSalon.sort((a, b) => a.w * a.h - b.w * b.h);
-    nearSalon[rng() < 0.7 ? 0 : Math.floor(rng() * nearSalon.length)].use = 'cocina';
   }
 
-  // 5. La puerta de entrada, en la pared de abajo del salón (casi nunca en el centro)
-  const ec = randInt(rng, salon.c0 + 2, salon.c0 + salon.w - DOOR - 2);
+  // 5. La puerta de entrada, en un tramo de la pared de delante que dé al salón (casi nunca en el centro)
+  const front = rows - EDGE - 1;
+  const spots = [];
+  for (let c = EDGE; c <= cols - EDGE - DOOR; c++) {
+    let ok = true;
+    for (let k = -2; k < DOOR + 2; k++) if (owner[at(c + k, front)] !== salon.id) ok = false;
+    if (ok) spots.push(c);
+  }
+  if (!spots.length) return null;
+  const ec = pick(rng, spots);
   for (let r = rows - EDGE; r < rows; r++) for (let c = ec; c < ec + DOOR; c++) owner[at(c, r)] = -2;
   const entrance = { c: ec, r: rows - EDGE, w: DOOR, h: EDGE, side: 'down' };
-  if (owner[at(ec, rows - EDGE - 1)] !== salon.id || owner[at(ec + DOOR - 1, rows - EDGE - 1)] !== salon.id) return null;
 
   const grid = new Uint8Array(cols * rows);
   for (let i = 0; i < grid.length; i++) grid[i] = owner[i] === -1 ? 1 : 0;
@@ -244,9 +328,14 @@ function describe(apt) {
       }
     }
   }
-  // los dormitorios se numeran si hay más de uno
+  // los dormitorios se numeran si hay más de uno, y cada baño lleva el número del suyo
   const beds = apt.rooms.filter((rm) => rm.use === 'dormitorio');
-  if (beds.length > 1) beds.forEach((rm, i) => { rm.name = `Dormitorio ${i + 1}`; });
+  if (beds.length > 1) {
+    beds.forEach((rm, i) => {
+      rm.name = `Dormitorio ${i + 1}`;
+      apt.rooms[rm.bath].name = `Baño ${i + 1}`;
+    });
+  }
 }
 
 // Da la vuelta al apartamento de arriba abajo (para los que tienen el pasillo por arriba)
@@ -293,8 +382,16 @@ export function checkApartment(apt) {
     if (rm.cells < 20) bad.push(`${rm.use} demasiado pequeño`);
   }
   if (!apt.boss) {
+    const salon = apt.rooms[0];
+    const joined = (a, b) => a.doors.some((d) => (d.a === a.id && d.b === b.id) || (d.a === b.id && d.b === a.id));
     for (const use of ['salon', 'cocina', 'bano', 'dormitorio']) if (!apt.rooms.some((rm) => rm.use === use)) bad.push(`falta ${use}`);
-    if (apt.rooms.filter((rm) => rm.use === 'bano').some((rm) => rm.doors.length !== 1)) bad.push('el baño tiene más de una puerta');
+    for (const rm of apt.rooms) {
+      // al salón se sale directamente desde la cocina y desde cada dormitorio
+      if ((rm.use === 'cocina' || rm.use === 'dormitorio') && !joined(rm, salon)) bad.push(`${rm.use} sin puerta al salón`);
+      // cada dormitorio tiene su baño, y al baño solo se entra desde su dormitorio
+      if (rm.use === 'dormitorio' && apt.rooms[rm.bath]?.host !== rm.id) bad.push('dormitorio sin baño');
+      if (rm.use === 'bano' && (rm.doors.length !== 1 || !joined(rm, apt.rooms[rm.host]))) bad.push('el baño no tiene una sola puerta, la de su dormitorio');
+    }
   }
   // el borde del mapa es todo muro menos la puerta de entrada
   for (let c = 0; c < cols; c++) for (const r of [0, rows - 1]) if (!grid[r * cols + c] && owner[r * cols + c] !== -2) bad.push('hueco en el muro exterior');

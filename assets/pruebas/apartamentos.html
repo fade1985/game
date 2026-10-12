@@ -74,7 +74,8 @@ function dibuja(apt) {
     x.font = 'bold 13px system-ui';
     x.fillText(rm.name, rm.x / CELL * PX, rm.y / CELL * PX - 7);
     x.font = '11px system-ui';
-    x.fillText(`${rm.w}×${rm.h}`, rm.x / CELL * PX, rm.y / CELL * PX + 8);
+    // las que no son un rectángulo (el salón, los dormitorios con su baño) dicen cuántas casillas de suelo tienen
+    x.fillText(rm.cells === rm.w * rm.h ? `${rm.w}×${rm.h}` : `${rm.cells} casillas`, rm.x / CELL * PX, rm.y / CELL * PX + 8);
   }
   // Johnny en la entrada y lo que se vería en pantalla
   const k = PX / CELL, s = apt.spawn;
