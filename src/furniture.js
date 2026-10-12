@@ -60,7 +60,8 @@ const SEGMENTS = [
 const ROT = { top: 0, right: Math.PI / 2, bottom: Math.PI, left: -Math.PI / 2 };
 
 // Coloca entre `min` y `max` muebles al azar (con el generador `rng` de la sala)
-export function placeFurniture(styleName, rng, min, max) {
+// `skipSide` deja una pared sin muebles (la de arriba en la entrada, donde van las armas)
+export function placeFurniture(styleName, rng, min, max, skipSide = null) {
   const pool = BY_STYLE[styleName] || BY_STYLE['Pasillo'];
   const want = min + Math.floor(rng() * (max - min + 1));
   const placed = [];
@@ -68,7 +69,7 @@ export function placeFurniture(styleName, rng, min, max) {
     const kind = pool[Math.floor(rng() * pool.length)];
     const pc = PIECES[kind];
     const seg = SEGMENTS[Math.floor(rng() * SEGMENTS.length)];
-    if (seg.b - seg.a < pc.len) continue;
+    if (seg.side === skipSide || seg.b - seg.a < pc.len) continue;
     const along = seg.a + pc.len / 2 + rng() * (seg.b - seg.a - pc.len);
     const horiz = seg.side === 'top' || seg.side === 'bottom';
     const o = { shape: 'rect', kind, side: seg.side, len: pc.len, dep: pc.dep, seed: rng() };

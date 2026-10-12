@@ -2,7 +2,7 @@
 //  Objetos fijos de las salas: pedestal con objeto,
 //  superviviente atrapado y escaleras a la siguiente planta
 // ─────────────────────────────────────────────
-import { W, H, OUTLINE } from './config.js';
+import { W, H, WALL, OUTLINE } from './config.js';
 import { drawHuman, outlinedText, roundBox } from './draw.js';
 import { drawWeapon } from './weapons.js';
 import { drawSprite, hasSprite, pixelShadow } from './sprites.js';
@@ -152,6 +152,134 @@ export class WeaponProp {
     ctx.restore();
     outlinedText(ctx, this.weapon.name, x, y + 30, 15, '#ffd23f', { lw: 4 });
   }
+}
+
+// Muebles de la entrada que guardan un arma para empezar la partida, vistos desde arriba
+// y pegados a la pared de arriba. Los redondos llevan `round` (radio); el resto, largo y fondo.
+const STASHES = {
+  cubo:      { round: 20, color: '#6c9bd1' },
+  paraguero: { round: 17, color: '#8d6346' },
+  encimera:  { len: 84, dep: 44, color: '#e9ecef' },
+  comoda:    { len: 84, dep: 40, color: '#b07d4f', front: 24 }, // `front`: lo que sobresale el cajón abierto
+  taquilla:  { len: 64, dep: 44, color: '#7d8a99' },
+  caja:      { len: 60, dep: 40, color: '#c08552' },             // armas nuevas sin mueble propio
+};
+
+// Un arma esperando en su mueble. Si aún no la has encontrado en ninguna partida, el mueble
+// sale cerrado con un candado. Al arrimarte a uno abierto, coges su arma y la tuya vuelve a su sitio.
+export class WeaponStash {
+  constructor(weapon, x, locked) {
+    this.kind = 'stash';
+    this.weapon = weapon;
+    this.locked = locked;
+    this.look = STASHES[weapon.stash] ? weapon.stash : 'caja';
+    const d = STASHES[this.look];
+    this.def = d;
+    this.x = x;
+    if (d.round) { this.r = d.round; this.y = WALL + d.round + 4; }
+    else {
+      // el cajón abierto también ocupa sitio
+      this.shape = 'rect'; this.w = d.len; this.h = d.dep + (locked ? 0 : d.front || 0);
+      this.r = this.h / 2; this.y = WALL + this.h / 2;
+    }
+    this.solid = true;
+    this.taken = false;
+  }
+
+  draw(ctx, game) {
+    const { x, def: d, look } = this;
+    const y = d.round ? this.y : WALL + d.dep / 2; // centro del cuerpo del mueble (sin contar el cajón)
+    const open = !this.locked;
+    const here = open && game.player.weapon.id !== this.weapon.id; // el arma está en el mueble (no en tu mano)
+    const L = d.len, D = d.dep, x0 = x - L / 2, y0 = y - D / 2;
+    ctx.lineJoin = 'round';
+
+    // ── el mueble ──
+    ctx.fillStyle = 'rgba(20,16,40,0.2)';
+    if (d.round) {
+      ctx.beginPath(); ctx.ellipse(x + 3, y + 7, d.round, d.round, 0, 0, TAU); ctx.fill();
+      disc(ctx, x, y, d.round, d.color);
+      if (open) disc(ctx, x, y, d.round - 6, look === 'cubo' ? '#9fdcf2' : '#3a2e26', 2.5);
+      else disc(ctx, x, y, d.round - 6, shade(d.color), 2.5); // tapa puesta
+    } else {
+      ctx.beginPath(); ctx.roundRect(x0 + 3, y0 + 7, L, D + (open ? d.front || 0 : 0), 8); ctx.fill();
+      roundBox(ctx, x0, y0, L, D, 6, d.color, 3);
+      if (look === 'encimera') {
+        roundBox(ctx, x0 + 6, y0 + 6, 22, D - 12, 4, '#ced4da', 2.5);            // fregadero
+        roundBox(ctx, x + 14, y - 10, 22, 20, 4, open ? '#8d6346' : '#6c584c', 2.5); // taco de cuchillos
+        if (!open) roundBox(ctx, x + 12, y - 12, 26, 24, 4, '#adb5bd', 2.5);      // tapado con una caja metálica
+      } else if (look === 'comoda') {
+        if (open) {
+          roundBox(ctx, x0 + 6, y0 + D - 4, L - 12, d.front + 4, 4, shade(d.color), 3); // cajón abierto
+          roundBox(ctx, x0 + 11, y0 + D + 1, L - 22, d.front - 6, 3, '#f1e3cf', 2);
+        } else {
+          for (const kx of [-18, 18]) disc(ctx, x + kx, y0 + D - 7, 3.5, '#ffd23f', 2);  // tiradores
+        }
+        roundBox(ctx, x - 12, y0 + 6, 24, 12, 3, '#9fdcf2', 2.5);                  // un jarrón encima
+      } else if (look === 'taquilla') {
+        if (open) {
+          roundBox(ctx, x0 + 5, y0 + 5, L - 10, D - 10, 3, '#2b2d42', 2.5);         // interior
+          roundBox(ctx, x0 - 3, y0 + D - 4, 7, 30, 3, d.color, 3);                  // puerta abierta hacia la sala
+        } else {
+          ctx.strokeStyle = OUTLINE; ctx.lineWidth = 2.5;
+          ctx.beginPath(); ctx.moveTo(x, y0 + 2); ctx.lineTo(x, y0 + D - 2); ctx.stroke();
+          for (const vx of [-16, 16]) for (let i = 0; i < 3; i++) roundBox(ctx, x + vx - 8, y0 + 8 + i * 6, 16, 2.5, 1, '#4d5866', 0);
+        }
+      } else if (open) {
+        roundBox(ctx, x0 + 5, y0 + 5, L - 10, D - 10, 3, shade(d.color), 2.5);     // caja abierta
+      } else {
+        roundBox(ctx, x - 5, y0, 10, D, 0, '#e9c46a', 2.5);                         // caja precintada
+      }
+    }
+
+    // ── el arma, colocada a su manera en cada mueble ──
+    const front = y + (d.round || D / 2) + (open ? d.front || 0 : 0); // borde del mueble que da a la sala
+    if (here) {
+      const glow = ctx.createRadialGradient(x, y + 6, 4, x, y + 6, 48);
+      glow.addColorStop(0, `rgba(255, 230, 120, ${0.4 + Math.sin(game.time * 3) * 0.12})`);
+      glow.addColorStop(1, 'rgba(255, 230, 120, 0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath(); ctx.arc(x, y + 6, 48, 0, TAU); ctx.fill();
+      // [x, y, giro] de la empuñadura
+      const at = {
+        cubo: [x + 29, y + 40, -2.2],            // el cabezal dentro del cubo y el palo hacia la sala
+        paraguero: [x - 2, y - 2, 0.95],
+        encimera: [x + 18, y + 8, -1.57],        // clavado en el taco
+        comoda: [x - 10, y + D / 2 + d.front / 2, 0],
+        taquilla: [x - 22, y + 2, 0],
+        caja: [x - 16, y, 0],
+      }[look];
+      ctx.save();
+      ctx.translate(at[0], at[1]);
+      ctx.rotate(at[2]);
+      drawWeapon(ctx, this.weapon);
+      ctx.restore();
+      outlinedText(ctx, this.weapon.name, x, front + 16, 15, '#ffd23f', { lw: 4 });
+    } else if (this.locked) {
+      // candado
+      ctx.lineWidth = 3; ctx.strokeStyle = OUTLINE;
+      ctx.beginPath(); ctx.arc(x, y - 3, 6, Math.PI, 0); ctx.stroke();
+      ctx.lineWidth = 1.5; ctx.strokeStyle = '#ced4da';
+      ctx.beginPath(); ctx.arc(x, y - 3, 6, Math.PI, 0); ctx.stroke();
+      roundBox(ctx, x - 9, y - 3, 18, 14, 3, '#ffd23f', 2.5);
+      outlinedText(ctx, '???', x, front + 16, 15, '#ced4da', { lw: 4 });
+    }
+  }
+}
+
+function disc(ctx, x, y, r, fill, lw = 3) {
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, TAU);
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.lineWidth = lw; ctx.strokeStyle = OUTLINE; ctx.stroke();
+}
+
+// Un tono más oscuro del mismo color (#rrggbb)
+function shade(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const c = (v) => Math.round(v * 0.72).toString(16).padStart(2, '0');
+  return `#${c(n >> 16)}${c((n >> 8) & 255)}${c(n & 255)}`;
 }
 
 // Maniquí de la sala de exposición (?sala=venenoso): un sprite que posa quieto y va

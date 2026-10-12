@@ -43,7 +43,7 @@ export function makeRoomLayout(type) {
 
   // Muebles pegados a las paredes (menos en las salas de jefe, que necesitan sitio)
   const [fmin, fmax] = FURNITURE_COUNT[type] || [2, 3];
-  const obstacles = placeFurniture(style.name, rng, fmin, fmax);
+  const obstacles = placeFurniture(style.name, rng, fmin, fmax, type === 'start' ? 'top' : null);
   const wallDecor = placeWallDecor(rng);
 
   // Obstáculos sueltos (macetas y cajas) solo en salas con monstruos

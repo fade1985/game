@@ -9,6 +9,8 @@
 //    reach    alcance del golpe (melee) · range: alcance de la bala (ranged)
 //    arc      apertura del barrido en grados (melee)
 //    knock    fuerza del empuje (1 = normal)
+//    stash    mueble de la entrada donde espera el arma: cubo, paraguero, encimera, comoda o taquilla
+//             (si no se pone, sale en una caja). Los muebles se dibujan en props.js
 // ─────────────────────────────────────────────
 import { OUTLINE } from './config.js';
 
@@ -16,23 +18,23 @@ const TAU = Math.PI * 2;
 
 export const WEAPONS = {
   fregona: {
-    id: 'fregona', name: 'Fregona', icon: '🧹', type: 'melee',
+    id: 'fregona', stash: 'cubo', name: 'Fregona', icon: '🧹', type: 'melee',
     damage: 8, rate: 1.8, reach: 62, arc: 140, knock: 2.0, trail: '#3fb5ec',
   },
   bate: {
-    id: 'bate', name: 'Bate', icon: '🏏', type: 'melee',
+    id: 'bate', stash: 'paraguero', name: 'Bate', icon: '🏏', type: 'melee',
     damage: 16, rate: 1.6, reach: 66, arc: 110, knock: 1.5, trail: '#ffb347',
   },
   cuchillo: {
-    id: 'cuchillo', name: 'Cuchillo', icon: '🔪', type: 'melee',
+    id: 'cuchillo', stash: 'encimera', name: 'Cuchillo', icon: '🔪', type: 'melee',
     damage: 9, rate: 4, reach: 46, arc: 60, knock: 0.5, trail: '#c9b6ff',
   },
   pistola: {
-    id: 'pistola', name: 'Pistola', icon: '🔫', type: 'ranged',
+    id: 'pistola', stash: 'comoda', name: 'Pistola', icon: '🔫', type: 'ranged',
     damage: 10, rate: 2.5, range: 420, speed: 620, pellets: 1, spread: 0, knock: 0.8, muzzle: 24,
   },
   escopeta: {
-    id: 'escopeta', name: 'Escopeta', icon: '💥', type: 'ranged',
+    id: 'escopeta', stash: 'taquilla', name: 'Escopeta', icon: '💥', type: 'ranged',
     damage: 7, rate: 1, range: 260, speed: 540, pellets: 5, spread: 0.55, knock: 1.2, muzzle: 38,
   },
 };

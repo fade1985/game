@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────
 //  Guardado del progreso en el navegador (localStorage)
 //
-//  Se guarda: llaves, mejoras del Taller, récords y el progreso de cada edificio.
+//  Se guarda: llaves, mejoras del Taller, armas desbloqueadas, récords y el progreso de cada edificio.
 //  Las partidas a medias NO se guardan: si cierras, empiezas el edificio de nuevo.
 // ─────────────────────────────────────────────
 const KEY = 'blobquest-save-v2';
@@ -16,6 +16,7 @@ const DEFAULT = {
   wins: 0,
   kills: 0,
   workshop: {},     // nivel de cada mejora del Taller: { vida: 2, ... }
+  weapons: [],      // armas desbloqueadas (encontradas alguna vez): ['bate', ...]. La fregona siempre está
   buildings: {},    // progreso por edificio: { apartamentos: { ... } }
   settings: { music: true },
 };
@@ -25,6 +26,7 @@ export function loadSave() {
   try { d = JSON.parse(localStorage.getItem(KEY)) || {}; } catch { /* guardado roto o sin acceso */ }
   const save = { ...structuredClone(DEFAULT), ...d };
   save.workshop = { ...(d.workshop || {}) };
+  save.weapons = [...(d.weapons || [])];
   save.settings = { ...DEFAULT.settings, ...(d.settings || {}) };
   save.buildings = {};
   for (const [id, b] of Object.entries(d.buildings || {})) save.buildings[id] = { ...BUILDING_DEFAULT, ...b };

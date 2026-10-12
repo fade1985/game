@@ -84,6 +84,12 @@ ven arriba a la izquierda y en la pausa.
 Empiezas cada edificio con la **fregona**. Al pasar por encima de un arma del suelo la cambias por la tuya
 (la vieja se queda en el suelo). El mini jefe siempre suelta un arma y a veces la sala de objeto guarda una.
 
+**Elegir arma al empezar:** en la sala de entrada cada arma espera en su mueble, pegado a la pared de arriba:
+la fregona en su cubo, el bate en el paragüero, el cuchillo en la encimera, la pistola en el cajón de la cómoda
+y la escopeta en la taquilla. Arrímate a un mueble abierto para coger su arma (la que llevabas vuelve a su sitio).
+Los muebles con candado guardan armas que aún no has encontrado: **la primera vez que coges un arma en una
+partida queda desbloqueada para siempre**. Con `?armas` en la dirección se ven todas abiertas, sin tocar el guardado.
+
 | Arma | Tipo | Daño | Ataques/s | Detalle |
 |---|---|---|---|---|
 | 🧹 Fregona | Cuerpo a cuerpo | 8 | 1,8 | Barrido amplio que empuja mucho |
@@ -139,7 +145,7 @@ rápida, abanicos más anchos y más botellas. Los barridos de las armas cuerpo 
 dibuja como siempre. Para ver la versión cartoon original, añade `?cartoon` a la dirección. Ver [`docs/PIXEL_ART.md`](docs/PIXEL_ART.md).
 
 **Modo de pruebas:** añade `?pruebas` a la dirección (por ejemplo `http://localhost:3000/?pruebas`): todas
-las armas aparecerán en la sala de entrada, las teclas **1 a 6** invocan cada tipo de zombi, la **7** al vecino del 4ºB
+las armas estarán abiertas en la sala de entrada, las teclas **1 a 6** invocan cada tipo de zombi, la **7** al vecino del 4ºB
 y la **8** a la portera.
 
 ## 🚀 Ejecutar en local

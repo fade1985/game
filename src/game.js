@@ -10,7 +10,7 @@ import { Zombie, POISON, TENTACLE } from './zombies.js';
 import { generateFloor, neighbour } from './floor.js';
 import { makeRoomLayout, ROOM_TYPES } from './rooms.js';
 import { baseStats, rollItem, applyWorkshop, WORKSHOP } from './upgrades.js';
-import { Pedestal, SurvivorNPC, Stairs, WeaponProp, Maniqui } from './props.js';
+import { Pedestal, SurvivorNPC, Stairs, WeaponProp, WeaponStash, Maniqui } from './props.js';
 import { WEAPONS, randomWeapon, weaponSummary } from './weapons.js';
 import { loadSave, updateSave, buildingSave } from './save.js';
 import { drawRoom, drawDoors, drawPickup, drawBullet, drawMinimap, drawEmoji as drawEmojiAt, minimapRect } from './render.js';
@@ -25,6 +25,10 @@ const HAZARDS = {
   poison: { ...POISON, fill: '#8fd13f', stroke: '#4f772d', bubble: '#c7f27a', drop: '#9be33b' },
   bleach: { ...BLEACH, fill: '#e9f8ff', stroke: '#2f86c4', bubble: '#ffffff', drop: '#4cb4f0' },
 };
+
+// Dónde va el mueble de cada arma en la pared de arriba de la entrada (a los lados de la puerta),
+// en el orden de WEAPONS. Hay sitio para seis; si algún día hay más armas, harán falta más huecos.
+const STASH_X = [140, 240, 342, 640, 760, 850];
 
 // Vida de los jefes según la planta (la portera solo sale en la última)
 const bossHpMul = (type, floorNum) => (type === 'boss' ? 1 : 1 + (floorNum - 1) * 0.25);
@@ -203,17 +207,23 @@ export class Game {
       }
     }
 
-    // Modo de pruebas (añade ?pruebas a la dirección): todas las armas en la entrada
-    // y las teclas 1-6 invocan zombis (ver main.js)
-    this.testMode = new URLSearchParams(location.search).has('pruebas');
-    if (this.floorNum === 1 && this.testMode) {
-      Object.values(WEAPONS).filter((w) => w.id !== 'fregona').forEach((w, i) => {
-        this.floor.start.props.push(new WeaponProp(w, W / 2 - 240 + i * 160, H / 2 - 110));
+    // Modo de pruebas (añade ?pruebas a la dirección): las teclas 1-6 invocan zombis (ver main.js)
+    const params = new URLSearchParams(location.search);
+    this.testMode = params.has('pruebas');
+    // Entrada del edificio: cada arma espera en su mueble (taquilla, cajón...) para elegir con cuál
+    // empezar. Solo se abren las que ya has encontrado en alguna partida; con ?armas (o ?pruebas)
+    // se ven todas abiertas, sin tocar el guardado.
+    const unlocked = loadSave().weapons;
+    const showAll = this.testMode || params.has('armas');
+    if (this.floorNum === 1) {
+      Object.values(WEAPONS).slice(0, STASH_X.length).forEach((w, i) => {
+        const locked = !showAll && w.id !== 'fregona' && !unlocked.includes(w.id);
+        this.floor.start.props.push(new WeaponStash(w, STASH_X[i], locked));
       });
     }
     // Sala de exposición (añade ?sala=venenoso): ese zombi posa quieto en la entrada,
     // al lado del conserje, para ver cómo queda su sprite
-    const pose = new URLSearchParams(location.search).get('sala');
+    const pose = params.get('sala');
     if (this.floorNum === 1 && pose) this.floor.start.props.push(new Maniqui(`zombi-${pose}`, W / 2 + 80, H / 2 + 40));
     this.enterRoom(this.floor.start, null);
     // primera partida: recordatorio de los controles
@@ -221,7 +231,8 @@ export class Game {
     this.banner = {
       title: `${this.building.icon} ${this.building.name}`,
       sub: this.testMode ? 'Modo pruebas · teclas 1-6: zombis · 7-8: jefes'
-        : firstTime ? 'Muévete con WASD o flechas · Espacio para esquivar' : `Planta ${this.floorNum}`,
+        : firstTime ? 'Muévete con WASD o flechas · Espacio para esquivar'
+        : this.floorNum === 1 && (showAll || unlocked.length) ? 'Elige tu arma antes de salir' : `Planta ${this.floorNum}`,
       t: 0,
     };
   }
@@ -408,6 +419,17 @@ export class Game {
     if (p.dead) return;
     for (const pr of this.room.props) {
       if (pr.taken) continue;
+      if (pr.kind === 'stash') {
+        // Mueble con arma: basta con arrimarse. La que llevabas vuelve sola a su mueble.
+        if (!pr.locked && p.weapon.id !== pr.weapon.id && obstacleGap(pr, p) < p.r + 6) {
+          p.weapon = pr.weapon;
+          p.swing = null;
+          this.banner = { title: `${p.weapon.icon} ${p.weapon.name}`, sub: weaponSummary(p.weapon), t: 0 };
+          this.burst(pr.x, pr.y, '#ffd23f', 10, 16);
+          sfx.buy();
+        }
+        continue;
+      }
       if (dist(pr, p) > pr.r + p.r + 4) { pr.armed = true; continue; } // hay que salir y volver a pisarlo
       if (pr.kind === 'pedestal') {
         pr.taken = true;
@@ -429,7 +451,13 @@ export class Game {
         this.player.swing = null;
         pr.weapon = old;
         pr.armed = false; // hay que alejarse antes de poder volver a cogerla
-        this.banner = { title: `${this.player.weapon.icon} ${this.player.weapon.name}`, sub: weaponSummary(this.player.weapon), t: 0 };
+        // la primera vez que encuentras un arma queda desbloqueada para elegirla en la entrada
+        const isNew = this.unlockWeapon(this.player.weapon.id);
+        this.banner = {
+          title: `${this.player.weapon.icon} ${this.player.weapon.name}`,
+          sub: isNew ? '🔓 ¡Desbloqueada! Ya puedes elegirla en la entrada' : weaponSummary(this.player.weapon),
+          t: 0,
+        };
         this.burst(pr.x, pr.y, '#ffd23f', 10, 16);
         sfx.buy();
       } else if (pr.kind === 'stairs' && pr.appear >= 1 && pr.armed) {
@@ -437,6 +465,13 @@ export class Game {
         this.goNextFloor();
       }
     }
+  }
+
+  // Apunta en el guardado un arma recién encontrada. Devuelve true si era nueva.
+  unlockWeapon(id) {
+    if (id === 'fregona' || loadSave().weapons.includes(id)) return false;
+    updateSave((s) => { s.weapons.push(id); });
+    return true;
   }
 
   goNextFloor() {

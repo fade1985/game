@@ -35,6 +35,7 @@ npm run dev            # sirve la carpeta en http://localhost:3000 (también val
 - `http://localhost:3000/?cartoon` → versión cartoon, la original.
 - `?pruebas` → modo pruebas: las teclas **1–6** sacan cada tipo de zombi, **7** el mini jefe y **8** la portera.
   Se puede combinar: `?cartoon&pruebas`.
+- `?armas` → todas las armas abiertas en la entrada (sin tocar el guardado). `?pruebas` también las abre.
 - `?sala=venenoso` → sala de exposición (solo versión pixel): se salta el menú y pone el sprite `zombi-venenoso`
   quieto y girando junto al conserje, sin atacar. Vale para cualquier zombi con sprite: `?sala=normal`...
 - Para probar sin mirar: Playwright con Chromium. En la consola del navegador el juego está en `window.game`;
@@ -118,7 +119,19 @@ Los sprites se generan con PixelLab. Desde el 12 de octubre de 2026 está conect
 
 La versión pixel ya es la de por defecto; lo que aún no tiene sprite se ve con el dibujo cartoon.
 
-### 3. Pequeños pendientes
+### 3. Mecánicas nuevas (decididas el 12 de octubre de 2026)
+
+- **Elegir arma en la entrada: hecho.** Cada arma espera en su mueble (`stash` en `weapons.js`, dibujo en
+  `WeaponStash` de `props.js`). Se desbloquean al encontrarlas en una partida (`weapons` en el guardado).
+  Más adelante puede que se compren o que se creen armas nuevas: por eso el mueble es un dato de cada arma.
+- **Salas con forma libre y procedurales: pendiente.** Dejarán de ser siempre el rectángulo de 960×640
+  (en L, en T, con columnas, más grandes que la pantalla). **Solo en la versión pixel**; la cartoon se queda con
+  sus salas rectangulares. Supone pasar las salas a una cuadrícula de baldosas, enseñar a los zombis a rodear
+  esquinas y adaptar puertas, muebles, apariciones y minimapa.
+- **Consecuencia para el arte:** los escenarios se generan como **piezas sueltas que encajan** (baldosa de suelo,
+  tramos de pared, esquinas hacia dentro y hacia fuera, hueco de puerta) y muebles aparte; nunca salas enteras.
+
+### 4. Pequeños pendientes
 
 - El **reloj** y las **nubes de las ventanas** se quedan quietos en la versión pixel (la sala se guarda como una
   imagen fija). Se ofreció volver a animarlos dibujándolos aparte cada fotograma.
