@@ -35,6 +35,8 @@ npm run dev            # sirve la carpeta en http://localhost:3000 (también val
 - `http://localhost:3000/?cartoon` → versión cartoon, la original.
 - `?pruebas` → modo pruebas: las teclas **1–6** sacan cada tipo de zombi, **7** el mini jefe y **8** la portera.
   Se puede combinar: `?cartoon&pruebas`.
+- `?sala=venenoso` → sala de exposición (solo versión pixel): se salta el menú y pone el sprite `zombi-venenoso`
+  quieto y girando junto al conserje, sin atacar. Vale para cualquier zombi con sprite: `?sala=normal`...
 - Para probar sin mirar: Playwright con Chromium. En la consola del navegador el juego está en `window.game`;
   se puede adelantar llamando a `game.update(1/60)` muchas veces (así se hicieron las simulaciones de partidas
   con un "bot" para equilibrar). Después de cada cambio visual, sacar capturas a 1920×1080 y en móvil horizontal.
@@ -73,17 +75,24 @@ Detalles completos en [`docs/PIXEL_ART.md`](docs/PIXEL_ART.md). Lo esencial:
 
 ### PixelLab
 
-Los sprites se generan con la API de PixelLab mediante `tools/pixellab.mjs`
-(`balance`, `character`, `animate`, `animate-text`, `export`, `image`; uso en la cabecera del archivo).
+Los sprites se generan con PixelLab. Desde el 12 de octubre de 2026 está conectado a Claude Code por su
+**servidor MCP** (herramientas `mcp__pixellab__*`), que es la vía principal: no hace falta clave ni script.
 
-- La clave va en la variable de entorno **`PIXELLAB_API_KEY`**. **Nunca** pegarla en el chat, en el código ni en
-  un commit. En Windows (PowerShell): `$env:PIXELLAB_API_KEY = "..."` para la sesión actual, o
-  `setx PIXELLAB_API_KEY "..."` para siempre (hay que abrir una terminal nueva después).
-- `export` descomprime con `python3`; en Windows puede que haya que cambiarlo a `python` o `py`.
+- **Plan:** Tier 1 (Pixel Apprentice), **2000 generaciones al mes** (se renuevan el día 12) más un bono diario de 20
+  que solo se gasta si se agotan las del mes. Para ver cuántas quedan: herramienta `get_balance`.
+- **Lo que cuesta cada cosa** (orientativo; la respuesta de cada herramienta dice lo que se ha cobrado):
+  - Personaje en modo estándar: 1. En modo `v3`: 2–9. En modo `pro`: 10–25.
+  - Animación de plantilla (`walking`, `breathing-idle`...): 1 por dirección.
+  - Animación "a medida" en modo `v3`: 1 por dirección a 64 px o menos. Ya no hay que evitarlas.
+  - Objeto o mueble (`create_1_direction_object`, `create_8_direction_object`): 10–25.
+  - Antes de lanzar tandas grandes, calcular el total y **decírselo al dueño**.
 - Todo lo generado se apunta en `assets/pixellab.json` (texto, semilla, ids) para poder repetirlo.
-- Plan de prueba: quedaban **27 de 40 generaciones**, un solo trabajo a la vez y una dirección por llamada
-  (el script ya lo tiene en cuenta). La animación de plantilla `walking` cuesta 1 por dirección; las animaciones
-  "a medida" cuestan 20–40 por dirección, así que **evitarlas**. Para la migración completa hará falta un plan de pago.
+- **Vía antigua (sigue valiendo):** `tools/pixellab.mjs` llama a la API directamente
+  (`balance`, `character`, `animate`, `animate-text`, `export`, `image`; uso en la cabecera del archivo).
+  Necesita la clave en la variable de entorno **`PIXELLAB_API_KEY`**. **Nunca** pegarla en el chat, en el código ni
+  en un commit. En Windows (PowerShell): `$env:PIXELLAB_API_KEY = "..."` para la sesión actual, o
+  `setx PIXELLAB_API_KEY "..."` para siempre (hay que abrir una terminal nueva después).
+  `export` descomprime con `python3`; en Windows puede que haya que cambiarlo a `python` o `py`.
 
 ## Lo que queda
 
@@ -95,7 +104,8 @@ Los sprites se generan con la API de PixelLab mediante `tools/pixellab.mjs`
    Para los demás suelos pedir algo "simple, subtle, low contrast".
 4. **Muebles:** PixelLab los da en perspectiva (se ve el frente). Opciones: ponerlos solo en las paredes de
    arriba y abajo, o generar también una versión lateral de cada uno.
-5. **Créditos:** decidir el plan de PixelLab para la migración completa.
+5. ~~**Créditos:** decidir el plan de PixelLab para la migración completa.~~ **Hecho:** Tier 1 contratado y
+   conectado por MCP (ver el apartado PixelLab).
 
 ### 2. Fases del pixel art
 

@@ -79,7 +79,9 @@
   },
   "conserje-48": {
     "kind": "character",
-    "character_id": "18b9d762-9495-4a05-a309-ec77382fead7",
+    "character_id": "4e6c78c6-d6c6-46d3-99c1-40a2d86f0e6c",
+    "character_id_cuenta_anterior": "18b9d762-9495-4a05-a309-ec77382fead7",
+    "nota": "Importado el 2026-10-12 a la cuenta con suscripción a partir de las 8 rotaciones exportadas (no se regeneró nada).",
     "request": {
       "description": "young male janitor, realistic adult body proportions, tall and slim, small head, messy brown hair with a red bandana tied on the head, cream shirt under blue work overalls, dark work boots, empty hands, arms relaxed at his sides, detailed shading",
       "image_size": {
@@ -92,6 +94,22 @@
       "no_background": true
     },
     "updated": "2026-10-06T18:26:39.687Z"
+  },
+  "zombi-venenoso-48": {
+    "kind": "character",
+    "character_id": "d8d5f941-74ff-400e-b52b-20d9dc6d6b06",
+    "nota": "Prueba del 2026-10-12 a partir de un diseño hecho con GPT. Paso 1: image_to_pixelart (faithful, strength 200) del recorte a 48x48, trabajo 6e06ed43-ee5c-4348-9268-a4c6d14506d4. Paso 2: create_character_pro_flash con ese sprite como imagen de estilo. Pendiente: la piel salió beige en vez de verde.",
+    "request": {
+      "description": "hugely obese bloated zombie, bald head, sickly olive green rotting skin covered in red sores and open wounds, glowing yellow eyes, huge gaping mouth with jagged teeth and drool, dirty torn white tank top stretched over an enormous belly with exposed bloody guts hanging out, ripped dark blue shorts, bare feet, thick arms hanging at his sides, standing wide and hunched",
+      "image_size": {
+        "width": 48,
+        "height": 48
+      },
+      "view": "low top-down",
+      "no_background": true
+    },
+    "cost": "7 generaciones (1 + 6)",
+    "updated": "2026-10-12"
   },
   "suelo-cocina": {
     "kind": "image",

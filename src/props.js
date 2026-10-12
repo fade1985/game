@@ -5,6 +5,7 @@
 import { W, H, OUTLINE } from './config.js';
 import { drawHuman, outlinedText, roundBox } from './draw.js';
 import { drawWeapon } from './weapons.js';
+import { drawSprite, hasSprite, pixelShadow } from './sprites.js';
 
 const TAU = Math.PI * 2;
 
@@ -150,5 +151,30 @@ export class WeaponProp {
     drawWeapon(ctx, this.weapon);
     ctx.restore();
     outlinedText(ctx, this.weapon.name, x, y + 30, 15, '#ffd23f', { lw: 4 });
+  }
+}
+
+// Maniquí de la sala de exposición (?sala=venenoso): un sprite que posa quieto y va
+// girando por sus 8 direcciones, para compararlo con el conserje. Ni ataca ni se le puede pegar.
+const POSES = ['south', 'south-east', 'east', 'north-east', 'north', 'north-west', 'west', 'south-west'];
+export class Maniqui {
+  constructor(sprite, x, y) {
+    this.kind = 'maniqui';
+    this.sprite = sprite;
+    this.x = x; this.y = y;
+    this.r = 16;
+    this.solid = false;
+    this.taken = false;
+  }
+
+  draw(ctx, game) {
+    const { x, y } = this;
+    if (!hasSprite(this.sprite)) {
+      outlinedText(ctx, `Falta el sprite ${this.sprite}`, x, y, 15, '#ff5d73', { lw: 4 });
+      return;
+    }
+    const dir = POSES[Math.floor(game.time / 1.2) % POSES.length]; // cambia de dirección cada 1,2 s
+    pixelShadow(ctx, x, y + 14, 36);
+    drawSprite(ctx, this.sprite, 'idle', dir, game.time, x, y + 15);
   }
 }

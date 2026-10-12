@@ -154,12 +154,14 @@ canvas {
 }
 /* el logo es un dibujo pixel art: se amplía en saltos enteros para que no se vea borroso */
 .logo-px {
-  height: min(34vh, 300px);
+  height: min(46vh, 460px);
   width: auto;
-  max-width: 88vw;
+  max-width: 92vw;
   image-rendering: pixelated;
   filter: drop-shadow(0 0.15em 0 rgba(29, 27, 44, 0.35));
 }
+/* en pantallas bajitas (móvil en horizontal) el logo se encoge para que quepa todo el menú */
+@media (max-height: 500px) { .logo-px { height: 34vh; } }
 .tagline {
   color: #fff;
   font-size: 1.4em;

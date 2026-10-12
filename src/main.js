@@ -57,7 +57,9 @@ function frame(now) {
 game.goMenu();
 requestAnimationFrame(frame);
 // Sprites de pixel art (si todavía no hay, todo se dibuja como siempre)
-if (PIXEL_MODE) loadSprites().then((ids) => { game.spriteIds = ids; });
+// Con ?sala=<zombi> se salta el menú y se entra directamente a la sala de exposición
+const sala = new URLSearchParams(location.search).has('sala');
+if (PIXEL_MODE) loadSprites().then((ids) => { game.spriteIds = ids; if (sala) game.newRun(); });
 
 // Para depurar desde la consola del navegador: window.game
 window.game = game;

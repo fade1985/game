@@ -10,7 +10,7 @@ import { Zombie, POISON, TENTACLE } from './zombies.js';
 import { generateFloor, neighbour } from './floor.js';
 import { makeRoomLayout, ROOM_TYPES } from './rooms.js';
 import { baseStats, rollItem, applyWorkshop, WORKSHOP } from './upgrades.js';
-import { Pedestal, SurvivorNPC, Stairs, WeaponProp } from './props.js';
+import { Pedestal, SurvivorNPC, Stairs, WeaponProp, Maniqui } from './props.js';
 import { WEAPONS, randomWeapon, weaponSummary } from './weapons.js';
 import { loadSave, updateSave, buildingSave } from './save.js';
 import { drawRoom, drawDoors, drawPickup, drawBullet, drawMinimap, drawEmoji as drawEmojiAt, minimapRect } from './render.js';
@@ -211,6 +211,10 @@ export class Game {
         this.floor.start.props.push(new WeaponProp(w, W / 2 - 240 + i * 160, H / 2 - 110));
       });
     }
+    // Sala de exposición (añade ?sala=venenoso): ese zombi posa quieto en la entrada,
+    // al lado del conserje, para ver cómo queda su sprite
+    const pose = new URLSearchParams(location.search).get('sala');
+    if (this.floorNum === 1 && pose) this.floor.start.props.push(new Maniqui(`zombi-${pose}`, W / 2 + 80, H / 2 + 40));
     this.enterRoom(this.floor.start, null);
     // primera partida: recordatorio de los controles
     const firstTime = loadSave().runs <= 1 && this.floorNum === 1;
