@@ -134,8 +134,14 @@ La versión pixel ya es la de por defecto; lo que aún no tiene sprite se ve con
     casillas y queda al menos el 60 % del suelo. La entrada y las salas de jefe siguen siendo rectangulares.
   - Los zombis rodean las esquinas (`wayTo`); balas, objetos, apariciones y apuntado respetan los muros; los
     muebles se arriman también a los muros interiores.
-  - **Pendiente:** salas más grandes que 960×640 (medio juego usa `W` y `H` fijos: jefes, cámara, imagen
-    guardada de la sala) y puertas que no estén en el centro de cada lado.
+  - **Salas más grandes que la de siempre: hecho.** Algo más de la mitad de las salas de monstruos miden entre
+    960×640 y 1408×896 (`pickSize`: 30–44 casillas de ancho, 20–28 de alto). Cada sala guarda sus medidas en
+    `layout.w`, `layout.h`, `layout.cols` y `layout.rows`; en `game.js` se leen con `this.rw` y `this.rh`.
+    `W` y `H` quedan solo para el tamaño de la pantalla y de la sala de siempre (entrada, jefes, menú, cartoon).
+    En las grandes hay más muebles, más obstáculos, islas de muro y algún zombi más (`makeWaves`, parámetro
+    `big`: +60 % de presupuesto por cada vez que se dobla la superficie). **Este equilibrado está sin probar
+    con partidas simuladas.**
+  - **Pendiente:** puertas que no estén en el centro de cada lado, y que el minimapa refleje el tamaño de cada sala.
 - **Consecuencia para el arte:** los escenarios se generan como **piezas sueltas que encajan** (baldosa de suelo,
   tramos de pared, esquinas hacia dentro y hacia fuera, hueco de puerta) y muebles aparte; nunca salas enteras.
 

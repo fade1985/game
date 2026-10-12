@@ -17,7 +17,7 @@ import { drawRoom, drawDoors, drawPickup, drawBullet, drawMinimap, drawEmoji as 
 import { Camera, ZOOM, BOSS_ZOOM } from './camera.js';
 import { outlinedText, roundBox, setTextFont } from './draw.js';
 import { setGridSnap } from './sprites.js';
-import { isWall, isOpen, lineClear, randomFloorPoint, wayTo } from './shapes.js';
+import { isWall, isOpen, lineClear, randomFloorPoint, wayTo, doorSpots } from './shapes.js';
 import { getMoveVector, consumeDash, clearInput } from './input.js';
 import { sfx, music, setMusicOn } from './sfx.js';
 
@@ -91,6 +91,10 @@ export class Game {
     }
   }
 
+  // Medidas de la sala en la que estamos (en la versión pixel las hay más grandes que la de siempre)
+  get rw() { return this.room.layout.w; }
+  get rh() { return this.room.layout.h; }
+
   // ═════════════ Pantallas ═════════════
 
   resetRoomState() {
@@ -111,6 +115,7 @@ export class Game {
     this.floor = null;
     this.fade = null;
     this.room = { doors: {}, doorTypes: {}, props: [], layout: makeRoomLayout('start') };
+    this.camera.setRoom(this.rw, this.rh);
     this.doorOpen = 1;
     this.stats = baseStats();
     this.player = new Player(this.stats);
@@ -199,12 +204,12 @@ export class Game {
     for (const r of this.floor.rooms.values()) {
       if (r.type === 'item') {
         // 25 % de las veces la sala de objeto guarda un arma
-        if (Math.random() < 0.25) r.props.push(new WeaponProp(randomWeapon(this.player.weapon.id), W / 2, H / 2));
-        else r.props.push(new Pedestal(rollItem(this.itemsSeen)));
+        if (Math.random() < 0.25) r.props.push(new WeaponProp(randomWeapon(this.player.weapon.id), r.layout.w / 2, r.layout.h / 2));
+        else r.props.push(this.centered(new Pedestal(rollItem(this.itemsSeen)), r));
       }
       if (r.type === 'survivor') {
         const def = this.survivorOrder[(this.floorNum - 1) % this.survivorOrder.length];
-        r.props.push(new SurvivorNPC(def));
+        r.props.push(this.centered(new SurvivorNPC(def), r));
       }
     }
 
@@ -325,11 +330,12 @@ export class Game {
     // Colocamos al jugador junto a la puerta por la que entra
     const p = this.player;
     const IN = p.r + 34;
-    if (!fromDir) { p.x = W / 2; p.y = H / 2 + 40; }
-    else if (fromDir === 'up') { p.x = W / 2; p.y = H - WALL - IN; }
-    else if (fromDir === 'down') { p.x = W / 2; p.y = WALL + IN; }
-    else if (fromDir === 'left') { p.x = W - WALL - IN; p.y = H / 2; }
-    else if (fromDir === 'right') { p.x = WALL + IN; p.y = H / 2; }
+    const RW = this.rw, RH = this.rh;
+    if (!fromDir) { p.x = RW / 2; p.y = RH / 2 + 40; }
+    else if (fromDir === 'up') { p.x = RW / 2; p.y = RH - WALL - IN; }
+    else if (fromDir === 'down') { p.x = RW / 2; p.y = WALL + IN; }
+    else if (fromDir === 'left') { p.x = RW - WALL - IN; p.y = RH / 2; }
+    else if (fromDir === 'right') { p.x = WALL + IN; p.y = RH / 2; }
     if (fromDir) { p.vx *= 0.3; p.vy *= 0.3; }
     this.allies.forEach((a) => { a.x = p.x + rand(-20, 20); a.y = p.y + rand(-20, 20); });
 
@@ -338,10 +344,18 @@ export class Game {
     if (!room.decals) room.decals = [];
     // cámara: en las salas de jefe (sin limpiar) se aleja un poco para ver sus ataques
     this.camera.targetZoom = !room.cleared && (room.type === 'miniboss' || room.type === 'boss') ? BOSS_ZOOM : ZOOM;
+    this.camera.setRoom(RW, RH);
     this.camera.snap(this.player);
     music.play(!room.cleared && (room.type === 'miniboss' || room.type === 'boss') ? 'boss' : 'explore');
     // Las puertas entran abiertas y se cierran de golpe si hay enemigos
     this.doorOpen = 1;
+  }
+
+  // Coloca un objeto en el centro de una sala
+  centered(prop, room) {
+    prop.x = room.layout.w / 2;
+    prop.y = room.layout.h / 2;
+    return prop;
   }
 
   goThroughDoor(dir) {
@@ -358,8 +372,8 @@ export class Game {
       if (t === 'miniboss' || t === 'boss') {
         // el jefe aparece en el lado contrario al jugador
         const p = this.player;
-        const x = clamp(W / 2 + (W / 2 - p.x) * 0.6, WALL + 120, W - WALL - 120);
-        const y = clamp(H / 2 + (H / 2 - p.y) * 0.6, WALL + 110, H - WALL - 110);
+        const x = clamp(this.rw / 2 + (this.rw / 2 - p.x) * 0.6, WALL + 120, this.rw - WALL - 120);
+        const y = clamp(this.rh / 2 + (this.rh / 2 - p.y) * 0.6, WALL + 110, this.rh - WALL - 110);
         this.enemies.push(makeBoss(t, x, y, bossHpMul(t, this.floorNum)));
         sfx.boss();
         this.shake(10);
@@ -372,8 +386,8 @@ export class Game {
 
   spawnEnemy(type, x, y) {
     const mul = 1 + (this.floorNum - 1) * 0.25;
-    x = clamp(x, WALL + 30, W - WALL - 30);
-    y = clamp(y, WALL + 30, H - WALL - 30);
+    x = clamp(x, WALL + 30, this.rw - WALL - 30);
+    y = clamp(y, WALL + 30, this.rh - WALL - 30);
     const e = BOSS_TYPES[type] ? makeBoss(type, x, y, bossHpMul(type, this.floorNum)) : new Zombie(type, x, y, mul);
     this.enemies.push(e);
     return e;
@@ -382,13 +396,13 @@ export class Game {
   findSpawnPoint() {
     const layout = this.room.layout;
     for (let i = 0; i < 60; i++) {
-      const pt = { x: rand(WALL + 50, W - WALL - 50), y: rand(WALL + 50, H - WALL - 50) };
+      const pt = { x: rand(WALL + 50, this.rw - WALL - 50), y: rand(WALL + 50, this.rh - WALL - 50) };
       if (dist(pt, this.player) < 260) continue;
       if (!isOpen(layout, pt.x, pt.y, 30)) continue; // dentro de un muro o pegado a él
       if (layout.obstacles.some((o) => obstacleGap(o, pt) < 40)) continue;
       return pt;
     }
-    const far = { x: W - this.player.x, y: H - this.player.y };
+    const far = { x: this.rw - this.player.x, y: this.rh - this.player.y };
     return isOpen(layout, far.x, far.y, 30) ? far : randomFloorPoint(layout, 30);
   }
 
@@ -406,14 +420,14 @@ export class Game {
       if (this.floor.isFinal) {
         this.banner = { title: '¡Mini jefe derrotado!', sub: 'Se ha abierto la puerta del jefe final...', t: 0 };
       } else {
-        this.room.props.push(new Stairs(this.floorNum + 1));
+        this.room.props.push(this.centered(new Stairs(this.floorNum + 1), this.room));
         this.banner = { title: '¡Mini jefe derrotado!', sub: `Sube por las escaleras a la planta ${this.floorNum + 1}`, t: 0 };
       }
     } else if (type === 'boss') {
       this.banner = { title: '¡EDIFICIO COMPLETADO!', sub: `Los ${this.building.name} están a salvo`, t: 0 };
       this.later(2.8, () => this.endRun(true));
     } else if (type === 'survivor') {
-      this.floatText(W / 2, H / 2 - 90, '¡Ve a por el superviviente!', '#ffd23f', 20);
+      this.floatText(this.rw / 2, this.rh / 2 - 90, '¡Ve a por el superviviente!', '#ffd23f', 20);
     }
   }
 
@@ -625,10 +639,10 @@ export class Game {
     if (this.doorOpen < 1 || p.dead) return;
     const half = DOOR_W / 2 - 8;
     const at = {
-      up: p.y - p.r <= WALL + 2 && Math.abs(p.x - W / 2) < half,
-      down: p.y + p.r >= H - WALL - 2 && Math.abs(p.x - W / 2) < half,
-      left: p.x - p.r <= WALL + 2 && Math.abs(p.y - H / 2) < half,
-      right: p.x + p.r >= W - WALL - 2 && Math.abs(p.y - H / 2) < half,
+      up: p.y - p.r <= WALL + 2 && Math.abs(p.x - this.rw / 2) < half,
+      down: p.y + p.r >= this.rh - WALL - 2 && Math.abs(p.x - this.rw / 2) < half,
+      left: p.x - p.r <= WALL + 2 && Math.abs(p.y - this.rh / 2) < half,
+      right: p.x + p.r >= this.rw - WALL - 2 && Math.abs(p.y - this.rh / 2) < half,
     };
     for (const dir of Object.keys(DIRS)) {
       if (this.room.doors[dir] && at[dir]) { this.goThroughDoor(dir); return; }
@@ -701,8 +715,8 @@ export class Game {
         const sp = Math.hypot(pk.vx, pk.vy);
         if (sp > 650) { pk.vx *= 650 / sp; pk.vy *= 650 / sp; }
       }
-      pk.x = clamp(pk.x + pk.vx * dt, WALL + 14, W - WALL - 14);
-      pk.y = clamp(pk.y + pk.vy * dt, WALL + 14, H - WALL - 14);
+      pk.x = clamp(pk.x + pk.vx * dt, WALL + 14, this.rw - WALL - 14);
+      pk.y = clamp(pk.y + pk.vy * dt, WALL + 14, this.rh - WALL - 14);
       for (const b of this.room.layout.blocks) pushOut(pk, b);
       if (!p.dead && wanted && pk.t > 0.25 && d < p.r + 12) this.collect(pk);
     }
@@ -744,8 +758,8 @@ export class Game {
   // ═════════════ Combate ═════════════
 
   collideWorld(ent) {
-    ent.x = clamp(ent.x, WALL + ent.r, W - WALL - ent.r);
-    ent.y = clamp(ent.y, WALL + ent.r, H - WALL - ent.r);
+    ent.x = clamp(ent.x, WALL + ent.r, this.rw - WALL - ent.r);
+    ent.y = clamp(ent.y, WALL + ent.r, this.rh - WALL - ent.r);
     for (const b of this.room.layout.blocks) pushOut(ent, b); // muros interiores de las salas con forma
     for (const o of this.room.layout.obstacles) pushOut(ent, o);
     for (const pr of this.room.props) if (pr.solid) pushOut(ent, pr);
@@ -888,7 +902,7 @@ export class Game {
     for (let i = 0; i < (boss.type === 'boss' ? 8 : 3); i++) this.dropPickup('key', boss.x, boss.y);
     // el mini jefe siempre suelta un arma (lejos de donde saldrán las escaleras)
     if (boss.type === 'miniboss') {
-      this.room.props.push(new WeaponProp(randomWeapon(this.player.weapon.id), W / 2, H / 2 + 130));
+      this.room.props.push(new WeaponProp(randomWeapon(this.player.weapon.id), this.rw / 2, this.rh / 2 + 130));
     }
   }
 
@@ -967,8 +981,8 @@ export class Game {
 
   // Proyectil en parábola hacia donde estaba el jugador (moco o botella de lejía)
   lob(x, y, tx, ty, kind = 'poison') {
-    tx = clamp(tx, WALL + 30, W - WALL - 30);
-    ty = clamp(ty, WALL + 30, H - WALL - 30);
+    tx = clamp(tx, WALL + 30, this.rw - WALL - 30);
+    ty = clamp(ty, WALL + 30, this.rh - WALL - 30);
     this.lobs.push({ x0: x, y0: y, tx, ty, t: 0, kind });
   }
 
@@ -1180,11 +1194,11 @@ export class Game {
       const ty = Math.round((camY - prev.top - dy * vh * tr.e) / PIXEL) * PIXEL;
       ctx.save();
       ctx.translate(tx, ty);
-      ctx.drawImage(this.roomImage(tr.from), 0, 0, W, H);
+      ctx.drawImage(this.roomImage(tr.from), 0, 0, tr.from.layout.w, tr.from.layout.h);
       drawDoors(ctx, tr.from, 1);
       ctx.restore();
     }
-    ctx.drawImage(this.roomImage(this.room), 0, 0, W, H);
+    ctx.drawImage(this.roomImage(this.room), 0, 0, this.rw, this.rh);
     this.drawBackground(ctx);
 
     out.setTransform(1, 0, 0, 1, 0, 0);
@@ -1211,7 +1225,7 @@ export class Game {
     const key = `${(room.decals || []).length}:${(this.spriteIds || []).length}`;
     if (!room.cache || room.cacheKey !== key) {
       const c = room.cache || document.createElement('canvas');
-      c.width = ART_W; c.height = ART_H;
+      c.width = room.layout.w / PIXEL; c.height = room.layout.h / PIXEL;
       const x = c.getContext('2d');
       x.setTransform(1 / PIXEL, 0, 0, 1 / PIXEL, 0, 0);
       x.imageSmoothingEnabled = false;
@@ -1282,10 +1296,10 @@ export class Game {
       }
     }
     if (this.room.cleared && this.doorOpen >= 1) {
-      const spots = { up: [W / 2, WALL / 2], down: [W / 2, H - WALL / 2], left: [WALL / 2, H / 2], right: [W - WALL / 2, H / 2] };
+      const spots = doorSpots(this.room.layout);
       for (const [dir, has] of Object.entries(this.room.doors)) {
         if (!has) continue;
-        const [wx, wy] = spots[dir];
+        const { x: wx, y: wy } = spots[dir];
         if (cam.inView({ x: wx, y: wy, r: 0 })) continue;
         const special = ROOM_TYPES[this.room.doorTypes[dir]];
         const s = cam.toScreen(wx, wy);

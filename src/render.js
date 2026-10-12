@@ -6,41 +6,41 @@ import { drawSprite, hasSprite } from './sprites.js';
 import { roundBox, outlinedText, heartPath } from './draw.js';
 import { ROOM_TYPES } from './rooms.js';
 import { drawFurniture, drawFurnitureLight, drawWallDecor, drawWindowLight } from './furniture.js';
-import { CELL, COLS, ROWS } from './shapes.js';
+import { CELL, doorSpots } from './shapes.js';
 
 const TAU = Math.PI * 2;
 
 // ═════════════ Habitación ═════════════
 export function drawRoom(ctx, room, time) {
-  const { style, seams, obstacles, rug, decor, wallDecor = [], blocks = [] } = room.layout;
-  const iw = W - WALL * 2, ih = H - WALL * 2;
+  const { style, seams, obstacles, rug, decor, wallDecor = [], blocks = [], w: RW = W, h: RH = H } = room.layout;
+  const iw = RW - WALL * 2, ih = RH - WALL * 2; // RW × RH es el tamaño de esta sala (las hay más grandes que la de siempre)
   // sala con forma: contorno del suelo sacado de su cuadrícula (si es rectangular, se dibuja como siempre)
   const shape = blocks.length ? floorOutline(room.layout) : null;
 
   // Muro con papel pintado a rayas
   ctx.fillStyle = style.wall;
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(0, 0, RW, RH);
   // rayas verticales en los muros de arriba/abajo y horizontales en los laterales
   ctx.fillStyle = style.stripe;
-  for (let x = 0; x < W; x += 28) {
+  for (let x = 0; x < RW; x += 28) {
     ctx.fillRect(x, 0, 12, WALL);
-    ctx.fillRect(x, H - WALL, 12, WALL);
+    ctx.fillRect(x, RH - WALL, 12, WALL);
   }
-  for (let y = WALL; y < H - WALL; y += 28) {
+  for (let y = WALL; y < RH - WALL; y += 28) {
     ctx.fillRect(0, y, WALL, 12);
-    ctx.fillRect(W - WALL, y, WALL, 12);
+    ctx.fillRect(RW - WALL, y, WALL, 12);
   }
   // borde exterior del muro (la parte de arriba vista desde el techo)
   ctx.lineWidth = 14;
   ctx.strokeStyle = style.trim;
-  ctx.strokeRect(7, 7, W - 14, H - 14);
+  ctx.strokeRect(7, 7, RW - 14, RH - 14);
   if (shape) {
     // los muros interiores llevan el mismo papel pintado, con las rayas en vertical
     ctx.save();
     ctx.beginPath();
     for (const b of blocks) ctx.rect(b.x - b.w / 2, b.y - b.h / 2, b.w, b.h);
     ctx.clip();
-    for (let x = 0; x < W; x += 28) ctx.fillRect(x, WALL, 12, ih);
+    for (let x = 0; x < RW; x += 28) ctx.fillRect(x, WALL, 12, ih);
     ctx.restore();
   }
   for (const d of wallDecor) drawWallDecor(ctx, d, time);
@@ -148,21 +148,22 @@ export function drawRoom(ctx, room, time) {
 //   shadows  [x, y, ancho] de los muros interiores que tienen suelo justo debajo
 function floorOutline(layout) {
   if (layout.outline) return layout.outline;
-  const wall = (c, r) => layout.grid[r * COLS + c] === 1;
+  const { cols, rows } = layout;
+  const wall = (c, r) => layout.grid[r * cols + c] === 1;
   const floor = new Path2D(), walls = new Path2D(), edges = new Path2D();
   const shadows = [];
-  walls.rect(0, 0, W, H);
-  for (let r = 1; r < ROWS - 1; r++) {
-    for (let c = 1; c < COLS - 1; c++) {
+  walls.rect(0, 0, layout.w, layout.h);
+  for (let r = 1; r < rows - 1; r++) {
+    for (let c = 1; c < cols - 1; c++) {
       if (wall(c, r)) continue;
       // tramo de suelo seguido en esta fila
       const c0 = c;
-      while (c < COLS - 1 && !wall(c, r)) c++;
+      while (c < cols - 1 && !wall(c, r)) c++;
       const x = c0 * CELL, y = r * CELL, w = (c - c0) * CELL;
       floor.rect(x, y, w, CELL);
       walls.rect(x, y, w, CELL);
     }
-    for (let c = 1; c < COLS - 1; c++) {
+    for (let c = 1; c < cols - 1; c++) {
       if (wall(c, r)) continue;
       const x = c * CELL, y = r * CELL;
       if (wall(c, r - 1)) { edges.moveTo(x, y); edges.lineTo(x + CELL, y); if (r > WALL / CELL) shadows.push([x, y, CELL]); }
@@ -265,21 +266,16 @@ function drawObstacle(ctx, o) {
 }
 
 // ═════════════ Puertas ═════════════
-// Posición y giro de cada puerta. Se dibujan todas como si estuvieran en
-// el muro de arriba y se rotan: el lado +y local siempre mira hacia el suelo.
-const DOOR_POS = {
-  up: { x: W / 2, y: WALL / 2, a: 0 },
-  down: { x: W / 2, y: H - WALL / 2, a: Math.PI },
-  left: { x: WALL / 2, y: H / 2, a: -Math.PI / 2 },
-  right: { x: W - WALL / 2, y: H / 2, a: Math.PI / 2 },
-};
+// Se dibujan todas como si estuvieran en el muro de arriba y se rotan: el lado +y local
+// siempre mira hacia el suelo. La posición de cada una sale del tamaño de la sala (doorSpots).
 
 // open: 0 = cerrada, 1 = abierta
 export function drawDoors(ctx, room, open) {
   const trim = room.layout.style.trim;
+  const spots = doorSpots(room.layout);
   for (const [dir, has] of Object.entries(room.doors)) {
     if (!has) continue;
-    const p = DOOR_POS[dir];
+    const p = spots[dir];
     const special = ROOM_TYPES[room.doorTypes[dir]];
     const frame = special && special.frame;
     ctx.save();

@@ -19,6 +19,8 @@ export class Camera {
     this.x = W / 2;
     this.y = H / 2;
     this.aspect = W / H; // ancho / alto de la pantalla (se actualiza al cambiar el tamaño de la ventana)
+    this.rw = W;         // tamaño de la sala que se está viendo (las hay más grandes que la de siempre)
+    this.rh = H;
   }
 
   // Tamaño de la vista en unidades del juego
@@ -32,8 +34,14 @@ export class Camera {
 
   // Que la vista no se salga de la sala (si la pantalla es más ancha que la sala, se centra)
   clampToRoom() {
-    this.x = this.vw >= W ? W / 2 : clamp(this.x, this.vw / 2, W - this.vw / 2);
-    this.y = this.vh >= H ? H / 2 : clamp(this.y, this.vh / 2, H - this.vh / 2);
+    this.x = this.vw >= this.rw ? this.rw / 2 : clamp(this.x, this.vw / 2, this.rw - this.vw / 2);
+    this.y = this.vh >= this.rh ? this.rh / 2 : clamp(this.y, this.vh / 2, this.rh - this.vh / 2);
+  }
+
+  // Al entrar en una sala: sus medidas, para no enseñar lo que hay fuera
+  setRoom(w, h) {
+    this.rw = w;
+    this.rh = h;
   }
 
   // Coloca la cámara de golpe sobre alguien (al entrar en una sala)
