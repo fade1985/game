@@ -2,7 +2,7 @@
 //  Personajes: jugador, compañeros y enemigos
 // ─────────────────────────────────────────────
 import { W, H, WALL, OUTLINE, PLAYER_LOOK, PIXEL_MODE } from './config.js';
-import { drawSprite, dirFromVector, hasSprite, pixelShadow } from './sprites.js';
+import { drawSprite, dirFromVector, hasSprite, pixelShadow, animFrames } from './sprites.js';
 import { rand } from './utils.js';
 import { drawHuman } from './draw.js';
 import { sfx } from './sfx.js';
@@ -10,9 +10,12 @@ import { WEAPONS, RIFLE, drawHeld } from './weapons.js';
 import { autoAim } from './aim.js';
 
 const TAU = Math.PI * 2;
-// Unidades que avanza el conserje por cada fotograma de la animación de andar: a su velocidad normal (210)
-// salen 12 fotogramas por segundo, es decir, tres pasos por segundo (un trote ligero)
-const STEP = 17.5;
+// Unidades que avanza el conserje en un ciclo de andar (dos pasos): a su velocidad normal (210) son
+// tres pasos por segundo, un trote ligero. Con 8 fotogramas por ciclo salen 12 por segundo
+const STEP = 140;
+// En las animaciones de ataque de las armas con hoja propia, el golpe llega al tercio de la animación
+// (el cuarto fotograma de nueve): ahí es cuando se hace el daño, no al empezar a levantar el arma
+const HIT_AT = 1 / 3;
 
 // ═════════════ JUGADOR ═════════════
 const wrapAngle = (a) => Math.atan2(Math.sin(a), Math.cos(a));
@@ -42,6 +45,7 @@ export class Player {
     this.armAngle = -Math.PI / 2;  // ángulo actual del arma (animado)
     this.swing = null;             // barrido en curso (armas cuerpo a cuerpo)
     this.swingDir = 1;             // los barridos van y vuelven, como fregando
+    this.atkAnim = null;           // pixel art: animación de ataque en curso { t, dur }
     this.recoil = 0;               // retroceso del arma a distancia
     this.muzzleT = 0;              // fogonazo
   }
@@ -95,6 +99,12 @@ export class Player {
     this.atkT -= dt;
     this.recoil = Math.max(0, this.recoil - dt * 10);
     this.muzzleT -= dt;
+    const an = this.atkAnim;
+    if (an) {
+      an.t += dt;
+      if (an.hit && an.t >= an.dur * HIT_AT) { an.hit(); an.hit = null; }
+      if (an.t >= an.dur) this.atkAnim = null;
+    }
     if (game.state === 'playing') {
       const w = this.weapon;
       const aim = this.aimer.aim(game, this, w, s);
@@ -123,7 +133,12 @@ export class Player {
         reach: w.reach * s.range * s.meleeRange,
       };
       this.swingDir *= -1;
-      game.meleeHit(this, angle, half, w.reach * s.range * s.meleeRange, w.damage * s.damage, w);
+      const hit = () => game.meleeHit(this, angle, half, w.reach * s.range * s.meleeRange, w.damage * s.damage, w);
+      if (PIXEL_MODE && w.sprite && hasSprite(w.sprite)) {
+        // pixel art: la animación del golpe dura medio segundo como mucho y nunca más que el hueco entre
+        // ataques; el daño se hace cuando el arma llega abajo
+        this.atkAnim = { t: 0, dur: Math.min(0.5, 0.95 / (w.rate * s.fireRate)), hit };
+      } else hit();
       sfx.swing();
     } else {
       // Disparo desde la boca del arma
@@ -218,18 +233,24 @@ export class Player {
 
     ctx.save();
     if (this.invuln > 0 && this.dashT <= 0 && Math.floor(this.invuln * 18) % 2 === 0) ctx.globalAlpha = 0.45;
-    this.drawSwingTrail(ctx);
+    // pixel art: si el arma tiene su propia hoja (Johnny con ella en la mano), el arma y el golpe ya van
+    // en el dibujo y no hace falta pintar el brazo ni la estela por encima
+    const armed = PIXEL_MODE && this.weapon.sprite && hasSprite(this.weapon.sprite) ? this.weapon.sprite : null;
+    if (!armed) this.drawSwingTrail(ctx);
     const a = this.armAngle;
     const behind = Math.sin(a) < -0.3; // si apunta hacia arriba, el arma va detrás del cuerpo
-    if (behind) this.drawArm(ctx, a);
+    if (behind && !armed) this.drawArm(ctx, a);
     const sp = Math.hypot(this.vx, this.vy);
     // pixel art: sprite del conserje (los pies van 16 unidades por debajo del centro)
-    const sprite = hasSprite('conserje-48') ? 'conserje-48' : 'conserje'; // prueba del estilo nuevo (48×48)
+    const sprite = armed || (hasSprite('conserje-48') ? 'conserje-48' : 'conserje'); // prueba del estilo nuevo (48×48)
     if (PIXEL_MODE && hasSprite(sprite)) pixelShadow(ctx, x, y + 15, 28);
-    const walking = sp > 20;
-    const sprited = PIXEL_MODE && drawSprite(ctx, sprite, walking ? 'walk' : 'idle',
+    const walking = sp > 20 && (!armed || animFrames(armed, 'walk') > 0);
+    const hitting = armed && this.atkAnim ? animFrames(armed, 'attack') : 0;
+    let anim = walking ? 'walk' : 'idle', frame, cycle = walking ? (this.stepT || 0) / STEP : undefined;
+    if (hitting) { anim = 'attack'; frame = Math.floor((this.atkAnim.t / this.atkAnim.dur) * hitting); }
+    const sprited = PIXEL_MODE && drawSprite(ctx, sprite, anim,
       dirFromVector(this.lookX, this.lookY), game ? game.time : 0, x, y + 16,
-      { flash: this.hurtT > 0, frame: walking ? Math.floor((this.stepT || 0) / STEP) : undefined });
+      { flash: this.hurtT > 0, frame, cycle });
     if (!sprited) drawHuman(ctx, x, y, {
       ...PLAYER_LOOK,
       lookX: this.lookX,
@@ -242,7 +263,7 @@ export class Player {
       flash: this.hurtT > 0,
       hideHand: 1, // esa mano la dibujamos nosotros, sujetando el arma
     });
-    if (!behind) this.drawArm(ctx, a);
+    if (!behind && !armed) this.drawArm(ctx, a);
     ctx.restore();
   }
 

@@ -11,6 +11,8 @@
 //    knock    fuerza del empuje (1 = normal)
 //    stash    mueble de la entrada donde espera el arma: cubo, paraguero, encimera, comoda o taquilla
 //             (si no se pone, sale en una caja). Los muebles se dibujan en props.js
+//    sprite   (solo versión pixel) hoja de sprites del conserje con esta arma en la mano, con sus animaciones
+//             de reposo, andar y ataque. Si no se pone, se usa el conserje sin arma y el arma se dibuja encima
 // ─────────────────────────────────────────────
 import { OUTLINE } from './config.js';
 
@@ -18,7 +20,7 @@ const TAU = Math.PI * 2;
 
 export const WEAPONS = {
   fregona: {
-    id: 'fregona', stash: 'cubo', name: 'Fregona', icon: '🧹', type: 'melee',
+    id: 'fregona', stash: 'cubo', name: 'Fregona', icon: '🧹', type: 'melee', sprite: 'conserje-48-guardia',
     damage: 8, rate: 1.8, reach: 62, arc: 140, knock: 2.0, trail: '#3fb5ec',
   },
   bate: {

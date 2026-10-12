@@ -105,7 +105,7 @@ function findFeet(img, meta) {
 export const hasSprite = (id) => sheets.has(id);
 
 // Dibuja el fotograma que toca. `t` es el tiempo de la animación en segundos.
-// Opciones: flash (blanco), alpha, scale (1 = tamaño natural), frame (forzar fotograma).
+// Opciones: flash (blanco), alpha, scale (1 = tamaño natural), frame (forzar fotograma), cycle (ver abajo).
 // Devuelve false si el sprite o la animación no existen.
 export function drawSprite(ctx, id, anim, dir, t, x, y, o = {}) {
   const sh = sheets.get(id);
@@ -118,7 +118,8 @@ export function drawSprite(ctx, id, anim, dir, t, x, y, o = {}) {
   if (!d) return false;
   const [cw, ch] = sh.meta.cell;
   const [px, py] = sh.meta.pivot || [cw / 2, ch];
-  let f = o.frame ?? Math.floor(t * (a.fps || 8));
+  // o.cycle: en qué punto del ciclo va (0 = principio, 1 = una vuelta), tenga los fotogramas que tenga
+  let f = o.frame ?? (o.cycle !== undefined ? Math.floor(o.cycle * d.frames) : Math.floor(t * (a.fps || 8)));
   f = a.loop === false ? Math.min(f, d.frames - 1) : ((f % d.frames) + d.frames) % d.frames;
   const col = (d.col || 0) + f;
   const s = (o.scale || 1) * PIXEL; // 1 píxel de dibujo = PIXEL unidades lógicas
@@ -137,6 +138,12 @@ export function pixelShadow(ctx, x, y, w) {
   ctx.fillStyle = 'rgba(20, 16, 40, 0.28)';
   ctx.fillRect(sx - w / 2 + PIXEL * 2, sy - PIXEL * 2, w - PIXEL * 4, PIXEL * 4);
   ctx.fillRect(sx - w / 2, sy - PIXEL, w, PIXEL * 2);
+}
+
+// Cuántos fotogramas tiene una animación (0 si el sprite no la tiene)
+export function animFrames(id, anim) {
+  const a = sheets.get(id)?.meta.anims[anim];
+  return a ? Object.values(a.dirs)[0]?.frames || 0 : 0;
 }
 
 // Duración de una animación (para saber cuándo termina una que no se repite)

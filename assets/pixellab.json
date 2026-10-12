@@ -147,6 +147,39 @@
         "initial_pose": "standing in a guard stance facing right, gripping the mop handle diagonally with both hands, the mop head raised up behind his shoulder",
         "resultado": "La buena: levanta la fregona sobre la cabeza, baja con estela, golpea el suelo con gotas de agua y vuelve a la guardia. Mantiene la ropa y la cara."
       }
+    },
+    "andar": {
+      "nota": "Andar con la fregona (2026-10-12), PixMiniMax, 12 fotogramas más el de partida, las 8 direcciones en una sola llamada sin fotograma de partida ni de llegada (usa la rotación de cada dirección). Fotogramas en assets/sources/conserje-48-guardia/walk/. De cada dirección se usa solo el tramo que hace ciclo (arma.json → andar). En el juego.",
+      "group": "9ac7247d-c2c2-4971-b8e1-18202dd1e7c8",
+      "animation_name": "andar-fregona-pixminimax",
+      "cost": "8 generaciones",
+      "action_description": "He walks forward in place at a steady pace in a smooth, seamless looping walk cycle: his legs stride alternately, knees lifting and boots stepping one after the other, with a slight bob of the torso on each step. He keeps facing exactly the same direction the whole time and never turns. He keeps holding the mop in the same guard grip with both hands the whole time: the wooden handle stays diagonal across his body and the grey mop head stays raised up beside his shoulder in the same place, only swaying very slightly with each step. His arms do not swing and never let go of the mop. The string strands of the mop and the tail of the red bandana sway a little. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation.",
+      "plantilla_descartada": {
+        "nota": "DESCARTADO (sigue en PixelLab, sin borrar). La plantilla walking-8-frames sobre este estado pierde la fregona en 7 de las 8 direcciones y dibuja a Johnny más grande. Las plantillas no valen para estados con un arma en la mano.",
+        "group": "4fac658e-d74d-4ebe-b142-19b928c68948",
+        "cost": "8 generaciones"
+      }
+    },
+    "ataque": {
+      "nota": "Las 8 direcciones del ataque con PixMiniMax (2026-10-12), 12 fotogramas más el de partida. Mismo texto que la prueba de perfil ('ataque_pruebas' → 'action_description'), cambiando solo 'initial_pose'. Fotograma de partida y de llegada: el dibujo quieto de cada dirección pegado en (16, 20) dentro de un lienzo de 96x96. Fotogramas tal cual salen en assets/sources/conserje-48-guardia/ataque/<dirección>-<n>.png; se ven animados en assets/pruebas/ataque-fregona.html. OJO: cada dirección sale con un lienzo de tamaño distinto (entre 96x96 y 112x112); al montar la hoja hay que alinearlas con el fotograma 0. tools/arma.py lo hace solo. En el juego desde el 2026-10-12 (sprite conserje-48-guardia).",
+      "group": "0973e15c-a4c9-425a-b946-71a75809a252",
+      "cost": "9 generaciones en total (1 de la prueba de perfil, 7 de las otras direcciones y 1 de repetir la de espaldas)",
+      "initial_pose": {
+        "south": "standing in a guard stance facing the camera, gripping the mop handle diagonally across his chest with both hands, the mop head raised up beside his shoulder on the right side of the image",
+        "south-east": "standing in a guard stance in three-quarter front view, facing toward the camera and to the right, gripping the mop handle diagonally with both hands, the mop head raised up behind his shoulder on the left side of the image",
+        "south-west": "standing in a guard stance in three-quarter front view, facing toward the camera and to the left, gripping the mop handle diagonally with both hands, the mop head raised up behind his shoulder on the right side of the image",
+        "west": "standing in a guard stance facing left, gripping the mop handle diagonally with both hands, the mop head raised up behind his shoulder",
+        "north-east": "standing in a guard stance in three-quarter back view, facing away from the camera and to the right, gripping the mop handle diagonally with both hands, the mop head raised up behind his shoulder on the left side of the image",
+        "north-west": "standing in a guard stance in three-quarter back view, facing away from the camera and to the left, gripping the mop handle diagonally with both hands, the mop head raised up behind his shoulder on the right side of the image"
+      },
+      "north": {
+        "nota": "Con el texto común Johnny se daba la vuelta (se le veía la cara) y golpeaba hacia la izquierda: esa versión sigue en el grupo común de PixelLab, sin usar. La buena es esta segunda, en un grupo aparte, con un texto que insiste en que sigue de espaldas.",
+        "group": "a501ee01-6a32-48f6-bea0-5ff251afc1c0",
+        "animation_name": "ataque-norte-2",
+        "subject_description": "a young male janitor seen from behind, brown hair and a red bandana, cream shirt and blue work overalls, holding a long wooden mop with a grey string head",
+        "initial_pose": "standing in a guard stance seen from behind, his back to the camera, facing away toward the top of the image, gripping the mop handle diagonally with both hands, the mop head raised up beside his shoulder on the left side of the image",
+        "action_description": "Seen from behind the whole time: he keeps his back to the camera and never turns around, his face is never visible. Stepping forward away from the camera with the lead foot, he heaves the mop up over his head with both hands, then swings it straight down in front of him, away from the camera, in one hard, fast vertical overhead arc. The wet grey mop head slams flat onto the floor just beyond his feet, toward the top of the image, partly hidden behind his body; the string strands whip and trail behind the swing, then splay out on impact, flinging a few small water droplets. His knees bend and his back leans forward into the blow, the tail of the red bandana flicking with the motion. He absorbs the impact, pulls the mop back up and settles cleanly into the starting guard stance, still seen from behind. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down back view throughout the entire fluid animation."
+      }
     }
   },
   "zombi-venenoso-48": {

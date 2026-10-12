@@ -98,6 +98,10 @@ Los sprites se generan con PixelLab. Desde el 12 de octubre de 2026 está conect
   salen se guardan en `assets/sources/conserje-48/walk/` y `tools/walk.py conserje-48` los monta en la hoja
   (iguala los colores a los del dibujo quieto y alinea los pies). En el juego el paso avanza según la distancia
   recorrida (`STEP` en `entities.js`), no según el reloj: así arranca y frena con el personaje.
+- **Las plantillas no valen para un personaje con un arma en la mano.** Probado el 12 de octubre de 2026 con
+  `walking-8-frames` sobre el estado "Fregona en guardia": en 7 de las 8 direcciones Johnny pierde la fregona y
+  sale más grande. Para esos estados, todo con PixMiniMax (el andar también: 1 generación por dirección, las 8
+  en una sola llamada, y luego se recorta el tramo que hace ciclo).
 - **Receta para animar un personaje nuevo:** probar 3 o 4 plantillas en una sola dirección (de perfil, `east`),
   elegir la mejor y lanzar las otras 7 direcciones en el mismo grupo (`animation_group_id`).
 - **Animaciones a medida (sin plantilla): usar el modo `pixminimax`, no `v3`.** Probados los dos con Johnny el
@@ -125,36 +129,42 @@ Los sprites se generan con PixelLab. Desde el 12 de octubre de 2026 está conect
 
 ## Dónde lo dejamos (12 de octubre de 2026) · preguntar al dueño al retomar
 
-El dueño cambió de ordenador a mitad de la sesión. **Al retomar, empezar preguntándole por el punto 1.**
-Los ids, textos y costes de todo lo de abajo están en `assets/pixellab.json`. Quedaban 1.945 generaciones.
+**Al retomar, empezar preguntándole por el punto 1.**
+Los ids, textos y costes de todo lo de abajo están en `assets/pixellab.json`. Quedaban 1.921 generaciones.
 
-Lo que hay hecho con Johnny (`conserje-48`, personaje "Johnny" en PixelLab, con tres estados):
+Johnny con la fregona **ya está en el juego** (solo versión pixel): sprite `conserje-48-guardia`, estado
+"Fregona en guardia" del personaje "Johnny" en PixelLab. Tiene reposo, andar y ataque en las 8 direcciones.
 
-- **En el juego:** las 8 rotaciones, el reposo hecho a mano (`tools/idle.py`) y el andar (`walking-8-frames`).
-- **Estado "Fregona en guardia"** (`conserje-48-guardia`): Johnny lleva la fregona como un bastón de pelea, con
-  la mopa en alto en las 8 direcciones, en lienzo de 64×64. Sus rotaciones están en
-  `assets/sources/conserje-48-guardia/rotations/`. **Aún no está en el juego.**
-- **Prueba de ataque de perfil con PixMiniMax** (golpe vertical por encima de la cabeza, 12 fotogramas más el de
-  partida): al dueño **le gusta**. Fotogramas en `assets/sources/conserje-48-guardia/ataque-prueba/`.
+- **Cómo se monta:** `py tools/arma.py conserje-48-guardia` rehace la hoja entera (casillas de 96×96) a partir de
+  `assets/sources/conserje-48-guardia/`: `rotations/`, `walk/`, `ataque/` y `arma.json` (qué fotogramas se usan
+  de cada animación). El reposo lo calcula el script, como `tools/idle.py`. En este ordenador Python se llama
+  con `py` (no `python`) y tiene Pillow instalado.
+- **En el juego:** el arma dice qué hoja usa (`sprite` en `weapons.js`). Con hoja propia no se dibuja el arma
+  cartoon ni la estela azul del barrido, y el daño se hace cuando la mopa llega al suelo (un tercio de la
+  animación, `HIT_AT` en `entities.js`), no al empezar. El andar avanza por ciclo (`cycle` en `drawSprite`)
+  porque cada dirección tiene un número distinto de fotogramas (entre 6 y 10).
+- **Ataque:** 9 fotogramas elegidos de los 13 de PixelLab, medio segundo. La dirección de espaldas se repitió con
+  un texto propio (con el común se daba la vuelta). Vista previa de los fotogramas sin recortar:
+  `http://localhost:3000/assets/pruebas/ataque-fregona` (sin `.html`: el servidor lo quita).
+- Johnny sin arma (`conserje-48`) sigue igual y es el que se ve con las demás armas.
 
 Preguntas pendientes, por orden:
 
-1. **¿Lanzo las otras 7 direcciones del ataque con PixMiniMax?** (7 generaciones, mismo texto, grupo
-   `0973e15c-a4c9-425a-b946-71a75809a252`). Dijo "me gusta, pero no hagas nada, te confirmo luego". Cada dirección
-   sale por separado y puede que haya que repetir alguna que desentone.
-2. **Retoques del ataque al montarlo:** tras el golpe se queda 3 fotogramas casi iguales con la mopa en el suelo
-   (quitar alguno para que sea más seco) y la recogida final es lo más flojo. La fregona ataca 1,8 veces por
-   segundo, así que la animación tiene que caber en medio segundo.
-3. **Después del ataque:** andar con la fregona (8 generaciones más alguna prueba; el andar actual es con las
-   manos vacías), reposo con la fregona (adaptar `tools/idle.py`, gratis) y meter el estado en el juego como
-   sprite nuevo. Al atacar andando los pies patinarán un poco: está avisado y aceptado como normal.
+1. **Visto bueno a Johnny con la fregona dentro del juego** (reposo, andar y ataque). Cosas que mirar: en las
+   diagonales de espaldas el golpe cae más hacia el lado que hacia arriba; el andar hacia abajo es un ciclo corto
+   (6 fotogramas) y es el que peor encaja; ya no se ve la estela azul que marcaba el alcance del golpe (se puede
+   recuperar); y el daño llega 0,17 s después de pulsar, cuando baja la mopa.
+2. **Si le vale, crear la skill `/arma-nueva`** con lo aprendido (ver el apartado siguiente) y hacer la segunda
+   arma por ese flujo.
+3. **Borrar de PixelLab lo descartado** (ver el punto 6): ahora también el andar de plantilla y el primer ataque
+   de espaldas.
 4. **Dos pegas del estado "Fregona en guardia"** que vio y no ha dicho si le molestan: usa 18 colores frente a
    los 50 del Johnny sin arma (ropa más plana), y la mopa cambia de lado entre la vista de frente y las diagonales.
 5. **Reposo:** sigue el hecho a mano ("de momento sirve"). Hay una prueba de frente con PixMiniMax que respeta
    mucho mejor a Johnny que la plantilla, pero parpadea demasiado. Propuesta sin contestar: repetirla sin
    parpadeo (1 generación) y, si gusta, las otras 7 direcciones.
 6. **Limpieza en PixelLab (borrar no se puede deshacer: solo con su confirmación expresa):** el estado
-   descartado "Con fregona" (mopa abajo), la prueba de ataque con v3 y, según lo que decida en el punto 5, la
+   descartado "Con fregona" (mopa abajo), la prueba de ataque con v3, el andar de plantilla con la fregona y, según lo que decida en el punto 5, la
    prueba de reposo con PixMiniMax y el reposo de plantilla. También el conserje antiguo de 32 píxeles.
 7. **De antes, sin decidir:** rehacer el zombi venenoso (salió con la piel beige en vez de verde) y si su sprite
    de prueba debe verse en las partidas normales; si la elección de arma se queda también en la versión cartoon;
@@ -168,7 +178,9 @@ y un par de scripts. **Sin subagentes:** lo que hace esperar es PixelLab y el vi
 subagente no lo acelera.
 
 **Orden acordado:** primero terminar la fregona entera a mano, hasta verla funcionando en el juego. Con lo que
-haya funcionado, crear la skill y los scripts. La segunda arma ya va por el flujo. **La skill aún no existe.**
+haya funcionado, crear la skill y los scripts. La segunda arma ya va por el flujo. **La fregona ya funciona y el
+script de montaje (`tools/arma.py`) está hecho; la skill aún no existe.** Ojo al escribirla: el andar va con
+PixMiniMax, no con plantilla, y la prueba de ataque conviene hacerla también de espaldas.
 
 Pasos para un "Arma X" (unas 30–45 generaciones; el dueño solo tiene que mirar en los pasos 1, 2 y 6):
 

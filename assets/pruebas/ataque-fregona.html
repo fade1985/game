@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ataque de la fregona · 8 direcciones</title>
+<style>
+  body { margin: 0; background: #3c3c46; color: #eee; font: 14px system-ui, sans-serif; text-align: center; }
+  h1 { font-size: 18px; margin: 12px 0 4px; }
+  p { margin: 0 0 8px; opacity: .8; }
+  #rosa { display: grid; grid-template-columns: repeat(3, 240px); gap: 6px; justify-content: center; }
+  .celda { background: #2c2c34; border-radius: 6px; padding: 4px 0 6px; }
+  canvas { width: 224px; height: 224px; image-rendering: pixelated; display: block; margin: 0 auto; }
+  .hueco { background: none; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+  button { font: inherit; padding: 4px 10px; margin: 0 2px; }
+</style>
+</head>
+<body>
+<h1>Ataque de la fregona · PixMiniMax, tal cual sale de PixelLab</h1>
+<p>13 fotogramas por dirección (el 0 es el dibujo quieto). Sin retocar ni recortar todavía.</p>
+<div id="rosa"></div>
+<script>
+// Carpeta con los fotogramas tal cual salen de PixelLab: <dirección>-<n>.png
+const CARPETA = '../sources/conserje-48-guardia/ataque/';
+const FOTOGRAMAS = 13;
+const LADO = 112; // lienzo común: cada dirección sale con un tamaño algo distinto
+const ORDEN = ['north-west', 'north', 'north-east', 'west', null, 'east', 'south-west', 'south', 'south-east'];
+const NOMBRES = { north: 'arriba', south: 'abajo', east: 'derecha', west: 'izquierda',
+  'north-east': 'arriba-derecha', 'north-west': 'arriba-izquierda',
+  'south-east': 'abajo-derecha', 'south-west': 'abajo-izquierda' };
+
+let fps = Number(new URLSearchParams(location.search).get('fps')) || 12;
+let pausa = new URLSearchParams(location.search).has('f');
+let actual = Number(new URLSearchParams(location.search).get('f')) || 0;
+const lienzos = [];
+const rosa = document.getElementById('rosa');
+
+for (const dir of ORDEN) {
+  const celda = document.createElement('div');
+  if (!dir) {
+    celda.className = 'celda hueco';
+    celda.innerHTML = '<div id="info"></div><div><button id="lento">Lento</button><button id="normal">Normal</button></div><div><button id="parar">Pausa</button><button id="paso">Paso</button></div>';
+    rosa.appendChild(celda);
+    continue;
+  }
+  celda.className = 'celda';
+  const c = document.createElement('canvas');
+  c.width = c.height = LADO;
+  celda.appendChild(c);
+  celda.appendChild(document.createTextNode(NOMBRES[dir]));
+  rosa.appendChild(celda);
+  const imgs = [];
+  for (let i = 0; i < FOTOGRAMAS; i++) {
+    const im = new Image();
+    im.src = CARPETA + dir + '-' + i + '.png';
+    imgs.push(im);
+  }
+  lienzos.push({ ctx: c.getContext('2d'), imgs });
+}
+
+function pinta() {
+  for (const { ctx, imgs } of lienzos) {
+    const im = imgs[actual];
+    ctx.clearRect(0, 0, LADO, LADO);
+    if (im.complete && im.naturalWidth) {
+      ctx.drawImage(im, Math.floor((LADO - im.naturalWidth) / 2), Math.floor((LADO - im.naturalHeight) / 2));
+    }
+  }
+  document.getElementById('info').textContent = 'Fotograma ' + actual + ' · ' + fps + ' por segundo';
+}
+
+let acumulado = 0, antes = performance.now();
+function bucle(ahora) {
+  acumulado += (ahora - antes) / 1000;
+  antes = ahora;
+  if (!pausa && acumulado >= 1 / fps) {
+    acumulado = 0;
+    actual = (actual + 1) % FOTOGRAMAS;
+  }
+  pinta();
+  requestAnimationFrame(bucle);
+}
+document.getElementById('lento').onclick = () => { fps = 4; };
+document.getElementById('normal').onclick = () => { fps = 12; };
+document.getElementById('parar').onclick = () => { pausa = !pausa; };
+document.getElementById('paso').onclick = () => { pausa = true; actual = (actual + 1) % FOTOGRAMAS; };
+requestAnimationFrame(bucle);
+</script>
+</body>
+</html>
