@@ -161,42 +161,45 @@
       }
     },
     "ataque": {
-      "nota": "Las 8 direcciones del ataque con PixMiniMax (2026-10-12), 12 fotogramas más el de partida. Mismo texto que la prueba de perfil ('ataque_pruebas' → 'action_description'), cambiando solo 'initial_pose'. Fotograma de partida y de llegada: el dibujo quieto de cada dirección pegado en (16, 20) dentro de un lienzo de 96x96. Fotogramas tal cual salen en assets/sources/conserje-48-guardia/ataque/<dirección>-<n>.png; se ven animados en assets/pruebas/ataque-fregona.html. OJO: cada dirección sale con un lienzo de tamaño distinto (entre 96x96 y 112x112); al montar la hoja hay que alinearlas con el fotograma 0. tools/arma.py lo hace solo. En el juego desde el 2026-10-12 (sprite conserje-48-guardia).",
-      "group": "0973e15c-a4c9-425a-b946-71a75809a252",
-      "cost": "9 generaciones en total (1 de la prueba de perfil, 7 de las otras direcciones y 1 de repetir la de espaldas)",
+      "nota": "Ataque con estela de agua dentro del dibujo (2026-10-12), el que está en el juego. Las 8 direcciones con PixMiniMax, 12 fotogramas más el de partida; fotograma de partida y de llegada: el dibujo quieto en un lienzo de 96x96 (py tools/arma.py conserje-48-guardia --lienzos). Fotogramas en assets/sources/conserje-48-guardia/ataque/. Todas salieron bien a la primera.",
+      "group": "bb85e76a-70de-45c1-a99c-d35b2fdfa346",
+      "animation_name": "ataque-estela-prueba",
+      "cost": "8 generaciones (1 de la prueba de perfil y 7 del resto)",
+      "action_description": "Stepping forward with the lead foot, he heaves the mop up over his head with both hands, then twists his torso and shoulders and swings it straight down in front of him in one hard, fast vertical overhead arc. The soaking wet grey mop head leaves a bright, thick crescent-shaped trail of light blue water behind it along the whole arc of the swing, like a water slash, from above his head down to the floor. The mop head slams flat onto the floor ahead of his feet with a big light blue water splash and flying droplets; the string strands whip and splay out on impact. His knees bend and his back leans into the blow, the tail of the red bandana flicking with the motion. The water trail fades away quickly, he pulls the mop back up and settles cleanly into the starting guard stance. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation.",
+      "subject_description": "a young male janitor with brown hair and a red bandana, cream shirt and blue work overalls, holding a long wooden mop with a grey string head",
       "initial_pose": {
         "south": "standing in a guard stance facing the camera, gripping the mop handle diagonally across his chest with both hands, the mop head raised up beside his shoulder on the right side of the image",
         "south-east": "standing in a guard stance in three-quarter front view, facing toward the camera and to the right, gripping the mop handle diagonally with both hands, the mop head raised up behind his shoulder on the left side of the image",
         "south-west": "standing in a guard stance in three-quarter front view, facing toward the camera and to the left, gripping the mop handle diagonally with both hands, the mop head raised up behind his shoulder on the right side of the image",
         "west": "standing in a guard stance facing left, gripping the mop handle diagonally with both hands, the mop head raised up behind his shoulder",
         "north-east": "standing in a guard stance in three-quarter back view, facing away from the camera and to the right, gripping the mop handle diagonally with both hands, the mop head raised up behind his shoulder on the left side of the image",
-        "north-west": "standing in a guard stance in three-quarter back view, facing away from the camera and to the left, gripping the mop handle diagonally with both hands, the mop head raised up behind his shoulder on the right side of the image"
+        "north-west": "standing in a guard stance in three-quarter back view, facing away from the camera and to the left, gripping the mop handle diagonally with both hands, the mop head raised up behind his shoulder on the right side of the image",
+        "east": "standing in a guard stance facing right, gripping the mop handle diagonally with both hands, the mop head raised up behind his shoulder"
       },
       "north": {
-        "nota": "Con el texto común Johnny se daba la vuelta (se le veía la cara) y golpeaba hacia la izquierda: esa versión se borró de PixelLab el 2026-10-12 (el grupo común se queda con 7 direcciones). La buena es esta segunda, en un grupo aparte, con un texto que insiste en que sigue de espaldas.",
-        "group": "a501ee01-6a32-48f6-bea0-5ff251afc1c0",
-        "animation_name": "ataque-norte-2",
+        "nota": "De espaldas, con texto propio y en un grupo aparte.",
+        "group": "695216df-b1fa-4bdc-8f70-9dd4f28267e9",
+        "animation_name": "ataque-estela-norte",
         "subject_description": "a young male janitor seen from behind, brown hair and a red bandana, cream shirt and blue work overalls, holding a long wooden mop with a grey string head",
         "initial_pose": "standing in a guard stance seen from behind, his back to the camera, facing away toward the top of the image, gripping the mop handle diagonally with both hands, the mop head raised up beside his shoulder on the left side of the image",
-        "action_description": "Seen from behind the whole time: he keeps his back to the camera and never turns around, his face is never visible. Stepping forward away from the camera with the lead foot, he heaves the mop up over his head with both hands, then swings it straight down in front of him, away from the camera, in one hard, fast vertical overhead arc. The wet grey mop head slams flat onto the floor just beyond his feet, toward the top of the image, partly hidden behind his body; the string strands whip and trail behind the swing, then splay out on impact, flinging a few small water droplets. His knees bend and his back leans forward into the blow, the tail of the red bandana flicking with the motion. He absorbs the impact, pulls the mop back up and settles cleanly into the starting guard stance, still seen from behind. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down back view throughout the entire fluid animation."
+        "action_description": "Seen from behind the whole time: he keeps his back to the camera and never turns around, his face is never visible. He heaves the mop up over his head with both hands, then swings it straight down in front of him, away from the camera, in one fast vertical overhead arc. The soaking wet grey mop head leaves a bright, thick crescent-shaped trail of light blue water behind it along the whole arc of the swing. The mop head slams onto the floor just beyond his feet, toward the top of the image, partly hidden behind his body, with a big light blue water splash and droplets flying out to both sides. His knees bend and his back leans forward into the blow. The water trail fades away quickly, he pulls the mop back up and settles cleanly into the starting guard stance, still seen from behind. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down back view throughout."
+      },
+      "sin_estela": {
+        "nota": "El primer ataque, sin estela: estuvo en el juego unas horas y lo sustituyó el de arriba. Sus animaciones SIGUEN en PixelLab sin usar (pendiente de preguntar al dueño si se borran); los fotogramas están en el historial de git.",
+        "groups": [
+          "0973e15c-a4c9-425a-b946-71a75809a252 (7 direcciones)",
+          "a501ee01-6a32-48f6-bea0-5ff251afc1c0 (north)"
+        ],
+        "cost": "9 generaciones en total (1 de la prueba de perfil, 7 de las otras direcciones y 1 de repetir la de espaldas)"
       }
     }
-  },
-  "conserje-48-guardia-estela": {
-    "kind": "prueba",
-    "nota": "Prueba del 2026-10-12, sin usar en el juego: el ataque de la fregona de perfil (east) con una estela de agua dentro del dibujo, como pidió el dueño. Mismo estado y mismos fotogramas de partida y llegada que el ataque bueno. Fotogramas en assets/sources/conserje-48-guardia/ataque-estela/ y comparación en assets/pruebas/fregona-estela-comparacion.png. Pendiente de su visto bueno para repetir las 8 direcciones.",
-    "character_id": "13d239f8-bf17-4b05-ac44-67da460b8d8b",
-    "group": "bb85e76a-70de-45c1-a99c-d35b2fdfa346",
-    "animation_name": "ataque-estela-prueba",
-    "cost": "1 generación",
-    "action_description": "Stepping forward with the lead foot, he heaves the mop up over his head with both hands, then twists his torso and shoulders and swings it straight down in front of him in one hard, fast vertical overhead arc. The soaking wet grey mop head leaves a bright, thick crescent-shaped trail of light blue water behind it along the whole arc of the swing, like a water slash, from above his head down to the floor. The mop head slams flat onto the floor ahead of his feet with a big light blue water splash and flying droplets; the string strands whip and splay out on impact. His knees bend and his back leans into the blow, the tail of the red bandana flicking with the motion. The water trail fades away quickly, he pulls the mop back up and settles cleanly into the starting guard stance. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation."
   },
   "conserje-48-bate": {
     "kind": "character_state",
     "character_id": "1f681f9f-21fb-4ae3-a7f4-20b284806658",
     "source_character_id": "4e6c78c6-d6c6-46d3-99c1-40a2d86f0e6c",
     "state_name": "Bate en guardia",
-    "nota": "Estado de Johnny creado el 2026-10-12 con la skill /arma-nueva (paso 1): bate de béisbol en alto sobre el hombro, lienzo de 64x64. Con use_color_palette_from_reference conserva unos 42 colores (la fregona se quedó en 18). Rotaciones en assets/sources/conserje-48-bate/rotations/ y hoja ampliada en assets/pruebas/bate-en-guardia.png. Pendiente del visto bueno del dueño; sin animaciones todavía.",
+    "nota": "Estado de Johnny creado el 2026-10-12 con la skill /arma-nueva (paso 1): bate de béisbol en alto sobre el hombro, lienzo de 64x64. Con use_color_palette_from_reference conserva unos 42 colores (la fregona se quedó en 18). Rotaciones en assets/sources/conserje-48-bate/rotations/ y hoja ampliada en assets/pruebas/bate-en-guardia.png. Visto bueno del dueño al estado. Paso 2 hecho: prueba de ataque de perfil y de espaldas, pendiente de su visto bueno (assets/pruebas/bate-ataque-prueba.png).",
     "request": {
       "edit_description": "holding a wooden baseball bat like a weapon, gripping the handle with both hands in a batter's ready stance, knees slightly bent; the bat is raised up and tilted back over one shoulder, the thick end of the bat pointing up above shoulder height, away from his face; the bat stays raised over the shoulder in every view: front, side and back; plain light brown wooden bat with a dark outline; same face, same hair and red bandana, same clothes, same body size and proportions",
       "override_width": 64,
@@ -204,7 +207,26 @@
       "use_color_palette_from_reference": true
     },
     "cost": "10 generaciones",
-    "updated": "2026-10-12"
+    "updated": "2026-10-12",
+    "ataque": {
+      "nota": "Barrido horizontal con estela blanca de aire. PixMiniMax, 12 fotogramas más el de partida, lienzo de 96x96. Fotogramas en assets/sources/conserje-48-bate/ataque/.",
+      "subject_description": "a young male janitor with brown hair and a red bandana, cream shirt and blue work overalls, holding a wooden baseball bat",
+      "east": {
+        "group": "3ab0f34f-7276-4a99-b317-a27f8925f710",
+        "animation_name": "ataque-bate",
+        "cost": "1 generación",
+        "initial_pose": "standing in a batter's guard stance facing right, gripping the bat with both hands, the bat raised up and tilted back over his rear shoulder",
+        "action_description": "He winds up, twisting his torso back with the bat cocked over his rear shoulder, then steps forward with the lead foot and swings the bat hard and fast in one wide horizontal arc at chest height, sweeping across in front of him from one side to the other, hips and shoulders rotating through the blow. The wooden bat leaves a bright white crescent-shaped swoosh of air behind it along the whole arc of the swing. He follows through with the bat wrapping around to his other side, the tail of the red bandana flicking with the motion. The swoosh fades away quickly, he brings the bat back up and settles cleanly into the starting guard stance. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation."
+      },
+      "north": {
+        "group": "d608248c-6b33-4e78-b1b2-2fa7bf066764",
+        "animation_name": "ataque-bate-norte-2",
+        "cost": "2 generaciones (la buena es la segunda)",
+        "nota": "El primer intento (grupo f19dba52-ec9a-4518-9bb7-8af1aa97967d, sigue en PixelLab; fotogramas en descartes/) giraba a Johnny de lado durante el barrido. El segundo insiste en que no rota el cuerpo y mueve sobre todo los brazos.",
+        "initial_pose": "standing in a batter's guard stance seen from behind, his back to the camera, facing away toward the top of the image, gripping the bat with both hands, the bat raised up over his shoulder on the right side of the image",
+        "action_description": "Strict back view the whole time: we only ever see the back of his head, the knot of the red bandana and the back of his overalls; his face and chest are never visible and his body never turns sideways. His feet stay planted. Using mostly his arms and shoulders, he swings the bat hard and fast in one wide horizontal arc at chest height, from the right side of the image across to the left side, passing in front of him on the far side of his body, away from the camera, so the bat is hidden behind his torso in the middle of the swing. The bat leaves a bright white crescent-shaped swoosh of air along the whole arc, visible on both sides of his body. The swoosh fades away quickly, he brings the bat back up over his shoulder and settles cleanly into the starting guard stance. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down back view throughout."
+      }
+    }
   },
   "zombi-venenoso-48": {
     "kind": "character",

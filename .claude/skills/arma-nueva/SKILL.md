@@ -125,6 +125,10 @@ to the camera and never turns around, his face is never visible", decir que el g
 toward the top of the image" y cerrar con "the strict original low top-down back view". El texto entero de la
 fregona está en `assets/pixellab.json` (`conserje-48-guardia` → `ataque` → `north`).
 
+En los golpes de lado (bate) eso no basta, porque al barrer gira el cuerpo. Hay que ser más estricto: "Strict
+back view the whole time: we only ever see the back of his head... his body never turns sideways. His feet stay
+planted. Using mostly his arms and shoulders, he swings..." (entero en `conserje-48-bate` → `ataque` → `north`).
+
 ### `subject_description` e `initial_pose`
 
 - `subject_description`: "a young male janitor with brown hair and a red bandana, cream shirt and blue work
@@ -146,7 +150,9 @@ cierre de siempre. El de la fregona está entero en `assets/pixellab.json` (`con
 
 - **No renombrar ni mover con `git mv` una carpeta con archivos recién descargados**: se pierden los que aún no
   están en un commit. Usar `mv` normal. Si pasa, se vuelven a bajar de PixelLab (gratis).
-- Las direcciones de `get_character` traen la plantilla de la URL con `{i}`: bajar con un bucle de `curl`.
+- Para bajar fotogramas: copiar las líneas de `get_character` de esa animación y pasárselas a
+  `py tools/bajar.py <carpeta>`. Para mirarlos: `py tools/hoja.py <carpeta> <salida.png> [direcciones]`.
+- PixelLab admite 8 trabajos a la vez: si se lanzan más, el noveno da error y hay que esperar a que acabe uno.
 - El servidor de pruebas quita el `.html` de las direcciones (`/assets/pruebas/ataque-fregona`, sin `.html`).
 - Los fotogramas de partida subidos caducan a los 3 días y la dirección de subida a los 15 minutos.
 - Lo descartado se apunta en `assets/pixellab.json` como descartado y se le propone al dueño borrarlo al final.

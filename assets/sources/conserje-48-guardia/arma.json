@@ -20,18 +20,18 @@
     }
   },
   "ataque": {
-    "nota": "Qué fotogramas de PixelLab se usan en cada dirección y en qué orden. En todas, la mopa toca el suelo en el cuarto (índice 3). Se quitan los fotogramas repetidos con la mopa en el suelo y los flojos de la recogida.",
+    "nota": "Qué fotogramas de PixelLab se usan en cada dirección y en qué orden. Es la versión con estela de agua (2026-10-12). En todas, el arco de agua llega al suelo en el cuarto (índice 3). Se quitan los fotogramas repetidos con la mopa en el suelo y los flojos de la recogida.",
     "duracion": 0.5,
     "impacto": 3,
     "fotogramas": {
-      "south":      [2, 3, 4, 5, 6, 7, 9, 10, 11],
+      "south":      [1, 2, 3, 4, 5, 6, 9, 10, 11],
       "south-east": [1, 2, 3, 4, 5, 6, 9, 10, 11],
       "east":       [1, 2, 3, 4, 5, 6, 9, 10, 11],
-      "north-east": [1, 2, 3, 4, 5, 6, 7, 10, 11],
-      "north":      [2, 3, 4, 5, 6, 7, 9, 10, 11],
-      "north-west": [1, 2, 3, 4, 5, 6, 8, 9, 10],
-      "west":       [1, 2, 3, 4, 5, 6, 8, 9, 11],
-      "south-west": [0, 1, 2, 3, 4, 5, 7, 9, 10]
+      "north-east": [1, 2, 3, 4, 5, 6, 8, 10, 11],
+      "north":      [1, 2, 3, 4, 5, 6, 8, 10, 11],
+      "north-west": [1, 2, 3, 4, 5, 6, 7, 9, 10],
+      "west":       [0, 1, 2, 3, 4, 5, 6, 8, 11],
+      "south-west": [1, 2, 3, 4, 5, 6, 8, 9, 11]
     }
   }
 }

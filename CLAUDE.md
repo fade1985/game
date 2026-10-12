@@ -130,7 +130,7 @@ Los sprites se generan con PixelLab. Desde el 12 de octubre de 2026 está conect
 ## Dónde lo dejamos (12 de octubre de 2026) · preguntar al dueño al retomar
 
 **Al retomar, empezar preguntándole por el punto 1.**
-Los ids, textos y costes de todo lo de abajo están en `assets/pixellab.json`. Quedaban 1.910 generaciones.
+Los ids, textos y costes de todo lo de abajo están en `assets/pixellab.json`. Quedaban 1.900 generaciones.
 
 Johnny con la fregona **ya está en el juego** (solo versión pixel): sprite `conserje-48-guardia`, estado
 "Fregona en guardia" del personaje "Johnny" en PixelLab. Tiene reposo, andar y ataque en las 8 direcciones.
@@ -143,22 +143,23 @@ Johnny con la fregona **ya está en el juego** (solo versión pixel): sprite `co
   cartoon ni la estela azul del barrido, y el daño se hace cuando la mopa llega al suelo, no al empezar (el
   momento lo dice la hoja: `impacto` en `arma.json` → `hit` en el JSON del sprite). El andar avanza por ciclo (`cycle` en `drawSprite`)
   porque cada dirección tiene un número distinto de fotogramas (entre 6 y 10).
-- **Ataque:** 9 fotogramas elegidos de los 13 de PixelLab, medio segundo. La dirección de espaldas se repitió con
-  un texto propio (con el común se daba la vuelta). Vista previa de los fotogramas sin recortar:
+- **Ataque:** 9 fotogramas elegidos de los 13 de PixelLab, medio segundo, con estela de agua. La dirección de
+  espaldas lleva un texto propio (con el común se daba la vuelta). Vista previa de los fotogramas sin recortar:
   `http://localhost:3000/assets/pruebas/ataque-fregona` (sin `.html`: el servidor lo quita).
 - Johnny sin arma (`conserje-48`) sigue igual y es el que se ve con las demás armas.
 
 Preguntas pendientes, por orden:
 
-1. **Dos vistos buenos pendientes** (dio por bueno a Johnny con la fregona en el juego y eligió el bate como
-   segunda arma):
-   - **Estado "Bate en guardia"** (`conserje-48-bate`, paso 1 de la skill): hoja en
-     `assets/pruebas/bate-en-guardia.png`. Si le vale, seguir con el paso 2 (prueba de ataque de perfil y de
-     espaldas, 2 generaciones; el bate barre de lado con una estela blanca de aire).
-   - **Estela de agua en el ataque de la fregona:** pidió que la estela del golpe vaya **dentro del dibujo** y
-     creíble para cada arma (agua, aire, fuego...). Hay una prueba de perfil en
-     `assets/pruebas/fregona-estela-comparacion.png` (arriba el ataque actual, abajo con estela). Si le gusta,
-     repetir las 8 direcciones (unas 8–9 generaciones) y cambiarlas en `assets/sources/conserje-48-guardia/ataque/`.
+1. **Visto bueno a la prueba de ataque del bate** (paso 2 de la skill): `assets/pruebas/bate-ataque-prueba.png`,
+   de perfil y de espaldas, barrido de lado con estela blanca de aire. El estado "Bate en guardia"
+   (`conserje-48-bate`) ya tiene su visto bueno. Si le vale, seguir sin parar con el paso 3: las otras 6
+   direcciones del ataque y las 8 de andar (14 generaciones), montaje, juego y cierre. De espaldas hay que usar
+   el texto estricto (segundo intento), que está en `assets/pixellab.json` (`conserje-48-bate` → `ataque` → `north`).
+   - **La fregona ya tiene la estela de agua dentro del dibujo** y está en el juego (las 8 direcciones, con su
+     visto bueno a la prueba de perfil). Decidido por el dueño: las estelas van siempre en el sprite y creíbles
+     para cada arma (agua, aire, fuego...), nunca pintadas por el juego.
+   - **Preguntarle si se borra de PixelLab el ataque antiguo de la fregona, sin estela** (8 animaciones en dos
+     grupos) y el primer intento del bate de espaldas. Están apuntados en `assets/pixellab.json`.
 2. **La skill `/arma-nueva` ya existe** (`.claude/skills/arma-nueva/SKILL.md`). Si en una sesión nueva no
    aparece en la lista, leer ese archivo y seguirlo igual.
 3. **Limpieza del estado "Fregona en guardia": hecha** el 12 de octubre de 2026 con su confirmación. En PixelLab
