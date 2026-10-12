@@ -168,6 +168,13 @@ Preguntas pendientes, por orden:
      sola (el centro del fogonazo) y la apunte en el JSON del sprite (`muzzle`). Como el dibujo es alto, la bala
      se mueve por el suelo como siempre pero se **dibuja** levantada (`lift`: `MUZZLE_LIFT` en `entities.js`,
      `BULLET_LIFT` en `game.js`, `drawBullet` en `render.js`).
+   - **Disparar andando (hecho a petición del dueño):** antes las piernas se quedaban quietas mientras duraba la
+     animación de disparo. Ahora la hoja de la pistola lleva a Johnny en dos mitades (`"partir": true` en
+     `arma.json`): `legs` (las piernas de cada fotograma de andar) y `top` (cada fotograma de disparo sin las
+     piernas). Si anda y dispara, `Player.draw` pinta las piernas que andan y encima el torso que dispara. En
+     las diagonales de frente el corte va 6 píxeles más abajo (`"cintura"`), porque ahí la pistola queda a la
+     altura de la cadera y salía doble. **Solo para armas de fuego:** en la fregona y el bate el cuerpo entero
+     se echa hacia delante y partirlo quedaría roto. Pendiente de que el dueño lo vea jugando.
    - **Preguntarle si se borra de PixelLab lo descartado de la pistola:** las dos repeticiones del disparo
      (`disparo-pistola-2`) y las 4 direcciones del primer andar que se sustituyeron. Están en `assets/pixellab.json`.
    - **El bate está en el juego** (sprite `conserje-48-bate`, 27 generaciones) y tiene el visto bueno del dueño.

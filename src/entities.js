@@ -261,10 +261,19 @@ export class Player {
     if (PIXEL_MODE && hasSprite(sprite)) pixelShadow(ctx, x, y + 15, 28);
     const walking = sp > 20 && (!armed || animFrames(armed, 'walk') > 0);
     const hitting = armed && this.atkAnim ? animFrames(armed, 'attack') : 0;
+    const dir = dirFromVector(this.lookX, this.lookY), now = game ? game.time : 0;
     let anim = walking ? 'walk' : 'idle', frame, cycle = walking ? (this.stepT || 0) / STEP : undefined;
-    if (hitting) { anim = 'attack'; frame = Math.floor((this.atkAnim.t / this.atkAnim.dur) * hitting); }
-    const sprited = PIXEL_MODE && drawSprite(ctx, sprite, anim,
-      dirFromVector(this.lookX, this.lookY), game ? game.time : 0, x, y + 16,
+    if (hitting) {
+      anim = 'attack'; frame = Math.floor((this.atkAnim.t / this.atkAnim.dur) * hitting);
+      // disparar andando: si la hoja trae a Johnny en dos mitades, las piernas siguen andando ("legs") y
+      // encima va el torso que dispara ("top"), como en los juegos de disparos de toda la vida
+      if (walking && animFrames(armed, 'legs') > 0) {
+        drawSprite(ctx, sprite, 'legs', dir, now, x, y + 16, { flash: this.hurtT > 0, cycle });
+        anim = 'top';
+      }
+      cycle = undefined;
+    }
+    const sprited = PIXEL_MODE && drawSprite(ctx, sprite, anim, dir, now, x, y + 16,
       { flash: this.hurtT > 0, frame, cycle });
     if (!sprited) drawHuman(ctx, x, y, {
       ...PLAYER_LOOK,

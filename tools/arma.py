@@ -311,8 +311,50 @@ if ATK.get('boca') == 'fogonazo':
         muzzle[d] = [round(sum(p[0] for p in pts) / len(pts)) - PX, round(sum(p[1] for p in pts) / len(pts)) - PY]
         print(f'boca   {d:11s} a {muzzle[d]} de los pies ({len(pts)} píxeles de fogonazo)')
 
+# ═════════════ Andar y atacar a la vez (armas de fuego) ═════════════
+# Con "partir": true en arma.json, la hoja lleva además a Johnny en dos mitades para que pueda disparar andando:
+#   legs  las piernas de cada fotograma de andar
+#   top   cada fotograma de ataque sin las piernas (torso, arma, fogonazo y humo)
+# El juego dibuja las piernas que andan y encima el torso que dispara. Las piernas son lo que queda por
+# debajo de la cintura dentro del ancho del cuerpo; de ahí, el ataque solo conserva lo que no tiene color de
+# pierna (el fogonazo y el humo que caen por delante).
+legs = top = None
+if ATK.get('partir') and walk:
+    HALF = 11  # medio ancho del cuerpo, en píxeles
+
+    DROP = ATK.get('cintura', {})  # filas de más que se baja el corte en una dirección (si el arma queda a la cadera)
+
+    def leg_zone(d):
+        waist = anatomy(still[d], d)[2] + DROP.get(d, 0)
+        return [(x, y) for y in range(waist + 1, CH) for x in range(PX - HALF, PX + HALF + 1)]
+
+    legs, top = {}, {}
+    for d in DIRS:
+        zone = leg_zone(d)
+        sp = still[d].load()
+        colors = {sp[p][:3] for p in zone if sp[p][3]}
+        like_leg = lambda c: any(sum(abs(c[i] - k[i]) for i in range(3)) < 70 for k in colors)
+        legs[d] = []
+        for f in walk[d]:
+            out = Image.new('RGBA', (CW, CH), (0, 0, 0, 0))
+            src, dst = f.load(), out.load()
+            for p in zone:
+                dst[p] = src[p]
+            legs[d].append(out)
+        top[d] = []
+        for f in attack[d]:
+            out = f.copy()
+            px = out.load()
+            for p in zone:
+                if px[p][3] and like_leg(px[p][:3]):
+                    px[p] = (0, 0, 0, 0)
+            top[d].append(out)
+    print('partido: piernas del andar y torso del ataque por separado, para atacar andando')
+
 # ═════════════ Hoja y JSON ═════════════
 blocks = [('idle', idle)] + ([('walk', walk)] if walk else []) + [('attack', attack)]
+if legs:
+    blocks += [('legs', legs), ('top', top)]
 cols = max(len(DIRS), *(len(fs) for _, b in blocks for fs in b.values()))
 sheet = Image.new('RGBA', (cols * CW, (1 + len(blocks) * len(DIRS)) * CH), (0, 0, 0, 0))
 for i, d in enumerate(DIRS):
@@ -323,8 +365,8 @@ for name, block in blocks:
     for r, d in enumerate(DIRS):
         for i, f in enumerate(block[d]):
             sheet.alpha_composite(f, (i * CW, (row + r) * CH))
-    fps = {'idle': IDLE_FPS, 'walk': WALK_FPS, 'attack': round(NA / ATK_DUR)}[name]
-    anims[name] = {'fps': fps, 'loop': name != 'attack',
+    fps = {'idle': IDLE_FPS, 'walk': WALK_FPS, 'legs': WALK_FPS}.get(name, round(NA / ATK_DUR))
+    anims[name] = {'fps': fps, 'loop': name not in ('attack', 'top'),
                    'dirs': {d: {'row': row + r, 'frames': len(block[d])} for r, d in enumerate(DIRS)}}
     row += len(DIRS)
 # en qué punto de la animación (de 0 a 1) llega el golpe: el juego hace el daño ahí

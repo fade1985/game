@@ -88,6 +88,10 @@ Mirar la hoja montada antes de seguir.
   dibujo. Para eso, en `arma.json` → `ataque`: `"boca": "fogonazo"` (el script busca sola la boca del arma en
   cada dirección), `"impacto": 0` y los fotogramas **empezando por el del fogonazo**, sin preparación. Unos 6
   fotogramas y `duracion` 0.4 como mucho (nunca más que 1 / `rate`).
+  Añadir también `"partir": true`: la hoja lleva entonces las piernas del andar y el torso del disparo por
+  separado y el juego los junta, para que Johnny pueda disparar andando sin que se le paren las piernas. Si en
+  alguna dirección el arma sale doble (queda a la altura de la cadera), bajar ahí el corte con
+  `"cintura": { "<dirección>": 6 }`. Probarlo en el juego andando y disparando a la vez.
 - Probar en el navegador con `?pruebas` (tecla 1 saca un zombi) y `?armas` para coger el arma: reposo, andar en
   varias direcciones y ataque (la versión cartoon ya no existe). **Cerrar la pestaña al terminar**: si no,
   la música del juego sigue sonando.
