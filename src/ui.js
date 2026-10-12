@@ -4,6 +4,7 @@
 import { weaponSummary } from './weapons.js';
 import { toggleMute } from './sfx.js';
 import { loadSave } from './save.js';
+import { makeTitleCanvas } from './titulo.js';
 
 // Pantalla completa (solo en móviles que la permiten; en iPhone no existe)
 const canFullscreen = () => document.body.classList.contains('touch') && document.fullscreenEnabled && !document.fullscreenElement;
@@ -83,7 +84,7 @@ export function createUI(root) {
       const upgrades = Object.values(save.workshop).reduce((a, b) => a + b, 0);
       open(`
         <div class="menu">
-          <h1 class="logo"><span class="l1">BLOB</span><span class="l2">QUEST</span></h1>
+          <h1 class="logo" aria-label="Zombie Scape"></h1>
           <p class="tagline">Limpia el edificio de zombis, planta a planta</p>
           <div class="col">
             <button class="btn yellow big" data-act="play">▶ JUGAR</button>
@@ -102,6 +103,7 @@ export function createUI(root) {
         else if (e.code === 'KeyT') workshop();
       },
       'clear');
+      overlay.querySelector('.logo')?.append(makeTitleCanvas());
     },
 
     // Selector de edificios: los que aún no existen salen como "Próximamente"

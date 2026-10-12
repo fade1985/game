@@ -148,17 +148,18 @@ canvas {
 .menu { display: flex; flex-direction: column; align-items: center; gap: 0.9em; }
 .logo {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  line-height: 0.85;
-  font-weight: 400;
-  -webkit-text-stroke: 0.09em var(--ink);
-  paint-order: stroke fill;
-  text-shadow: 0 0.07em 0 var(--ink);
+  justify-content: center;
+  margin: 0;
   animation: float 3s ease-in-out infinite;
 }
-.logo .l1 { font-size: 5.6em; color: var(--yellow); transform: rotate(-4deg); }
-.logo .l2 { font-size: 3.8em; color: var(--pink); transform: rotate(3deg); }
+/* el logo es un dibujo pixel art: se amplía en saltos enteros para que no se vea borroso */
+.logo-px {
+  height: min(34vh, 300px);
+  width: auto;
+  max-width: 88vw;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0.15em 0 rgba(29, 27, 44, 0.35));
+}
 .tagline {
   color: #fff;
   font-size: 1.4em;

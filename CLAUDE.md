@@ -1,4 +1,4 @@
-# Blob Quest · notas para continuar
+# Zombie Scape (antes Blob Quest) · notas para continuar
 
 Resumen del proyecto y de lo hablado hasta ahora, para seguir trabajando desde otro equipo.
 Claude Code lee este archivo automáticamente al abrir la carpeta.
@@ -38,7 +38,7 @@ npm run dev            # sirve la carpeta en http://localhost:3000 (también val
 - Para probar sin mirar: Playwright con Chromium. En la consola del navegador el juego está en `window.game`;
   se puede adelantar llamando a `game.update(1/60)` muchas veces (así se hicieron las simulaciones de partidas
   con un "bot" para equilibrar). Después de cada cambio visual, sacar capturas a 1920×1080 y en móvil horizontal.
-- Guardado en `localStorage`, clave `blobquest-save-v2` (llaves, Taller, récords por edificio, música).
+- Guardado en `localStorage`, clave `blobquest-save-v2` (se mantiene el nombre viejo para no perder partidas guardadas; llaves, Taller, récords por edificio, música).
 
 ## Mapa del código (`src/`)
 

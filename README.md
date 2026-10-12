@@ -1,4 +1,4 @@
-# 🧹 Blob Quest
+# 🧹 Zombie Scape
 
 Roguelike de zombis para navegador al estilo *The Binding of Isaac*: vista desde arriba, estilo *cartoon*
 (formas redondas, contorno grueso, colores planos) y un conserje con su fregona contra un edificio infestado.
