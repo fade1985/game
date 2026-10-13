@@ -1,9 +1,11 @@
 """Bocetos para pedir a ChatGPT los fondos de las estancias (ver docs/FONDOS.md).
 
-Cada boceto es una estancia con la pared del fondo arriba, el suelo debajo y **un bloque de color con su nombre
+Cada boceto es una estancia con la pared del fondo arriba, el suelo debajo y **un bloque gris con su nombre
 por cada mueble**, ya colocado y a su tamaño de verdad. ChatGPT pinta cada mueble dentro de su bloque: así
 respeta la escala y deja libre lo demás (se probó a pedírselo de palabra, con Johnny de referencia y una zona
-verde, y no lo respetó).
+verde, y no lo respetó). Cada bloque va del color que debe tener el mueble (porcelana blanca, madera...) y con borde
+negro grueso: con colores al azar Gemini pintó la bañera azul y el váter amarillo, y con bloques grises sobre
+fondo gris dejó de seguirlos. La pared y el suelo van también de su color final, y sin cuadrícula.
 
 Las medidas van en píxeles de arte (16 = una casilla = 32 unidades del juego, unos 60 cm de verdad) y salen de
 la referencia reducida a la escala realista que eligió el dueño (el váter le llega a Johnny a la cintura).
@@ -19,25 +21,25 @@ from PIL import Image, ImageDraw, ImageFont
 OUT = 'assets/plantillas'
 C = 16
 WALL = 48                   # alto de la pared del fondo
-MURO, SUELO, RAYA = (196, 190, 180), (128, 132, 140), (118, 122, 130)
+MURO, SUELO, RAYA = (176, 164, 140), (84, 100, 122), (84, 100, 122)   # sin cuadrícula: se colaba en el resultado
 
 # Muebles contra la pared del fondo: ancho, cuánto suben por la pared y cuánto ocupan de suelo; color y nombre.
 FONDO = {
-    'banera':   (64, 10, 26, (90, 150, 210), 'BATHTUB'),
-    'ducha':    (30, 40, 28, (80, 190, 200), 'SHOWER'),
-    'lavabo':   (20, 18, 13, (220, 150, 70), 'SINK'),
-    'vater':    (15, 14, 16, (225, 225, 120), 'TOILET'),
-    'lavadora': (17, 16, 14, (170, 120, 200), 'WASHER'),
-    'armario':  (20, 34, 10, (160, 110, 70), 'CABINET'),
-    'papelera': (9, 3, 10, (110, 170, 110), 'BIN'),
+    'banera':   (64, 10, 26, (238, 236, 228), 'BATHTUB'),
+    'ducha':    (30, 40, 28, (190, 214, 220), 'SHOWER'),
+    'lavabo':   (20, 18, 13, (150, 96, 56), 'SINK'),
+    'vater':    (15, 14, 16, (240, 238, 230), 'TOILET'),
+    'lavadora': (17, 16, 14, (214, 216, 222), 'WASHER'),
+    'armario':  (20, 34, 10, (124, 82, 50), 'CABINET'),
+    'papelera': (9, 3, 10, (74, 96, 74), 'BIN'),
 }
 # Cosas colgadas de la pared (no se choca con ellas): ancho, de qué altura a qué altura de la pared
 PARED = {
-    'espejo':   (21, 8, 24, (150, 200, 230), 'MIRROR'),
-    'toallero': (16, 14, 30, (60, 90, 170), 'TOWEL'),
+    'espejo':   (21, 8, 24, (150, 176, 190), 'MIRROR'),
+    'toallero': (16, 14, 30, (52, 74, 120), 'TOWEL'),
 }
-ALFOMBRA = (30, 16, (90, 170, 150), 'MAT')
-BANERA_LADO = (27, 64, (90, 150, 210), 'BATHTUB')     # a lo largo del muro izquierdo
+ALFOMBRA = (30, 16, (84, 128, 112), 'MAT')
+BANERA_LADO = (27, 64, (238, 236, 228), 'BATHTUB')     # a lo largo del muro izquierdo
 
 # nombre: (ancho, alto, tamaño de la imagen de ChatGPT, puertas posibles, piezas)
 # piezas: ('tipo', x) contra la pared del fondo o colgado de ella; ('alfombra', x, y); ('banera-lado',)
@@ -108,7 +110,7 @@ def boceto(w, h, size, piezas):
     # primero lo plano y lo colgado, luego los muebles
     for c in sorted(cajas(piezas), key=lambda c: c['solido'] is not None):
         r = R(c['x'], c['y'], c['w'], c['h'])
-        d.rectangle(r, fill=c['color'], outline=(30, 30, 36), width=3)
+        d.rectangle(r, fill=c['color'], outline=(20, 16, 18), width=6)
         # el nombre, lo más grande que quepa (girado si el bloque es alto y estrecho)
         bw, bh = r[2] - r[0], r[3] - r[1]
         alto = bh > bw * 1.3
@@ -121,7 +123,8 @@ def boceto(w, h, size, piezas):
                 break
             px -= 2
         t = Image.new('RGBA', (tw + 4, th + 8), (0, 0, 0, 0))
-        ImageDraw.Draw(t).text((2, 0), c['nombre'], font=f, fill=(20, 20, 26))
+        claro = sum(c['color']) > 380
+        ImageDraw.Draw(t).text((2, 0), c['nombre'], font=f, fill=(20, 20, 26) if claro else (240, 240, 240))
         if alto:
             t = t.rotate(90, expand=True)
         im.paste(t, (r[0] + (bw - t.width) // 2, r[1] + (bh - t.height) // 2), t)
