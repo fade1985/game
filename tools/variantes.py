@@ -21,10 +21,12 @@ VERDE = (60, 130)     # tonos de la piel
 
 # prenda: (tono nuevo, saturación ×, luz ×)
 VARIANTES = {
-    'rojo':   {'camisa': (4, 1.9, 0.95),  'pantalon': (20, 0.35, 0.9)},    # camiseta roja, pantalón casi negro
-    'bata':   {'camisa': (None, 0.12, 1.15), 'pantalon': (165, 0.9, 1.15)},  # bata blanca, pantalón verde clínico
-    'pijama': {'camisa': (320, 1.4, 1.0), 'pantalon': (320, 1.2, 0.95), 'piel': (75, 0.7, 1.05)},  # pijama rosa
-    'pelado': {'camisa': (35, 0.9, 1.0),  'pantalon': (30, 0.7, 0.8), 'piel': (170, 0.45, 1.05)},  # marrón y piel azulada
+    'rojo':    {'camisa': (2, 2.2, 1.0),    'pantalon': (30, 0.3, 0.75), 'piel': (50, 0.9, 1.05)},    # camiseta roja, pantalón negro, piel amarillenta
+    'bata':    {'camisa': (None, 0.05, 1.3), 'pantalon': (170, 1.1, 1.2), 'piel': (150, 0.4, 1.1)},   # bata blanca, pantalón verde clínico, piel pálida
+    'mostaza': {'camisa': (46, 2.4, 1.05),  'pantalon': (28, 1.4, 0.8),  'piel': (100, 1.0, 0.8)},    # jersey amarillo, pantalón marrón, piel verde oscura
+    'negro':   {'camisa': (240, 0.25, 0.42), 'pantalon': (240, 0.2, 0.35), 'piel': (200, 0.35, 0.95)},  # todo de negro, piel azul grisácea
+    'militar': {'camisa': (95, 1.4, 0.75),  'pantalon': (40, 0.9, 0.7),  'piel': (28, 0.55, 1.15)},   # verde militar, piel carne apagada
+    'pijama':  {'camisa': (310, 1.8, 1.05), 'pantalon': (275, 1.6, 0.9), 'piel': (80, 0.6, 1.15)},    # pijama rosa y morado, piel clara
 }
 
 

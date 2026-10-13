@@ -57,7 +57,7 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
 
 ## Variantes de color (13 de octubre de 2026)
 
-- **Hecho: zombi normal con 4 variantes** (`rojo`, `bata`, `pijama`, `pelado`) además de la de siempre. Solo cambia el
+- **Hecho: zombi normal con 6 variantes** (`rojo`, `bata`, `mostaza`, `negro`, `militar`, `pijama`; la primera tanda, más apagada, se parecía demasiado y se rehízo) además de la de siempre. Solo cambia el
   color de la ropa y la piel: misma vida, velocidad y daño. `py tools/variantes.py zombi-normal` genera las hojas
   `assets/sprites/zombi-normal-<variante>.png/.json` a partir de la original (sin tocarla): decide por el tono de cada
   píxel qué es camisa (azul claro), pantalón (azul oscuro) y piel (verde), y conserva el sombreado. Las recetas de

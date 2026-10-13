@@ -44,7 +44,7 @@ export const ZOMBIE_TYPES = {
   },
   normal: {
     // variantes: hojas con otra ropa (tools/variantes.py); cada zombi sale con una al azar, o con la de siempre
-    variantes: ['rojo', 'bata', 'pijama', 'pelado'],
+    variantes: ['rojo', 'bata', 'mostaza', 'negro', 'militar', 'pijama'],
     name: 'Zombi', r: 16, s: 1, hp: 30, speed: 80, dmg: 10, push: 170,
     look: { skin: '#8fc46a', hair: '#3b2f2a', shirt: '#5b7db1', pants: '#3d4a7a', shoes: '#2e2a3a' },
   },
