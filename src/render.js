@@ -589,38 +589,54 @@ export function drawBullet(ctx, b) {
 // Hueco que ocupa el minimapa (para que los avisos del borde no lo tapen)
 export let minimapRect = null;
 
+// Marco de metal oxidado de 9 trozos (el mismo botón de la interfaz): las esquinas no se estiran
+const FRAME = new Image();
+FRAME.src = 'assets/ui/boton-oscuro.png';
+function drawFrame(ctx, x, y, w, h, s = 14) {
+  if (!FRAME.complete || !FRAME.naturalWidth) return roundBox(ctx, x, y, w, h, 4, 'rgba(29, 27, 44, 0.85)', 3);
+  const iw = FRAME.naturalWidth, ih = FRAME.naturalHeight;
+  const xs = [0, s, iw - s, iw], ys = [0, s, ih - s, ih];
+  const dx = [x, x + s, x + w - s, x + w], dy = [y, y + s, y + h - s, y + h];
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  for (let j = 0; j < 3; j++) {
+    for (let i = 0; i < 3; i++) {
+      ctx.drawImage(FRAME, xs[i], ys[j], xs[i + 1] - xs[i], ys[j + 1] - ys[j], dx[i], dy[j], dx[i + 1] - dx[i], dy[j + 1] - dy[j]);
+    }
+  }
+  ctx.restore();
+}
+
 export function drawMinimap(ctx, floor, current, title, time, screenW = W) {
   const hall = floor.corridor;
-  const pad = 10, head = 22;
-  const pw = 156, ph = head + pad * 2 + (hall ? 56 : 22);
+  const pad = 14, head = 22;
+  const pw = 170, ph = head + pad * 2 + (hall ? 56 : 22);
   const px = screenW - pw - 12, py = 10;
   minimapRect = { x: px, y: py, w: pw, h: ph };
 
   ctx.save();
-  ctx.globalAlpha = 0.92;
-  roundBox(ctx, px, py, pw, ph, 12, 'rgba(29, 27, 44, 0.78)', 3);
-  ctx.globalAlpha = 1;
-  outlinedText(ctx, title, px + pw / 2, py + 15, 14, '#ffd23f', { lw: 4 });
+  drawFrame(ctx, px, py, pw, ph);
+  outlinedText(ctx, title, px + pw / 2, py + 19, 12, '#e6c34a', { lw: 4 });
 
   const box = (x, y, w, h, fill, here, icon) => {
     ctx.beginPath();
-    ctx.roundRect(x, y, w, h, 4);
-    ctx.fillStyle = here ? '#ffd23f' : fill;
+    ctx.rect(x, y, w, h);
+    ctx.fillStyle = here ? '#e0b030' : fill;
     ctx.fill();
     ctx.lineWidth = 2;
-    ctx.strokeStyle = here ? '#ffffff' : OUTLINE;
+    ctx.strokeStyle = here ? '#f2e6c0' : OUTLINE;
     ctx.stroke();
     if (icon) drawEmoji(ctx, icon, x + w / 2, y + h / 2 + 1, 11);
     if (here) {
       ctx.globalAlpha = 0.5 + Math.sin(time * 6) * 0.3;
       ctx.beginPath();
-      ctx.roundRect(x - 3, y - 3, w + 6, h + 6, 6);
-      ctx.strokeStyle = '#ffd23f';
+      ctx.rect(x - 3, y - 3, w + 6, h + 6);
+      ctx.strokeStyle = '#e0b030';
       ctx.stroke();
       ctx.globalAlpha = 1;
     }
   };
-  const tint = (r) => (!r.visited ? '#5d5873' : r.cleared ? '#fff8ea' : '#ff8a9b');
+  const tint = (r) => (!r.visited ? '#4a4552' : r.cleared ? '#bdb59c' : '#b34030');
   const top = py + head + pad;
 
   if (!hall) {
@@ -631,11 +647,11 @@ export function drawMinimap(ctx, floor, current, title, time, screenW = W) {
   }
   const END = 18; // ancho de las casillas de los extremos
   const x0 = px + pad + END + 4, len = pw - (pad + END + 4) * 2;
-  box(x0, top + 22, len, 12, '#fff8ea', current === hall);
+  box(x0, top + 22, len, 12, '#bdb59c', current === hall);
   for (const ex of hall.exits) {
     if (ex.kind === 'elevator') continue;
-    if (ex.dir === 'left') box(x0 - END - 4, top + 19, END, 18, '#5d5873', false, ex.icon || '🚪');
-    else if (ex.dir === 'right') box(x0 + len + 4, top + 19, END, 18, ex.locked ? '#5d5873' : '#80ed99', false, ex.locked ? '🔒' : ex.icon);
+    if (ex.dir === 'left') box(x0 - END - 4, top + 19, END, 18, '#4a4552', false, ex.icon || '🚪');
+    else if (ex.dir === 'right') box(x0 + len + 4, top + 19, END, 18, ex.locked ? '#4a4552' : '#6f9a58', false, ex.locked ? '🔒' : ex.icon);
     else {
       const r = ex.to;
       // la llave que aún no se ha recogido se marca en cuanto se ha entrado en su apartamento

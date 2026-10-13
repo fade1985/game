@@ -85,7 +85,7 @@ export class Game {
     // sin suavizado. Su tamaño se ajusta en cada fotograma a lo que enseña la cámara.
     this.low = document.createElement('canvas');
     this.lowCtx = this.low.getContext('2d');
-    setTextFont('"Pixelify Sans"');
+    setTextFont('"ZS UI", "Pixelify Sans"');
     new ResizeObserver(() => this.resize()).observe(canvas);
     this.resize();
     this.setupMenuScene();
