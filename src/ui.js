@@ -87,8 +87,8 @@ export function createUI(root) {
           <h1 class="logo" aria-label="Zombie Scape"></h1>
           <p class="tagline">Limpia el edificio de zombis, planta a planta</p>
           <div class="col">
-            <button class="btn yellow big" data-act="play">▶ JUGAR</button>
-            ${canFullscreen() ? '<button class="btn green small" data-act="fullscreen">⛶ Pantalla completa</button>' : ''}
+            <button class="btn yellow big" data-act="play">JUGAR</button>
+            ${canFullscreen() ? '<button class="btn green small" data-act="fullscreen">Pantalla completa</button>' : ''}
             <button class="btn blue" data-act="workshop"><i class="ico ico-herramientas"></i> Taller <span class="keys-chip"><i class="ico ico-llave"></i> ${save.keys}</span>${upgrades ? ` <small>· ${upgrades} mejora${upgrades > 1 ? 's' : ''}</small>` : ''}</button>
           </div>
           <div class="hint panel small">
@@ -121,7 +121,7 @@ export function createUI(root) {
         const p = save.buildings[b.id] || { completed: false, runs: 0, wins: 0, bestFloor: 0, bestTime: 0 };
         const time = p.bestTime ? `${Math.floor(p.bestTime / 60)}:${String(Math.floor(p.bestTime % 60)).padStart(2, '0')}` : '';
         const progress = p.completed
-          ? `✅ Completado ×${p.wins}${time ? ` · ⏱️ ${time}` : ''}`
+          ? `Completado ×${p.wins}${time ? ` · mejor tiempo ${time}` : ''}`
           : p.runs ? `<i class="ico ico-trofeo"></i> Has llegado al nivel ${p.bestFloor} de ${b.floors}` : '¡Sin explorar!';
         return `
           <button class="bcard ${p.completed ? 'done' : ''}" data-act="pick" data-arg="${b.id}">
@@ -136,7 +136,7 @@ export function createUI(root) {
         <div class="panel picker">
           <h2 class="title">Elige edificio</h2>
           <div class="bcards">${cards}</div>
-          <button class="btn blue small" data-act="back">← Volver</button>
+          <button class="btn blue small" data-act="back">Volver</button>
         </div>`,
       { pick, back },
       (e) => {
@@ -167,7 +167,7 @@ export function createUI(root) {
           <p class="sub">Las llaves <i class="ico ico-llave"></i> que sueltan los zombis se guardan aunque pierdas.<br>Las mejoras se aplican al empezar cada edificio.</p>
           <div class="wallet"><i class="ico ico-llave"></i> ${save.keys} llave${save.keys === 1 ? '' : 's'}</div>
           <div class="wrows">${rows}</div>
-          <button class="btn blue small" data-act="back">← Volver</button>
+          <button class="btn blue small" data-act="back">Volver</button>
         </div>`,
       { buy, back },
       (e) => { if (e.code === 'Escape') back(); });
@@ -202,8 +202,8 @@ export function createUI(root) {
             </div>
           </div>
           <div class="row-btns">
-            <button class="btn yellow" data-act="resume">▶ Continuar</button>
-            <button class="btn blue small" data-act="music">🎵 Música: ${musicOn ? 'Sí' : 'No'}</button>
+            <button class="btn yellow" data-act="resume">Continuar</button>
+            <button class="btn blue small" data-act="music">Música: ${musicOn ? 'Sí' : 'No'}</button>
             <button class="btn pink small" data-act="quit">Abandonar partida</button>
           </div>
         </div>`,
@@ -217,15 +217,15 @@ export function createUI(root) {
           <h2 class="title">${r.title}</h2>
           <p class="sub">${r.sub}</p>
           <div class="stats">
-            <div class="stat"><span>🏢 Plantas superadas</span><b>${r.floors}</b></div>
-            <div class="stat"><span>🧟 Enemigos derrotados</span><b>${r.kills}</b></div>
-            <div class="stat"><span>🗺️ Apartamentos visitados (última planta)</span><b>${r.explored}</b></div>
+            <div class="stat"><span><i class="ico ico-apartamentos"></i> Plantas superadas</span><b>${r.floors}</b></div>
+            <div class="stat"><span><i class="ico ico-zombi"></i> Enemigos derrotados</span><b>${r.kills}</b></div>
+            <div class="stat"><span><i class="ico ico-puerta"></i> Apartamentos visitados (última planta)</span><b>${r.explored}</b></div>
             <div class="stat"><span><i class="ico ico-policia"></i> Equipo</span><b>${r.team}</b></div>
-            ${r.time ? `<div class="stat"><span>⏱️ Tiempo</span><b>${r.time}</b></div>` : ''}
+            ${r.time ? `<div class="stat"><span>Tiempo</span><b>${r.time}</b></div>` : ''}
             <div class="stat key"><span><i class="ico ico-llave"></i> Llaves conseguidas</span><b>+${r.keys} <small>(tienes ${r.wallet})</small></b></div>
           </div>
           <div class="col">
-            <button class="btn yellow big" data-act="retry">↻ ${r.win ? 'Jugar otra vez' : 'Reintentar edificio'}</button>
+            <button class="btn yellow big" data-act="retry">${r.win ? 'Jugar otra vez' : 'Reintentar edificio'}</button>
             <div class="row-btns">
               <button class="btn green small" data-act="workshop"><i class="ico ico-herramientas"></i> Taller</button>
               <button class="btn blue small" data-act="menu">Menú principal</button>

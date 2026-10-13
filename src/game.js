@@ -247,7 +247,8 @@ export class Game {
     // primera partida: recordatorio de los controles
     const firstTime = loadSave().runs <= 1;
     this.banner = {
-      title: `${this.building.icon} ${this.building.name}`,
+      icon: this.building.id,
+      title: this.building.name,
       sub: this.testMode ? 'Modo pruebas · teclas 1-6: zombis · 7-8: jefes'
         : firstTime ? 'Muévete con WASD o flechas · Espacio para esquivar'
         : showAll || unlocked.length ? 'Elige tu arma antes de salir' : this.floorLabel,
@@ -304,7 +305,7 @@ export class Game {
     this.ui.showEnd(
       {
         win,
-        title: win ? '🏆 ¡Edificio completado!' : '💥 ¡Derrota!',
+        title: win ? '¡Edificio completado!' : '¡Derrota!',
         sub: win
           ? `Has limpiado los ${this.building.name} de arriba abajo`
           : `Caíste en la ${this.floorLabel.toLowerCase()} de los ${this.building.name}`,
@@ -334,7 +335,7 @@ export class Game {
     const isBoss = room.type === 'miniboss' || room.type === 'boss';
     if (firstVisit && isBoss) {
       const boss = BOSS_TYPES[room.type];
-      this.banner = { title: `${boss.icon} ${boss.name}`, sub: room.type === 'boss' ? 'Azotea · ¡El último combate del edificio!' : `${room.name} · ¡Derrótalo para seguir subiendo!`, t: 0 };
+      this.banner = { icon: boss.icon === '👑' ? 'corona' : 'jefe', title: boss.name, sub: room.type === 'boss' ? 'Azotea · ¡El último combate del edificio!' : `${room.name} · ¡Derrótalo para seguir subiendo!`, t: 0 };
     } else if (firstVisit && room.type === 'corridor') {
       // al pisar el pasillo por primera vez: en qué planta estamos y qué hay que buscar
       this.banner = { title: this.floor.name, sub: `Busca la llave del ${this.floor.boss.name} en los apartamentos`, t: 0 };
@@ -464,7 +465,7 @@ export class Game {
         if (!pr.locked && p.weapon.id !== pr.weapon.id && obstacleGap(pr, p) < p.r + 6) {
           p.weapon = pr.weapon;
           p.swing = null;
-          this.banner = { title: `${p.weapon.icon} ${p.weapon.name}`, sub: weaponSummary(p.weapon), t: 0 };
+          this.banner = { icon: p.weapon.id, title: p.weapon.name, sub: weaponSummary(p.weapon), t: 0 };
           this.burst(pr.x, pr.y, '#ffd23f', 10, 16);
           sfx.buy();
         }
@@ -474,13 +475,13 @@ export class Game {
       if (pr.kind === 'doorkey') {
         pr.taken = true;
         this.floor.hasKey = true;
-        this.banner = { title: `🗝️ ${pr.name}`, sub: 'Ya puedes abrir su puerta, en el pasillo', t: 0 };
+        this.banner = { icon: 'llave', title: pr.name, sub: 'Ya puedes abrir su puerta, en el pasillo', t: 0 };
         this.burst(pr.x, pr.y, '#dfe7f2', 14, 18);
         sfx.buy();
       } else if (pr.kind === 'survivor' && this.room.cleared) {
         pr.taken = true;
         this.addAlly(pr.def, pr.x, pr.y);
-        this.banner = { title: `${pr.def.icon} ¡${pr.def.name} se une!`, sub: pr.def.desc, t: 0 };
+        this.banner = { icon: pr.def.id, title: `¡${pr.def.name} se une!`, sub: pr.def.desc, t: 0 };
         this.burst(pr.x, pr.y, pr.def.color, 14, 16);
         sfx.clear();
       } else if (pr.kind === 'weapon' && pr.armed) {
@@ -494,7 +495,7 @@ export class Game {
         const isNew = this.unlockWeapon(this.player.weapon.id);
         this.banner = {
           title: `${this.player.weapon.icon} ${this.player.weapon.name}`,
-          sub: isNew ? '🔓 ¡Desbloqueada! Ya puedes elegirla al empezar' : weaponSummary(this.player.weapon),
+          sub: isNew ? '¡Desbloqueada! Ya puedes elegirla al empezar' : weaponSummary(this.player.weapon),
           t: 0,
         };
         this.burst(pr.x, pr.y, '#ffd23f', 10, 16);
@@ -676,7 +677,7 @@ export class Game {
         ex.locked = null;
         this.floor.hasKey = false;
         this.floor.keyUsed = true;
-        this.floatText(p.x, p.y - 54, '🗝️ ¡Abierta!', '#80ed99', 20);
+        this.floatText(p.x, p.y - 54, '¡Abierta!', '#80ed99', 20);
         sfx.buy();
         this.nopeT = 0.5; // un momento para ver cómo se abre antes de cruzar
         return;
@@ -775,7 +776,7 @@ export class Game {
       // las llaves se guardan al momento: no se pierden aunque mueras
       this.runKeys++;
       this.wallet = updateSave((s) => { s.keys++; s.totalKeys++; }).keys;
-      this.floatText(pk.x, pk.y - 20, '+1 🔑', '#ffd23f', 20);
+      this.floatText(pk.x, pk.y - 20, '+1 llave', '#ffd23f', 20);
       sfx.coin();
     }
   }
@@ -1453,7 +1454,9 @@ export class Game {
       if (this.floor.hasKey) {
         const m = minimapRect;
         roundBox(ctx, m.x, m.y + m.h + 8, m.w, 28, 10, 'rgba(29, 27, 44, 0.78)', 3);
-        outlinedText(ctx, `🗝️ ${this.floor.key.name}`, m.x + m.w / 2, m.y + m.h + 23, 14, '#dfe7f2', { lw: 4 });
+        outlinedText(ctx, this.floor.key.name, m.x + m.w / 2 + 10, m.y + m.h + 23, 14, '#dfe7f2', { lw: 4 });
+        ctx.font = '14px "ZS UI"';
+        drawEmojiAt(ctx, '🗝️', m.x + m.w / 2 - ctx.measureText(this.floor.key.name).width / 2 - 2, m.y + m.h + 23, 14);
       }
     }
     this.drawVignette(ctx);
@@ -1590,7 +1593,10 @@ export class Game {
       ctx.fillStyle = OUTLINE;
       ctx.fillRect(x + w / 2 - 2, y - 2, 4, 22);
     }
-    outlinedText(ctx, `${boss.icon} ${boss.name}${boss.phase === 2 ? ' 💢' : ''}`, this.ow / 2, y - 16, 22, '#ffd23f', { lw: 6 });
+    const bossName = `${boss.name}${boss.phase === 2 ? ' · ¡FURIOSO!' : ''}`;
+    outlinedText(ctx, bossName, this.ow / 2 + 16, y - 16, 22, '#ffd23f', { lw: 6 });
+    ctx.font = '22px "ZS UI"';
+    drawEmojiAt(ctx, boss.icon, this.ow / 2 + 16 - ctx.measureText(bossName).width / 2 - 20, y - 16, 22);
     ctx.restore();
   }
 
@@ -1604,7 +1610,17 @@ export class Game {
     const s = 0.6 + 0.4 * (1 - Math.pow(1 - appear, 3));
     ctx.translate(this.ow / 2, H * 0.3);
     ctx.scale(s, s);
-    outlinedText(ctx, b.title, 0, 0, 56, '#ffd23f', { lw: 12 });
+    const tx = b.icon ? 34 : 0;
+    outlinedText(ctx, b.title, tx, 0, 56, '#ffd23f', { lw: 12 });
+    if (b.icon) {
+      const img = itemIcon(b.icon);
+      if (img.complete && img.naturalWidth) {
+        ctx.font = '56px "ZS UI"';
+        const wTitle = ctx.measureText(b.title).width;
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, tx - wTitle / 2 - 74, -34, 68, 68);
+      }
+    }
     if (b.sub) outlinedText(ctx, b.sub, 0, 46, 24, '#ffffff', { lw: 7 });
     ctx.restore();
   }

@@ -19,7 +19,7 @@ setMusicOn(loadSave().settings.music);
 // Con ?mudo en la dirección el juego arranca sin sonido ni música (para probar sin molestar)
 if (new URLSearchParams(location.search).has('mudo')) {
   toggleMute();
-  document.getElementById('btn-mute').textContent = '🔇';
+  document.getElementById('btn-mute').innerHTML = '<i class="ico ico-mudo"></i>';
 }
 
 const ui = createUI(root);

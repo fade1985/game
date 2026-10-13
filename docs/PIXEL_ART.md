@@ -118,5 +118,5 @@ mismo). Si el suelo no encaja bien al repetirse, se retoca a mano o se dibuja co
 - **Barra de vida** (`assets/ui/barra-vida.png`, `create_ui_asset` con `health_bar`, 15 generaciones): el hueco del marco es transparente y la sangre (CSS) se ve por detrás.
 - **Minimapa** (`drawMinimap` en `render.js`): marco de 9 trozos con `boton-oscuro.png`, casillas cuadradas en colores sucios. Los textos del lienzo usan ya la fuente `ZS UI` (`game.js`).
 - **Más iconos** (17, mismo método): corazón, diana, trofeo, 4 edificios, 3 supervivientes y las salas del minimapa (puerta, escalera, candado, herramientas, zombi, jefe, corona). Las estadísticas de la pausa reutilizan iconos de objetos. En el lienzo, `drawEmoji` (`render.js`) cambia el emoji por el icono si existe.
-- **Pendiente:** los emojis sueltos que quedan (🎵 música, ▶ ⛶ ←, ✅ ⏱️ en el selector, textos de carteles dentro del juego),
-  minimapa y carteles dentro del juego.
+- **Emojis de botones y carteles:** quitados (▶ ← ↻ ⛶ 🎵 ✅ ⏱️ fuera, sin sustituto). Los carteles del lienzo (`drawBanner`) llevan `icon: '<id>'` y dibujan el icono PNG junto al título; la barra del jefe y la llave del minimapa usan `drawEmoji`. El "+1 llave" flotante es solo texto.
+- **Pendiente:** nada de emojis en la interfaz. Quedan los sprites de jefes, objetos del suelo (corazón, llaves, proyectiles) y efectos de la fase 5 original.
