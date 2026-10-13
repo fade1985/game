@@ -866,5 +866,30 @@
       ]
     },
     "descartados": "de lado, salieron mal (en diagonal o como torres): bed-lado 81bc10e3, bookshelf-lado 032a5bc3, wardrobe-lado 444310f9. Con guia, mas sosos que sin ella: sofa 60dde6b5, tv 21bc57b4, bookshelf 7c81d7fe, stove 35baf722. En diagonal: fridge c20c65a1, toilet 8b0c818c, sink be3cbd63, counter 4f355596"
+  },
+  "escenario-bano": {
+    "kind": "images",
+    "fecha": "2026-10-13",
+    "nota": "Piloto del tono nuevo del escenario (oscuro, sucio, con sangre; decidido por el dueño el 2026-10-13 a partir de una imagen de referencia de un baño). Piezas sueltas con create_image_pixflux, 1 generación cada una, en assets/sources/escenario-bano/. Maqueta (antes y después): py tools/maqueta_bano.py -> assets/pruebas/bano-maqueta.png. Aún NO está en el juego. Receta: muebles con 'front view facing the viewer, 3/4 top-down RPG perspective, game furniture sprite, horror game, muted colors', outline negro, highly detailed; cosas de pared con view side y 'seen straight from the front, wall mounted'; manchas del suelo lineless y 'seen from directly above, game decal sprite'.",
+    "coste": "22 generaciones (16 de la primera tanda, 6 de repetir)",
+    "piezas": {
+      "suelo2": "6f9e1282",
+      "pared": "ddd4a7a8",
+      "banera3": "26cdface (recta, pero llena de sangre: mejorable)",
+      "cortina": "4e0e56c9",
+      "lavabo": "5321f649 (lavabo, mueble y espejo roto: la mejor pieza)",
+      "vater": "235cb32e",
+      "alfombra": "138841bd",
+      "cascotes2": "806c3df5",
+      "sangre": "c6af6480",
+      "toallero": "4e028283",
+      "papelera": "db397b09",
+      "aplique2": "f1a36a78",
+      "papel": "e00f8721",
+      "escobilla": "b08636f7",
+      "mugre": "fb1b50d3",
+      "huellas": "c3794191"
+    },
+    "descartados": "suelo 771370c0 (con degradado, no hace mosaico), banera 9afe0a86 (en diagonal), banera2 04e06787 (img2img sobre la bañera actual con fuerza 180: apenas cambia), cascotes e98031cd (parece una piedra), aplique ed69af13 (bombilla de lado)"
   }
 }
