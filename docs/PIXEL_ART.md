@@ -117,5 +117,6 @@ mismo). Si el suelo no encaja bien al repetirse, se retoca a mano o se dibuja co
 - **Iconos del Taller y de los objetos** (10 más, mismo método): vida, fuerza, cordones, reflejos, mochila, proteínas, botiquín, café, guantes y casco (zapatillas reutiliza `dash.png`). Salen en el Taller, la pausa y la barra de objetos del juego (`itemIcon` en `game.js`).
 - **Barra de vida** (`assets/ui/barra-vida.png`, `create_ui_asset` con `health_bar`, 15 generaciones): el hueco del marco es transparente y la sangre (CSS) se ve por detrás.
 - **Minimapa** (`drawMinimap` en `render.js`): marco de 9 trozos con `boton-oscuro.png`, casillas cuadradas en colores sucios. Los textos del lienzo usan ya la fuente `ZS UI` (`game.js`).
-- **Pendiente:** iconos de edificios, equipo (supervivientes) y estadísticas de la pausa (siguen siendo emojis),
+- **Más iconos** (17, mismo método): corazón, diana, trofeo, 4 edificios, 3 supervivientes y las salas del minimapa (puerta, escalera, candado, herramientas, zombi, jefe, corona). Las estadísticas de la pausa reutilizan iconos de objetos. En el lienzo, `drawEmoji` (`render.js`) cambia el emoji por el icono si existe.
+- **Pendiente:** los emojis sueltos que quedan (🎵 música, ▶ ⛶ ←, ✅ ⏱️ en el selector, textos de carteles dentro del juego),
   minimapa y carteles dentro del juego.

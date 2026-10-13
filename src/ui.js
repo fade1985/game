@@ -74,7 +74,7 @@ export function createUI(root) {
       set('hpt', $('.hpbar span'), `${Math.ceil(p.hp)} / ${Math.round(g.stats.maxHp)}`);
       const w = g.player.weapon;
       set('weapon', $('#pill-weapon'), `<i class="ico ico-${w.id}"></i> <b>${w.name}</b>`, 'innerHTML');
-      set('team', $('#hud-team'), g.allies.map((al) => al.def.icon).join(''));
+      set('team', $('#hud-team'), g.allies.map((al) => `<i class="ico ico-${al.def.id}"></i>`).join(''), 'innerHTML');
       set('teamShow', $('#pill-team'), g.allies.length === 0, 'hidden');
       set('keys', $('#hud-keys'), String(g.wallet ?? 0));
     },
@@ -89,13 +89,13 @@ export function createUI(root) {
           <div class="col">
             <button class="btn yellow big" data-act="play">▶ JUGAR</button>
             ${canFullscreen() ? '<button class="btn green small" data-act="fullscreen">⛶ Pantalla completa</button>' : ''}
-            <button class="btn blue" data-act="workshop">🔧 Taller <span class="keys-chip"><i class="ico ico-llave"></i> ${save.keys}</span>${upgrades ? ` <small>· ${upgrades} mejora${upgrades > 1 ? 's' : ''}</small>` : ''}</button>
+            <button class="btn blue" data-act="workshop"><i class="ico ico-herramientas"></i> Taller <span class="keys-chip"><i class="ico ico-llave"></i> ${save.keys}</span>${upgrades ? ` <small>· ${upgrades} mejora${upgrades > 1 ? 's' : ''}</small>` : ''}</button>
           </div>
           <div class="hint panel small">
             <b>Moverse:</b> WASD / flechas · <b>Esquivar:</b> Espacio<br>
             Atacas solo al enemigo más cercano. ¡Limpia cada sala para abrir sus puertas!
           </div>
-          ${save.bestFloor ? `<div class="record">🏆 Mejor planta alcanzada: ${save.bestFloor}</div>` : ''}
+          ${save.bestFloor ? `<div class="record"><i class="ico ico-trofeo"></i> Mejor planta alcanzada: ${save.bestFloor}</div>` : ''}
         </div>`,
       { play, workshop, fullscreen: goFullscreen },
       (e) => {
@@ -112,20 +112,20 @@ export function createUI(root) {
         if (b.soon) {
           return `
             <div class="bcard soon">
-              <div class="bicon">${b.icon}</div>
+              <div class="bicon"><i class="ico ico-${b.id}"></i></div>
               <div class="bname">${b.name}</div>
               <div class="bdesc">${b.desc}</div>
-              <div class="bfoot">🔒 Próximamente</div>
+              <div class="bfoot"><i class="ico ico-candado"></i> Próximamente</div>
             </div>`;
         }
         const p = save.buildings[b.id] || { completed: false, runs: 0, wins: 0, bestFloor: 0, bestTime: 0 };
         const time = p.bestTime ? `${Math.floor(p.bestTime / 60)}:${String(Math.floor(p.bestTime % 60)).padStart(2, '0')}` : '';
         const progress = p.completed
           ? `✅ Completado ×${p.wins}${time ? ` · ⏱️ ${time}` : ''}`
-          : p.runs ? `🏆 Has llegado al nivel ${p.bestFloor} de ${b.floors}` : '¡Sin explorar!';
+          : p.runs ? `<i class="ico ico-trofeo"></i> Has llegado al nivel ${p.bestFloor} de ${b.floors}` : '¡Sin explorar!';
         return `
           <button class="bcard ${p.completed ? 'done' : ''}" data-act="pick" data-arg="${b.id}">
-            <div class="bicon">${b.icon}</div>
+            <div class="bicon"><i class="ico ico-${b.id}"></i></div>
             <div class="bname">${b.name}</div>
             <div class="bdesc">${b.desc}</div>
             <div class="bmeta">${b.floors - 1} plantas y azotea · ${p.runs} intento${p.runs === 1 ? '' : 's'}</div>
@@ -163,7 +163,7 @@ export function createUI(root) {
       }).join('');
       open(`
         <div class="panel workshop">
-          <h2 class="title">🔧 Taller del conserje</h2>
+          <h2 class="title"><i class="ico ico-herramientas"></i> Taller del conserje</h2>
           <p class="sub">Las llaves <i class="ico ico-llave"></i> que sueltan los zombis se guardan aunque pierdas.<br>Las mejoras se aplican al empezar cada edificio.</p>
           <div class="wallet"><i class="ico ico-llave"></i> ${save.keys} llave${save.keys === 1 ? '' : 's'}</div>
           <div class="wrows">${rows}</div>
@@ -184,21 +184,21 @@ export function createUI(root) {
       open(`
         <div class="panel pause">
           <h2 class="title">Pausa</h2>
-          <p class="sub">${g.building.icon} ${g.building.name} · ${g.floorLabel}</p>
+          <p class="sub"><i class="ico ico-${g.building.id}"></i> ${g.building.name} · ${g.floorLabel}</p>
           <div class="pause-grid">
             <div class="stats">
-              ${stat('❤️', 'Vida', `${Math.ceil(g.player.hp)} / ${Math.round(s.maxHp)}`)}
-              ${stat('💪', 'Daño', `x${s.damage.toFixed(2)}`)}
-              ${stat('⚡', 'Velocidad de ataque', `x${s.fireRate.toFixed(2)}`)}
-              ${stat('🔭', 'Alcance', `x${(s.range * (g.player.weapon.type === 'melee' ? s.meleeRange : 1)).toFixed(2)}`)}
-              ${stat('👟', 'Velocidad', Math.round(s.speed))}
-              ${stat('⛑️', 'Daño recibido', `x${s.damageTaken.toFixed(2)}`)}
-              ${stat('🎯', 'Crítico', `${Math.round(s.crit * 100)}%`)}
+              ${stat('<i class="ico ico-corazon"></i>', 'Vida', `${Math.ceil(g.player.hp)} / ${Math.round(s.maxHp)}`)}
+              ${stat('<i class="ico ico-fuerza"></i>', 'Daño', `x${s.damage.toFixed(2)}`)}
+              ${stat('<i class="ico ico-cafe"></i>', 'Velocidad de ataque', `x${s.fireRate.toFixed(2)}`)}
+              ${stat('<i class="ico ico-guantes"></i>', 'Alcance', `x${(s.range * (g.player.weapon.type === 'melee' ? s.meleeRange : 1)).toFixed(2)}`)}
+              ${stat('<i class="ico ico-dash"></i>', 'Velocidad', Math.round(s.speed))}
+              ${stat('<i class="ico ico-casco"></i>', 'Daño recibido', `x${s.damageTaken.toFixed(2)}`)}
+              ${stat('<i class="ico ico-diana"></i>', 'Crítico', `${Math.round(s.crit * 100)}%`)}
             </div>
             <div>
-              ${list('🗡️ Arma', [`<i class="ico ico-${g.player.weapon.id}"></i> <b>${g.player.weapon.name}</b> · ${weaponSummary(g.player.weapon)}`], '')}
-              ${list('🎒 Objetos', g.items.map((it) => `<i class="ico ico-${it.id}"></i> <b>${it.name}</b> · ${it.desc}`), 'Ninguno todavía')}
-              ${list('👥 Equipo', g.allies.map((al) => `${al.def.icon} <b>${al.def.name}</b> · ${al.def.desc}`), 'Nadie todavía: ¡rescata supervivientes!')}
+              ${list('<i class="ico ico-cuchillo"></i> Arma', [`<i class="ico ico-${g.player.weapon.id}"></i> <b>${g.player.weapon.name}</b> · ${weaponSummary(g.player.weapon)}`], '')}
+              ${list('<i class="ico ico-mochila"></i> Objetos', g.items.map((it) => `<i class="ico ico-${it.id}"></i> <b>${it.name}</b> · ${it.desc}`), 'Ninguno todavía')}
+              ${list('<i class="ico ico-policia"></i> Equipo', g.allies.map((al) => `<i class="ico ico-${al.def.id}"></i> <b>${al.def.name}</b> · ${al.def.desc}`), 'Nadie todavía: ¡rescata supervivientes!')}
             </div>
           </div>
           <div class="row-btns">
@@ -220,14 +220,14 @@ export function createUI(root) {
             <div class="stat"><span>🏢 Plantas superadas</span><b>${r.floors}</b></div>
             <div class="stat"><span>🧟 Enemigos derrotados</span><b>${r.kills}</b></div>
             <div class="stat"><span>🗺️ Apartamentos visitados (última planta)</span><b>${r.explored}</b></div>
-            <div class="stat"><span>👥 Equipo</span><b>${r.team}</b></div>
+            <div class="stat"><span><i class="ico ico-policia"></i> Equipo</span><b>${r.team}</b></div>
             ${r.time ? `<div class="stat"><span>⏱️ Tiempo</span><b>${r.time}</b></div>` : ''}
             <div class="stat key"><span><i class="ico ico-llave"></i> Llaves conseguidas</span><b>+${r.keys} <small>(tienes ${r.wallet})</small></b></div>
           </div>
           <div class="col">
             <button class="btn yellow big" data-act="retry">↻ ${r.win ? 'Jugar otra vez' : 'Reintentar edificio'}</button>
             <div class="row-btns">
-              <button class="btn green small" data-act="workshop">🔧 Taller</button>
+              <button class="btn green small" data-act="workshop"><i class="ico ico-herramientas"></i> Taller</button>
               <button class="btn blue small" data-act="menu">Menú principal</button>
             </div>
           </div>

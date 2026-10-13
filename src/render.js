@@ -662,7 +662,23 @@ export function drawMinimap(ctx, floor, current, title, time, screenW = W) {
   ctx.restore();
 }
 
+// Emojis que ya tienen icono pixel art (assets/ui/iconos); el resto se sigue dibujando como texto
+const EMOJI_ICONO = { '🚪': 'puerta', '🧰': 'herramientas', '🧟': 'zombi', '👹': 'jefe', '👑': 'corona', '🪜': 'escalera', '🔒': 'candado', '🗝️': 'llave' };
+const ICONOS = {};
 export function drawEmoji(ctx, emoji, x, y, size) {
+  const id = EMOJI_ICONO[emoji];
+  if (id) {
+    if (!ICONOS[id]) { ICONOS[id] = new Image(); ICONOS[id].src = `assets/ui/iconos/${id}.png`; }
+    const img = ICONOS[id];
+    if (img.complete && img.naturalWidth) {
+      const s = size * 1.5;
+      ctx.save();
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(img, x - s / 2, y - s / 2, s, s);
+      ctx.restore();
+      return;
+    }
+  }
   ctx.font = `${size}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';

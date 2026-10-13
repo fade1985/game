@@ -576,3 +576,23 @@ body.pixel .hpbar span {
   color: #f0e8d4;
   -webkit-text-stroke: 0.25em var(--line);
 }
+
+.bicon .ico { width: 3.2em; height: 3.2em; }
+.plist-title .ico, .stat .ico { width: 1.5em; height: 1.5em; }
+.ico-corazon { background-image: url('assets/ui/iconos/corazon.png'); }
+.ico-diana { background-image: url('assets/ui/iconos/diana.png'); }
+.ico-trofeo { background-image: url('assets/ui/iconos/trofeo.png'); }
+.ico-apartamentos { background-image: url('assets/ui/iconos/apartamentos.png'); }
+.ico-hospital { background-image: url('assets/ui/iconos/hospital.png'); }
+.ico-centro { background-image: url('assets/ui/iconos/centro.png'); }
+.ico-comisaria { background-image: url('assets/ui/iconos/comisaria.png'); }
+.ico-policia { background-image: url('assets/ui/iconos/policia.png'); }
+.ico-medico { background-image: url('assets/ui/iconos/medico.png'); }
+.ico-militar { background-image: url('assets/ui/iconos/militar.png'); }
+.ico-puerta { background-image: url('assets/ui/iconos/puerta.png'); }
+.ico-escalera { background-image: url('assets/ui/iconos/escalera.png'); }
+.ico-candado { background-image: url('assets/ui/iconos/candado.png'); }
+.ico-herramientas { background-image: url('assets/ui/iconos/herramientas.png'); }
+.ico-zombi { background-image: url('assets/ui/iconos/zombi.png'); }
+.ico-jefe { background-image: url('assets/ui/iconos/jefe.png'); }
+.ico-corona { background-image: url('assets/ui/iconos/corona.png'); }
