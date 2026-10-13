@@ -1,0 +1,125 @@
+{
+ "arte": [
+  192,
+  192
+ ],
+ "pared": 48,
+ "puertas": [
+  "abajo",
+  "izquierda",
+  "derecha"
+ ],
+ "piezas": [
+  {
+   "tipo": "banera",
+   "nombre": "BATHTUB",
+   "x": 6,
+   "y": 38,
+   "w": 64,
+   "h": 36,
+   "solido": [
+    6,
+    48,
+    64,
+    26
+   ]
+  },
+  {
+   "tipo": "lavabo",
+   "nombre": "SINK",
+   "x": 82,
+   "y": 30,
+   "w": 20,
+   "h": 31,
+   "solido": [
+    82,
+    48,
+    20,
+    13
+   ]
+  },
+  {
+   "tipo": "espejo",
+   "nombre": "MIRROR",
+   "x": 81,
+   "y": 8,
+   "w": 21,
+   "h": 16,
+   "solido": null
+  },
+  {
+   "tipo": "lavabo",
+   "nombre": "SINK",
+   "x": 108,
+   "y": 30,
+   "w": 20,
+   "h": 31,
+   "solido": [
+    108,
+    48,
+    20,
+    13
+   ]
+  },
+  {
+   "tipo": "espejo",
+   "nombre": "MIRROR",
+   "x": 107,
+   "y": 8,
+   "w": 21,
+   "h": 16,
+   "solido": null
+  },
+  {
+   "tipo": "vater",
+   "nombre": "TOILET",
+   "x": 142,
+   "y": 34,
+   "w": 15,
+   "h": 30,
+   "solido": [
+    142,
+    48,
+    15,
+    16
+   ]
+  },
+  {
+   "tipo": "papelera",
+   "nombre": "BIN",
+   "x": 160,
+   "y": 45,
+   "w": 9,
+   "h": 13,
+   "solido": [
+    160,
+    48,
+    9,
+    10
+   ]
+  },
+  {
+   "tipo": "lavadora",
+   "nombre": "WASHER",
+   "x": 172,
+   "y": 32,
+   "w": 17,
+   "h": 30,
+   "solido": [
+    172,
+    48,
+    17,
+    14
+   ]
+  },
+  {
+   "tipo": "alfombra",
+   "nombre": "MAT",
+   "x": 88,
+   "y": 74,
+   "w": 30,
+   "h": 16,
+   "solido": null
+  }
+ ]
+}

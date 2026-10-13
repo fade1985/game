@@ -1,0 +1,110 @@
+{
+ "arte": [
+  192,
+  192
+ ],
+ "pared": 48,
+ "puertas": [
+  "abajo",
+  "derecha"
+ ],
+ "piezas": [
+  {
+   "tipo": "banera-lado",
+   "nombre": "BATHTUB",
+   "x": 0,
+   "y": 42,
+   "w": 27,
+   "h": 70,
+   "solido": [
+    0,
+    48,
+    27,
+    64
+   ]
+  },
+  {
+   "tipo": "ducha",
+   "nombre": "SHOWER",
+   "x": 40,
+   "y": 8,
+   "w": 30,
+   "h": 68,
+   "solido": [
+    40,
+    48,
+    30,
+    28
+   ]
+  },
+  {
+   "tipo": "lavabo",
+   "nombre": "SINK",
+   "x": 84,
+   "y": 30,
+   "w": 20,
+   "h": 31,
+   "solido": [
+    84,
+    48,
+    20,
+    13
+   ]
+  },
+  {
+   "tipo": "espejo",
+   "nombre": "MIRROR",
+   "x": 83,
+   "y": 8,
+   "w": 21,
+   "h": 16,
+   "solido": null
+  },
+  {
+   "tipo": "toallero",
+   "nombre": "TOWEL",
+   "x": 110,
+   "y": 14,
+   "w": 16,
+   "h": 16,
+   "solido": null
+  },
+  {
+   "tipo": "vater",
+   "nombre": "TOILET",
+   "x": 132,
+   "y": 34,
+   "w": 15,
+   "h": 30,
+   "solido": [
+    132,
+    48,
+    15,
+    16
+   ]
+  },
+  {
+   "tipo": "armario",
+   "nombre": "CABINET",
+   "x": 164,
+   "y": 14,
+   "w": 20,
+   "h": 44,
+   "solido": [
+    164,
+    48,
+    20,
+    10
+   ]
+  },
+  {
+   "tipo": "alfombra",
+   "nombre": "MAT",
+   "x": 80,
+   "y": 76,
+   "w": 30,
+   "h": 16,
+   "solido": null
+  }
+ ]
+}

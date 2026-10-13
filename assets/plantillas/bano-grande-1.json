@@ -1,0 +1,171 @@
+{
+ "arte": [
+  288,
+  192
+ ],
+ "pared": 48,
+ "puertas": [
+  "abajo",
+  "izquierda",
+  "derecha"
+ ],
+ "piezas": [
+  {
+   "tipo": "banera",
+   "nombre": "BATHTUB",
+   "x": 8,
+   "y": 38,
+   "w": 64,
+   "h": 36,
+   "solido": [
+    8,
+    48,
+    64,
+    26
+   ]
+  },
+  {
+   "tipo": "ducha",
+   "nombre": "SHOWER",
+   "x": 84,
+   "y": 8,
+   "w": 30,
+   "h": 68,
+   "solido": [
+    84,
+    48,
+    30,
+    28
+   ]
+  },
+  {
+   "tipo": "toallero",
+   "nombre": "TOWEL",
+   "x": 118,
+   "y": 14,
+   "w": 16,
+   "h": 16,
+   "solido": null
+  },
+  {
+   "tipo": "lavabo",
+   "nombre": "SINK",
+   "x": 140,
+   "y": 30,
+   "w": 20,
+   "h": 31,
+   "solido": [
+    140,
+    48,
+    20,
+    13
+   ]
+  },
+  {
+   "tipo": "espejo",
+   "nombre": "MIRROR",
+   "x": 139,
+   "y": 8,
+   "w": 21,
+   "h": 16,
+   "solido": null
+  },
+  {
+   "tipo": "lavabo",
+   "nombre": "SINK",
+   "x": 166,
+   "y": 30,
+   "w": 20,
+   "h": 31,
+   "solido": [
+    166,
+    48,
+    20,
+    13
+   ]
+  },
+  {
+   "tipo": "espejo",
+   "nombre": "MIRROR",
+   "x": 165,
+   "y": 8,
+   "w": 21,
+   "h": 16,
+   "solido": null
+  },
+  {
+   "tipo": "vater",
+   "nombre": "TOILET",
+   "x": 204,
+   "y": 34,
+   "w": 15,
+   "h": 30,
+   "solido": [
+    204,
+    48,
+    15,
+    16
+   ]
+  },
+  {
+   "tipo": "papelera",
+   "nombre": "BIN",
+   "x": 222,
+   "y": 45,
+   "w": 9,
+   "h": 13,
+   "solido": [
+    222,
+    48,
+    9,
+    10
+   ]
+  },
+  {
+   "tipo": "armario",
+   "nombre": "CABINET",
+   "x": 238,
+   "y": 14,
+   "w": 20,
+   "h": 44,
+   "solido": [
+    238,
+    48,
+    20,
+    10
+   ]
+  },
+  {
+   "tipo": "lavadora",
+   "nombre": "WASHER",
+   "x": 264,
+   "y": 32,
+   "w": 17,
+   "h": 30,
+   "solido": [
+    264,
+    48,
+    17,
+    14
+   ]
+  },
+  {
+   "tipo": "alfombra",
+   "nombre": "MAT",
+   "x": 24,
+   "y": 82,
+   "w": 30,
+   "h": 16,
+   "solido": null
+  },
+  {
+   "tipo": "alfombra",
+   "nombre": "MAT",
+   "x": 148,
+   "y": 74,
+   "w": 30,
+   "h": 16,
+   "solido": null
+  }
+ ]
+}
