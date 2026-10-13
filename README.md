@@ -101,6 +101,7 @@ partida queda desbloqueada para siempre**. Con `?armas` en la dirección se ven 
 | 🔪 Cuchillo | Cuerpo a cuerpo | 9 | 4 | Rapidísimo pero de corto alcance |
 | 🔫 Pistola | A distancia | 10 | 2,5 | Largo alcance |
 | 💥 Escopeta | A distancia | 7 × 5 | 1 | Abanico de perdigones |
+| 🔫 MP5 | A distancia | 4 | 8 | Ráfaga continua, algo imprecisa |
 
 Los golpes cuerpo a cuerpo también **destruyen los proyectiles enemigos**. Las mejoras (daño, velocidad de
 ataque, alcance) multiplican las estadísticas del arma que lleves.

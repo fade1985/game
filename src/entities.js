@@ -156,7 +156,7 @@ export class Player {
         dmg: w.damage * s.damage,
         count: n,
         spread: w.pellets > 1 ? w.spread : 0.16,
-        jitter: w.pellets > 1 ? 0.06 : 0,
+        jitter: w.pellets > 1 ? 0.06 : w.jitter || 0,
         speed: w.speed * s.bulletSpeed,
         life: (w.range * s.range) / (w.speed * s.bulletSpeed),
         pierce: s.pierce,

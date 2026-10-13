@@ -80,7 +80,19 @@ Preguntas pendientes, por orden:
        el común se ponía de perfil.
      - **Lo descartado del cuchillo ya está borrado de PixelLab** (13 de octubre de 2026, con su confirmación):
        las dos primeras pruebas de ataque y el ataque de frente en el que se giraba.
-   - **Ya no queda ningún arma por hacer:** las cinco tienen hoja propia.
+   - **El MP5 es un arma nueva, la sexta** (sprite `conserje-48-mp5`, 13 de octubre de 2026; 16 generaciones de
+     animaciones más las 10–25 del estado). No existía en el juego: la pidió el dueño con `/arma-nueva mp5`.
+     Reposo, andar y disparo en las 8 direcciones; todo salió bien a la primera, sin repeticiones.
+     **Pendiente de su visto bueno final jugando.**
+     - **Números provisionales** (propuestos al dueño, que no los ha confirmado ni cambiado): daño 4, 8 disparos
+       por segundo, alcance 340, empuje 0,3 y `jitter: 0.14` (cada bala se desvía un poco al azar; es un dato
+       nuevo de `weapons.js`, antes las armas de una bala iban siempre rectas).
+     - **Dónde sale (también provisional):** no tiene mueble propio, así que espera en la caja del sexto hueco
+       de la sala de mantenimiento, cerrada hasta que se encuentra en un botín.
+     - A 8 disparos por segundo cada disparo dura 0,12 s: la animación son solo 3 fotogramas (fogonazo y dos de
+       humo) que se repiten con cada bala.
+     - Al lanzar el andar, PixelLab devolvió un error de servidor pero **sí había lanzado las 8 direcciones**:
+       ante un error así, mirar `get_character` antes de reintentar, para no pagar dos veces.
 2. **La skill `/arma-nueva` ya existe** (`.claude/skills/arma-nueva/SKILL.md`). Si en una sesión nueva no
    aparece en la lista, leer ese archivo y seguirlo igual.
 3. **Limpieza de los estados de la fregona, del bate y de la pistola: hecha** el 12 de octubre de 2026 con su confirmación. En

@@ -9,6 +9,7 @@
 //    reach    alcance del golpe (melee) · range: alcance de la bala (ranged)
 //    arc      apertura del barrido en grados (melee)
 //    knock    fuerza del empuje (1 = normal)
+//    jitter   (a distancia, de una sola bala) cuánto se desvía cada bala al azar, en radianes; sin él, va recta
 //    stash    mueble de la entrada donde espera el arma: cubo, paraguero, encimera, comoda o taquilla
 //             (si no se pone, sale en una caja). Los muebles se dibujan en props.js
 //    sprite   (solo versión pixel) hoja de sprites del conserje con esta arma en la mano, con sus animaciones
@@ -38,6 +39,11 @@ export const WEAPONS = {
   escopeta: {
     id: 'escopeta', stash: 'taquilla', name: 'Escopeta', icon: '💥', type: 'ranged', sprite: 'conserje-48-escopeta',
     damage: 7, rate: 1, range: 260, speed: 540, pellets: 5, spread: 0.55, knock: 1.2, muzzle: 38,
+  },
+  // Sin mueble propio: espera en una caja. Ráfaga de balas flojas y algo imprecisas (números provisionales)
+  mp5: {
+    id: 'mp5', name: 'MP5', icon: '🔫', type: 'ranged', sprite: 'conserje-48-mp5',
+    damage: 4, rate: 8, range: 340, speed: 640, pellets: 1, spread: 0, jitter: 0.14, knock: 0.3, muzzle: 30,
   },
 };
 
@@ -107,6 +113,15 @@ export function drawWeapon(ctx, w) {
       ctx.beginPath(); ctx.roundRect(6, -3, 28, 6, 2);
       ctx.fillStyle = '#3a3d47'; ctx.fill(); ctx.stroke();
       ctx.beginPath(); ctx.roundRect(10, 2, 5, 9, 2);
+      ctx.fillStyle = '#2f3240'; ctx.fill(); ctx.stroke();
+      break;
+    }
+    case 'mp5': {
+      ctx.beginPath(); ctx.roundRect(-9, -4, 12, 7, 2);
+      ctx.fillStyle = '#2f3240'; ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.roundRect(1, -4, 24, 8, 2);
+      ctx.fillStyle = '#3a3d47'; ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.roundRect(11, 3, 6, 11, 2);
       ctx.fillStyle = '#2f3240'; ctx.fill(); ctx.stroke();
       break;
     }

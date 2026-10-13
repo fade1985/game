@@ -436,6 +436,48 @@
     },
     "cost_total": "18 generaciones de animaciones (comprobado con el saldo: de 1.722 a 1.704) más las 10-25 del estado"
   },
+  "conserje-48-mp5": {
+    "kind": "character_state",
+    "character_id": "df8f8545-632d-405a-aed9-8dbfda04a45d",
+    "source_character_id": "4e6c78c6-d6c6-46d3-99c1-40a2d86f0e6c",
+    "state_name": "MP5 en guardia",
+    "nota": "Estado de Johnny con un subfusil MP5 (2026-10-13), hecho con la skill /arma-nueva. Arma nueva: no existía en el juego. Lienzo de 64x64. De frente lo lleva cruzado y de espaldas el cañón asoma por el hombro izquierdo, como la escopeta. EN EL JUEGO (sprite conserje-48-mp5): reposo, andar y disparo en las 8 direcciones. Pendiente del visto bueno final del dueño. Se monta con: py tools/arma.py conserje-48-mp5",
+    "request": {
+      "edit_description": "holding a compact black MP5 submachine gun with both hands in a ready shooting stance, knees slightly bent, the short stock tucked against his right shoulder, one hand on the pistol grip near the trigger and the other hand under the short handguard, the short barrel pointing straight ahead in the direction he is facing; the submachine gun stays aimed forward in every view: front, side and back; short matte black gun with a curved black magazine hanging below it; same face, same hair and red bandana, same clothes, same body size and proportions",
+      "override_width": 64,
+      "override_height": 64,
+      "use_color_palette_from_reference": true
+    },
+    "cost": "entre 10 y 25 generaciones (PixelLab no dio la cifra exacta)",
+    "updated": "2026-10-13",
+    "ataque": {
+      "nota": "Disparo: retroceso corto, fogonazo pequeño, humo y casquillo, las 8 direcciones. PixMiniMax, 8 fotogramas más el de partida, con el lienzo de 96x96 como fotograma de partida y de llegada. Fotogramas en assets/sources/conserje-48-mp5/ataque/. Solo se usan 3, empezando por el del fogonazo (el arma dispara 8 veces por segundo). Todas bien a la primera. Texto común (east) para west, south-east y south-west cambiando initial_pose; en south se le antepone 'He keeps facing the camera the whole time and never turns.'; en north-east y north-west, 'He keeps the same three-quarter back view the whole time, facing away from the camera and to the right/left, and never turns to face the camera.' y el sujeto lleva 'seen from behind'; north tiene el suyo.",
+      "group": "6d5b0858-7fba-4c7d-b1cb-9ca40f93ba59 (east, west, south, south-east, south-west); north: 0dc89069-9d10-42a2-b130-59c2b86ce944; north-east: f63b1aea-f7e1-41e7-af7b-771dd4d45dbe; north-west: 4920f655-01a7-4779-8aa6-8873da514c7d",
+      "animation_name": "disparo-mp5",
+      "subject_description": "a young male janitor with brown hair and a red bandana, cream shirt and blue work overalls, holding a compact black submachine gun with both hands",
+      "initial_pose": {
+        "east": "standing in a ready shooting stance facing right, the stock of the submachine gun against his shoulder, the short barrel aimed straight to the right",
+        "south": "standing in a ready shooting stance facing the camera, holding the submachine gun with both hands in front of his chest, the stock against his shoulder",
+        "south-east": "standing in a ready shooting stance in three-quarter front view, facing toward the camera and to the right, the stock of the submachine gun against his shoulder, the short barrel aimed down and to the right",
+        "north-east": "standing in a ready shooting stance in three-quarter back view, facing away from the camera and to the right, the stock of the submachine gun against his shoulder, the short barrel aimed up and to the right"
+      },
+      "action_description": "He fires one single quick shot with the submachine gun. The gun kicks back with a short, light, snappy recoil: the stock taps his shoulder, his shoulders shake a little and the short barrel jumps up very slightly, while his feet stay planted and he keeps aiming in exactly the same direction. A small, sharp, bright yellow and orange muzzle flash bursts out of the end of the short barrel for an instant, then a small thin wisp of light grey smoke drifts from the muzzle and a tiny brass shell casing flips out of the side of the gun. The flash and the smoke fade away quickly, he brings the barrel back level and settles cleanly into the starting ready stance. Only one shot, no second flash. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation.",
+      "north": {
+        "subject_description": "a young male janitor seen from behind, brown hair and a red bandana, cream shirt and blue work overalls, holding a compact black submachine gun with both hands",
+        "initial_pose": "standing in a ready shooting stance seen from behind, his back to the camera, facing away toward the top of the image, the short barrel of the submachine gun sticking up past his left shoulder toward the top of the image",
+        "action_description": "Strict back view the whole time: we only ever see the back of his head, the knot of the red bandana and the back of his overalls; he never turns around and his face is never visible. He fires one single quick shot with the submachine gun away from the camera, toward the top of the image. The gun kicks back with a short, light, snappy recoil: his shoulders and elbows shake a little and the barrel jumps very slightly, while his feet stay planted. A small, sharp, bright yellow and orange muzzle flash bursts out of the end of the short barrel for an instant, above his shoulder, then a small thin wisp of light grey smoke rises from the muzzle and a tiny brass shell casing flips out to the side. The flash and the smoke fade away quickly and he settles cleanly into the starting ready stance, still seen from behind. Only one shot. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down back view throughout."
+      },
+      "cost": "8 generaciones"
+    },
+    "andar": {
+      "nota": "PixMiniMax, 12 fotogramas más el de partida, las 8 direcciones en una llamada. Salieron limpias (sin fogonazos colados). Fotogramas en assets/sources/conserje-48-mp5/walk/. tools/arma.py avisa de que el ciclo cierra regular en south y north. La llamada devolvió un error de servidor (IdleInTransactionSessionTimeout) pero sí lanzó las 8: mirar get_character antes de reintentar.",
+      "group": "a2fae0f0-1405-4ebe-8f05-1d811b20b7c0",
+      "animation_name": "andar-mp5",
+      "cost": "8 generaciones",
+      "action_description": "He walks forward in place at a steady, calm pace in a smooth, seamless looping walk cycle: his legs stride alternately in a regular rhythm, knees lifting and boots stepping one after the other, with a slight bob of the torso on each step. He keeps facing exactly the same direction the whole time and never turns. His upper body stays almost still: he quietly carries the submachine gun with both hands in the same ready grip the whole time, the stock against his shoulder, the short barrel held steady in the same place and only swaying very slightly with each step. The submachine gun is silent and idle. The tail of the red bandana sways a little. Nothing else appears in the image: only the walking man on an empty background. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation."
+    },
+    "cost_total": "entre 26 y 41 generaciones: 10-25 del estado, 8 del disparo y 8 del andar; nada descartado"
+  },
   "zombi-venenoso-48": {
     "kind": "character",
     "character_id": "d8d5f941-74ff-400e-b52b-20d9dc6d6b06",
