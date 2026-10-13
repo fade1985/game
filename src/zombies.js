@@ -19,25 +19,27 @@ const REACH = 18;     // a qué distancia del conserje (además de los dos radio
 // Un zombi muerto: cae y se queda tendido en el suelo. Solo es dibujo (no estorba ni se puede coger).
 // Lo deja el propio zombi al morir si su hoja de sprites tiene la animación "death".
 class Corpse {
-  constructor(sprite, x, y, dir, time) {
+  constructor(sprite, x, y, dir, time, scale = 1) {
     this.kind = 'corpse';
     this.sprite = sprite;
     this.x = x;
     this.y = y - 12;       // se ordena un poco más arriba: los que siguen en pie se dibujan por encima
     this.dir = dir;
     this.t0 = time;
+    this.scale = scale;    // el mismo tamaño de dibujo que tenía en vida
     this.solid = false;
     this.taken = true;     // así el juego no intenta recogerlo ni señalarlo
   }
 
   draw(ctx, game) {
-    drawSprite(ctx, this.sprite, 'death', this.dir, game.time - this.t0, this.x, this.y + 12 + 15);
+    drawSprite(ctx, this.sprite, 'death', this.dir, game.time - this.t0, this.x, this.y + 12 + 15, { scale: this.scale });
   }
 }
 
 export const ZOMBIE_TYPES = {
   lento: {
-    name: 'Zombi lento', r: 17, s: 1.05, hp: 30, speed: 45, dmg: 10, push: 130,
+    // medio cuerpo: su dibujo se encoge un poco (spriteScale) para que no abulte tanto como uno entero
+    name: 'Zombi lento', r: 17, s: 1.05, spriteScale: 0.85, hp: 30, speed: 45, dmg: 10, push: 130,
     look: { skin: '#a8c686', hair: '#5b4a3a', shirt: '#8d7b68', pants: '#5c5470', shoes: '#3b3550' },
   },
   normal: {
@@ -58,7 +60,7 @@ export const ZOMBIE_TYPES = {
   },
   venenoso: {
     // el gordo: su dibujo se amplía (spriteScale) para que imponga junto al conserje
-    name: 'Zombi venenoso', r: 16, s: 1.25, spriteScale: 1.25, hp: 35, speed: 60, dmg: 8, push: 160,
+    name: 'Zombi venenoso', r: 16, s: 1.5, spriteScale: 1.5, hp: 35, speed: 60, dmg: 8, push: 160,
     look: { skin: '#b5e655', hair: '#4f772d', shirt: '#4f772d', pants: '#31572c', shoes: '#2e2a3a' },
   },
 };
@@ -265,7 +267,7 @@ export class Zombie {
       const props = game.room.props;
       const old = props.filter((pr) => pr.kind === 'corpse');
       if (old.length >= CORPSES) props.splice(props.indexOf(old[0]), 1);
-      props.push(new Corpse(this.sprite, this.x, this.y, dirFromVector(this.lookX, this.lookY), game.time));
+      props.push(new Corpse(this.sprite, this.x, this.y, dirFromVector(this.lookX, this.lookY), game.time, this.def.spriteScale));
     }
   }
 
