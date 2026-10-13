@@ -64,18 +64,32 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
 
 ## Variantes de color (13 de octubre de 2026)
 
-- **Hecho: zombi normal con 6 variantes** (`rojo`, `bata`, `mostaza`, `negro`, `militar`, `turquesa`; la primera tanda, más apagada, se parecía demasiado y se rehízo) además de la de siempre. Solo cambia el
-  color de la ropa y la piel: misma vida, velocidad y daño. `py tools/variantes.py zombi-normal` genera las hojas
-  `assets/sprites/zombi-normal-<variante>.png/.json` a partir de la original (sin tocarla): decide por el tono de cada
-  píxel qué es camisa (azul claro), pantalón (azul oscuro) y piel (verde), y conserva el sombreado. Las recetas de
-  cada variante están al principio de `tools/variantes.py`.
+- **Hecho: zombi normal y zombi lento con 6 variantes cada uno** (`rojo`, `bata`, `mostaza`, `negro`, `militar`,
+  `turquesa`) además de la de siempre. Solo cambia el color de la ropa y la piel: misma vida, velocidad y daño.
+  **Pendiente del visto bueno del dueño.** Capturas: `assets/pruebas/variantes-zombis.png` (las 7 versiones de cada
+  uno en tres vistas) y `variantes-zombis-en-juego.jpg`.
+- **Cómo se generan:** `py tools/variantes.py <zombi>` escribe `assets/sprites/<zombi>-<variante>.png/.json` a partir
+  de la hoja original, sin tocarla ni gastar generaciones. Va en dos pasos (explicados en la cabecera del script):
+  1. **Qué es cada píxel** (camisa, pantalón, piel o no tocar). No vale mirar solo el tono: cada píxel dudoso mira a
+     sus vecinos. `py tools/variantes.py <zombi> --mapa` guarda en `assets/pruebas/<zombi>-mapa-variantes.png` lo que
+     ha entendido (camisa azul, pantalón naranja, piel verde, gris = no se toca): mirarlo siempre antes de dar por
+     buena una hoja nueva.
+  2. **De qué color se pinta:** cada prenda de cada variante es una escala de 5 colores elegidos a mano, de sombra a
+     luz (`CAMISA`, `PANTALON`, `PIEL` al principio del script). Así se conserva el sombreado.
 - **En el juego:** `variantes` en `ZOMBIE_TYPES` (zombies.js). Cada zombi elige al nacer una al azar (o la de siempre,
   todas con la misma probabilidad) y su cuerpo muerto conserva el color. Si la hoja no está cargada, usa la de siempre.
-  Captura: `assets/pruebas/variantes-zombis.png`. **Pendiente del visto bueno del dueño.**
-- **Zombi lento, con las mismas 6 variantes** (mismas recetas). Su ropa es marrón y no tiene pantalón, y la sangre
-  roja no se toca: cada zombi tiene sus tonos en `ZOMBIS` de `tools/variantes.py`. Pega: abajo del torso queda una
-  franja marrón sin recolorear (si se amplía el rango, también se tiñe el pelo).
-- **Siguiente:** repetirlo con los zombis que vayan teniendo pixel art (añadir su entrada en `ZOMBIS`).
+- **Lo que se aprendió por el camino** (tres tandas descartadas):
+  - Girar el tono y subir la saturación deja los colores planos y chillones, y varias variantes se parecen entre sí.
+    El rosa/morado desentonaba con el juego. Por eso ahora son escalas hechas a mano.
+  - La piel nunca en color carne: parece una persona viva. Siempre verde, gris o amarillento.
+  - Zombi normal: los brillos del vaquero son del mismo azul que la camisa (salían manchas en las piernas).
+  - Zombi lento: camisa, pelo, sombras de la cara y tripas son el mismo marrón. Se resuelve así: la cabeza se
+    localiza siguiendo la cara fotograma a fotograma (`CABEZA_LENTO`: dónde está la cara en el dibujo quieto de cada
+    dirección) y lo marrón de ahí se deja; lo marrón pegado a la piel o muy fino (manos, dedos) también se deja,
+    porque sus brazos son piel podrida y no mangas. Resultado: se pinta el torso y los hombros, como una camiseta.
+    Junto a las tripas queda una franja marrón sin pintar (se lee como ropa empapada de sangre).
+- **Siguiente:** repetirlo con los zombis que vayan teniendo pixel art: añadir su pareja `clases_*`/`decide_*` y su
+  entrada en `ZOMBIS`, y comprobar con `--mapa`.
 
 ### Ideas guardadas (no se hacen todavía; el dueño quiere centrarse en el color)
 
