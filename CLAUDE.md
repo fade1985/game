@@ -120,7 +120,7 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
   con el venenoso): se corrige gratis con `py tools/piel.py <sprite>` y las 8 vistas corregidas se importan como
   personaje nuevo (`create_character` en modo `v3` con `direction_images`, 0,25 generaciones).
 - **El zombi normal ya está en el juego** (sprite `zombi-normal`, a 48 píxeles): reposo, andar, zarpazo, golpe
-  recibido y muerte en las 8 direcciones. Costó unas 43 generaciones. **Pendiente del visto bueno final del dueño**
+  recibido y muerte en las 8 direcciones. Costó unas 43 generaciones. **Con el visto bueno final del dueño (13 de octubre de 2026)**
   (captura en `assets/pruebas/zombi-normal-en-juego.jpg`, GIF de cada animación en `assets/pruebas/zombi-normal-*.gif`).
   - **Cómo se monta:** `py tools/zombi.py zombi-normal-48 zombi-normal` rehace la hoja (casillas de 96×96) a partir
     de `assets/sources/zombi-normal-48/` (`rotations/`, `walk/`, `ataque/`, `golpe/`, `muerte/`). Oscurece la sangre
@@ -133,6 +133,6 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
     brazos estirados (con el texto común se giraba de perfil); el ciclo de andar no cierra del todo limpio.
   - **Limpieza pendiente en PixelLab (solo con su confirmación):** el personaje de piel beige, el andar de
     plantilla y los cuatro andares descartados.
-  - **Siguiente:** con su visto bueno, crear la skill `/zombi-nuevo` y seguir con los otros cinco (lento, rápido,
-    explosivo, tentáculos y venenoso).
+  - **Siguiente:** skill `/zombi-nuevo` creada (`.claude/skills/zombi-nuevo/SKILL.md`). Faltan lento, rápido,
+    explosivo, tentáculos y venenoso (este último, rehacerlo: salió con la piel beige).
 
