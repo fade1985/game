@@ -154,7 +154,7 @@ export function createUI(root) {
         const pips = Array.from({ length: up.max }, (_, i) => `<i class="${i < lvl ? 'on' : ''}"></i>`).join('');
         return `
           <div class="wrow ${maxed ? 'maxed' : ''}">
-            <div class="wicon">${up.icon}</div>
+            <div class="wicon"><i class="ico ico-${up.id}"></i></div>
             <div class="winfo"><b>${up.name}</b><span>${up.desc}</span><div class="pips">${pips}</div></div>
             <button class="btn ${maxed ? 'green' : 'yellow'} small" data-act="buy" data-arg="${up.id}" ${maxed || save.keys < price ? 'disabled' : ''}>
               ${maxed ? 'MÁX' : `<i class="ico ico-llave"></i> ${price}`}
@@ -197,7 +197,7 @@ export function createUI(root) {
             </div>
             <div>
               ${list('🗡️ Arma', [`<i class="ico ico-${g.player.weapon.id}"></i> <b>${g.player.weapon.name}</b> · ${weaponSummary(g.player.weapon)}`], '')}
-              ${list('🎒 Objetos', g.items.map((it) => `${it.icon} <b>${it.name}</b> · ${it.desc}`), 'Ninguno todavía')}
+              ${list('🎒 Objetos', g.items.map((it) => `<i class="ico ico-${it.id}"></i> <b>${it.name}</b> · ${it.desc}`), 'Ninguno todavía')}
               ${list('👥 Equipo', g.allies.map((al) => `${al.def.icon} <b>${al.def.name}</b> · ${al.def.desc}`), 'Nadie todavía: ¡rescata supervivientes!')}
             </div>
           </div>

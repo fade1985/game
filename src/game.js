@@ -43,6 +43,16 @@ const NOTICE = 330;        // a qué distancia nota un zombi dormido al conserje
 const ALERT = 170;         // un zombi que despierta despierta a los que tiene así de cerca
 const NOISE = 430;         // hasta dónde se oye un disparo (despierta aunque haya tabiques)
 
+// Iconos pixel art de los objetos (los mismos del CSS); 'zapatillas' reutiliza el del dash
+const ITEM_ICONS = {};
+function itemIcon(id) {
+  if (!ITEM_ICONS[id]) {
+    ITEM_ICONS[id] = new Image();
+    ITEM_ICONS[id].src = `assets/ui/iconos/${id === 'zapatillas' ? 'dash' : id}.png`;
+  }
+  return ITEM_ICONS[id];
+}
+
 const KEY_CHANCE = 0.07;   // probabilidad de que un zombi suelte una llave 🔑
 const HEART_CHANCE = 0.05; // ...o un corazón
 const HEART_HEAL = 15;
@@ -1537,10 +1547,11 @@ export class Game {
     const x0 = 16, y0 = 12, size = 30;
     roundBox(ctx, x0 - 6, y0 - 4, this.items.length * (size + 4) + 8, size + 8, 10, 'rgba(29, 27, 44, 0.7)', 3);
     this.items.forEach((it, i) => {
-      ctx.font = `${size - 8}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(it.icon, x0 + i * (size + 4) + size / 2, y0 + size / 2 + 1);
+      const img = itemIcon(it.id);
+      if (img.complete && img.naturalWidth) {
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, x0 + i * (size + 4), y0, size, size);
+      }
     });
   }
 

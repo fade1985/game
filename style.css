@@ -523,3 +523,17 @@ body.pixel * { scrollbar-color: #7a4a33 #1a1620; scrollbar-width: thin; }
 .ico-cuchillo { background-image: url('assets/ui/iconos/cuchillo.png'); }
 .ico-pistola { background-image: url('assets/ui/iconos/pistola.png'); }
 .ico-escopeta { background-image: url('assets/ui/iconos/escopeta.png'); }
+
+body.pixel .wicon { width: 3.2em; flex: none; font-size: 1em; }
+.wicon .ico { width: 3.2em; height: 3.2em; }
+.ico-zapatillas { background-image: url('assets/ui/iconos/dash.png'); }
+.ico-vida { background-image: url('assets/ui/iconos/vida.png'); }
+.ico-fuerza { background-image: url('assets/ui/iconos/fuerza.png'); }
+.ico-cordones { background-image: url('assets/ui/iconos/cordones.png'); }
+.ico-reflejos { background-image: url('assets/ui/iconos/reflejos.png'); }
+.ico-mochila { background-image: url('assets/ui/iconos/mochila.png'); }
+.ico-proteinas { background-image: url('assets/ui/iconos/proteinas.png'); }
+.ico-botiquin { background-image: url('assets/ui/iconos/botiquin.png'); }
+.ico-cafe { background-image: url('assets/ui/iconos/cafe.png'); }
+.ico-guantes { background-image: url('assets/ui/iconos/guantes.png'); }
+.ico-casco { background-image: url('assets/ui/iconos/casco.png'); }
