@@ -611,10 +611,10 @@
         "shading": true
       }
     },
-    "cost": "52,25 generaciones: 6 del primer modelo (descartado), 6 del segundo, 0,25 de importarlo, 5 de pruebas de perfil y 35 de la tanda completa. El andar de 12 fotogramas cuesta 2 por dirección, no 1.",
+    "cost": "53,25 generaciones: 6 del primer modelo (descartado), 6 del segundo, 0,25 de importarlo, 5 de pruebas de perfil, 35 de la tanda completa y 1 de repetir la muerte hacia la izquierda. El andar de 12 fotogramas cuesta 2 por dirección, no 1.",
     "updated": "2026-10-13",
-    "character_id_sin_corregir": "920ea2c0-5116-450e-ae14-c4ab3e620b5b",
-    "descartado": "Primer modelo, 3e39b7cf-766c-43c0-a71e-270b0d1161ba: de espaldas salió con piernas y botas (vistas en rotations-intento-1/). Lo arregló decir en el texto 'NO legs, NO hips... from any angle', 'flat on his belly, not kneeling and not on all fours' y describir lo que se ve de espaldas.",
+    "character_id_sin_corregir": "920ea2c0-5116-450e-ae14-c4ab3e620b5b (BORRADO de PixelLab el 2026-10-13 con confirmación del dueño; sus vistas siguen en rotations-original/)",
+    "descartado": "Primer modelo, 3e39b7cf-766c-43c0-a71e-270b0d1161ba (BORRADO de PixelLab el 2026-10-13 con confirmación del dueño): de espaldas salió con piernas y botas (vistas en rotations-intento-1/). Lo arregló decir en el texto 'NO legs, NO hips... from any angle', 'flat on his belly, not kneeling and not on all fours' y describir lo que se ve de espaldas.",
     "animaciones": {
       "nota": "Todo con PixMiniMax sobre 4cec5a4e. Andar: 12 fotogramas sin fotograma de partida (el fotograma 12 vuelve a la postura del 0, así que el ciclo son los fotogramas 0 a 11). Ataque y golpe: 8 fotogramas, partida y final = dibujo quieto pegado en (24, 32) de un lienzo de 96x96 (partida/<dirección>.png). Muerte: 8 fotogramas, solo partida. Por dirección cambian initial_pose y un prefijo ('Strict front view the whole time...', 'He keeps the same three-quarter front/back view the whole time...', 'Strict back view the whole time...'); de espaldas el subject dice 'seen from behind' y la muerte dice hacia dónde quedan la cabeza y el muñón. Los fotogramas se bajaron de una vez con el zip de /mcp/characters/<id>/download.",
       "subject_description": "the legless upper half of a male zombie with grey-green skin, messy dark brown hair and a torn brown shirt, his body ending in a dark bloody stump at the waist",
@@ -635,8 +635,9 @@
         "group": "b92db6dd-9661-4e8c-af70-952282924ba8",
         "action_description": "He is killed. His head jerks from a final blow, then his arms give way and go limp, his chest and face drop flat onto the floor and his arms slide out loosely in front of him. His whole body flattens against the ground, face down. Then he lies completely still and motionless on the floor for the last frames, dead, flat on his belly. He has no legs and never grows any. He never gets up. He keeps facing exactly the same direction the whole time. No blood pool, no effects. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation."
       },
-      "pegas": "La muerte hacia la izquierda (west) saca un charco de sangre que las demás no tienen. En el ataque de south y north sale algo de sangre (se oscurece al montar). El tamaño del dibujo cambia según la vista: bajo de frente, largo de espaldas.",
-      "sin_usar_en_pixellab": "Personajes 3e39b7cf (primer modelo, con piernas) y 920ea2c0 (segundo modelo sin corregir el color). Borrar solo con confirmación del dueño."
+      "muerte_west_repetida": "La primera muerte hacia la izquierda (dentro del grupo b92db6dd) sacaba un charco de sangre que las demás no tenían. Repetida el 2026-10-13 en el grupo edc2cc63-c4ff-4250-b119-c86cc0fba993 ('He dies quietly... The floor around him stays completely clean and empty: nothing spills, nothing spreads, no puddle, no liquid...'): sin charco. La antigua, en descartes/muerte/.",
+      "pegas": "En el ataque de south y north sale algo de sangre (se oscurece al montar). El tamaño del dibujo cambia según la vista: bajo de frente, largo de espaldas.",
+      "sin_usar_en_pixellab": "La muerte antigua hacia la izquierda (dirección west del grupo b92db6dd). Borrar solo con confirmación del dueño."
     }
   },
   "muebles": {

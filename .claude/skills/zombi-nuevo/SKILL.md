@@ -144,6 +144,8 @@ apuntar todo en `assets/pixellab.json` (clave `zombi-<tipo>-48`) y en `CLAUDE.md
 - Modelo: 6 generaciones (y otras 6 cada vez que se repite). Importar las vistas corregidas: 0,25.
 - Animaciones con PixMiniMax a 48 píxeles: **8 fotogramas = 1 generación por dirección; 12 fotogramas = 2.**
   El andar de 12 fotogramas son 16 generaciones entre las 8 direcciones, no 8.
+- Para quitar un charco o una mancha de una muerte funcionó "He dies quietly... The floor around him stays
+  completely clean and empty: nothing spills, nothing spreads, no puddle, no liquid" (decir "killed" o "blow" la trae).
 - Zombi completo sin repetir nada: 6 + 0,25 + 5 de pruebas de perfil + 35 de la tanda = unas 46.
   Decirle al dueño la cifra de la respuesta de PixelLab (línea `cost:`), no la estimada.
 
