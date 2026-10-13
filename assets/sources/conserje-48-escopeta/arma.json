@@ -1,0 +1,26 @@
+{
+  "nota": "Datos para montar la hoja de sprites de Johnny con la escopeta (lo lee tools/arma.py). Las medidas y el ciclo del andar no se ponen: valen las de siempre y el script elige el ciclo solo.",
+  "andar": {
+    "nota": "En estas dos direcciones el script no encuentra solo el ciclo (busca tramos de 6 a 10 fotogramas y aquí la vuelta entera son 11 y 12): se le dice a mano. [primer fotograma, cuántos].",
+    "ciclo": { "south-east": [0, 12], "north-west": [1, 11] }
+  },
+  "ataque": {
+    "nota": "Disparo. De los 8 fotogramas de PixelLab se usan 6, empezando por el del fogonazo: los perdigones salen al instante, así que la animación no puede tener preparación. 'boca': 'fogonazo' hace que el script busque dónde está la boca de la escopeta en cada dirección (el centro del fogonazo) para que los perdigones nazcan ahí.",
+    "duracion": 0.4,
+    "impacto": 0,
+    "boca": "fogonazo",
+    "efectos": true,
+    "margen_efectos": 10,
+    "sin_tinte": {},
+    "fotogramas": {
+      "south":      [1, 2, 3, 4, 5, 6],
+      "south-east": [2, 3, 4, 5, 6, 7],
+      "east":       [2, 3, 4, 5, 6, 7],
+      "north-east": [3, 4, 5, 6, 7, 8],
+      "north":      [2, 3, 4, 5, 6, 7],
+      "north-west": [2, 3, 4, 5, 6, 7],
+      "west":       [2, 3, 4, 5, 6, 7],
+      "south-west": [2, 3, 4, 5, 6, 7]
+    }
+  }
+}

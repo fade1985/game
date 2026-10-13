@@ -235,10 +235,11 @@ if len(walk) < len(DIRS):
     walk = {}
 
 # ═════════════ Ataque ═════════════
-def untint(f, d, ox, oy):
+def untint(f, d, ox, oy, force=None):
     """A veces PixelLab pinta al personaje entero de amarillo en el fotograma del fogonazo, como si lo
     iluminara. Queda raro a este tamaño: si pasa, se deja el dibujo quieto y solo se conserva el fogonazo
-    (los píxeles de color fuego pegados a su punta). Devuelve el fotograma y si lo ha tocado."""
+    (los píxeles de color fuego pegados a su punta). Devuelve el fotograma y si lo ha tocado.
+    Lo detecta solo, pero con un retroceso fuerte (la escopeta) se confunde: `force` lo manda a mano."""
     r = rot[d]
     fp, rp = f.load(), r.load()
     fire = lambda p: p[3] and p[0] > 200 and p[2] < 130 and p[0] - p[2] > 90
@@ -248,7 +249,7 @@ def untint(f, d, ox, oy):
     legs = [(fp[x, y], rp[x - ox, y - oy]) for y in range(oy + FY - 14, min(f.height, oy + FY))
             for x in range(f.width) if fp[x, y][3] and body(x, y)]
     changed = sum(1 for a, b in legs if sum(abs(a[i] - b[i]) for i in range(3)) > 90)
-    if not legs or changed < 0.5 * len(legs):
+    if force is False or not legs or (force is None and changed < 0.5 * len(legs)):
         return f, False
     cand = {(x, y) for y in range(f.height) for x in range(f.width)
             if not body(x, y) and (fire(fp[x, y]) or (fp[x, y][3] and min(fp[x, y][:3]) > 225))}
@@ -273,6 +274,7 @@ def untint(f, d, ox, oy):
 # el daño el juego). Si aún no dice nada, van todos menos el quieto: sirve para una primera vista.
 ATK = cfg.get('ataque', {})
 PICK = ATK.get('fotogramas', {})
+TINT = ATK.get('sin_tinte')   # si está, dice a mano en qué fotogramas de cada dirección se quita el tinte amarillo
 attack = {}
 for d in DIRS:
     fs = load('ataque', d)
@@ -281,7 +283,7 @@ for d in DIRS:
     pick = PICK.get(d, list(range(1, len(fs))))
     fixed = []
     for n in pick if ATK.get('boca') == 'fogonazo' else []:  # solo en las armas de fuego
-        fs[n], touched = untint(fs[n], d, ox, oy)
+        fs[n], touched = untint(fs[n], d, ox, oy, None if TINT is None else n in TINT.get(d, []))
         if touched:
             fixed.append(n)
     attack[d] = [placed(fs[n], ox, oy, d, n) for n in pick]
@@ -322,11 +324,12 @@ fx = None
 if ATK.get('efectos'):
     luma = lambda c: (c[0] * 3 + c[1] * 6 + c[2]) / 10
     fire = lambda c: (c[0] > 220 and c[1] > 110 and c[2] < 105) or min(c[:3]) > 235
+    FAR = ATK.get('margen_efectos', 5)   # con más retroceso (la escopeta) hay que subirlo, o se cuelan las manos
     fx = {}
     for d in DIRS:
         sp = still[d].load()
         body = {(x, y) for y in range(CH) for x in range(CW) if sp[x, y][3]}
-        near = {(x + a, y + b) for x, y in body for a in range(-5, 6) for b in range(-5, 6)}
+        near = {(x + a, y + b) for x, y in body for a in range(-FAR, FAR + 1) for b in range(-FAR, FAR + 1)}
         colors = {sp[q][:3] for q in body}
         own = lambda c: any(sum(abs(c[k] - o[k]) for k in range(3)) < 70 for o in colors)
         fx[d] = []

@@ -36,7 +36,7 @@ export const WEAPONS = {
     damage: 10, rate: 2.5, range: 420, speed: 620, pellets: 1, spread: 0, knock: 0.8, muzzle: 24,
   },
   escopeta: {
-    id: 'escopeta', stash: 'taquilla', name: 'Escopeta', icon: '💥', type: 'ranged',
+    id: 'escopeta', stash: 'taquilla', name: 'Escopeta', icon: '💥', type: 'ranged', sprite: 'conserje-48-escopeta',
     damage: 7, rate: 1, range: 260, speed: 540, pellets: 5, spread: 0.55, knock: 1.2, muzzle: 38,
   },
 };

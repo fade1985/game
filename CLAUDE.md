@@ -158,7 +158,7 @@ Los sprites se generan con PixelLab. Desde el 12 de octubre de 2026 está conect
 ## Dónde lo dejamos (12 de octubre de 2026) · preguntar al dueño al retomar
 
 **Al retomar, empezar preguntándole por el punto 1.**
-Los ids, textos y costes de todo lo de abajo están en `assets/pixellab.json`. Quedaban 1.854 generaciones.
+Los ids, textos y costes de todo lo de abajo están en `assets/pixellab.json`. El 13 de octubre de 2026 quedaban 1.704 generaciones.
 
 Johnny con la fregona **ya está en el juego** (solo versión pixel): sprite `conserje-48-guardia`, estado
 "Fregona en guardia" del personaje "Johnny" en PixelLab. Tiene reposo, andar y ataque en las 8 direcciones.
@@ -176,7 +176,7 @@ Johnny con la fregona **ya está en el juego** (solo versión pixel): sprite `co
   `http://localhost:3000/assets/pruebas/ataque-fregona` (sin `.html`: el servidor lo quita).
 - **Johnny con el bate** (`conserje-48-bate`, estado "Bate en guardia") va igual: mismas carpetas, mismo script.
   Su `arma.json` solo dice qué fotogramas del ataque se usan; lo demás lo pone el script.
-- Johnny sin arma (`conserje-48`) sigue igual y es el que se ve con las demás armas (cuchillo, pistola, escopeta).
+- Johnny sin arma (`conserje-48`) sigue igual y es el que se ve con el cuchillo, la única arma sin hoja propia.
 
 Preguntas pendientes, por orden:
 
@@ -207,8 +207,20 @@ Preguntas pendientes, por orden:
    - **El bate está en el juego** (sprite `conserje-48-bate`, 27 generaciones) y tiene el visto bueno del dueño.
    - **La fregona tiene la estela de agua dentro del dibujo.** Decidido por el dueño: las estelas van siempre en
      el sprite y creíbles para cada arma (agua, aire, fuego...), nunca pintadas por el juego.
-   - **Armas que quedan:** cuchillo (cuerpo a cuerpo, sale con la skill tal cual) y escopeta (a distancia: ya
-     vale lo programado para la pistola; solo cambia que dispara 5 perdigones).
+   - **La escopeta está en el juego** (sprite `conserje-48-escopeta`, 13 de octubre de 2026; 18 generaciones de
+     animaciones más las 10–25 del estado): reposo, andar y disparo en las 8 direcciones, con lo programado para
+     la pistola (no hubo que tocar el juego). El dueño dio el visto bueno al estado y a la prueba de disparo;
+     **pendiente de su visto bueno final jugando** (capturas en `assets/pruebas/escopeta-*.png` y `.gif`).
+     Pegas que vio y aceptó: de frente la lleva cruzada y de espaldas el cañón asoma por el hombro izquierdo.
+     - Como el retroceso es fuerte, su `arma.json` lleva dos ajustes nuevos de `tools/arma.py`:
+       `"margen_efectos": 10` (para que en la animación `fx` no se cuelen las manos) y `"sin_tinte": {}` (apaga
+       la detección automática del tinte amarillo, que aquí se confundía y borraba el humo).
+     - **Limpieza pendiente en PixelLab (solo con su confirmación):** el disparo `north-west` teñido de amarillo
+       y el andar `north` que no cerraba el ciclo (ids en `assets/pixellab.json`).
+   - **Si `backblaze.pixellab.ai` no responde** (pasó el 13 de octubre de 2026 y `tools/bajar.py` no puede
+     bajar nada): bajar el zip de `https://api.pixellab.ai/mcp/characters/<id>/spritesheet`, que trae una hoja
+     con todas las rotaciones y animaciones más un JSON que dice qué hay en cada fila, y recortar las casillas.
+   - **Arma que queda:** el cuchillo (cuerpo a cuerpo, sale con la skill tal cual).
 2. **La skill `/arma-nueva` ya existe** (`.claude/skills/arma-nueva/SKILL.md`). Si en una sesión nueva no
    aparece en la lista, leer ese archivo y seguirlo igual.
 3. **Limpieza de los estados de la fregona, del bate y de la pistola: hecha** el 12 de octubre de 2026 con su confirmación. En

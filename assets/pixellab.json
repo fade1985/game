@@ -310,6 +310,67 @@
       "action_description": "He walks forward in place at a steady, calm pace in a smooth, seamless looping walk cycle: his legs stride alternately in a regular rhythm, knees lifting and boots stepping one after the other, with a slight bob of the torso on each step. He keeps facing exactly the same direction the whole time and never turns. His upper body stays almost still: he quietly carries the black pistol with both hands in the same two-handed stance the whole time, both arms extended forward, the pistol held steady in the same place and only swaying very slightly with each step. The pistol is silent and idle. The tail of the red bandana sways a little. Nothing else appears in the image: only the walking man on an empty background. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation."
     }
   },
+  "conserje-48-escopeta": {
+    "kind": "character_state",
+    "character_id": "bb3524cc-5bb9-476a-97a2-6579372dca65",
+    "source_character_id": "4e6c78c6-d6c6-46d3-99c1-40a2d86f0e6c",
+    "state_name": "Escopeta en guardia",
+    "nota": "Estado de Johnny con una escopeta de corredera sujeta con las dos manos (2026-10-13), hecho con la skill /arma-nueva. Lienzo de 64x64, unos 43 colores. EN EL JUEGO (sprite conserje-48-escopeta): reposo, andar y disparo en las 8 direcciones. Se monta con: py tools/arma.py conserje-48-escopeta. Pegas del estado, vistas y aceptadas por el dueño: de frente la lleva cruzada (cañón hacia abajo y a la derecha) y de espaldas el cañón asoma en diagonal por encima del hombro izquierdo. El servidor de imágenes (backblaze.pixellab.ai) no respondía ese día: todo se bajó del zip de la hoja (https://api.pixellab.ai/mcp/characters/<id>/spritesheet), que da casillas de 136x112 con el dibujo centrado; tools/arma.py lo coloca igual.",
+    "request": {
+      "edit_description": "holding a pump-action shotgun with both hands in a ready shooting stance, knees slightly bent, the wooden stock tucked against his right shoulder, one hand on the grip near the trigger and the other hand under the wooden pump fore-end, the long barrel pointing straight ahead in the direction he is facing; the shotgun stays aimed forward in every view: front, side and back; long dark grey steel barrel, brown wooden stock and brown wooden pump; same face, same hair and red bandana, same clothes, same body size and proportions",
+      "override_width": 64,
+      "override_height": 64,
+      "use_color_palette_from_reference": true
+    },
+    "cost": "entre 10 y 25 generaciones (PixelLab no dio la cifra exacta)",
+    "updated": "2026-10-13",
+    "ataque": {
+      "nota": "Disparo: retroceso fuerte, fogonazo grande, humo y cartucho rojo, las 8 direcciones. PixMiniMax, 8 fotogramas más el de partida, con el lienzo de 96x96 como fotograma de partida y de llegada. Fotogramas en assets/sources/conserje-48-escopeta/ataque/. Se usan 6, empezando por el del fogonazo. Texto común (east) para south, south-east, west y south-west cambiando initial_pose; en north-east y north-west se le antepone 'He keeps the same three-quarter back view the whole time, facing away from the camera and to the right/left, and never turns to face the camera.' y el sujeto lleva 'seen from behind'; north tiene el suyo. La primera north-west tiñó a Johnny de amarillo en el fotograma del fogonazo y se repitió (salió limpia).",
+      "group": "556f2892-2b61-446e-9067-c30c03269ca7 (7 direcciones; north va en el grupo 033a8de7-1aa8-43eb-aca3-b8de698ee4b2; la north-west que se usa es la del grupo 4e761529-bcbc-4ef8-8b08-8ac19c0f336f, 'disparo-escopeta-2')",
+      "animation_name": "disparo-escopeta",
+      "subject_description": "a young male janitor with brown hair and a red bandana, cream shirt and blue work overalls, holding a pump-action shotgun with both hands",
+      "action_description": "He fires one single blast with the shotgun. The gun kicks back hard with a heavy recoil: the stock slams into his shoulder, his shoulders and upper body rock back and the barrel jerks up a little, while his feet stay planted and he keeps aiming in exactly the same direction. A big, wide, bright yellow and orange muzzle flash bursts out of the end of the long barrel for an instant, then a thick puff of light grey smoke drifts from the muzzle and a small red shotgun shell flips out of the side of the gun. The flash and the smoke fade away quickly, he brings the barrel back down level and settles cleanly into the starting ready stance. Only one shot, no second flash. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation.",
+      "north": {
+        "group": "033a8de7-1aa8-43eb-aca3-b8de698ee4b2",
+        "animation_name": "disparo-escopeta-norte",
+        "subject_description": "a young male janitor seen from behind, brown hair and a red bandana, cream shirt and blue work overalls, holding a pump-action shotgun with both hands",
+        "initial_pose": "standing in a ready shooting stance seen from behind, his back to the camera, facing away toward the top of the image, the long barrel of the shotgun sticking up past his left shoulder toward the top of the image",
+        "action_description": "Strict back view the whole time: we only ever see the back of his head, the knot of the red bandana and the back of his overalls; he never turns around and his face is never visible. He fires one single blast with the shotgun away from the camera, toward the top of the image. The gun kicks back hard with a heavy recoil: his shoulders and elbows jerk back and the barrel jumps a little, while his feet stay planted. A big, wide, bright yellow and orange muzzle flash bursts out of the end of the long barrel for an instant, above his shoulder, then a thick puff of light grey smoke rises from the muzzle and a small red shotgun shell flips out to the side. The flash and the smoke fade away quickly and he settles cleanly into the starting ready stance, still seen from behind. Only one shot. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down back view throughout."
+      },
+      "initial_pose": {
+        "east": "standing in a ready shooting stance facing right, the wooden stock against his shoulder, both hands on the shotgun, the long barrel aimed to the right",
+        "west": "standing in a ready shooting stance facing left, the wooden stock against his shoulder, both hands on the shotgun, the long barrel aimed to the left",
+        "south": "standing in a ready shooting stance facing the camera, both hands on the shotgun held in front of his body, the long barrel aimed toward the camera, down and to the right of the image",
+        "south-east": "standing in a ready shooting stance in three-quarter front view, facing toward the camera and to the right, both hands on the shotgun, the long barrel aimed down and to the right of the image",
+        "south-west": "standing in a ready shooting stance in three-quarter front view, facing toward the camera and to the left, both hands on the shotgun, the long barrel aimed down and to the left of the image",
+        "north-east": "standing in a ready shooting stance in three-quarter back view, facing away from the camera and to the right, both hands on the shotgun, the long barrel aimed up and to the right of the image",
+        "north-west": "standing in a ready shooting stance in three-quarter back view, facing away from the camera and to the left, both hands on the shotgun, the long barrel aimed up and to the left of the image"
+      },
+      "descartado": {
+        "nota": "DESCARTADO, sigue en PixelLab (pendiente de que el dueño confirme el borrado): la north-west del grupo 556f2892-2b61-446e-9067-c30c03269ca7, con Johnny teñido de amarillo en el fogonazo.",
+        "cost": "1 generación"
+      },
+      "cost": "9 generaciones (8 + 1 repetida)"
+    },
+    "andar": {
+      "nota": "PixMiniMax, 12 fotogramas más el de partida, las 8 direcciones en una llamada. Fotogramas en assets/sources/conserje-48-escopeta/walk/. Salieron limpias (sin fogonazos colados). North no cerraba el ciclo y se repitió con un texto propio de espaldas. En south-east y north-west la vuelta entera son 12 y 11 fotogramas y el ciclo va a mano en arma.json.",
+      "group": "963b9863-d882-4fac-bc31-25769d9fde34 (north se usa la del grupo 90fe4451-b8c8-4aa9-aeb2-7ff14d28e01a, 'andar-escopeta-2')",
+      "animation_name": "andar-escopeta",
+      "subject_description": "a young male janitor with brown hair and a red bandana, cream shirt and blue work overalls, holding a pump-action shotgun with both hands",
+      "action_description": "He walks forward in place at a steady, calm pace in a smooth, seamless looping walk cycle: his legs stride alternately in a regular rhythm, knees lifting and boots stepping one after the other, with a slight bob of the torso on each step. He keeps facing exactly the same direction the whole time and never turns. His upper body stays almost still: he quietly carries the shotgun with both hands in the same ready grip the whole time, the wooden stock against his shoulder, the long barrel held steady in the same place and only swaying very slightly with each step. The shotgun is silent and idle. The tail of the red bandana sways a little. Nothing else appears in the image: only the walking man on an empty background. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation.",
+      "north": {
+        "group": "90fe4451-b8c8-4aa9-aeb2-7ff14d28e01a",
+        "animation_name": "andar-escopeta-2",
+        "action_description": "Seen from behind the whole time: he keeps his back to the camera and never turns around. He walks forward in place, away from the camera, at a steady, calm pace in a smooth, seamless looping walk cycle: his legs stride alternately in a regular rhythm, knees lifting and boots stepping one after the other, with a slight bob of the torso on each step. His upper body stays almost still: he quietly carries the shotgun with both hands in the same ready grip the whole time, the long barrel held steady in the same place past his left shoulder and only swaying very slightly with each step. The shotgun is silent and idle. The tail of the red bandana sways a little. Nothing else appears in the image: only the walking man on an empty background. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down back view throughout the entire fluid animation."
+      },
+      "descartado": {
+        "nota": "DESCARTADO, sigue en PixelLab (pendiente de que el dueño confirme el borrado): la north del grupo 963b9863-d882-4fac-bc31-25769d9fde34, que no cerraba el ciclo.",
+        "cost": "1 generación"
+      },
+      "cost": "9 generaciones (8 + 1 repetida)"
+    },
+    "cost_total": "18 generaciones de animaciones (comprobado con el saldo: de 1.722 a 1.704) más las 10-25 del estado"
+  },
   "zombi-venenoso-48": {
     "kind": "character",
     "character_id": "d8d5f941-74ff-400e-b52b-20d9dc6d6b06",
