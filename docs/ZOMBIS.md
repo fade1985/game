@@ -66,7 +66,7 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
 
 - **Hecho: zombi normal y zombi lento con 6 variantes cada uno** (`rojo`, `bata`, `mostaza`, `negro`, `militar`,
   `turquesa`) además de la de siempre. Solo cambia el color de la ropa y la piel: misma vida, velocidad y daño.
-  **Pendiente del visto bueno del dueño.** Capturas: `assets/pruebas/variantes-zombis.png` (las 7 versiones de cada
+  **Con el visto bueno del dueño (13 de octubre de 2026).** Capturas: `assets/pruebas/variantes-zombis.png` (las 7 versiones de cada
   uno en tres vistas) y `variantes-zombis-en-juego.jpg`.
 - **Cómo se generan:** `py tools/variantes.py <zombi>` escribe `assets/sprites/<zombi>-<variante>.png/.json` a partir
   de la hoja original, sin tocarla ni gastar generaciones. Va en dos pasos (explicados en la cabecera del script):
