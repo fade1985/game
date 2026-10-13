@@ -58,7 +58,7 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
     direcciones se tiñen de verde al montar (`"moco": true` en `zombi.json`) y tres se pidieron ya con baba verde.
     Captura: `assets/pruebas/venenoso-escupiendo.jpg`.
   - **Pegas conocidas:** de frente y de espaldas apenas mueve las piernas al andar.
-  - **Limpieza pendiente en PixelLab (solo con su confirmación):** los escupitajos descartados.
+  - Los escupitajos descartados ya están borrados de PixelLab (con su confirmación).
 - **Zombi lento, un poco más pequeño** (13 de octubre de 2026, lo pidió el dueño): su dibujo se encoge a ×0,85
   (`spriteScale`), también el cuerpo que deja al morir. El choque (`r: 17`) no se ha tocado.
 

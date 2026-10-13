@@ -663,7 +663,7 @@
     },
     "cost": "49 generaciones: 6 del modelo, 4 de pruebas de perfil y 28 de la tanda completa (a 72 píxeles cada animación costó 1, también la muerte de 12 fotogramas). Un golpe (north) falló a los 20 segundos sin cobrar y se repitió con un texto más neutro. Más 11 de repetir el escupitajo (8 + 3).",
     "updated": "2026-10-13",
-    "sin_usar_en_pixellab": "El primer escupitajo (grupo c378cd4b, 8 direcciones) y, del segundo, las tres direcciones que no se usan (a9f2ae54 south-east, d62da4d4 east, 7618dd14 north). Borrar solo con confirmación del dueño.",
+    "sin_usar_en_pixellab": "Nada. El 2026-10-13, con confirmación del dueño, se borraron de PixelLab el primer escupitajo (grupo c378cd4b, 8 direcciones) y las tres direcciones del segundo que no se usaban (a9f2ae54, d62da4d4, 7618dd14). Sus fotogramas siguen en descartes/ataque/ y ataque2/.",
     "animaciones": {
       "nota": "Todo con PixMiniMax sobre 44573bc5. Andar: 8 fotogramas, sin fotograma de partida, las 7 direcciones en una sola llamada y sin initial_pose ('He keeps exactly the same view and facing as the first frame the whole time...'); ciclo = fotogramas 0 a 7. Escupir y golpe: 8 fotogramas, partida y final = dibujo quieto pegado en (28, 44) de un lienzo de 128x128 (partida/<dirección>.png). Muerte: 12 fotogramas, solo partida; el texto dice hacia dónde cae y dónde quedan cabeza y pies. Se bajó todo con py tools/bajar_zip.py.",
       "subject_description": "a huge hugely obese bloated bald zombie with pale rotting skin covered in red sores, a dirty torn white tank top, ripped dark blue shorts and bare feet (de espaldas: '... seen from behind')",
