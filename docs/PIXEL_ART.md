@@ -102,3 +102,16 @@ mismo). Si el suelo no encaja bien al repetirse, se retoca a mano o se dibuja co
 - **Sombras:** los sprites no traen sombra; el juego la dibuja en píxeles bajo cada personaje.
 - **Plan de prueba de PixelLab:** 40 generaciones y solo un trabajo a la vez (por eso el script pide las
   direcciones de una en una y espera si PixelLab está ocupado).
+
+## Interfaz oscura y sucia (fase 5, empezada)
+
+- **Fuente:** `assets/fuentes/zombie-scape-ui.ttf`, generada con `create_font` de PixelLab (15 generaciones,
+  16 px, job `0b7002a4-25ae-4de8-8d07-60c457a2064a`). No trae tildes, ñ, ü, ¿ ni ¡: las añade
+  `py tools/fuente-tildes.py` (hay que volver a pasarlo si se regenera la fuente). Se usa en `style.css`
+  como `'ZS UI'`; Pixelify Sans queda de reserva.
+- **Marcos:** `assets/ui/panel-oscuro.png` y `boton-oscuro.png` (recortados de `panel-oscuro-hoja.png`,
+  `create_ui_asset`, 25 generaciones, id `67eca240-9139-46e6-9367-142b1606fff6`). Se usan como `border-image`
+  de 9 trozos en `.panel` y `.btn`. Al botón se le borró el texto "BUTTON" que traía dibujado.
+- **Todo el CSS nuevo** está al final de `style.css`, bajo `body.pixel` (colores: hueso sucio, metal, óxido, sangre seca).
+- **Pendiente:** iconos en vez de emojis (arma, llave, sonido, pausa, dash, equipo), barra de vida con sprite,
+  minimapa y carteles dentro del juego.

@@ -372,7 +372,7 @@ body.touch #touch-ui:not([hidden]) { display: block; }
 @keyframes float { 50% { transform: translateY(-0.25em); } }
 
 /* ═════════════ Pixel art (modo por defecto, en migración) ═════════════ */
-body.pixel, body.pixel * { font-family: 'Pixelify Sans', system-ui, sans-serif !important; }
+body.pixel, body.pixel * { font-family: 'ZS UI', 'Pixelify Sans', system-ui, sans-serif !important; }
 body.pixel #game { image-rendering: pixelated; }
 /* sin marco: el juego ocupa toda la ventana */
 body.pixel #game-wrap,
@@ -386,3 +386,118 @@ body.pixel.touch #game-wrap {
   box-shadow: none;
   background: #1d1b2c;
 }
+
+/* ═════════════ Interfaz oscura y sucia (pixel art) ═════════════
+   Fuente y marcos generados con PixelLab (assets/fuentes y assets/ui).
+   Los marcos son de "9 trozos": las esquinas no se estiran, los lados sí. */
+@font-face {
+  font-family: 'ZS UI';
+  src: url('assets/fuentes/zombie-scape-ui.ttf') format('truetype');
+  font-display: swap;
+}
+body.pixel {
+  --ink: #d9d1bd;      /* aquí "ink" es el color del texto: hueso sucio */
+  --line: #0f0d17;     /* contornos */
+  --muted: #9b93a0;
+  --yellow: #c9a227;
+  --green: #6f9a58;
+  --blue: #5b7fa0;
+  --pink: #b3402f;
+  --metal: #2b2732;
+  --rust: #7a4a33;
+  background: #0f0d17;
+  color: var(--ink);
+}
+body.pixel::before { display: none; }
+body.pixel .overlay { background: rgba(10, 8, 16, 0.72); backdrop-filter: none; }
+body.pixel .overlay.clear { background: rgba(10, 8, 16, 0.2); }
+
+body.pixel .title, body.pixel .tagline, body.pixel .record {
+  color: #e6dec8;
+  -webkit-text-stroke: 0.22em var(--line);
+  text-shadow: 0 0.12em 0 var(--line);
+  letter-spacing: 0.04em;
+}
+body.pixel .sub, body.pixel .hint { color: var(--muted); }
+
+/* Paneles: marco de metal oxidado */
+body.pixel .panel {
+  background: none;
+  border: 0;
+  border-style: solid;
+  border-width: 2.9em;
+  border-image: url('assets/ui/panel-oscuro.png') 46 fill / 2.9em stretch;
+  image-rendering: pixelated;
+  box-shadow: none;
+  padding: 0 0.4em 0.2em;
+  color: var(--ink);
+}
+
+/* Botones: chapa con remaches */
+body.pixel .btn {
+  color: #e6dec8;
+  background: none;
+  border: 0;
+  border-style: solid;
+  border-width: 0.9em;
+  border-image: url('assets/ui/boton-oscuro.png') 16 fill / 0.9em stretch;
+  image-rendering: pixelated;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0.3em 1.2em;
+  text-shadow: 0 0.1em 0 var(--line);
+}
+body.pixel .btn:hover { transform: none; filter: brightness(1.3) sepia(0.2); }
+body.pixel .btn:active { transform: translateY(0.12em); filter: brightness(0.8); }
+body.pixel .btn.pink { filter: sepia(1) saturate(2.5) hue-rotate(-35deg) brightness(0.95); }
+body.pixel .btn.pink:hover { filter: sepia(1) saturate(2.5) hue-rotate(-35deg) brightness(1.3); }
+body.pixel .btn.big { padding: 0.3em 1.6em; }
+body.pixel .btn:disabled { filter: grayscale(1) brightness(0.6); }
+body.pixel .btn small { opacity: 0.8; }
+body.pixel .keys-chip { background: rgba(0, 0, 0, 0.35); border-radius: 0; }
+
+/* Listas y fichas de dentro de los paneles */
+body.pixel .stat { border-bottom: 0.12em dashed rgba(217, 209, 189, 0.18); }
+body.pixel .plist-row { color: var(--muted); }
+body.pixel .plist-row b { color: var(--ink); }
+body.pixel .bcard, body.pixel .wrow {
+  background: var(--metal);
+  border: 0.18em solid var(--line);
+  border-radius: 0;
+  box-shadow: inset 0 0 0 0.14em var(--rust);
+  color: var(--ink);
+}
+body.pixel .bcard { box-shadow: inset 0 0 0 0.14em var(--rust), 0 0.25em 0 var(--line); }
+body.pixel .bcard:hover { transform: translateY(-0.2em); filter: brightness(1.2); }
+body.pixel .bcard.done, body.pixel .wrow.maxed { background: #2c3328; }
+body.pixel .bcard.soon { background: #1c1a22; color: var(--muted); box-shadow: inset 0 0 0 0.14em #3a3640; border-color: var(--line); }
+body.pixel .bfoot { background: var(--rust); color: #e6dec8; border: 0.12em solid var(--line); border-radius: 0; }
+body.pixel .bcard.soon .bfoot { background: #3a3640; }
+body.pixel .wallet { background: var(--metal); color: #e6c34a; border: 0.18em solid var(--line); border-radius: 0; box-shadow: inset 0 0 0 0.14em var(--rust); }
+body.pixel .winfo b { color: var(--ink); }
+body.pixel .pips i { border-radius: 0; border-color: var(--line); background: #1c1a22; }
+body.pixel .pips i.on { background: var(--yellow); }
+body.pixel .end.win .title { color: #e6c34a; }
+body.pixel .end.lose .title { color: #c4493a; }
+
+/* HUD */
+body.pixel .hpbar {
+  background: #1a1620;
+  border: 0.25em solid var(--line);
+  border-radius: 0;
+  box-shadow: inset 0 0 0 0.14em var(--rust);
+}
+body.pixel .hpbar .fill { background: linear-gradient(#b3402f, #7d1f1a); border-radius: 0; }
+body.pixel .hpbar span { color: #e6dec8; -webkit-text-stroke: 0.2em var(--line); }
+body.pixel .pill, body.pixel .icon-btn {
+  background: var(--metal);
+  color: var(--ink);
+  border: 0.2em solid var(--line);
+  border-radius: 0;
+  box-shadow: inset 0 0 0 0.14em var(--rust);
+}
+body.pixel .icon-btn:active { transform: translateY(0.12em); }
+body.pixel .dash-btn { background: var(--metal); border: 0.2em solid var(--line); border-radius: 0; box-shadow: inset 0 0 0 0.14em var(--rust); }
+body.pixel .joy-base { border-radius: 0; background: rgba(0, 0, 0, 0.25); border-color: var(--rust); }
+body.pixel .joy-knob { border-radius: 0; background: var(--metal); border-color: var(--rust); }
+body.pixel * { scrollbar-color: #7a4a33 #1a1620; scrollbar-width: thin; }
