@@ -78,8 +78,8 @@ Preguntas pendientes, por orden:
        hacía que PixelLab dibujase una media luna más alta que Johnny: no usarla.
      - De frente (`south`) hubo que repetirlo con un texto estricto ("Strict front view the whole time..."): con
        el común se ponía de perfil.
-     - **Limpieza pendiente en PixelLab (solo con su confirmación):** las dos primeras pruebas de ataque (12
-       fotogramas) y el ataque de frente en el que se gira (ids en `assets/pixellab.json`).
+     - **Lo descartado del cuchillo ya está borrado de PixelLab** (13 de octubre de 2026, con su confirmación):
+       las dos primeras pruebas de ataque y el ataque de frente en el que se giraba.
    - **Ya no queda ningún arma por hacer:** las cinco tienen hoja propia.
 2. **La skill `/arma-nueva` ya existe** (`.claude/skills/arma-nueva/SKILL.md`). Si en una sesión nueva no
    aparece en la lista, leer ese archivo y seguirlo igual.

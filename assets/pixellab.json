@@ -269,7 +269,7 @@
       "comun": {
         "group": "3a651987-2789-4996-a3f1-74c27659f962",
         "animation_name": "ataque-cuchillo-2",
-        "cost": "5 generaciones (east, west, south-east, south-west y un south descartado)",
+        "cost": "5 generaciones (east, west, south-east, south-west y un south descartado y ya borrado)",
         "nota": "Vale para east, west, south-east y south-west cambiando initial_pose ('facing right', 'facing left', 'in three-quarter front view, facing toward the camera and to the right / left').",
         "initial_pose": "standing in a ready guard stance facing right, holding the knife in front of him with his arm bent, the blade pointing forward and slightly up",
         "action_description": "He steps forward with the lead foot and stabs with the knife in one very quick, short, sharp thrust: his knife arm snaps straight out in front of him at chest height, the blade pointing straight ahead, then he immediately pulls the arm back. At the moment the arm is fully extended, a short thin white streak appears right at the tip of the blade, no longer than the knife itself, pointing straight ahead in the direction of the thrust. The small streak vanishes at once as he draws the knife back and settles cleanly into the starting guard stance. Only one thrust. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation."
@@ -299,7 +299,7 @@
         "action_description": "He keeps the same three-quarter back view the whole time, facing away from the camera and to the right, and never turns to face the camera. He steps forward with the lead foot and stabs with the knife in one very quick, short, sharp thrust away from the camera, toward the upper right of the image: his knife arm snaps straight out ahead of him, the blade pointing up and to the right, then he immediately pulls the arm back. His other arm stays close to his body. At the moment the arm is fully extended, a thin white streak appears along the blade's path. The streak vanishes at once as he draws the knife back and settles cleanly into the starting guard stance. Only one thrust. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down three-quarter back view throughout the entire fluid animation."
       },
       "descartados": {
-        "nota": "Siguen en PixelLab; borrar solo con la confirmación del dueño. Copia local en assets/sources/conserje-48-cuchillo/descartes/.",
+        "nota": "Borrados de PixelLab el 13 de octubre de 2026 con la confirmación del dueño. Queda copia local en assets/sources/conserje-48-cuchillo/descartes/.",
         "primera_prueba_east": "grupo c9399a84-664f-4a8b-bea7-88a7104afac2 (12 fotogramas; media luna enorme cruzada al pinchazo)",
         "primera_prueba_north": "grupo 35ca4f53-c6fc-46e9-922d-c935d8d92983 (12 fotogramas; se queda con el cuchillo en alto)",
         "south_de_perfil": "dirección south del grupo 3a651987-2789-4996-a3f1-74c27659f962 (Johnny se gira de lado)"
