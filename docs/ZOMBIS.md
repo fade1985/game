@@ -43,3 +43,9 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
   - **Pegas conocidas:** el dibujo se ve bajo de frente y largo de espaldas. El choque sigue siendo el de siempre (`r: 17` en `ZOMBIE_TYPES`).
   - Los dos personajes de modelo que no se usaban ya están borrados de PixelLab (con su confirmación) y la muerte
     hacia la izquierda se repitió para quitarle un charco de sangre (la antigua, en `descartes/muerte/`).
+- **Zombi venenoso (el gordo), más grande** (13 de octubre de 2026, lo pidió el dueño: medía lo mismo que Johnny y
+  no imponía). Su dibujo se amplía ×1,25 en el juego (`spriteScale` en `ZOMBIE_TYPES`, `src/zombies.js`): unos 56
+  píxeles de alto. Es un apaño gratis: los píxeles quedan algo más gordos que los del resto. El choque (`r: 16`)
+  no se ha tocado. Comparación en `assets/pruebas/venenoso-tamanos.png`, captura en
+  `assets/pruebas/venenoso-grande-en-juego.jpg`. Sigue pendiente rehacerlo entero (solo tiene el dibujo quieto,
+  piel beige y sin contorno negro): al hacerlo, pedirlo ya grande, en lienzo de 64.

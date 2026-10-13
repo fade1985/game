@@ -57,7 +57,8 @@ export const ZOMBIE_TYPES = {
     look: { skin: '#86b8aa', hair: '#2f2a3a', shirt: '#6d597a', pants: '#3a3355', shoes: '#2e2a3a' },
   },
   venenoso: {
-    name: 'Zombi venenoso', r: 16, s: 1, hp: 35, speed: 60, dmg: 8, push: 160,
+    // el gordo: su dibujo se amplía (spriteScale) para que imponga junto al conserje
+    name: 'Zombi venenoso', r: 16, s: 1.25, spriteScale: 1.25, hp: 35, speed: 60, dmg: 8, push: 160,
     look: { skin: '#b5e655', hair: '#4f772d', shirt: '#4f772d', pants: '#31572c', shoes: '#2e2a3a' },
   },
 };
@@ -336,6 +337,7 @@ export class Zombie {
     const an = this.anim;
     const opts = an ? { flash, frame: Math.floor((an.t / an.dur) * animFrames(this.sprite, an.name)) }
       : sp > 10 ? { flash, cycle: this.walkT / 7 } : { flash };
+    if (this.def.spriteScale) opts.scale = this.def.spriteScale;   // dibujo ampliado (ver ZOMBIE_TYPES)
     const sprited = drawSprite(ctx, this.sprite, an ? an.name : sp > 10 ? 'walk' : 'idle',
       dirFromVector(this.lookX, this.lookY), game.time, x + shake, y + 15 * scale, opts);
     if (!sprited) drawHuman(ctx, x + shake, y, {
