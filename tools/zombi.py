@@ -4,7 +4,7 @@ Lo saca todo de assets/sources/<fuente>/:
   rotations/<dirección>.png     las 8 posturas quietas (48×48), ya con la piel corregida por tools/piel.py
   walk/<dirección>-<n>.png      andar (PixMiniMax; el lienzo cambia de tamaño según la dirección)
   ataque/, golpe/, muerte/      atacar, recibir un golpe y morir (lienzo de 96×96 con el dibujo quieto en 24, 32)
-  zombi.json (opcional)         qué fotogramas se usan, cuánto dura cada animación, "cintura", "pies" y "sangre"
+  zombi.json (opcional)         qué fotogramas se usan, cuánto dura cada animación, "cintura", "pies", "sangre", "casilla" y "origen"
 En todas las animaciones el fotograma 0 es el dibujo quieto: así se sabe dónde colocar los demás.
 
 Y escribe assets/sprites/<sprite>.png y .json con seis animaciones:
@@ -32,9 +32,10 @@ SOURCE, SPRITE = sys.argv[1], sys.argv[2]
 DIRS = ['south', 'south-east', 'east', 'north-east', 'north', 'north-west', 'west', 'south-west']
 SRC = f'assets/sources/{SOURCE}'
 cfg = json.load(open(f'{SRC}/zombi.json', encoding='utf-8')) if os.path.exists(f'{SRC}/zombi.json') else {}
-CW, CH = 96, 96            # casilla: cabe el zombi tendido en el suelo
-OX, OY = 24, 32            # dónde va el dibujo quieto de 48×48 dentro de la casilla
-PX, PY = 48, cfg.get('pies', 78)   # los pies dentro de la casilla (otra altura con "pies" en zombi.json)
+# Para un zombi más grande que 48×48 (el venenoso, a 72): "casilla" y "origen" en zombi.json
+CW, CH = cfg.get('casilla', [96, 96])   # casilla: cabe el zombi tendido en el suelo
+OX, OY = cfg.get('origen', [24, 32])    # dónde va el dibujo quieto dentro de la casilla
+PX, PY = CW // 2, cfg.get('pies', 78)   # los pies dentro de la casilla (otra altura con "pies" en zombi.json)
 WAIST = cfg.get('cintura', 26)   # fila de la cintura en el dibujo quieto (para el reposo); otra con "cintura" en zombi.json
 
 rot = {d: Image.open(f'{SRC}/rotations/{d}.png').convert('RGBA') for d in DIRS}
@@ -63,7 +64,12 @@ def offset(fs, d, folder):
     """El fotograma 0 es el dibujo quieto: comparándolos se sabe cuánto está desplazado todo."""
     a, b = fs[0].getbbox(), rot[d].getbbox()
     ox, oy = a[0] - b[0], a[1] - b[1]
-    same = fs[0].crop((ox, oy, ox + rot[d].width, oy + rot[d].height)).tobytes() == rot[d].tobytes()
+    # solo cuenta lo que se ve: bajo los píxeles transparentes PixelLab a veces deja otro color
+    def seen(im):
+        out = Image.new('RGBA', im.size, (0, 0, 0, 0))
+        out.paste(im, (0, 0), im)
+        return out.tobytes()
+    same = seen(fs[0].crop((ox, oy, ox + rot[d].width, oy + rot[d].height))) == seen(rot[d])
     assert same, f'el fotograma 0 de {folder}/{d} no coincide con el dibujo quieto'
     return ox, oy
 

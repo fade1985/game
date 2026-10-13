@@ -1,0 +1,13 @@
+{
+  "casilla": [144, 144],
+  "origen": [36, 48],
+  "pies": 118,
+  "cintura": 40,
+  "sangre": "viva",
+  "andar": {
+    "south": [0, 8], "south-east": [0, 8], "east": [0, 8], "north-east": [0, 8],
+    "north": [0, 8], "north-west": [0, 8], "west": [0, 8], "south-west": [0, 8]
+  },
+  "ataque": { "duracion": 0.93, "impacto": 3 },
+  "muerte": { "duracion": 1.1 }
+}

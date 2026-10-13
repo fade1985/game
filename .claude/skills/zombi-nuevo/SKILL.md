@@ -48,6 +48,12 @@ ambiguo, preguntar una vez antes de gastar generaciones. Lo que cambia con un di
   after the other, his lower body dragging behind"), y probar primero en `east`.
 - **Muerte:** si ya va por el suelo no tiene mucho que caer; pedir que se quede quieto y se aplane (8 fotogramas
   bastan).
+- **Zombi más grande que Johnny (el venenoso):** no estirarlo en el juego (se le ven los píxeles gordos): pedir
+  el modelo en un lienzo mayor (72×72 para unos 67 de alto). Los lienzos de partida son entonces de 128×128 con
+  el dibujo en (28, 44), y en `zombi.json` van `casilla` [144, 144], `origen` [36, 48] y `pies`. En
+  `ZOMBIE_TYPES` necesita `shadow` y `top` (sombra y barra de vida a su medida). A 72 cada animación costó 1.
+- **Si un trabajo falla a los pocos segundos** (pasó con un golpe del venenoso), repetirlo con un texto más neutro:
+  "a very large heavy bald man" en vez de "zombie... rotting skin", "flinches" en vez de "hard shove".
 - **Tamaño y choque:** el dibujo es más bajo, pero el `r` del zombi en `ZOMBIE_TYPES` es lo que cuenta para
   los golpes; si el dueño quiere que sea más fácil o difícil de dar, es decisión suya, no del arte.
 - Con detalles muy específicos (rastro de sangre, tripas) PixelLab los pinta a su manera: avisar de que se
@@ -95,10 +101,12 @@ Bajar con `py tools/bajar.py assets/sources/zombi-<tipo>-48/<animación> < linea
 ### 3. Tanda completa · sin parar
 
 Lanzar las otras 7 direcciones de cada animación (28 trabajos; unas 35 generaciones con el andar de 12
-fotogramas). **Lanzarlas todas seguidas, sin esperar entre tandas**, y comprobar una sola vez al rato: con el
-lento se fue en tandas de 8 esperando entre una y otra y eso fue casi todo el tiempo perdido. El límite de 8 a
-la vez era una precaución de la receta, no algo comprobado en PixelLab: si alguna llamada da error por
-demasiados trabajos en cola, anotar cuántos admite aquí y seguir en tandas de ese tamaño.
+fotogramas). **PixelLab solo admite 8 trabajos a la vez** (comprobado con el venenoso: «need 1 job slots but only
+0 available (8/8 used)»), y el límite se comparte con las otras sesiones que estén generando. Así que se va en
+tandas: lanzar hasta llenar, `wait_for_jobs`, y rellenar los huecos que queden libres sin esperar a que acabe la
+tanda entera. Para gastar menos llamadas, el andar (que no lleva fotograma de partida) se puede lanzar en una sola
+llamada con las 7 direcciones y sin `initial_pose` ("He keeps exactly the same view and facing as the first
+frame the whole time: he never turns...").
 Añadir cada dirección al grupo de su animación (`animation_group_id` + el mismo `animation_name`): así luego
 se baja todo junto. Cambiar solo `initial_pose`:
 `south`: "facing the camera"; `north`: "seen from behind, his back to the camera"; `east`/`west`: "facing
@@ -111,11 +119,9 @@ right/left"; `south-east/west`: "in three-quarter front view, facing toward the 
 - **Andar:** el texto común (brazos estirados) hizo girarse de perfil a `south`, `south-east`, `north-east` y
   `north`: se repitieron con "Strict front view the whole time..." y brazos bajos (4 generaciones más). Para
   ahorrarlas, usar ese texto de brazos bajos de entrada en esas cuatro y el común en las otras cuatro.
-- **Bajar todo de una vez con el zip del personaje**, no fotograma a fotograma:
-  `curl -sS -o z.zip https://api.pixellab.ai/mcp/characters/<id>/download` (en una carpeta vacía del scratchpad).
-  Dentro vienen `Idle/animations/<nombre>/<dirección>/frame_00N.png`: copiarlos a
-  `assets/sources/zombi-<tipo>-48/{walk,ataque,golpe,muerte}/<dirección>-<n>.png` (el andar se llama como el
-  `animation_name` que se le puso).
+- **Bajar todo de una vez:** `py tools/bajar_zip.py <id del personaje> zombi-<tipo>-48` baja el zip del personaje
+  y deja cada animación en `assets/sources/zombi-<tipo>-48/{walk,ataque,golpe,muerte}/<dirección>-<n>.png`
+  (la carpeta se llama como el `animation_name`; "andar" va a `walk/`).
 - Revisar todas las direcciones en una hoja ampliada (pocas imágenes) y repetir las que desentonen.
 
 ### 4. Montaje y juego · sin parar

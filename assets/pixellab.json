@@ -439,7 +439,7 @@
   "zombi-venenoso-48": {
     "kind": "character",
     "character_id": "d8d5f941-74ff-400e-b52b-20d9dc6d6b06",
-    "nota": "Prueba del 2026-10-12 a partir de un diseño hecho con GPT. Paso 1: image_to_pixelart (faithful, strength 200) del recorte a 48x48, trabajo 6e06ed43-ee5c-4348-9268-a4c6d14506d4. Paso 2: create_character_pro_flash con ese sprite como imagen de estilo. Pendiente: la piel salió beige en vez de verde.",
+    "nota": "Prueba del 2026-10-12 a partir de un diseño hecho con GPT. Paso 1: image_to_pixelart (faithful, strength 200) del recorte a 48x48, trabajo 6e06ed43-ee5c-4348-9268-a4c6d14506d4. Paso 2: create_character_pro_flash con ese sprite como imagen de estilo. Pendiente: la piel salió beige en vez de verde. SUSTITUIDO el 2026-10-13 por zombi-venenoso-72 y BORRADO de PixelLab con confirmación del dueño.",
     "request": {
       "description": "hugely obese bloated zombie, bald head, sickly olive green rotting skin covered in red sores and open wounds, glowing yellow eyes, huge gaping mouth with jagged teeth and drool, dirty torn white tank top stretched over an enormous belly with exposed bloody guts hanging out, ripped dark blue shorts, bare feet, thick arms hanging at his sides, standing wide and hunched",
       "image_size": {
@@ -644,7 +644,7 @@
     "kind": "character",
     "character_id": "44573bc5-5c0d-4f80-b8df-53eefd870905",
     "name": "Zombi venenoso grande",
-    "nota": "El venenoso (el gordo) redibujado en grande el 2026-10-13: al dueño le parecía pequeño junto a Johnny y, estirado x1,5 en el juego, se le veían los píxeles más gordos. create_character_pro_flash a 72x72 con la vista de frente del venenoso de 48 (d8d5f941) como imagen de estilo y 'the same character as the reference, redrawn larger'. Salió con el mismo diseño, 67 píxeles de alto, píxeles del tamaño de los de Johnny y contorno oscuro. EN EL JUEGO como sprite zombi-venenoso (hoja de 8 casillas de 72x72, solo el dibujo quieto). Pendiente del visto bueno del dueño. Faltan andar, escupir, golpe y muerte (skill /zombi-nuevo, sobre este personaje y a 72). Vistas en assets/sources/zombi-venenoso-72/rotations/.",
+    "nota": "El venenoso (el gordo) redibujado en grande el 2026-10-13: al dueño le parecía pequeño junto a Johnny y, estirado x1,5 en el juego, se le veían los píxeles más gordos. create_character_pro_flash a 72x72 con la vista de frente del venenoso de 48 (d8d5f941) como imagen de estilo y 'the same character as the reference, redrawn larger'. Salió con el mismo diseño, 67 píxeles de alto, píxeles del tamaño de los de Johnny y contorno oscuro. Visto bueno del dueño al modelo. EN EL JUEGO como sprite zombi-venenoso con reposo, andar, escupir, golpe y muerte en las 8 direcciones: py tools/zombi.py zombi-venenoso-72 zombi-venenoso (zombi.json: casilla 144, origen 36/48, pies 118, sangre viva). Pendiente del visto bueno final. La piel se dejó beige (el dueño dio por bueno el diseño). Vistas en assets/sources/zombi-venenoso-72/rotations/.",
     "request": {
       "description": "the same character as the reference, redrawn larger so he fills the canvas: a huge towering hugely obese bloated zombie, about 68 pixels tall and 62 pixels wide, bald head, sickly pale rotting skin covered in red sores and open wounds, small eyes, huge gaping mouth with jagged teeth and drool, dirty torn white tank top stretched over an enormous belly with exposed bloody guts hanging out, ripped dark blue shorts, bare feet, thick arms hanging at his sides, standing wide and hunched, more small detail than the reference because he is bigger, crisp pixel art, detailed shading",
       "width": 72,
@@ -661,9 +661,31 @@
         "shading": true
       }
     },
-    "cost": "6 generaciones",
+    "cost": "38 generaciones: 6 del modelo, 4 de pruebas de perfil y 28 de la tanda completa (a 72 píxeles cada animación costó 1, también la muerte de 12 fotogramas). Un golpe (north) falló a los 20 segundos sin cobrar y se repitió con un texto más neutro.",
     "updated": "2026-10-13",
-    "sin_usar_en_pixellab": "El venenoso de 48 (d8d5f941, 'Fatman'), sustituido por este. Borrar solo con confirmación del dueño."
+    "sin_usar_en_pixellab": "Nada. El venenoso de 48 (d8d5f941) se borró el 2026-10-13 con confirmación del dueño.",
+    "animaciones": {
+      "nota": "Todo con PixMiniMax sobre 44573bc5. Andar: 8 fotogramas, sin fotograma de partida, las 7 direcciones en una sola llamada y sin initial_pose ('He keeps exactly the same view and facing as the first frame the whole time...'); ciclo = fotogramas 0 a 7. Escupir y golpe: 8 fotogramas, partida y final = dibujo quieto pegado en (28, 44) de un lienzo de 128x128 (partida/<dirección>.png). Muerte: 12 fotogramas, solo partida; el texto dice hacia dónde cae y dónde quedan cabeza y pies. Se bajó todo con py tools/bajar_zip.py.",
+      "subject_description": "a huge hugely obese bloated bald zombie with pale rotting skin covered in red sores, a dirty torn white tank top, ripped dark blue shorts and bare feet (de espaldas: '... seen from behind')",
+      "andar": {
+        "group": "8f16b658-5980-407d-8f01-dc467d6f5569",
+        "action_description": "He lumbers forward in place in a slow, heavy, seamless looping walk cycle: a ponderous waddle, his thick legs stepping alternately with short heavy steps, his enormous belly swaying and jiggling from side to side with each step, his shoulders rocking and his arms swinging slightly at his sides. The last frame returns to the starting pose so the cycle loops."
+      },
+      "ataque": {
+        "group": "c378cd4b-e2b8-48f4-a5d5-3ddacaf62640",
+        "action_description": "He spits with his whole body: first he rears his head and shoulders back, his cheeks and throat bulging as he gathers it, then he heaves his whole huge body forward in the direction he is facing, his enormous mouth gaping wide open, and spits with force, his belly shaking. No projectile, no effects. He stays on his feet in the same spot. Then he straightens up and settles cleanly into the starting stance."
+      },
+      "golpe": {
+        "group": "00aebf3c-199f-40c4-8585-b27dd6aa45e4",
+        "action_description": "He flinches from a hard shove to his body: his head and shoulders jolt backward, away from where he is facing, his enormous body ripples and wobbles, his arms fling out loosely, and he staggers one short heavy step backward, off balance. He stays on his feet. Then he sways forward again and settles cleanly into the starting stance. Nothing spills: no liquid, no splashes, no particles, no effects.",
+        "north": "El texto con 'zombie', 'rotting skin' y 'hard shove' falló (trabajo d4969c5e, sin cobrar). Salió con subject 'a very large heavy bald man seen from behind...' y 'He flinches and loses his balance for a moment...'."
+      },
+      "muerte": {
+        "group": "350354fb-3c12-4afd-9ac8-c857a83ebaec",
+        "action_description": "He dies and collapses, never turning. His head lolls back, his knees buckle and his whole huge body goes limp. He topples heavily backward, toward <lado>, and crashes flat onto the floor on his back, his enormous belly wobbling as he lands, arms flopping out to the sides, legs sprawled, his feet toward <lado> and his head toward <lado>. Then he lies completely still for the last frames, flat on his back, belly up. He never gets up. The floor stays completely clean: nothing spills, no puddle, no liquid, no stains, no splashes, no particles."
+      },
+      "pegas": "Al escupir, PixelLab pinta en varias direcciones (west, south-west, south, south-east, north-west) un chorro rojo que sale de la boca; usa los mismos rojos que las tripas y no se puede quitar por color. De frente y de espaldas el andar casi no mueve las piernas. En las vistas de tres cuartos de espaldas se gira un poco de lado al andar."
+    }
   },
   "muebles": {
     "nota": "SUSTITUIDOS el 12 de octubre de 2026 por los de tres cuartos (\"muebles-3c\"). Los 20 muebles, vistos desde arriba para poder girarlos a cualquier pared. Cada uno se pidio con su guia como imagen de partida (init_image): asi sale con el tamano exacto. Los de \"sin_fondo\": false se pidieron con la guia sobre un fondo azul liso (96,112,150) y el fondo lo quita tools/mueble.py; con no_background PixelLab se comia los tableros lisos. Montaje: py tools/mueble.py",

@@ -43,15 +43,19 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
   - **Pegas conocidas:** el dibujo se ve bajo de frente y largo de espaldas. El choque sigue siendo el de siempre (`r: 17` en `ZOMBIE_TYPES`).
   - Los dos personajes de modelo que no se usaban ya están borrados de PixelLab (con su confirmación) y la muerte
     hacia la izquierda se repitió para quitarle un charco de sangre (la antigua, en `descartes/muerte/`).
-- **Zombi venenoso (el gordo), redibujado en grande** (13 de octubre de 2026). Al dueño le parecía pequeño junto a
-  Johnny (medían lo mismo). Primero se estiró el dibujo en el juego (×1,25 y ×1,5), pero se le veían los píxeles
-  más gordos que los de Johnny, así que se volvió a generar a 72×72 con el mismo diseño: 67 píxeles de alto,
-  píxeles del mismo tamaño que el resto y contorno oscuro (6 generaciones; `zombi-venenoso-72` en
-  `assets/pixellab.json`, vistas en `assets/sources/zombi-venenoso-72/`). Ya está en el juego como `zombi-venenoso`
-  (solo el dibujo quieto), **pendiente del visto bueno.** El choque (`r: 16`) no se ha tocado. Capturas:
-  `assets/pruebas/venenoso-grande-modelo.png` y `venenoso-grande-en-juego.jpg`. Faltan sus animaciones (andar,
-  escupir, golpe, muerte): hacerlas sobre este personaje y a 72 (`tools/zombi.py` da por hecho 48: habrá que
-  adaptarlo). `spriteScale` sigue existiendo en `ZOMBIE_TYPES` (lo usa el lento).
+- **El zombi venenoso (el gordo) ya está en el juego, en grande** (sprite `zombi-venenoso`, 13 de octubre de 2026),
+  **pendiente del visto bueno final.** Al dueño le parecía pequeño junto a Johnny; estirado en el juego se le veían
+  los píxeles gordos, así que se volvió a generar a 72×72 con el mismo diseño (67 píxeles de alto, contorno oscuro,
+  piel beige: el dueño dio por bueno el diseño). Reposo, andar, escupir, golpe y muerte en las 8 direcciones.
+  Costó 38 generaciones. Ids, textos y pegas en `assets/pixellab.json` (`zombi-venenoso-72`); captura en
+  `assets/pruebas/venenoso-grande-en-juego.jpg`, GIF en `assets/pruebas/zombi-venenoso-*.gif`.
+  - **Cómo se monta:** `py tools/zombi.py zombi-venenoso-72 zombi-venenoso`, con su `zombi.json` (`casilla` 144,
+    `origen` 36/48, `pies` 118, `sangre` viva para no oscurecerle las tripas).
+  - **En el juego** (`zombies.js`): la animación de ataque es el escupitajo, se lanza al empezar a prepararlo y el
+    moco sale de la boca a los 0,4 s. No da zarpazos. En `ZOMBIE_TYPES` lleva `shadow` (sombra ancha) y `top`
+    (barra de vida por encima de la cabeza). El choque (`r: 16`) no se ha tocado.
+  - **Pegas conocidas:** al escupir, en varias direcciones sale un chorro rojo pintado por PixelLab además del
+    moco verde del juego; de frente y de espaldas apenas mueve las piernas al andar.
 - **Zombi lento, un poco más pequeño** (13 de octubre de 2026, lo pidió el dueño): su dibujo se encoge a ×0,85
   (`spriteScale`), también el cuerpo que deja al morir. El choque (`r: 17`) no se ha tocado.
 

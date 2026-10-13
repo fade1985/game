@@ -62,7 +62,7 @@ export const ZOMBIE_TYPES = {
   },
   venenoso: {
     // el gordo: su sprite es más grande que los demás (lienzo de 72) para que imponga junto al conserje
-    name: 'Zombi venenoso', r: 16, s: 1.5, hp: 35, speed: 60, dmg: 8, push: 160,
+    name: 'Zombi venenoso', r: 16, s: 1.5, shadow: 84, top: 124, hp: 35, speed: 60, dmg: 8, push: 160,
     look: { skin: '#b5e655', hair: '#4f772d', shirt: '#4f772d', pants: '#31572c', shoes: '#2e2a3a' },
   },
 };
@@ -230,12 +230,14 @@ export class Zombie {
           spd = 0;
           this.spitT -= dt;
           if (this.spitT <= 0) {
-            game.lob(this.x, this.y - 18 * this.s, p.x, p.y);
+            // con sprite, el moco sale de la boca (bastante más arriba que en el dibujo de antes)
+            game.lob(this.x + this.lookX * 26, this.y - (hasSprite(this.sprite) ? 88 : 18 * this.s), p.x, p.y);
             this.cd = POISON.cd;
             sfx.spit();
           }
         } else if (sees && this.cd <= 0 && d < 430) {
           this.spitT = 0.4; // hincha los mofletes antes de escupir
+          this.play('attack'); // pixel art: se echa atrás y escupe (el moco sale a los 0,4 s, como marca su hoja)
         }
         break;
     }
@@ -256,7 +258,8 @@ export class Zombie {
     this.lookX += (ux - this.lookX) * Math.min(1, dt * 8);
     this.lookY += (uy - this.lookY) * Math.min(1, dt * 8);
     // al llegar al conserje, lanza el zarpazo (el daño sigue siendo por contacto, como siempre)
-    if (!this.anim && sees && this.dmg > 0 && !p.dead && d < this.r + p.r + REACH) this.play('attack');
+    // (el venenoso no da zarpazos: su animación de ataque es el escupitajo)
+    if (!this.anim && sees && this.dmg > 0 && this.type !== 'venenoso' && !p.dead && d < this.r + p.r + REACH) this.play('attack');
   }
 
   detonate(game) {
@@ -340,7 +343,7 @@ export class Zombie {
     if (this.tent && this.tent.phase === 'warn') shake = rand(-1, 1);
     const sp = Math.hypot(this.vx, this.vy);
     // pixel art: un sprite por tipo de zombi ("zombi-normal", "zombi-rapido"...)
-    if (hasSprite(`zombi-${this.type}`)) pixelShadow(ctx, x, y + 14 * scale, 28 * scale);
+    if (hasSprite(`zombi-${this.type}`)) pixelShadow(ctx, x, y + 14 * scale, this.def.shadow || 28 * scale);
     // zarpazo o golpe recibido si hay uno en marcha; si no, andar (al ritmo de sus pasos) o reposo
     const an = this.anim;
     const opts = an ? { flash, frame: Math.floor((an.t / an.dur) * animFrames(this.sprite, an.name)) }
@@ -369,7 +372,7 @@ export class Zombie {
 
     // barra de vida pequeña
     if (this.hp < this.maxHp) {
-      const w = 34 * s, bx = x - w / 2, by = y - 46 * s;
+      const w = 34 * s, bx = x - w / 2, by = y - (this.def.top || 46 * s);   // "top": por encima de la cabeza en los sprites altos
       ctx.fillStyle = OUTLINE;
       ctx.beginPath(); ctx.roundRect(bx - 2, by - 2, w + 4, 9, 4); ctx.fill();
       ctx.fillStyle = '#ff5d73';
