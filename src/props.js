@@ -76,24 +76,27 @@ export class DoorKey {
     ctx.beginPath(); ctx.arc(x, y, 50, 0, TAU); ctx.fill();
     ctx.fillStyle = 'rgba(20,16,40,0.22)';
     ctx.beginPath(); ctx.ellipse(x, this.y + 14, 16, 5, 0, 0, TAU); ctx.fill();
-    // llave plateada, grande, con una etiqueta roja colgando
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(-0.6 + Math.sin(game.time * 2.5) * 0.15);
-    ctx.lineJoin = 'round';
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = OUTLINE;
-    ctx.beginPath();
-    ctx.moveTo(-3, -4); ctx.lineTo(22, -4); ctx.lineTo(22, 10); ctx.lineTo(16, 10); ctx.lineTo(16, 4);
-    ctx.lineTo(11, 4); ctx.lineTo(11, 8); ctx.lineTo(6, 8); ctx.lineTo(6, 4); ctx.lineTo(-3, 4);
-    ctx.closePath();
-    ctx.fillStyle = '#dfe7f2'; ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.arc(-12, 0, 11, 0, TAU);
-    ctx.fillStyle = '#dfe7f2'; ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.arc(-12, 0, 4, 0, TAU);
-    ctx.fillStyle = '#8d99ae'; ctx.fill(); ctx.stroke();
-    roundBox(ctx, -20, 10, 16, 12, 3, '#ff5d73', 2.5);
-    ctx.restore();
+    // llave plateada, grande, con una etiqueta roja colgando (sprite; si falta, el dibujo de siempre)
+    if (!drawSprite(ctx, 'objeto-llave-puerta', 'idle', 'south', 0, x, y)) {
+      // llave plateada, grande, con una etiqueta roja colgando
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(-0.6 + Math.sin(game.time * 2.5) * 0.15);
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = OUTLINE;
+      ctx.beginPath();
+      ctx.moveTo(-3, -4); ctx.lineTo(22, -4); ctx.lineTo(22, 10); ctx.lineTo(16, 10); ctx.lineTo(16, 4);
+      ctx.lineTo(11, 4); ctx.lineTo(11, 8); ctx.lineTo(6, 8); ctx.lineTo(6, 4); ctx.lineTo(-3, 4);
+      ctx.closePath();
+      ctx.fillStyle = '#dfe7f2'; ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.arc(-12, 0, 11, 0, TAU);
+      ctx.fillStyle = '#dfe7f2'; ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.arc(-12, 0, 4, 0, TAU);
+      ctx.fillStyle = '#8d99ae'; ctx.fill(); ctx.stroke();
+      roundBox(ctx, -20, 10, 16, 12, 3, '#ff5d73', 2.5);
+      ctx.restore();
+    }
     outlinedText(ctx, this.name, x, this.y + 34, 15, '#dfe7f2', { lw: 4 });
   }
 }

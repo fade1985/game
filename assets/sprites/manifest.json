@@ -39,5 +39,8 @@
   "suelo-salon",
   "zombi-lento",
   "zombi-normal",
-  "zombi-venenoso"
+  "zombi-venenoso",
+  "objeto-corazon",
+  "objeto-llave",
+  "objeto-llave-puerta"
 ]

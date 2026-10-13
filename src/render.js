@@ -493,6 +493,20 @@ export function drawDoorLabels(ctx, room) {
 }
 
 // ═════════════ Objetos recogibles ═════════════
+// Destello blanco que pasa de vez en cuando por la llave
+function brillo(ctx, pk, y, time) {
+  const tw = (time * 1.3 + pk.seed) % 1.6;
+  if (tw >= 0.4) return;
+  const k = Math.sin((tw / 0.4) * Math.PI) * 5;
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.moveTo(pk.x + 8, y - 10 - k); ctx.lineTo(pk.x + 9.5, y - 10); ctx.lineTo(pk.x + 8, y - 10 + k); ctx.lineTo(pk.x + 6.5, y - 10);
+  ctx.closePath(); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(pk.x + 8 - k, y - 10); ctx.lineTo(pk.x + 8, y - 8.5); ctx.lineTo(pk.x + 8 + k, y - 10); ctx.lineTo(pk.x + 8, y - 11.5);
+  ctx.closePath(); ctx.fill();
+}
+
 export function drawPickup(ctx, pk, time) {
   const bob = Math.sin(time * 5 + pk.seed) * 3;
   const y = pk.y - 6 + bob;
@@ -500,7 +514,11 @@ export function drawPickup(ctx, pk, time) {
   ctx.beginPath(); ctx.ellipse(pk.x, pk.y + 6, 8, 3, 0, 0, TAU); ctx.fill();
   ctx.lineWidth = 3;
   ctx.strokeStyle = OUTLINE;
-  if (pk.kind === 'heart') {
+  if (pk.kind === 'heart' && drawSprite(ctx, 'objeto-corazon', 'idle', 'south', 0, pk.x, y)) {
+    // sprite pixel art
+  } else if (pk.kind === 'key' && drawSprite(ctx, 'objeto-llave', 'idle', 'south', 0, pk.x, y)) {
+    brillo(ctx, pk, y, time);
+  } else if (pk.kind === 'heart') {
     heartPath(ctx, pk.x, y + 2, 11);
     ctx.fillStyle = '#ff5d73'; ctx.fill(); ctx.lineJoin = 'round'; ctx.stroke();
   } else if (pk.kind === 'key') {
@@ -519,17 +537,7 @@ export function drawPickup(ctx, pk, time) {
     ctx.beginPath(); ctx.arc(-7, 0, 2.3, 0, TAU);
     ctx.fillStyle = '#b8860b'; ctx.fill();
     ctx.restore();
-    const tw = (time * 1.3 + pk.seed) % 1.6;
-    if (tw < 0.4) {
-      const k = Math.sin((tw / 0.4) * Math.PI) * 5;
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.moveTo(pk.x + 8, y - 10 - k); ctx.lineTo(pk.x + 9.5, y - 10); ctx.lineTo(pk.x + 8, y - 10 + k); ctx.lineTo(pk.x + 6.5, y - 10);
-      ctx.closePath(); ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(pk.x + 8 - k, y - 10); ctx.lineTo(pk.x + 8, y - 8.5); ctx.lineTo(pk.x + 8 + k, y - 10); ctx.lineTo(pk.x + 8, y - 11.5);
-      ctx.closePath(); ctx.fill();
-    }
+    brillo(ctx, pk, y, time);
   }
 }
 
