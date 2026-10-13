@@ -188,7 +188,7 @@ Preguntas pendientes, por orden:
    conserje y de los compañeros; los proyectiles de los zombis siguen como estaban. También su **impacto**
    (`bulletImpact` en `game.js`): un destello cuadrado y chispas del color de la bala que rebotan hacia atrás,
    más algo de polvo si da en un muro; son partículas `px` (cuadraditos encajados en la cuadrícula que encogen
-   en vez de desvanecerse). **Pendiente de que vea la bala y el impacto jugando y diga si le valen.**
+   en vez de desvanecerse). **La bala y el impacto tienen el visto bueno del dueño** (13 de octubre de 2026: "la bala está perfecta").
    - **Armas a distancia, cómo quedó programado:** al disparar con un arma con hoja propia se pone la animación
      `attack` sin retrasar la bala, y no se dibuja el arma de siempre ni su fogonazo ni su casquillo. La bala
      nace en la boca del arma del dibujo: `"boca": "fogonazo"` en `arma.json` hace que `tools/arma.py` la busque
@@ -202,7 +202,7 @@ Preguntas pendientes, por orden:
      `fx`, que es cada fotograma de disparo con SOLO el fogonazo, el humo y el casquillo. Si anda y dispara,
      `Player.draw` pinta el andar entero, de una pieza, y encima esos efectos; el retroceso de los brazos solo
      se ve disparando parado. **No volver a partir el cuerpo.** Solo para armas de fuego; la fregona y el bate
-     siguen igual. Pendiente de que el dueño lo vea jugando.
+     siguen igual. Con el visto bueno del dueño (13 de octubre de 2026).
    - **Lo descartado de la pistola ya está borrado de PixelLab** (12 de octubre de 2026, con su confirmación).
    - **El bate está en el juego** (sprite `conserje-48-bate`, 27 generaciones) y tiene el visto bueno del dueño.
    - **La fregona tiene la estela de agua dentro del dibujo.** Decidido por el dueño: las estelas van siempre en
