@@ -43,6 +43,8 @@ export const ZOMBIE_TYPES = {
     look: { skin: '#a8c686', hair: '#5b4a3a', shirt: '#8d7b68', pants: '#5c5470', shoes: '#3b3550' },
   },
   normal: {
+    // variantes: hojas con otra ropa (tools/variantes.py); cada zombi sale con una al azar, o con la de siempre
+    variantes: ['rojo', 'bata', 'pijama', 'pelado'],
     name: 'Zombi', r: 16, s: 1, hp: 30, speed: 80, dmg: 10, push: 170,
     look: { skin: '#8fc46a', hair: '#3b2f2a', shirt: '#5b7db1', pants: '#3d4a7a', shoes: '#2e2a3a' },
   },
@@ -104,9 +106,13 @@ export class Zombie {
     this.wakeT = 0;              // el respingo al despertar: un instante antes de echar a andar
     this.zone = -1;              // en qué habitación esperaba
     this.anim = null;            // pixel art: animación en curso que no es andar (zarpazo o golpe recibido)
+    // variante de color: la de siempre (null) o una de las del tipo, si su hoja está cargada
+    const opciones = [null, ...(d.variantes || [])];
+    const v = opciones[Math.floor(Math.random() * opciones.length)];
+    this.variant = v && hasSprite(`zombi-${type}-${v}`) ? v : null;
   }
 
-  get sprite() { return `zombi-${this.type}`; }
+  get sprite() { return this.variant ? `zombi-${this.type}-${this.variant}` : `zombi-${this.type}`; }
 
   // Pone una animación de la hoja de sprites (si la tiene). Solo es dibujo: no cambia lo que hace el zombi
   play(name) {

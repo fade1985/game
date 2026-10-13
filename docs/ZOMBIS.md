@@ -54,3 +54,24 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
   adaptarlo). `spriteScale` sigue existiendo en `ZOMBIE_TYPES` (lo usa el lento).
 - **Zombi lento, un poco más pequeño** (13 de octubre de 2026, lo pidió el dueño): su dibujo se encoge a ×0,85
   (`spriteScale`), también el cuerpo que deja al morir. El choque (`r: 17`) no se ha tocado.
+
+## Variantes de color (13 de octubre de 2026)
+
+- **Hecho: zombi normal con 4 variantes** (`rojo`, `bata`, `pijama`, `pelado`) además de la de siempre. Solo cambia el
+  color de la ropa y la piel: misma vida, velocidad y daño. `py tools/variantes.py zombi-normal` genera las hojas
+  `assets/sprites/zombi-normal-<variante>.png/.json` a partir de la original (sin tocarla): decide por el tono de cada
+  píxel qué es camisa (azul claro), pantalón (azul oscuro) y piel (verde), y conserva el sombreado. Las recetas de
+  cada variante están al principio de `tools/variantes.py`.
+- **En el juego:** `variantes` en `ZOMBIE_TYPES` (zombies.js). Cada zombi elige al nacer una al azar (o la de siempre,
+  todas con la misma probabilidad) y su cuerpo muerto conserva el color. Si la hoja no está cargada, usa la de siempre.
+  Captura: `assets/pruebas/zombi-normal-variantes.jpg`. **Pendiente del visto bueno del dueño.**
+- **Siguiente:** repetirlo con el lento y con los zombis que vayan teniendo pixel art (cada hoja puede necesitar sus
+  propios umbrales de camisa/pantalón en `tools/variantes.py`).
+
+### Ideas guardadas (no se hacen todavía; el dueño quiere centrarse en el color)
+
+- **Élite:** mismo zombi con tono rojizo, más vida y más velocidad en los pisos altos.
+- **Variantes con un pequeño cambio de comportamiento** (por ejemplo el policía con algo más de vida).
+- **Mutaciones por edificio** (cascos o armaduras; zombis que se parten en dos al morir).
+- **Zombis nuevos con otra mecánica:** escudo (hay que rodearlo), gritón que llama a más zombis, saltador que
+  sale de los muebles.
