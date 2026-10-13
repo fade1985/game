@@ -1,0 +1,9 @@
+{
+  "cintura": 40,
+  "pies": 72,
+  "ataque": { "sangre": true },
+  "andar": {
+    "south": [0, 12], "south-east": [0, 12], "east": [0, 12], "north-east": [0, 12],
+    "north": [0, 12], "north-west": [0, 12], "west": [0, 12], "south-west": [0, 12]
+  }
+}

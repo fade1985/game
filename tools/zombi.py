@@ -4,7 +4,7 @@ Lo saca todo de assets/sources/<fuente>/:
   rotations/<dirección>.png     las 8 posturas quietas (48×48), ya con la piel corregida por tools/piel.py
   walk/<dirección>-<n>.png      andar (PixMiniMax; el lienzo cambia de tamaño según la dirección)
   ataque/, golpe/, muerte/      atacar, recibir un golpe y morir (lienzo de 96×96 con el dibujo quieto en 24, 32)
-  zombi.json (opcional)         qué fotogramas se usan y cuánto dura cada animación
+  zombi.json (opcional)         qué fotogramas se usan, cuánto dura cada animación, "cintura", "pies" y "sangre"
 En todas las animaciones el fotograma 0 es el dibujo quieto: así se sabe dónde colocar los demás.
 
 Y escribe assets/sprites/<sprite>.png y .json con seis animaciones:
@@ -34,8 +34,8 @@ SRC = f'assets/sources/{SOURCE}'
 cfg = json.load(open(f'{SRC}/zombi.json', encoding='utf-8')) if os.path.exists(f'{SRC}/zombi.json') else {}
 CW, CH = 96, 96            # casilla: cabe el zombi tendido en el suelo
 OX, OY = 24, 32            # dónde va el dibujo quieto de 48×48 dentro de la casilla
-PX, PY = 48, 78            # los pies dentro de la casilla
-WAIST = 26                 # fila de la cintura en el dibujo quieto (para el reposo)
+PX, PY = 48, cfg.get('pies', 78)   # los pies dentro de la casilla (otra altura con "pies" en zombi.json)
+WAIST = cfg.get('cintura', 26)   # fila de la cintura en el dibujo quieto (para el reposo); otra con "cintura" en zombi.json
 
 rot = {d: Image.open(f'{SRC}/rotations/{d}.png').convert('RGBA') for d in DIRS}
 # Sangre: "oscura" (rojo apagado, lo normal), "quitar" (sin sangre) o "viva" (el rojo chillón de PixelLab)
@@ -218,7 +218,9 @@ def block(folder, key, default, fix):
     return out
 
 
-attack = block('ataque', 'ataque', (1, 7), lambda f: specks(clean(f, spark)))
+# con "sangre": true dentro de "ataque" en zombi.json, la sangre del ataque se trata como la de golpe y muerte
+attack = block('ataque', 'ataque', (1, 7),
+               gore if cfg.get('ataque', {}).get('sangre') else lambda f: specks(clean(f, spark)))
 hurt = block('golpe', 'golpe', (1, 6), gore)
 death = block('muerte', 'muerte', (1, 12), gore)
 DUR = {'attack': cfg.get('ataque', {}).get('duracion', 0.55), 'hurt': cfg.get('golpe', {}).get('duracion', 0.35),

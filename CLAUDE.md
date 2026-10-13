@@ -134,6 +134,18 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
     brazos estirados (con el texto común se giraba de perfil); el ciclo de andar no cierra del todo limpio.
   - **Limpieza pendiente en PixelLab (solo con su confirmación):** el personaje de piel beige, el andar de
     plantilla y los cuatro andares descartados.
-  - **Siguiente:** skill `/zombi-nuevo` creada (`.claude/skills/zombi-nuevo/SKILL.md`). Faltan lento, rápido,
+  - **Siguiente:** skill `/zombi-nuevo` creada (`.claude/skills/zombi-nuevo/SKILL.md`). Faltan rápido,
     explosivo, tentáculos y venenoso (este último, rehacerlo: salió con la piel beige).
+- **El zombi lento ya está en el juego** (sprite `zombi-lento`, 13 de octubre de 2026), **pendiente del visto bueno
+  final del dueño.** Diseño suyo: partido por la mitad, solo torso y brazos, se arrastra con las manos. Costó unas
+  52 generaciones (6 de un primer modelo descartado, que salió con piernas de espaldas). Ids, textos y pegas en
+  `assets/pixellab.json` (`zombi-lento-48`); captura en `assets/pruebas/zombi-lento-en-juego.jpg` y GIF en
+  `assets/pruebas/zombi-lento-*.gif`.
+  - **Cómo se monta:** `py tools/zombi.py zombi-lento-48 zombi-lento`, con `assets/sources/zombi-lento-48/zombi.json`
+    (opciones nuevas de `tools/zombi.py`: `cintura`, `pies` y `ataque.sangre`; el andar usa los 12 fotogramas).
+  - **Piel:** piel y camisa salieron del mismo beige y `tools/piel.py` teñía las dos; este zombi tiene su propio
+    script, `assets/sources/zombi-lento-48/piel.py`.
+  - **Pegas conocidas:** la muerte hacia la izquierda deja un charco de sangre que las otras no tienen; el dibujo
+    se ve bajo de frente y largo de espaldas. El choque sigue siendo el de siempre (`r: 17` en `ZOMBIE_TYPES`).
+  - **Limpieza pendiente en PixelLab (solo con su confirmación):** los dos personajes de modelo que no se usan.
 
