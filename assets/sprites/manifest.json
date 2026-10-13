@@ -42,5 +42,8 @@
   "zombi-venenoso",
   "objeto-corazon",
   "objeto-llave",
-  "objeto-llave-puerta"
+  "objeto-llave-puerta",
+  "objeto-charco-veneno",
+  "objeto-charco-lejia",
+  "objeto-moco"
 ]

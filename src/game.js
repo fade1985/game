@@ -16,7 +16,7 @@ import { loadSave, updateSave, buildingSave } from './save.js';
 import { drawRoom, sceneryOf, drawDoors, drawDoorLabels, drawFog, drawPickup, drawBullet, drawMinimap, drawEmoji as drawEmojiAt, minimapRect } from './render.js';
 import { Camera, ZOOM, BOSS_ZOOM } from './camera.js';
 import { outlinedText, roundBox, setTextFont } from './draw.js';
-import { setGridSnap } from './sprites.js';
+import { setGridSnap, drawSprite, hasSprite } from './sprites.js';
 import { CELL, isWall, isOpen, lineClear, randomFloorPoint, wayTo } from './shapes.js';
 import { getMoveVector, consumeDash, clearInput } from './input.js';
 import { sfx, music, setMusicOn } from './sfx.js';
@@ -1150,6 +1150,15 @@ export class Game {
       const fade = Math.min(1, hz.life / 0.6) * Math.min(1, (hd.life - hz.life) / 0.15 + 0.3);
       ctx.save();
       ctx.globalAlpha = 0.8 * fade;
+      const sprite = hz.kind === 'bleach' ? 'objeto-charco-lejia' : 'objeto-charco-veneno';
+      // el sprite se dibuja entero; cada charco sale a veces espejado para que no se repitan todos igual
+      if (hasSprite(sprite)) {
+        if (hz.seed > 3) { ctx.translate(hz.x * 2, 0); ctx.scale(-1, 1); }
+        ctx.globalAlpha = Math.min(1, fade * 1.1);
+        drawSprite(ctx, sprite, 'idle', 'south', 0, hz.x, hz.y, { scale: 1 });
+        ctx.restore();
+        continue;
+      }
       ctx.fillStyle = hd.fill;
       ctx.strokeStyle = hd.stroke;
       ctx.lineWidth = 3;
@@ -1195,6 +1204,7 @@ export class Game {
       ctx.fillStyle = 'rgba(20,16,40,0.25)';
       ctx.beginPath(); ctx.ellipse(gx, gy, 8, 3.5, 0, 0, Math.PI * 2); ctx.fill();
       if (lb.kind === 'bleach') { drawBottle(ctx, gx, gy - h, lb.t * 10); continue; }
+      if (drawSprite(ctx, 'objeto-moco', 'idle', 'south', 0, gx, gy - h)) continue;
       ctx.beginPath();
       ctx.arc(gx, gy - h, 8, 0, Math.PI * 2);
       ctx.fillStyle = '#9be33b';
