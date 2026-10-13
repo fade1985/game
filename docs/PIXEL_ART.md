@@ -122,3 +122,14 @@ mismo). Si el suelo no encaja bien al repetirse, se retoca a mano o se dibuja co
 - **Objetos del suelo:** `objeto-corazon`, `objeto-llave` (la dorada del Taller) y `objeto-llave-puerta` (la plateada del mini jefe), 5 generaciones cada uno (`create_object_pro_flash`, 24 y 32 px). Fuentes en `assets/sources/suelo`. `drawPickup` y `DoorKey.draw` usan el sprite y, si falta, el dibujo de siempre.
 - **Charcos y moco:** `objeto-charco-veneno` (80x48), `objeto-charco-lejia` (108x64) y `objeto-moco` (16x16), 5-6 generaciones cada uno. Ojo: 1 píxel de sprite = 2 unidades del juego, así que el lienzo se pide del tamaño del charco (radio x 2 / 2). Salen a veces espejados (`drawHazards`).
 - **Pendiente:** sprites de jefes, la trazadora de bala (sigue en código), la botella de lejía (`drawBottle`) y efectos.
+
+## Partículas y efectos
+
+- **Partículas de código:** círculos, anillos y estrellas pasan a cuadraditos encajados en la cuadrícula
+  (`drawParticles` en `game.js`): sin bordes suavizados, con contorno negro cuando lo piden.
+- **Efectos animados** con `vfx_workbench` de PixelLab (gratis para suscriptores, se guardan en "My effects" de
+  la cuenta): `objeto-fx-explosion` (96x96, 12 fotogramas, zombi explosivo), `objeto-fx-chispa` (64x64, 7; al caer
+  un jefe) y `objeto-fx-humo` (64x64, 10; pisotón de la portera). Se lanzan con `game.fx(id, x, y)`. Fuentes
+  en `assets/sources/efectos/`. Si el sprite falta, `explode` usa el dibujo de siempre.
+- **Pendiente:** sangre al golpear y al morir (`burst`), polvo al andar, el rastro del zombi lento y
+  las manchas del suelo siguen siendo círculos o dibujo de código; la botella de lejía (`drawBottle`).

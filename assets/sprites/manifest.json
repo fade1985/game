@@ -49,5 +49,8 @@
   "objeto-llave-puerta",
   "objeto-charco-veneno",
   "objeto-charco-lejia",
-  "objeto-moco"
+  "objeto-moco",
+  "objeto-fx-explosion",
+  "objeto-fx-chispa",
+  "objeto-fx-humo"
 ]

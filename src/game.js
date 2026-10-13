@@ -997,6 +997,7 @@ export class Game {
     this.lobs = [];
     this.burst(boss.x, boss.y, '#ffd23f', 30, boss.r);
     this.burst(boss.x, boss.y - 40, boss.color, 20, boss.r);
+    this.fx('objeto-fx-chispa', boss.x, boss.y - 20);
     this.shake(20);
     this.hitStop = 0.35; // cámara lenta un instante: ¡golpe final!
     sfx.boom();
@@ -1028,12 +1029,13 @@ export class Game {
   explode(x, y, radius, dmg, source) {
     sfx.boom();
     this.shake(14);
-    for (let i = 0; i < 26; i++) {
+    const sprite = this.fx('objeto-fx-explosion', x, y);
+    for (let i = 0; i < (sprite ? 10 : 26); i++) {
       const a = rand(0, Math.PI * 2), sp = rand(60, 320);
       const c = ['#ffd23f', '#ff9f1c', '#ff5d3c', '#5d5873'][i % 4];
-      this.particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: rand(6, 14), color: c, life: rand(0.35, 0.7), max: 0.7, outline: true });
+      this.particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: sprite ? rand(3, 6) : rand(6, 14), color: c, life: rand(0.35, 0.7), max: 0.7, outline: true });
     }
-    this.particles.push({ x, y, vx: 0, vy: 0, r: radius * 0.6, ring: true, color: '#ffd23f', life: 0.35, max: 0.35 });
+    if (!sprite) this.particles.push({ x, y, vx: 0, vy: 0, r: radius * 0.6, ring: true, color: '#ffd23f', life: 0.35, max: 0.35 });
     const p = this.player;
     if (!p.dead && dist(p, { x, y }) <= radius + p.r) p.hurt(dmg, this);
     for (const e of this.enemies) {
@@ -1058,6 +1060,7 @@ export class Game {
   // Onda expansiva (pisotón): daña y empuja al jugador si está dentro del radio
   shockwave(x, y, radius, dmg, push) {
     this.shake(16);
+    this.fx('objeto-fx-humo', x, y);
     this.particles.push({ x, y, vx: 0, vy: 0, r: radius * 0.5, ring: true, color: '#ffffff', life: 0.35, max: 0.35 });
     for (let i = 0; i < 18; i++) {
       const a = rand(0, Math.PI * 2), sp = rand(150, 320);
@@ -1260,6 +1263,14 @@ export class Game {
         });
       }
     }
+  }
+
+  // Efecto animado de pixel art (explosión, chispa, humo): se reproduce una vez en su sitio
+  fx(id, x, y) {
+    const dur = { 'objeto-fx-explosion': 12 / 14, 'objeto-fx-chispa': 7 / 16, 'objeto-fx-humo': 10 / 12 }[id];
+    if (!hasSprite(id)) return false;
+    this.particles.push({ fx: id, x, y, vx: 0, vy: 0, life: dur, max: dur });
+    return true;
   }
 
   // Chispas en forma de estrella donde se golpea
@@ -1522,6 +1533,11 @@ export class Game {
     for (const pt of this.particles) {
       const k = pt.life / pt.max;
       ctx.globalAlpha = Math.min(1, k * 1.5);
+      if (pt.fx) {
+        ctx.globalAlpha = 1;
+        drawSprite(ctx, pt.fx, 'idle', 'south', 0, pt.x, pt.y, { frame: Math.floor((1 - k) * (pt.fx === 'objeto-fx-explosion' ? 12 : pt.fx === 'objeto-fx-chispa' ? 7 : 10)) });
+        continue;
+      }
       if (pt.px) {
         // pixel art: un cuadradito encajado en la cuadrícula, que encoge en vez de desvanecerse
         const side = Math.max(1, Math.ceil(pt.size * Math.min(1, k * 1.6))) * PIXEL;
@@ -1530,25 +1546,28 @@ export class Game {
         ctx.fillRect(Math.round((pt.x - side / 2) / PIXEL) * PIXEL, Math.round((pt.y - side / 2) / PIXEL) * PIXEL, side, side);
         continue;
       }
-      ctx.beginPath();
+      // todo se dibuja con cuadraditos encajados en la cuadrícula de píxeles (nada de bordes suavizados)
+      const sq = (x, y, n, color) => {
+        const side = Math.max(1, n) * PIXEL;
+        ctx.fillStyle = color;
+        ctx.fillRect(Math.round((x - side / 2) / PIXEL) * PIXEL, Math.round((y - side / 2) / PIXEL) * PIXEL, side, side);
+      };
       if (pt.star) {
-        // destello de 4 puntas
-        const s = pt.r * (0.6 + k * 0.6);
-        ctx.moveTo(pt.x, pt.y - s); ctx.lineTo(pt.x + s * 0.25, pt.y - s * 0.25); ctx.lineTo(pt.x + s, pt.y);
-        ctx.lineTo(pt.x + s * 0.25, pt.y + s * 0.25); ctx.lineTo(pt.x, pt.y + s); ctx.lineTo(pt.x - s * 0.25, pt.y + s * 0.25);
-        ctx.lineTo(pt.x - s, pt.y); ctx.lineTo(pt.x - s * 0.25, pt.y - s * 0.25); ctx.closePath();
-        ctx.fillStyle = pt.color;
-        ctx.fill();
+        // destello en cruz
+        const arm = Math.max(1, Math.round(pt.r * (0.6 + k * 0.6) / PIXEL));
+        for (let i = -arm; i <= arm; i++) { sq(pt.x + i * PIXEL, pt.y, 1, pt.color); if (i) sq(pt.x, pt.y + i * PIXEL, 1, pt.color); }
       } else if (pt.ring) {
-        ctx.arc(pt.x, pt.y, pt.r * (1 + (1 - k) * 1.2), 0, Math.PI * 2);
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = pt.color;
-        ctx.stroke();
+        // anillo de puntitos que se abre
+        const rr = pt.r * (1 + (1 - k) * 1.2);
+        const n = Math.max(12, Math.round(rr * 1.4 / PIXEL) * 2);
+        for (let i = 0; i < n; i++) {
+          const a = (i / n) * Math.PI * 2;
+          sq(pt.x + Math.cos(a) * rr, pt.y + Math.sin(a) * rr * 0.75, 2, pt.color);
+        }
       } else {
-        ctx.arc(pt.x, pt.y, Math.max(0.5, pt.r * k), 0, Math.PI * 2);
-        ctx.fillStyle = pt.color;
-        ctx.fill();
-        if (pt.outline) { ctx.lineWidth = 2; ctx.strokeStyle = OUTLINE; ctx.stroke(); }
+        const n = Math.max(1, Math.round(pt.r * k * 2 / PIXEL));
+        if (pt.outline) sq(pt.x, pt.y, n + 2, OUTLINE);
+        sq(pt.x, pt.y, n, pt.color);
       }
     }
     ctx.globalAlpha = 1;
