@@ -173,3 +173,15 @@ elegir el ciclo y quita el tinte amarillo del fogonazo.
 - El servidor de pruebas quita el `.html` de las direcciones (`/assets/pruebas/ataque-fregona`, sin `.html`).
 - Los fotogramas de partida subidos caducan a los 3 días y la dirección de subida a los 15 minutos.
 - Lo descartado se apunta en `assets/pixellab.json` como descartado y se le propone al dueño borrarlo al final.
+- **Si `backblaze.pixellab.ai` no responde** y `tools/bajar.py` no baja nada: bajar el zip de
+  `https://api.pixellab.ai/mcp/characters/<id>/spritesheet` (hoja con todas las rotaciones y animaciones más un
+  JSON que dice qué hay en cada fila) y recortar las casillas.
+- **Armas con retroceso fuerte (escopeta):** en `arma.json` poner `"margen_efectos": 10` (que no se cuelen las
+  manos en `fx`) y `"sin_tinte": {}` (si la detección del tinte amarillo borra el humo).
+
+## Ahorrar cuota
+
+- Una sesión nueva por arma (`/clear`). Modelo Sonnet para seguir esta receta; Opus solo si hay que tocar scripts.
+- Lanzar todas las animaciones de golpe y comprobar una sola vez (cada trabajo tarda 1–3 minutos).
+- No sacar capturas de las 8 direcciones dentro del juego: montar y avisar; capturas solo para el visto bueno final.
+- Las hojas de revisión (imágenes) cuestan mucho: mirar solo las necesarias.

@@ -89,153 +89,24 @@ Detalles completos en [`docs/PIXEL_ART.md`](docs/PIXEL_ART.md). Lo esencial:
 
 ### PixelLab
 
-Los sprites se generan con PixelLab. Desde el 12 de octubre de 2026 está conectado a Claude Code por su
-**servidor MCP** (herramientas `mcp__pixellab__*`), que es la vía principal: no hace falta clave ni script.
+Los sprites se generan con PixelLab por su **servidor MCP** (`mcp__pixellab__*`; sin clave ni script). Plan Tier 1:
+2000 generaciones al mes (se renuevan el día 12); `get_balance` dice cuántas quedan. Antes de tandas grandes,
+calcular el coste y **decírselo al dueño**. Todo lo generado se apunta en `assets/pixellab.json`.
+**Receta completa, costes, trucos y fallos conocidos: [`docs/PIXELLAB.md`](docs/PIXELLAB.md)** (leer al generar arte).
+Armas de Johnny: skill `/arma-nueva` (`.claude/skills/arma-nueva/SKILL.md`). Zombis: ver más abajo.
 
-- **Plan:** Tier 1 (Pixel Apprentice), **2000 generaciones al mes** (se renuevan el día 12) más un bono diario de 20
-  que solo se gasta si se agotan las del mes. Para ver cuántas quedan: herramienta `get_balance`.
-- **Lo que cuesta cada cosa** (orientativo; la respuesta de cada herramienta dice lo que se ha cobrado):
-  - Personaje en modo estándar: 1. En modo `v3`: 2–9. En modo `pro`: 10–25.
-  - Animación de plantilla (`walking`, `breathing-idle`...): 1 por dirección.
-  - Animación "a medida" en modo `v3` o `pixminimax`: 1–2 por dirección a 64 px o menos. Ya no hay que evitarlas.
-  - Estado de un personaje (otra ropa, un arma en la mano): unas 10.
-  - Objeto o mueble (`create_1_direction_object`, `create_8_direction_object`): 10–25.
-  - Antes de lanzar tandas grandes, calcular el total y **decírselo al dueño**.
-- Todo lo generado se apunta en `assets/pixellab.json` (texto, semilla, ids) para poder repetirlo.
-- **Muebles y suelos: como imagen suelta (`create_image_pixflux`, 1 generación cada uno), no como "objeto"**
-  (10–25). Los 20 muebles y los 7 suelos tienen sprite.
-- **El escenario se ve "en tres cuartos"** (decidido por el dueño el 12 de octubre de 2026, al notar que los
-  personajes se veían de lado y el escenario desde arriba): el suelo desde arriba, pero las paredes enseñan su
-  cara y los muebles su frente, con altura. Los muebles en planta que se hicieron antes se retiraron.
-  - Cada mueble va apoyado en su pared: de frente en la de arriba; en las laterales solo los que tienen
-    dibujo de lado (`mueble-<tipo>-lado`: sofá, sillón, bañera, váter) o se ven igual desde cualquier sitio
-    (lámpara, planta, perchero, mesilla); en la de abajo solo estos últimos (`goesOn` en `furniture.js`).
-  - Receta: sin guía y sin fondo, con un lienzo de largo × (fondo + alto) y el texto "..., front view facing
-    the viewer, 3/4 top-down RPG perspective, game furniture sprite". Si sale girado en diagonal, con la guía
-    de `py tools/muebles3c.py guias` (un bloque del tamaño del mueble) y con fondo. Montaje:
-    `py tools/muebles3c.py monta`. El largo de cada mueble en `PIECES` es el ancho de su dibujo × 2.
-  - Pendiente: dibujos de lado de cama, estantería, armario, encimera, nevera y demás (los tres primeros se
-    pidieron y salieron mal), para que las paredes laterales no se queden tan vacías.
-  - PixelLab solo deja 8 generaciones a la vez. **La clave `PIXELLAB_API_KEY` de este ordenador es de otra
-    cuenta, sin saldo**: todo se pide por MCP.
-- **Animaciones muy sutiles (reposo): mejor hacerlas a mano que pedirlas.** Las de PixelLab redibujan el
-  personaje en cada fotograma y a 48 píxeles la cara "baila". La de reposo de Johnny (`conserje-48`) la hace
-  `tools/idle.py` a partir de sus 8 rotaciones: respiración de 1 píxel y parpadeo, sin tocar ningún otro píxel.
-  PixelLab sigue siendo lo indicado para animaciones con movimiento de verdad (andar, atacar, morir).
-- **Andar de Johnny:** plantilla `walking-8-frames` de PixelLab en las 8 direcciones. Los fotogramas tal cual
-  salen se guardan en `assets/sources/conserje-48/walk/` y `tools/walk.py conserje-48` los monta en la hoja
-  (iguala los colores a los del dibujo quieto y alinea los pies). En el juego el paso avanza según la distancia
-  recorrida (`STEP` en `entities.js`), no según el reloj: así arranca y frena con el personaje.
-- **Las plantillas no valen para un personaje con un arma en la mano.** Probado el 12 de octubre de 2026 con
-  `walking-8-frames` sobre el estado "Fregona en guardia": en 7 de las 8 direcciones Johnny pierde la fregona y
-  sale más grande. Para esos estados, todo con PixMiniMax (el andar también: 1 generación por dirección, las 8
-  en una sola llamada, y luego se recorta el tramo que hace ciclo).
-- **Receta para animar un personaje nuevo:** probar 3 o 4 plantillas en una sola dirección (de perfil, `east`),
-  elegir la mejor y lanzar las otras 7 direcciones en el mismo grupo (`animation_group_id`).
-- **Animaciones a medida (sin plantilla): usar el modo `pixminimax`, no `v3`.** Probados los dos con Johnny el
-  12 de octubre de 2026: PixMiniMax mantiene la cara, la ropa y el tamaño; v3 le cambió la cara en el reposo y
-  le quitó la camisa en el ataque. Cuesta 1 generación por dirección con 8 o 12 fotogramas a 64 píxeles.
-  - El texto, largo y por partes, como en los ejemplos de la web de PixelLab: qué hace el cuerpo, qué se mueve
-    detrás (pelo, tela, la mopa), el efecto, cómo vuelve a la postura inicial, y al final "Static camera,
-    completely locked-off shot. Maintain the crisp 2D pixel art aesthetic...". El texto usado para el ataque de
-    la fregona está entero en `assets/pixellab.json` (`conserje-48-guardia` → `ataque_pruebas`).
-  - Para que la animación acabe donde empieza, pasar el dibujo quieto de esa dirección también como fotograma
-    final (`end_frame_base64`). Obliga a lanzar las direcciones de una en una.
-  - Si el movimiento se sale del lienzo (un arma larga), dar como fotograma de partida y de llegada el dibujo
-    quieto centrado en un lienzo mayor. Para el ataque de la fregona: el de 64×64 pegado en uno de 96×96 en la
-    posición (16, 20).
-  - No pedir parpadeos: los hace largos y repetidos. Se añaden a mano después.
-- **Un arma en la mano es un "estado" del personaje** (`create_character_state`, unas 10 generaciones): una copia
-  con las 8 rotaciones cambiadas. Las animaciones se hacen sobre cada estado por separado, así que cada arma
-  necesita su estado y sus propias animaciones de andar y de atacar (unas 30–45 generaciones por arma).
-- **Vía antigua (sigue valiendo):** `tools/pixellab.mjs` llama a la API directamente
-  (`balance`, `character`, `animate`, `animate-text`, `export`, `image`; uso en la cabecera del archivo).
-  Necesita la clave en la variable de entorno **`PIXELLAB_API_KEY`**. **Nunca** pegarla en el chat, en el código ni
-  en un commit. En Windows (PowerShell): `$env:PIXELLAB_API_KEY = "..."` para la sesión actual, o
-  `setx PIXELLAB_API_KEY "..."` para siempre (hay que abrir una terminal nueva después).
-  `export` descomprime con `python3`; en Windows puede que haya que cambiarlo a `python` o `py`.
+## Dónde lo dejamos (13 de octubre de 2026)
 
-## Dónde lo dejamos (12 de octubre de 2026) · preguntar al dueño al retomar
+Historia detallada de cada arma y decisiones cerradas: [`docs/HISTORIA.md`](docs/HISTORIA.md). Resumen vivo:
 
-**Al retomar, empezar preguntándole por el punto 1.**
-Los ids, textos y costes de todo lo de abajo están en `assets/pixellab.json`. El 13 de octubre de 2026 quedaban 1.704 generaciones.
-
-Johnny con la fregona **ya está en el juego** (solo versión pixel): sprite `conserje-48-guardia`, estado
-"Fregona en guardia" del personaje "Johnny" en PixelLab. Tiene reposo, andar y ataque en las 8 direcciones.
-
-- **Cómo se monta:** `py tools/arma.py conserje-48-guardia` rehace la hoja entera (casillas de 96×96) a partir de
-  `assets/sources/conserje-48-guardia/`: `rotations/`, `walk/`, `ataque/` y `arma.json` (qué fotogramas se usan
-  de cada animación). El reposo lo calcula el script, como `tools/idle.py`. En este ordenador Python se llama
-  con `py` (no `python`) y tiene Pillow instalado.
-- **En el juego:** el arma dice qué hoja usa (`sprite` en `weapons.js`). Con hoja propia no se dibuja el arma
-  cartoon ni la estela azul del barrido, y el daño se hace cuando la mopa llega al suelo, no al empezar (el
-  momento lo dice la hoja: `impacto` en `arma.json` → `hit` en el JSON del sprite). El andar avanza por ciclo (`cycle` en `drawSprite`)
-  porque cada dirección tiene un número distinto de fotogramas (entre 6 y 10).
-- **Ataque:** 9 fotogramas elegidos de los 13 de PixelLab, medio segundo, con estela de agua. La dirección de
-  espaldas lleva un texto propio (con el común se daba la vuelta). Vista previa de los fotogramas sin recortar:
-  `http://localhost:3000/assets/pruebas/ataque-fregona` (sin `.html`: el servidor lo quita).
-- **Johnny con el bate** (`conserje-48-bate`, estado "Bate en guardia") va igual: mismas carpetas, mismo script.
-  Su `arma.json` solo dice qué fotogramas del ataque se usan; lo demás lo pone el script.
-- Johnny sin arma (`conserje-48`) sigue igual y es el que se ve con el cuchillo, la única arma sin hoja propia.
-
-Preguntas pendientes, por orden:
-
-1. **La pistola tiene el visto bueno del dueño** ("está de lujo"). Johnny con la pistola de 9 mm está en el
-   juego (sprite `conserje-48-pistola`, 32 generaciones): reposo, andar y disparo en las 8 direcciones.
-   Lo siguiente que pidió: **la bala**. Hecha en pixel art desde el código (`drawTracer` en `render.js`, sin
-   PixelLab): una trazadora de cuadraditos encajados en la cuadrícula, punta casi blanca y estela de amarillo
-   a naranja; las críticas más gordas y rojizas, los perdigones más pequeños. Vale para todas las balas del
-   conserje y de los compañeros; los proyectiles de los zombis siguen como estaban. También su **impacto**
-   (`bulletImpact` en `game.js`): un destello cuadrado y chispas del color de la bala que rebotan hacia atrás,
-   más algo de polvo si da en un muro; son partículas `px` (cuadraditos encajados en la cuadrícula que encogen
-   en vez de desvanecerse). **La bala y el impacto tienen el visto bueno del dueño** (13 de octubre de 2026: "la bala está perfecta").
-   - **Armas a distancia, cómo quedó programado:** al disparar con un arma con hoja propia se pone la animación
-     `attack` sin retrasar la bala, y no se dibuja el arma de siempre ni su fogonazo ni su casquillo. La bala
-     nace en la boca del arma del dibujo: `"boca": "fogonazo"` en `arma.json` hace que `tools/arma.py` la busque
-     sola (el centro del fogonazo) y la apunte en el JSON del sprite (`muzzle`). Como el dibujo es alto, la bala
-     se mueve por el suelo como siempre pero se **dibuja** levantada (`lift`: `MUZZLE_LIFT` en `entities.js`,
-     `BULLET_LIFT` en `game.js`, `drawBullet` en `render.js`).
-   - **Disparar andando (a petición del dueño):** antes las piernas se quedaban quietas mientras duraba la
-     animación de disparo. Primero se probó a partir a Johnny por la cintura (piernas del andar + torso del
-     disparo) y **el dueño lo rechazó: "el cuerpo tiene que estar unido siempre y no partirse"** (la cadera se
-     veía desacompasada). Solución actual: `"efectos": true` en `arma.json` hace que la hoja lleve la animación
-     `fx`, que es cada fotograma de disparo con SOLO el fogonazo, el humo y el casquillo. Si anda y dispara,
-     `Player.draw` pinta el andar entero, de una pieza, y encima esos efectos; el retroceso de los brazos solo
-     se ve disparando parado. **No volver a partir el cuerpo.** Solo para armas de fuego; la fregona y el bate
-     siguen igual. Con el visto bueno del dueño (13 de octubre de 2026).
-   - **Lo descartado de la pistola ya está borrado de PixelLab** (12 de octubre de 2026, con su confirmación).
-   - **El bate está en el juego** (sprite `conserje-48-bate`, 27 generaciones) y tiene el visto bueno del dueño.
-   - **La fregona tiene la estela de agua dentro del dibujo.** Decidido por el dueño: las estelas van siempre en
-     el sprite y creíbles para cada arma (agua, aire, fuego...), nunca pintadas por el juego.
-   - **La escopeta está en el juego** (sprite `conserje-48-escopeta`, 13 de octubre de 2026; 18 generaciones de
-     animaciones más las 10–25 del estado): reposo, andar y disparo en las 8 direcciones, con lo programado para
-     la pistola (no hubo que tocar el juego). El dueño dio el visto bueno al estado y a la prueba de disparo;
-     **pendiente de su visto bueno final jugando** (capturas en `assets/pruebas/escopeta-*.png` y `.gif`).
-     Pegas que vio y aceptó: de frente la lleva cruzada y de espaldas el cañón asoma por el hombro izquierdo.
-     - Como el retroceso es fuerte, su `arma.json` lleva dos ajustes nuevos de `tools/arma.py`:
-       `"margen_efectos": 10` (para que en la animación `fx` no se cuelen las manos) y `"sin_tinte": {}` (apaga
-       la detección automática del tinte amarillo, que aquí se confundía y borraba el humo).
-     - **Limpieza pendiente en PixelLab (solo con su confirmación):** el disparo `north-west` teñido de amarillo
-       y el andar `north` que no cerraba el ciclo (ids en `assets/pixellab.json`).
-   - **Si `backblaze.pixellab.ai` no responde** (pasó el 13 de octubre de 2026 y `tools/bajar.py` no puede
-     bajar nada): bajar el zip de `https://api.pixellab.ai/mcp/characters/<id>/spritesheet`, que trae una hoja
-     con todas las rotaciones y animaciones más un JSON que dice qué hay en cada fila, y recortar las casillas.
-   - **Arma que queda:** el cuchillo (cuerpo a cuerpo, sale con la skill tal cual).
-2. **La skill `/arma-nueva` ya existe** (`.claude/skills/arma-nueva/SKILL.md`). Si en una sesión nueva no
-   aparece en la lista, leer ese archivo y seguirlo igual.
-3. **Limpieza de los estados de la fregona, del bate y de la pistola: hecha** el 12 de octubre de 2026 con su confirmación. En
-   PixelLab quedan solo las animaciones que usa el juego. El resto de la limpieza sigue pendiente (punto 6).
-4. **Dos pegas del estado "Fregona en guardia"** que vio y no ha dicho si le molestan: usa 18 colores frente a
-   los 50 del Johnny sin arma (ropa más plana), y la mopa cambia de lado entre la vista de frente y las diagonales.
-5. **Reposo:** sigue el hecho a mano ("de momento sirve"). Hay una prueba de frente con PixMiniMax que respeta
-   mucho mejor a Johnny que la plantilla, pero parpadea demasiado. Propuesta sin contestar: repetirla sin
-   parpadeo (1 generación) y, si gusta, las otras 7 direcciones.
-6. **Limpieza en PixelLab (borrar no se puede deshacer: solo con su confirmación expresa):** el estado
-   descartado "Con fregona" (mopa abajo) y, según lo que decida en el punto 5, la
-   prueba de reposo con PixMiniMax y el reposo de plantilla. También el conserje antiguo de 32 píxeles.
-7. **De antes, sin decidir:** rehacer el zombi venenoso (salió con la piel beige en vez de verde) y si su sprite
-   de prueba debe verse en las partidas normales; si la elección de arma se queda también en la versión cartoon;
-   probar con partidas simuladas el equilibrado de las salas grandes; y empezar el arte del salón.
+- **En el juego, con visto bueno:** Johnny con fregona, bate y pistola (hojas `conserje-48-guardia`, `-bate`,
+  `-pistola`), la bala y su impacto. El cuchillo es la única arma sin hoja propia (usa `conserje-48`) y la
+  siguiente por hacer con `/arma-nueva cuchillo`.
+- **Escopeta** (`conserje-48-escopeta`): en el juego, **pendiente del visto bueno final** jugando.
+- **Pendientes de limpieza en PixelLab (solo con su confirmación expresa):** ver `docs/HISTORIA.md` y las notas de
+  cada sprite en `assets/pixellab.json`.
+- **Sin decidir:** rehacer el zombi venenoso (piel beige), reposo de Johnny con PixMiniMax, equilibrado de salas
+  grandes, arte del salón, y si el dueño pasa a Godot (ver `docs/HISTORIA.md`).
 
 ## Zombis en pixel art (en curso, lo lleva otra sesión distinta de las de armas y mapa)
 
@@ -265,98 +136,3 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
   - **Siguiente:** con su visto bueno, crear la skill `/zombi-nuevo` y seguir con los otros cinco (lento, rápido,
     explosivo, tentáculos y venenoso).
 
-## Flujo de trabajo para las armas de Johnny (acordado el 12 de octubre de 2026)
-
-Habrá más armas y cada una necesita su estado y sus animaciones. Se acordó hacerlo siempre igual, con una
-**skill** (una receta guardada en el proyecto: el dueño escribe algo como `/arma-nueva bate` y se siguen los pasos)
-y un par de scripts. **Sin subagentes:** lo que hace esperar es PixelLab y el visto bueno del dueño, y eso un
-subagente no lo acelera.
-
-**Orden acordado:** primero terminar la fregona entera a mano, hasta verla funcionando en el juego. Con lo que
-haya funcionado, crear la skill y los scripts. La segunda arma ya va por el flujo. **Hecho: la fregona funciona,
-el script de montaje es `tools/arma.py` y la skill está en `.claude/skills/arma-nueva/SKILL.md`** (es la versión
-al día de los pasos de abajo: el andar va con PixMiniMax, la prueba de ataque incluye la vista de espaldas y la
-estela del golpe va dentro del dibujo). El dueño dijo que no hace falta parar tras la tanda completa.
-
-Pasos para un "Arma X" (unas 30–45 generaciones; el dueño solo tiene que mirar en los pasos 1, 2 y 6):
-
-1. **Estado:** Johnny con el arma en guardia (`create_character_state`, unas 10). Enseñarlo y **esperar visto bueno**:
-   todo lo demás sale de esas ocho posturas.
-2. **Prueba de ataque de perfil** con PixMiniMax (1). Enseñarla y **esperar visto bueno**.
-3. **Tanda completa, sin parar:** las otras 7 direcciones del ataque y las 8 de andar (unas 15). Revisar cada
-   dirección y repetir las que desentonen.
-4. **Reposo:** con el script, gratis.
-5. **Montaje:** un script lo mete todo en la hoja de sprites; conectarlo al juego.
-6. **Capturas y resumen** para el visto bueno final.
-
-Lo que hay que preparar una vez, cuando la fregona esté terminada:
-
-- **La skill**, con estos pasos y una plantilla del texto de cada animación en la que solo cambian el arma y el
-  tipo de golpe (un bate barre de lado, un cuchillo pincha, una pistola dispara).
-- **Scripts de montaje generales:** `tools/walk.py` y `tools/idle.py` están hechos para el Johnny sin arma; hay
-  que generalizarlos para cualquier estado y añadir el del ataque.
-- **Que el juego elija el sprite según el arma** que lleve Johnny. Ahora solo conoce uno (`conserje-48`).
-
-## Lo que queda
-
-### 1. Decisiones pendientes (antes de seguir con el pixel art)
-
-1. **Visto bueno al aspecto** de la prueba (conserje, zombi normal, sofá y suelo del salón) y a la cámara.
-2. **Tamaño de los personajes:** 32 o 48 píxeles. Con el zoom ×1,5 de la cámara, 32 probablemente basta.
-3. **Suelo:** dejar el parquet actual (suavizado con el color de la sala) o generar uno más liso (1 generación).
-   Para los demás suelos pedir algo "simple, subtle, low contrast".
-4. **Muebles:** PixelLab los da en perspectiva (se ve el frente). Opciones: ponerlos solo en las paredes de
-   arriba y abajo, o generar también una versión lateral de cada uno.
-5. ~~**Créditos:** decidir el plan de PixelLab para la migración completa.~~ **Hecho:** Tier 1 contratado y
-   conectado por MCP (ver el apartado PixelLab).
-
-### 2. Fases del pixel art
-
-| Fase | Qué se hace |
-|---|---|
-| 2 · Escenarios | 5 suelos (salón, cocina, dormitorio, pasillo, baño), paredes, puertas, escaleras y unos 20 muebles |
-| 3 · Personajes | Conserje y 3 supervivientes (policía, médica, militar) y los 6 zombis, con sus animaciones |
-| 4 · Jefes | El vecino del 4ºB y la portera (48×48 o 64×64) |
-| 5 · Objetos e interfaz | Armas, objetos, corazón, llave, proyectiles, charcos, efectos, iconos y fuente |
-
-La versión pixel ya es la de por defecto; lo que aún no tiene sprite se ve con el dibujo cartoon.
-
-### 3. Mecánicas nuevas (decididas el 12 de octubre de 2026)
-
-- **Elegir arma en la entrada: hecho.** Cada arma espera en su mueble (`stash` en `weapons.js`, dibujo en
-  `WeaponStash` de `props.js`). Se desbloquean al encontrarlas en una partida (`weapons` en el guardado).
-  Más adelante puede que se compren o que se creen armas nuevas: por eso el mueble es un dato de cada arma.
-- **Salas con forma libre y procedurales:** se hicieron para las salas sueltas y **se han retirado con el mapa
-  nuevo** (pasillo y apartamentos, `docs/MAPA.md`). Lo de abajo se queda como historia; de aquello sigue en uso
-  la cuadrícula de casillas y el camino de los zombis (`shapes.js`).
-  - Cada sala es una cuadrícula de casillas de 32 unidades (30×20), suelo o muro. La forma sale de "morder" el
-    rectángulo de 960×640 con bloques de muro: esquinas recortadas (L, T, cruz), entrantes en los lados sin
-    puerta (U) y columnas. La mitad de las salas son simétricas.
-  - Siempre quedan libres el centro y un pasillo de 6 casillas desde cada puerta. No hay pasos de menos de 2
-    casillas y queda al menos el 60 % del suelo. La entrada y las salas de jefe siguen siendo rectangulares.
-  - Los zombis rodean las esquinas (`wayTo`); balas, objetos, apariciones y apuntado respetan los muros; los
-    muebles se arriman también a los muros interiores.
-  - **Salas más grandes que la de siempre: hecho.** Algo más de la mitad de las salas de monstruos miden entre
-    960×640 y 1408×896 (`pickSize`: 30–44 casillas de ancho, 20–28 de alto). Cada sala guarda sus medidas en
-    `layout.w`, `layout.h`, `layout.cols` y `layout.rows`; en `game.js` se leen con `this.rw` y `this.rh`.
-    `W` y `H` quedan solo para el tamaño de la pantalla y de la sala de siempre (entrada, jefes, menú, cartoon).
-    En las grandes hay más muebles, más obstáculos, islas de muro y algún zombi más (`makeWaves`, parámetro
-    `big`: +60 % de presupuesto por cada vez que se dobla la superficie). **Este equilibrado está sin probar
-    con partidas simuladas.**
-  - **Pendiente:** puertas que no estén en el centro de cada lado, y que el minimapa refleje el tamaño de cada sala.
-- **Consecuencia para el arte:** los escenarios se generan como **piezas sueltas que encajan** (baldosa de suelo,
-  tramos de pared, esquinas hacia dentro y hacia fuera, hueco de puerta) y muebles aparte; nunca salas enteras.
-
-### 4. Pequeños pendientes
-
-- El **reloj** y las **nubes de las ventanas** se quedan quietos en la versión pixel (la sala se guarda como una
-  imagen fija). Se ofreció volver a animarlos dibujándolos aparte cada fotograma.
-- Más adelante: los otros edificios (hospital, centro comercial, comisaría) aparecen como "Próximamente".
-
-## Sobre pasar a Godot
-
-Se habló de si convenía pasar el juego a Godot. Conclusión: **para una demo web con la que aprender, seguir con
-JavaScript** (el ciclo de cambiar, capturar y simular partidas es muy rápido). Si el objetivo pasa a ser un juego
-más grande para PC o móvil, Godot merece la pena y el mejor momento sería **antes de migrar el resto al pixel art**.
-En ese caso, trabajar con Claude Code en el propio PC junto al editor de Godot. Los sprites de PixelLab, el diseño
-y los valores de equilibrado se aprovecharían tal cual. Queda pendiente que el dueño decida su objetivo.
