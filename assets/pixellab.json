@@ -640,6 +640,31 @@
       "sin_usar_en_pixellab": "La muerte antigua hacia la izquierda (dirección west del grupo b92db6dd). Borrar solo con confirmación del dueño."
     }
   },
+  "zombi-venenoso-72": {
+    "kind": "character",
+    "character_id": "44573bc5-5c0d-4f80-b8df-53eefd870905",
+    "name": "Zombi venenoso grande",
+    "nota": "El venenoso (el gordo) redibujado en grande el 2026-10-13: al dueño le parecía pequeño junto a Johnny y, estirado x1,5 en el juego, se le veían los píxeles más gordos. create_character_pro_flash a 72x72 con la vista de frente del venenoso de 48 (d8d5f941) como imagen de estilo y 'the same character as the reference, redrawn larger'. Salió con el mismo diseño, 67 píxeles de alto, píxeles del tamaño de los de Johnny y contorno oscuro. EN EL JUEGO como sprite zombi-venenoso (hoja de 8 casillas de 72x72, solo el dibujo quieto). Pendiente del visto bueno del dueño. Faltan andar, escupir, golpe y muerte (skill /zombi-nuevo, sobre este personaje y a 72). Vistas en assets/sources/zombi-venenoso-72/rotations/.",
+    "request": {
+      "description": "the same character as the reference, redrawn larger so he fills the canvas: a huge towering hugely obese bloated zombie, about 68 pixels tall and 62 pixels wide, bald head, sickly pale rotting skin covered in red sores and open wounds, small eyes, huge gaping mouth with jagged teeth and drool, dirty torn white tank top stretched over an enormous belly with exposed bloody guts hanging out, ripped dark blue shorts, bare feet, thick arms hanging at his sides, standing wide and hunched, more small detail than the reference because he is bigger, crisp pixel art, detailed shading",
+      "width": 72,
+      "height": 72,
+      "view": "low top-down",
+      "style_image": {
+        "url": "rotations/south.png de zombi-venenoso-48 (d8d5f941-74ff-400e-b52b-20d9dc6d6b06)",
+        "usage_description": "This is the same character at a smaller size. Keep his exact design, body shape, pose, clothes and colors, and the same pixel size, outline and shading style. Draw him about one and a half times bigger, filling the canvas, with finer detail."
+      },
+      "style_options": {
+        "color_palette": true,
+        "detail": true,
+        "outline": true,
+        "shading": true
+      }
+    },
+    "cost": "6 generaciones",
+    "updated": "2026-10-13",
+    "sin_usar_en_pixellab": "El venenoso de 48 (d8d5f941, 'Fatman'), sustituido por este. Borrar solo con confirmación del dueño."
+  },
   "muebles": {
     "nota": "SUSTITUIDOS el 12 de octubre de 2026 por los de tres cuartos (\"muebles-3c\"). Los 20 muebles, vistos desde arriba para poder girarlos a cualquier pared. Cada uno se pidio con su guia como imagen de partida (init_image): asi sale con el tamano exacto. Los de \"sin_fondo\": false se pidieron con la guia sobre un fondo azul liso (96,112,150) y el fondo lo quita tools/mueble.py; con no_background PixelLab se comia los tableros lisos. Montaje: py tools/mueble.py",
     "comun": {

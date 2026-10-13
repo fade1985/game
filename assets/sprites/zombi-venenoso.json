@@ -1,27 +1,65 @@
 {
-  "cell": [48, 48],
+  "cell": [
+    72,
+    72
+  ],
   "pivot": "auto",
   "anims": {
     "idle": {
       "fps": 1,
       "loop": true,
       "dirs": {
-        "south": { "row": 0, "col": 0, "frames": 1 },
-        "south-east": { "row": 0, "col": 1, "frames": 1 },
-        "east": { "row": 0, "col": 2, "frames": 1 },
-        "north-east": { "row": 0, "col": 3, "frames": 1 },
-        "north": { "row": 0, "col": 4, "frames": 1 },
-        "north-west": { "row": 0, "col": 5, "frames": 1 },
-        "west": { "row": 0, "col": 6, "frames": 1 },
-        "south-west": { "row": 0, "col": 7, "frames": 1 }
+        "south": {
+          "row": 0,
+          "col": 0,
+          "frames": 1
+        },
+        "south-east": {
+          "row": 0,
+          "col": 1,
+          "frames": 1
+        },
+        "east": {
+          "row": 0,
+          "col": 2,
+          "frames": 1
+        },
+        "north-east": {
+          "row": 0,
+          "col": 3,
+          "frames": 1
+        },
+        "north": {
+          "row": 0,
+          "col": 4,
+          "frames": 1
+        },
+        "north-west": {
+          "row": 0,
+          "col": 5,
+          "frames": 1
+        },
+        "west": {
+          "row": 0,
+          "col": 6,
+          "frames": 1
+        },
+        "south-west": {
+          "row": 0,
+          "col": 7,
+          "frames": 1
+        }
       }
     }
   },
   "source": {
     "character": {
-      "id": "d8d5f941-74ff-400e-b52b-20d9dc6d6b06",
-      "name": "Zombi ácido",
-      "size": { "width": 48, "height": 48 },
+      "id": "44573bc5-5c0d-4f80-b8df-53eefd870905",
+      "name": "Zombi venenoso grande",
+      "size": {
+        "width": 72,
+        "height": 72
+      },
       "directions": 8,
       "view": "low top-down"
     }

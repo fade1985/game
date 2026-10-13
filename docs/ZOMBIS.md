@@ -43,11 +43,14 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
   - **Pegas conocidas:** el dibujo se ve bajo de frente y largo de espaldas. El choque sigue siendo el de siempre (`r: 17` en `ZOMBIE_TYPES`).
   - Los dos personajes de modelo que no se usaban ya están borrados de PixelLab (con su confirmación) y la muerte
     hacia la izquierda se repitió para quitarle un charco de sangre (la antigua, en `descartes/muerte/`).
-- **Zombi venenoso (el gordo), más grande** (13 de octubre de 2026, lo pidió el dueño: medía lo mismo que Johnny y
-  no imponía). Su dibujo se amplía ×1,5 en el juego (`spriteScale` en `ZOMBIE_TYPES`, `src/zombies.js`): unos 68
-  píxeles de alto (primero se probó ×1,25 y al dueño le seguía pareciendo como Johnny). Es un apaño gratis: los píxeles quedan algo más gordos que los del resto. El choque (`r: 16`)
-  no se ha tocado. Comparación en `assets/pruebas/venenoso-tamanos.png`, captura en
-  `assets/pruebas/zombis-tamanos-en-juego.jpg`. Sigue pendiente rehacerlo entero (solo tiene el dibujo quieto,
-  piel beige y sin contorno negro): al hacerlo, pedirlo ya grande, en lienzo de 64.
+- **Zombi venenoso (el gordo), redibujado en grande** (13 de octubre de 2026). Al dueño le parecía pequeño junto a
+  Johnny (medían lo mismo). Primero se estiró el dibujo en el juego (×1,25 y ×1,5), pero se le veían los píxeles
+  más gordos que los de Johnny, así que se volvió a generar a 72×72 con el mismo diseño: 67 píxeles de alto,
+  píxeles del mismo tamaño que el resto y contorno oscuro (6 generaciones; `zombi-venenoso-72` en
+  `assets/pixellab.json`, vistas en `assets/sources/zombi-venenoso-72/`). Ya está en el juego como `zombi-venenoso`
+  (solo el dibujo quieto), **pendiente del visto bueno.** El choque (`r: 16`) no se ha tocado. Capturas:
+  `assets/pruebas/venenoso-grande-modelo.png` y `venenoso-grande-en-juego.jpg`. Faltan sus animaciones (andar,
+  escupir, golpe, muerte): hacerlas sobre este personaje y a 72 (`tools/zombi.py` da por hecho 48: habrá que
+  adaptarlo). `spriteScale` sigue existiendo en `ZOMBIE_TYPES` (lo usa el lento).
 - **Zombi lento, un poco más pequeño** (13 de octubre de 2026, lo pidió el dueño): su dibujo se encoge a ×0,85
   (`spriteScale`), también el cuerpo que deja al morir. El choque (`r: 17`) no se ha tocado.
