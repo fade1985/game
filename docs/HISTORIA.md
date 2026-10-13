@@ -91,6 +91,24 @@ Preguntas pendientes, por orden:
        de la sala de mantenimiento, cerrada hasta que se encuentra en un botín.
      - A 8 disparos por segundo cada disparo dura 0,12 s: la animación son solo 3 fotogramas (fogonazo y dos de
        humo) que se repiten con cada bala.
+     - **Apuntar abajo y arriba (14 de octubre de 2026).** El dueño vio que al disparar hacia abajo se veía
+       la animación de la diagonal. No era el juego: en el estado de PixelLab, la escopeta y el MP5 de frente
+       iban cruzados (cañón hacia un lado) y de espaldas asomaban por la izquierda, casi como las diagonales,
+       y el fogonazo salía de lado mientras las balas iban rectas. La pistola no tenía el problema (es corta).
+       Arreglado en las dos armas rehaciendo solo `south` y `north`: postura quieta nueva, andar y disparo.
+       - **La postura nueva se saca con una animación, no con `edit_image`** (que cuesta 10–25 generaciones):
+         PixMiniMax de 8 fotogramas desde la postura vieja, sin fotograma de llegada, pidiendo que gire el arma
+         y se quede quieto; el último fotograma se recorta a 64×64 y se guarda en `rotations/` (1 generación).
+       - **Qué postura funciona:** de frente, arma a la cadera y vertical en la imagen, cañón hacia abajo
+         ("hip-fire stance... perfectly vertical in the image"). Pedir que apunte a cámara desde el hombro no
+         vale: el arma se queda en un bloque oscuro junto a la cara (probado y descartado). De espaldas, el
+         cañón recto por encima del hombro derecho, junto a la cabeza.
+       - El andar de esas direcciones se pide de una en una con la postura nueva como fotograma de partida
+         (sin él, PixelLab parte de la postura vieja del estado).
+       - La hoja de la escopeta tiene ahora casillas de 96×120 (`celda` y `pivote` en su `arma.json`): el
+         fogonazo hacia arriba no cabía en 96. En el MP5, `reposo.cuello` cuenta el cañón que asoma sobre el pelo.
+       - Coste: 13 generaciones (MP5: 3 de posturas, una descartada, y 4 de animaciones; escopeta: 2 y 4).
+       - Con el visto bueno del dueño a las posturas; **pendiente de su visto bueno final jugando**.
      - Al lanzar el andar, PixelLab devolvió un error de servidor pero **sí había lanzado las 8 direcciones**:
        ante un error así, mirar `get_character` antes de reintentar, para no pagar dos veces.
 2. **La skill `/arma-nueva` ya existe** (`.claude/skills/arma-nueva/SKILL.md`). Si en una sesión nueva no

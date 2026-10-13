@@ -1,11 +1,11 @@
 {
   "cell": [
     96,
-    96
+    120
   ],
   "pivot": [
     48,
-    72
+    96
   ],
   "anims": {
     "still": {
@@ -98,7 +98,7 @@
       "dirs": {
         "south": {
           "row": 9,
-          "frames": 9
+          "frames": 8
         },
         "south-east": {
           "row": 10,
@@ -211,8 +211,8 @@
   "source": "Hecha con tools/arma.py a partir de assets/sources/conserje-48-escopeta/",
   "muzzle": {
     "south": [
-      31,
-      -7
+      1,
+      9
     ],
     "south-east": [
       26,
@@ -227,8 +227,8 @@
       -48
     ],
     "north": [
-      -25,
-      -54
+      12,
+      -66
     ],
     "north-west": [
       -28,

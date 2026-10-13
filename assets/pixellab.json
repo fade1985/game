@@ -434,7 +434,21 @@
       },
       "cost": "9 generaciones (8 + 1 repetida)"
     },
-    "cost_total": "18 generaciones de animaciones (comprobado con el saldo: de 1.722 a 1.704) más las 10-25 del estado"
+    "cost_total": "18 generaciones de animaciones (comprobado con el saldo: de 1.722 a 1.704) más las 10-25 del estado",
+    "posturas": {
+      "nota": "14 de octubre de 2026. Igual que en el MP5 (ver conserje-48-mp5 -> posturas, mismos textos cambiando 'submachine gun' por 'shotgun'): posturas nuevas de south (escopeta vertical delante del cuerpo, cañón hasta el suelo) y north (cañón recto sobre el hombro derecho), y andar y disparo rehechos en esas dos direcciones. A la rotación north se le quitaron 2 filas de cañón para que cupiera en 64 de alto. La hoja pasa a casillas de 96x120.",
+      "south": {
+        "group": "e8d6f4a0-f2fe-4208-8429-cf044008fe34",
+        "animation_name": "postura-escopeta-abajo"
+      },
+      "north": {
+        "group": "b6a31531-d23b-4cd3-9f34-4452ed04bcd4",
+        "animation_name": "postura-escopeta-arriba"
+      },
+      "animaciones_nuevas": "disparo south f7c756d2-57dd-46aa-95e3-907c38eb9894, disparo north 7b4c0925-db63-48a8-9153-c83d4f583eab, andar south da0412b6-dfb7-4187-ae9e-7cdc602b035d, andar north 4d051b17-718c-4bc0-b642-18c41d644062",
+      "descartado": "Siguen en PixelLab; borrar solo con la confirmación del dueño: las direcciones south y north viejas del disparo y del andar. Copia local en descartes/.",
+      "cost": "6 generaciones (2 de posturas, 4 de animaciones)"
+    }
   },
   "conserje-48-mp5": {
     "kind": "character_state",
@@ -476,7 +490,23 @@
       "cost": "8 generaciones",
       "action_description": "He walks forward in place at a steady, calm pace in a smooth, seamless looping walk cycle: his legs stride alternately in a regular rhythm, knees lifting and boots stepping one after the other, with a slight bob of the torso on each step. He keeps facing exactly the same direction the whole time and never turns. His upper body stays almost still: he quietly carries the submachine gun with both hands in the same ready grip the whole time, the stock against his shoulder, the short barrel held steady in the same place and only swaying very slightly with each step. The submachine gun is silent and idle. The tail of the red bandana sways a little. Nothing else appears in the image: only the walking man on an empty background. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation."
     },
-    "cost_total": "entre 26 y 41 generaciones: 10-25 del estado, 8 del disparo y 8 del andar; nada descartado"
+    "cost_total": "entre 26 y 41 generaciones: 10-25 del estado, 8 del disparo y 8 del andar; nada descartado",
+    "posturas": {
+      "nota": "14 de octubre de 2026. Las posturas quietas de south y north del estado se sustituyeron (el arma apuntaba de lado, como las diagonales, y el dueño lo vio al disparar hacia abajo). Cada una sale del último fotograma de una animación PixMiniMax de 8 fotogramas lanzada desde la postura vieja (custom_start_frame_url, sin end_frame_url), recortado a 64x64 y guardado en assets/sources/conserje-48-mp5/rotations/. Después se rehicieron el andar (12 fotogramas, con la postura nueva como fotograma de partida) y el disparo (8, con ella de partida y de llegada) de esas dos direcciones. En PixelLab el estado sigue con sus rotaciones originales: las nuevas solo existen en el proyecto.",
+      "south": {
+        "group": "e45cc49d-f905-4b72-81b1-c478eb05da22",
+        "animation_name": "postura-mp5-abajo-2",
+        "action_description": "He keeps facing the camera the whole time, his face, chest and both shoulders square to the camera. He quickly lowers the submachine gun to his waist and turns it so it points straight down the image: he holds it low at hip height in front of his belly with both hands, in a hip-fire stance, the whole black gun clearly visible as a vertical shape in the middle of his body, the short barrel pointing straight down toward the bottom edge of the image, between his legs, the muzzle at the bottom end, the curved magazine sticking out to one side. The gun is perfectly vertical in the image and does not lean left or right. Then he holds completely still in that pose for the rest of the animation, feet planted in the same place. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down front view throughout the entire fluid animation."
+      },
+      "north": {
+        "group": "a3885965-d631-4bcb-8ed3-f11d7322cb74",
+        "animation_name": "postura-mp5-arriba",
+        "action_description": "Strict back view the whole time: we only ever see the back of his head, the knot of the red bandana and the back of his overalls, his shoulders square to the camera; he never turns around and his face is never visible. He quickly straightens the submachine gun so it points straight ahead of him, away from the camera, toward the top edge of the image: he holds it in front of his body with both hands, mostly hidden behind his torso, and only the short black barrel sticks straight up above his right shoulder, perfectly vertical in the image, right next to his head, the muzzle at the top end. The barrel does not lean left or right and nothing sticks out to the left side anymore. Then he holds completely still in that pose for the rest of the animation, feet planted in the same place. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down back view throughout."
+      },
+      "animaciones_nuevas": "disparo south c3c906b1-05d2-41ce-bb5f-27a49f807e5a, disparo north b982d59c-622b-4b67-adfc-d20f16813161, andar south 3e2ec4c6-ce4e-422c-85cd-32d144f452e2, andar north d6741085-f9da-4ff3-bd2b-97c60dc92132",
+      "descartado": "Siguen en PixelLab; borrar solo con la confirmación del dueño: la primera prueba de postura (bac3ebff-71f5-461d-ab02-7a7de7ec3599, arma al hombro apuntando a cámara: casi no se ve), y las direcciones south y north viejas del disparo (grupos 6d5b0858... y 0dc89069...) y del andar (a2fae0f0...). Copia local en descartes/.",
+      "cost": "7 generaciones (3 de posturas, 4 de animaciones)"
+    }
   },
   "zombi-venenoso-48": {
     "kind": "character",

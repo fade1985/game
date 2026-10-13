@@ -179,6 +179,12 @@ elegir el ciclo y quita el tinte amarillo del fogonazo.
 - **Si `backblaze.pixellab.ai` no responde** y `tools/bajar.py` no baja nada: bajar el zip de
   `https://api.pixellab.ai/mcp/characters/<id>/spritesheet` (hoja con todas las rotaciones y animaciones más un
   JSON que dice qué hay en cada fila) y recortar las casillas.
+- **Armas largas de fuego (escopeta, MP5...): mirar `south` y `north` del estado antes de seguir.** PixelLab
+  dibuja el arma cruzada de frente y asomando de lado de espaldas, casi como las diagonales, y al disparar el
+  fogonazo sale de lado mientras las balas van rectas. El dueño lo rechazó. Se arregla rehaciendo solo esas dos
+  posturas con una animación de 1 generación cada una (no con `edit_image`, que cuesta 10–25): receta y textos
+  en `docs/HISTORIA.md` ("Apuntar abajo y arriba") y en `conserje-48-mp5` → `posturas` de `assets/pixellab.json`.
+  Hacerlo **antes** de animar, y contárselo al dueño en el paso 1 como una pega seria, no menor.
 - **Armas con retroceso fuerte (escopeta):** en `arma.json` poner `"margen_efectos": 10` (que no se cuelen las
   manos en `fx`) y `"sin_tinte": {}` (si la detección del tinte amarillo borra el humo).
 
