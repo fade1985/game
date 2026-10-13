@@ -136,13 +136,16 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
     plantilla y los cuatro andares descartados.
   - **Siguiente:** skill `/zombi-nuevo` creada (`.claude/skills/zombi-nuevo/SKILL.md`). Faltan rápido,
     explosivo, tentáculos y venenoso (este último, rehacerlo: salió con la piel beige).
-- **El zombi lento ya está en el juego** (sprite `zombi-lento`, 13 de octubre de 2026), **pendiente del visto bueno
-  final del dueño.** Diseño suyo: partido por la mitad, solo torso y brazos, se arrastra con las manos. Costó unas
+- **El zombi lento ya está en el juego** (sprite `zombi-lento`), **con el visto bueno final del dueño (13 de
+  octubre de 2026).** Diseño suyo: partido por la mitad, solo torso y brazos, se arrastra con las manos. Costó unas
   52 generaciones (6 de un primer modelo descartado, que salió con piernas de espaldas). Ids, textos y pegas en
   `assets/pixellab.json` (`zombi-lento-48`); captura en `assets/pruebas/zombi-lento-en-juego.jpg` y GIF en
   `assets/pruebas/zombi-lento-*.gif`.
   - **Cómo se monta:** `py tools/zombi.py zombi-lento-48 zombi-lento`, con `assets/sources/zombi-lento-48/zombi.json`
     (opciones nuevas de `tools/zombi.py`: `cintura`, `pies` y `ataque.sangre`; el andar usa los 12 fotogramas).
+  - **Rastro de sangre** (lo pidió el dueño): al arrastrarse deja manchas en el suelo que se secan a los 8
+    segundos. Lo hace el juego, no el sprite: `dropTrail` y `drawTrail` en `game.js` (constante `TRAIL`).
+    Captura en `assets/pruebas/zombi-lento-rastro.jpg`.
   - **Piel:** piel y camisa salieron del mismo beige y `tools/piel.py` teñía las dos; este zombi tiene su propio
     script, `assets/sources/zombi-lento-48/piel.py`.
   - **Pegas conocidas:** la muerte hacia la izquierda deja un charco de sangre que las otras no tienen; el dibujo

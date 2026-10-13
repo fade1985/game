@@ -156,7 +156,8 @@ export class Zombie {
 
     switch (this.type) {
       case 'lento':
-        // arrastra los pies: avanza a tirones
+        // se arrastra: avanza a tirones y deja un rastro de sangre
+        game.dropTrail(this);
         spd *= 0.55 + 0.45 * Math.abs(Math.sin(this.t * 2));
         mx += -uy * Math.sin(this.t * 1.5) * 0.3;
         my += ux * Math.sin(this.t * 1.5) * 0.3;

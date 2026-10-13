@@ -21,6 +21,9 @@ import { CELL, isWall, isOpen, lineClear, randomFloorPoint, wayTo } from './shap
 import { getMoveVector, consumeDash, clearInput } from './input.js';
 import { sfx, music, setMusicOn } from './sfx.js';
 
+// Rastro de sangre del zombi lento: cada cuánto deja una mancha, cuánto dura y cuánto tarda en borrarse al final
+const TRAIL = { step: 9, life: 8, fade: 2.5, max: 400, color: '#680c06', dark: '#4a0804' };
+
 // Charcos que dejan los proyectiles en parábola: moco venenoso y lejía
 const HAZARDS = {
   poison: { ...POISON, fill: '#8fd13f', stroke: '#4f772d', bubble: '#c7f27a', drop: '#9be33b' },
@@ -98,6 +101,7 @@ export class Game {
 
   resetRoomState() {
     this.hazards = [];   // charcos de veneno en el suelo
+    this.trail = [];     // rastro de sangre del zombi lento
     this.lobs = [];      // mocos volando
     this.enemies = [];
     this.bullets = [];
@@ -978,6 +982,7 @@ export class Game {
     }
     this.bullets = this.bullets.filter((b) => b.friendly);
     this.hazards = [];
+    this.trail = [];
     this.lobs = [];
     this.burst(boss.x, boss.y, '#ffd23f', 30, boss.r);
     this.burst(boss.x, boss.y - 40, boss.color, 20, boss.r);
@@ -1098,6 +1103,34 @@ export class Game {
       if (!p.dead && p.dashT <= 0 && dist(p, hz) < hz.r + p.r * 0.3) p.poison(hd.dps * dt, this, hd.drop);
     }
     this.hazards = this.hazards.filter((hz) => hz.life > 0);
+    for (const t of this.trail) t.life -= dt;
+    if (this.trail.length && this.trail[0].life <= 0) this.trail = this.trail.filter((t) => t.life > 0);
+  }
+
+  // El zombi lento deja un rastro de sangre al arrastrarse: una mancha cada pocos pasos, que se va secando
+  dropTrail(e) {
+    if (e.trailX === undefined) { e.trailX = e.x; e.trailY = e.y; return; }
+    if (Math.hypot(e.x - e.trailX, e.y - e.trailY) < TRAIL.step) return;
+    e.trailX = e.x; e.trailY = e.y;
+    this.trail.push({ x: e.x + rand(-3, 3), y: e.y + 6 + rand(-2, 2), life: TRAIL.life, seed: Math.floor(rand(0, 4)) });
+    if (this.trail.length > TRAIL.max) this.trail.shift();
+  }
+
+  drawTrail(ctx) {
+    for (const t of this.trail) {
+      if (this.hidden(t)) continue;
+      // en píxeles enteros del dibujo, como el resto del suelo
+      const x = Math.round(t.x / PIXEL) * PIXEL, y = Math.round(t.y / PIXEL) * PIXEL, u = PIXEL;
+      ctx.globalAlpha = 0.75 * Math.min(1, t.life / TRAIL.fade);
+      ctx.fillStyle = TRAIL.dark;
+      ctx.fillRect(x - 3 * u, y - u, 6 * u, 3 * u);
+      ctx.fillStyle = TRAIL.color;
+      ctx.fillRect(x - 2 * u, y, 4 * u, u);
+      // una gota suelta, a un lado u otro
+      ctx.fillStyle = TRAIL.dark;
+      ctx.fillRect(x + (t.seed % 2 ? 4 : -5) * u, y + (t.seed > 1 ? 2 * u : -2 * u), u, u);
+    }
+    ctx.globalAlpha = 1;
   }
 
   drawHazards(ctx) {
@@ -1429,6 +1462,7 @@ export class Game {
   drawBackground(ctx) {
     drawFog(ctx, this.room.layout);
     drawDoors(ctx, this.room, this.doorOpen);
+    this.drawTrail(ctx);
     this.drawHazards(ctx);
     for (const pk of this.pickups) drawPickup(ctx, pk, this.time);
   }
