@@ -59,7 +59,7 @@ Arte a 480×320 (2 unidades del juego por píxel), casillas de 16 píxeles, pers
 
 | Tema | Documento | Estado (13 de octubre de 2026) |
 |---|---|---|
-| Armas de Johnny | skill `/arma-nueva` · historia en [`docs/HISTORIA.md`](docs/HISTORIA.md) | Las cinco tienen hoja propia. Cuchillo: pendiente del visto bueno final jugando |
+| Armas de Johnny | skill `/arma-nueva` · historia en [`docs/HISTORIA.md`](docs/HISTORIA.md) | Las cinco tienen hoja propia y el visto bueno del dueño |
 | Zombis | skill `/zombi-nuevo` · [`docs/ZOMBIS.md`](docs/ZOMBIS.md) | Normal y lento hechos, con visto bueno. Faltan rápido, explosivo, tentáculos y venenoso |
 | Mapa (pasillo y apartamentos) | [`docs/MAPA.md`](docs/MAPA.md) | Fases 1–3 hechas (la 3, pendiente de visto bueno). Siguiente: fase 4, sala de mantenimiento |
 | Escenarios (tono oscuro, fondos enteros con ChatGPT) | [`docs/FONDOS.md`](docs/FONDOS.md) | Piloto del baño: bocetos listos, el dueño está generando el primero. Nada en el juego aún |

@@ -254,7 +254,7 @@
     "character_id": "ec5c0ada-63e3-42ea-a201-4eae224d018c",
     "source_character_id": "4e6c78c6-d6c6-46d3-99c1-40a2d86f0e6c",
     "state_name": "Cuchillo en guardia",
-    "nota": "Estado de Johnny con el cuchillo de cocina delante del cuerpo (2026-10-13), hecho con la skill /arma-nueva. Lienzo de 64x64. De espaldas el cuchillo se ve pequeño, junto a la cadera. EN EL JUEGO (sprite conserje-48-cuchillo): reposo, andar y ataque en las 8 direcciones. Pendiente del visto bueno final del dueño. Se monta con: py tools/arma.py conserje-48-cuchillo",
+    "nota": "Estado de Johnny con el cuchillo de cocina delante del cuerpo (2026-10-13), hecho con la skill /arma-nueva. Lienzo de 64x64. De espaldas el cuchillo se ve pequeño, junto a la cadera. EN EL JUEGO (sprite conserje-48-cuchillo): reposo, andar y ataque en las 8 direcciones. Con el visto bueno final del dueño (13 de octubre de 2026). Se monta con: py tools/arma.py conserje-48-cuchillo",
     "request": {
       "edit_description": "holding a kitchen knife like a weapon in his right hand, gripping the handle in a reverse-free forward grip, arm bent in front of his body with the short steel blade pointing forward and slightly up, knees slightly bent in a ready combat stance; the knife stays held in front of him in the same hand in every view: front, side and back; small light grey steel blade with a dark outline and a dark handle; same face, same hair and red bandana, same clothes, same body size and proportions",
       "override_width": 64,

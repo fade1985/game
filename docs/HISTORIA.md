@@ -69,7 +69,7 @@ Preguntas pendientes, por orden:
      con todas las rotaciones y animaciones más un JSON que dice qué hay en cada fila, y recortar las casillas.
    - **El cuchillo está en el juego** (sprite `conserje-48-cuchillo`, 13 de octubre de 2026; 29 generaciones):
      reposo, andar y ataque en las 8 direcciones, sin tocar el juego. El dueño dio el visto bueno al estado y a
-     la segunda prueba de ataque; **pendiente de su visto bueno final jugando** (hoja del ataque en
+     la segunda prueba de ataque; **con su visto bueno final jugando** (13 de octubre de 2026: "el cuchillo está perfecto"; hoja del ataque en
      `assets/pruebas/cuchillo-ataque-hoja.png`).
      - Como ataca 4 veces por segundo, el ataque dura 0,25 s y lleva solo 6 fotogramas, con el daño en el tercero.
        Por eso se pidieron 8 fotogramas a PixelLab y no 12: con 12 rellenaba el hueco con posturas inventadas.
