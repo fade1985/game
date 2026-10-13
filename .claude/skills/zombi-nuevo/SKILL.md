@@ -11,7 +11,7 @@ zombi normal el 12–13 de octubre de 2026 (con visto bueno del dueño). El argu
 (`request`, `pruebas_de_perfil`, `animaciones`: ahí están los textos completos y los ids de grupo).
 
 Todo se explica al dueño **en español y sin tecnicismos**. Antes de cada tanda de PixelLab se le dice lo que
-cuesta (un zombi completo salió por unas 43 generaciones). **Nunca se borra nada de PixelLab sin su confirmación expresa.**
+cuesta (el zombi normal salió por unas 43 generaciones y el lento por unas 52: ver «Costes» más abajo). **Nunca se borra nada de PixelLab sin su confirmación expresa.**
 
 ## Datos fijos
 
@@ -35,6 +35,15 @@ ambiguo, preguntar una vez antes de gastar generaciones. Lo que cambia con un di
 - **Cuerpo bajo o tendido (torso que se arrastra):** pedir en el modelo que ocupe la mitad inferior del lienzo
   y que la pose sea "dragging himself along the floor with his arms". `tools/piel.py` da por zapatos todo lo que
   está de la fila `SUELO` (36) hacia abajo: con un cuerpo bajo, ajustar `SUELO` o la piel de los brazos no se corrige.
+- **Si al cuerpo le falta algo (sin piernas, sin un brazo):** PixelLab parte de un maniquí entero y de espaldas se
+  lo vuelve a inventar. Con el lento, el primer modelo salió con piernas y botas en las vistas de espaldas. Lo que
+  funcionó a la segunda (texto completo en `zombi-lento-48` → `request`): negarlo todo con mayúsculas y "from any
+  angle" ("He has NO legs, NO hips, NO knees, NO feet, NO boots and NO trousers from any angle"), decir cómo NO
+  está ("not kneeling and not on all fours"), y **describir lo que se ve de espaldas** ("Seen from behind you see
+  the back of the head, the shoulders... and then the stump, nothing else"). En las animaciones, repetir "He has
+  no legs and never grows any".
+- **Montaje de un cuerpo bajo:** en `zombi.json`, `"pies"` (el lento usa 72; sin eso el cuerpo flota sobre su
+  sombra) y `"cintura"` (40: la fila por la que se parte el dibujo en el reposo).
 - **Andar:** es un arrastrarse a brazadas, no un paso: texto propio ("pulls himself forward with his arms, one
   after the other, his lower body dragging behind"), y probar primero en `east`.
 - **Muerte:** si ya va por el suelo no tiene mucho que caer; pedir que se quede quieto y se aplane (8 fotogramas
@@ -54,6 +63,10 @@ El dueño solo mira en los pasos 1 y 5. En los demás se sigue sin parar.
    (`rotations/south.png` de `conserje-48`, personaje `4e6c78c6-d6c6-46d3-99c1-40a2d86f0e6c`) como imagen de
    estilo, con el texto de `zombi-normal-48` → `request` cambiando el cuerpo, la ropa y los rasgos del tipo.
    `usage_description`: "Match the pixel art style... Do not copy his clothes, face or colors."
+   **Pedir la ropa de un color bien distinto de la piel** (azul, rojo, gris oscuro, marrón muy oscuro: nunca
+   beige, tostado ni marrón claro). Como la piel sale beige, una camisa "brown" salió del mismo tono y
+   `tools/piel.py` teñía las dos de verde: hubo que hacer un script aparte con retoques a mano
+   (`assets/sources/zombi-lento-48/piel.py`, sirve de ejemplo si vuelve a pasar).
 2. PixelLab saca la **piel beige** aunque se pida verde. Bajar las 8 vistas a
    `assets/sources/zombi-<tipo>-48/rotations/`, correr `py tools/piel.py zombi-<tipo>-48` (gratis; guarda las
    originales en `rotations-original/`; ajustar `VERDE`, `SAT` y `LUZ` del script si el tipo lleva otro tono de
@@ -74,13 +87,20 @@ tipo: el explosivo se inclina sobre la mecha, el venenoso escupe, el rápido cor
   fotogramas y sin final (se queda tendido).
   Para preparar los lienzos y subirlos: `get_upload_url` + `curl -sS -F "file=@..." "<url>"` y apuntar el `upload:<id>`.
 
+Subir de una vez los lienzos de partida de las 8 direcciones (se usan en el paso 3) y apuntar los `upload:<id>`.
+
 Bajar con `py tools/bajar.py assets/sources/zombi-<tipo>-48/<animación> < lineas.txt` y mirar con
 `py tools/hoja.py <carpeta> <salida.png> east`. Repetir lo que desentone antes de lanzar las otras 7.
 
 ### 3. Tanda completa · sin parar
 
-Lanzar las otras 7 direcciones de cada animación (unas 28 generaciones), **8 trabajos a la vez como máximo**,
-y comprobar una sola vez al rato. Cambiar solo `initial_pose`:
+Lanzar las otras 7 direcciones de cada animación (28 trabajos; unas 35 generaciones con el andar de 12
+fotogramas). **Lanzarlas todas seguidas, sin esperar entre tandas**, y comprobar una sola vez al rato: con el
+lento se fue en tandas de 8 esperando entre una y otra y eso fue casi todo el tiempo perdido. El límite de 8 a
+la vez era una precaución de la receta, no algo comprobado en PixelLab: si alguna llamada da error por
+demasiados trabajos en cola, anotar cuántos admite aquí y seguir en tandas de ese tamaño.
+Añadir cada dirección al grupo de su animación (`animation_group_id` + el mismo `animation_name`): así luego
+se baja todo junto. Cambiar solo `initial_pose`:
 `south`: "facing the camera"; `north`: "seen from behind, his back to the camera"; `east`/`west`: "facing
 right/left"; `south-east/west`: "in three-quarter front view, facing toward the camera and to the right/left";
 `north-east/west`: "in three-quarter back view, facing away from the camera and to the right/left".
@@ -91,7 +111,11 @@ right/left"; `south-east/west`: "in three-quarter front view, facing toward the 
 - **Andar:** el texto común (brazos estirados) hizo girarse de perfil a `south`, `south-east`, `north-east` y
   `north`: se repitieron con "Strict front view the whole time..." y brazos bajos (4 generaciones más). Para
   ahorrarlas, usar ese texto de brazos bajos de entrada en esas cuatro y el común en las otras cuatro.
-- Fotogramas a `assets/sources/zombi-<tipo>-48/{walk,ataque,golpe,muerte}/<dirección>-<n>.png`.
+- **Bajar todo de una vez con el zip del personaje**, no fotograma a fotograma:
+  `curl -sS -o z.zip https://api.pixellab.ai/mcp/characters/<id>/download` (en una carpeta vacía del scratchpad).
+  Dentro vienen `Idle/animations/<nombre>/<dirección>/frame_00N.png`: copiarlos a
+  `assets/sources/zombi-<tipo>-48/{walk,ataque,golpe,muerte}/<dirección>-<n>.png` (el andar se llama como el
+  `animation_name` que se le puso).
 - Revisar todas las direcciones en una hoja ampliada (pocas imágenes) y repetir las que desentonen.
 
 ### 4. Montaje y juego · sin parar
@@ -99,7 +123,11 @@ right/left"; `south-east/west`: "in three-quarter front view, facing toward the 
 `py tools/zombi.py zombi-<tipo>-48 zombi-<tipo> --gif <carpeta temporal>` hace la hoja (casillas de 96×96) con
 `still`, `idle` (a mano), `walk` (solo el tramo que cierra ciclo), `attack`, `hurt` y `death`. Oscurece la sangre
 de rojo vivo (decisión del dueño: se queda, pero apagada) y quita los destellos. Opcional: `zombi.json` en la
-carpeta fuente para elegir fotogramas y duraciones (`sangre`: `oscura`, `quitar`, `viva`).
+carpeta fuente para elegir fotogramas y duraciones (`sangre`: `oscura`, `quitar`, `viva`; `cintura` y `pies`
+para cuerpos bajos; `"ataque": {"sangre": true}` si PixelLab mete sangre también en el ataque).
+Si el script avisa de que el ciclo de andar cierra mal en todas las direcciones ("← OJO, es mucho"), comparar
+el último fotograma con el 0: en el lento el 12 volvía a la postura del 0 y el ciclo bueno eran los 12
+fotogramas enteros (`"andar": {"<dirección>": [0, 12], ...}`).
 
 Añadir `zombi-<tipo>` a `assets/sprites/manifest.json`. Probar con `http://localhost:3000/?sala=<tipo>&mudo`
 (sala de exposición) y `?pruebas&mudo` (teclas 1–6). **Cerrar la pestaña al terminar.**
@@ -110,6 +138,14 @@ Si el tipo tiene ataque especial (explosión, látigo, escupitajo), comprobar qu
 Una captura en el juego y un GIF de cada animación como mucho, resumen (qué se hizo, coste, pegas conocidas),
 apuntar todo en `assets/pixellab.json` (clave `zombi-<tipo>-48`) y en `CLAUDE.md`, commit **solo de sus archivos**
 (otras sesiones trabajan en la misma carpeta: nada de `git add -A`) y push. Esperar el visto bueno final.
+
+## Costes
+
+- Modelo: 6 generaciones (y otras 6 cada vez que se repite). Importar las vistas corregidas: 0,25.
+- Animaciones con PixMiniMax a 48 píxeles: **8 fotogramas = 1 generación por dirección; 12 fotogramas = 2.**
+  El andar de 12 fotogramas son 16 generaciones entre las 8 direcciones, no 8.
+- Zombi completo sin repetir nada: 6 + 0,25 + 5 de pruebas de perfil + 35 de la tanda = unas 46.
+  Decirle al dueño la cifra de la respuesta de PixelLab (línea `cost:`), no la estimada.
 
 ## Avisos
 
