@@ -501,3 +501,25 @@ body.pixel .dash-btn { background: var(--metal); border: 0.2em solid var(--line)
 body.pixel .joy-base { border-radius: 0; background: rgba(0, 0, 0, 0.25); border-color: var(--rust); }
 body.pixel .joy-knob { border-radius: 0; background: var(--metal); border-color: var(--rust); }
 body.pixel * { scrollbar-color: #7a4a33 #1a1620; scrollbar-width: thin; }
+
+/* Iconos pixel art (assets/ui/iconos): sustituyen a los emojis. Se pintan sin suavizar. */
+.ico {
+  display: inline-block;
+  width: 1.7em;
+  height: 1.7em;
+  vertical-align: middle;
+  background: center / contain no-repeat;
+  image-rendering: pixelated;
+}
+.icon-btn .ico { width: 1.5em; height: 1.5em; }
+.dash-btn .ico { width: 2.4em; height: 2.4em; }
+.ico-llave { background-image: url('assets/ui/iconos/llave.png'); }
+.ico-sonido { background-image: url('assets/ui/iconos/sonido.png'); }
+.ico-mudo { background-image: url('assets/ui/iconos/mudo.png'); }
+.ico-pausa { background-image: url('assets/ui/iconos/pausa.png'); }
+.ico-dash { background-image: url('assets/ui/iconos/dash.png'); }
+.ico-fregona { background-image: url('assets/ui/iconos/fregona.png'); }
+.ico-bate { background-image: url('assets/ui/iconos/bate.png'); }
+.ico-cuchillo { background-image: url('assets/ui/iconos/cuchillo.png'); }
+.ico-pistola { background-image: url('assets/ui/iconos/pistola.png'); }
+.ico-escopeta { background-image: url('assets/ui/iconos/escopeta.png'); }

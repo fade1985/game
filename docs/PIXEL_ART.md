@@ -113,5 +113,6 @@ mismo). Si el suelo no encaja bien al repetirse, se retoca a mano o se dibuja co
   `create_ui_asset`, 25 generaciones, id `67eca240-9139-46e6-9367-142b1606fff6`). Se usan como `border-image`
   de 9 trozos en `.panel` y `.btn`. Al botón se le borró el texto "BUTTON" que traía dibujado.
 - **Todo el CSS nuevo** está al final de `style.css`, bajo `body.pixel` (colores: hueso sucio, metal, óxido, sangre seca).
-- **Pendiente:** iconos en vez de emojis (arma, llave, sonido, pausa, dash, equipo), barra de vida con sprite,
+- **Iconos del HUD** (`assets/ui/iconos/*.png`, 32×32, `create_object_pro_flash`, 5 generaciones cada uno): llave, sonido, mudo, pausa, dash y las 5 armas; se usan con `<i class="ico ico-NOMBRE">` (CSS al final de `style.css`).
+- **Pendiente:** iconos de objetos, mejoras del Taller, edificios, equipo y estadísticas (siguen siendo emojis), barra de vida con sprite,
   minimapa y carteles dentro del juego.

@@ -56,7 +56,7 @@ export function createUI(root) {
   }
 
   $('#btn-mute').addEventListener('click', (e) => {
-    e.currentTarget.textContent = toggleMute() ? '🔇' : '🔊';
+    e.currentTarget.innerHTML = `<i class="ico ico-${toggleMute() ? 'mudo' : 'sonido'}"></i>`;
     e.currentTarget.blur();
   });
 
@@ -73,7 +73,7 @@ export function createUI(root) {
       set('hpw', $('.hpbar .fill'), `${Math.max(0, (p.hp / g.stats.maxHp) * 100)}%`, 'width');
       set('hpt', $('.hpbar span'), `${Math.ceil(p.hp)} / ${Math.round(g.stats.maxHp)}`);
       const w = g.player.weapon;
-      set('weapon', $('#pill-weapon'), `${w.icon} <b>${w.name}</b>`, 'innerHTML');
+      set('weapon', $('#pill-weapon'), `<i class="ico ico-${w.id}"></i> <b>${w.name}</b>`, 'innerHTML');
       set('team', $('#hud-team'), g.allies.map((al) => al.def.icon).join(''));
       set('teamShow', $('#pill-team'), g.allies.length === 0, 'hidden');
       set('keys', $('#hud-keys'), String(g.wallet ?? 0));
@@ -89,7 +89,7 @@ export function createUI(root) {
           <div class="col">
             <button class="btn yellow big" data-act="play">▶ JUGAR</button>
             ${canFullscreen() ? '<button class="btn green small" data-act="fullscreen">⛶ Pantalla completa</button>' : ''}
-            <button class="btn blue" data-act="workshop">🔧 Taller <span class="keys-chip">🔑 ${save.keys}</span>${upgrades ? ` <small>· ${upgrades} mejora${upgrades > 1 ? 's' : ''}</small>` : ''}</button>
+            <button class="btn blue" data-act="workshop">🔧 Taller <span class="keys-chip"><i class="ico ico-llave"></i> ${save.keys}</span>${upgrades ? ` <small>· ${upgrades} mejora${upgrades > 1 ? 's' : ''}</small>` : ''}</button>
           </div>
           <div class="hint panel small">
             <b>Moverse:</b> WASD / flechas · <b>Esquivar:</b> Espacio<br>
@@ -157,15 +157,15 @@ export function createUI(root) {
             <div class="wicon">${up.icon}</div>
             <div class="winfo"><b>${up.name}</b><span>${up.desc}</span><div class="pips">${pips}</div></div>
             <button class="btn ${maxed ? 'green' : 'yellow'} small" data-act="buy" data-arg="${up.id}" ${maxed || save.keys < price ? 'disabled' : ''}>
-              ${maxed ? 'MÁX' : `🔑 ${price}`}
+              ${maxed ? 'MÁX' : `<i class="ico ico-llave"></i> ${price}`}
             </button>
           </div>`;
       }).join('');
       open(`
         <div class="panel workshop">
           <h2 class="title">🔧 Taller del conserje</h2>
-          <p class="sub">Las llaves 🔑 que sueltan los zombis se guardan aunque pierdas.<br>Las mejoras se aplican al empezar cada edificio.</p>
-          <div class="wallet">🔑 ${save.keys} llave${save.keys === 1 ? '' : 's'}</div>
+          <p class="sub">Las llaves <i class="ico ico-llave"></i> que sueltan los zombis se guardan aunque pierdas.<br>Las mejoras se aplican al empezar cada edificio.</p>
+          <div class="wallet"><i class="ico ico-llave"></i> ${save.keys} llave${save.keys === 1 ? '' : 's'}</div>
           <div class="wrows">${rows}</div>
           <button class="btn blue small" data-act="back">← Volver</button>
         </div>`,
@@ -196,7 +196,7 @@ export function createUI(root) {
               ${stat('🎯', 'Crítico', `${Math.round(s.crit * 100)}%`)}
             </div>
             <div>
-              ${list('🗡️ Arma', [`${g.player.weapon.icon} <b>${g.player.weapon.name}</b> · ${weaponSummary(g.player.weapon)}`], '')}
+              ${list('🗡️ Arma', [`<i class="ico ico-${g.player.weapon.id}"></i> <b>${g.player.weapon.name}</b> · ${weaponSummary(g.player.weapon)}`], '')}
               ${list('🎒 Objetos', g.items.map((it) => `${it.icon} <b>${it.name}</b> · ${it.desc}`), 'Ninguno todavía')}
               ${list('👥 Equipo', g.allies.map((al) => `${al.def.icon} <b>${al.def.name}</b> · ${al.def.desc}`), 'Nadie todavía: ¡rescata supervivientes!')}
             </div>
@@ -222,7 +222,7 @@ export function createUI(root) {
             <div class="stat"><span>🗺️ Apartamentos visitados (última planta)</span><b>${r.explored}</b></div>
             <div class="stat"><span>👥 Equipo</span><b>${r.team}</b></div>
             ${r.time ? `<div class="stat"><span>⏱️ Tiempo</span><b>${r.time}</b></div>` : ''}
-            <div class="stat key"><span>🔑 Llaves conseguidas</span><b>+${r.keys} <small>(tienes ${r.wallet})</small></b></div>
+            <div class="stat key"><span><i class="ico ico-llave"></i> Llaves conseguidas</span><b>+${r.keys} <small>(tienes ${r.wallet})</small></b></div>
           </div>
           <div class="col">
             <button class="btn yellow big" data-act="retry">↻ ${r.win ? 'Jugar otra vez' : 'Reintentar edificio'}</button>
