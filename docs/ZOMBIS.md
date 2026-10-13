@@ -43,19 +43,22 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
   - **Pegas conocidas:** el dibujo se ve bajo de frente y largo de espaldas. El choque sigue siendo el de siempre (`r: 17` en `ZOMBIE_TYPES`).
   - Los dos personajes de modelo que no se usaban ya están borrados de PixelLab (con su confirmación) y la muerte
     hacia la izquierda se repitió para quitarle un charco de sangre (la antigua, en `descartes/muerte/`).
-- **El zombi venenoso (el gordo) ya está en el juego, en grande** (sprite `zombi-venenoso`, 13 de octubre de 2026),
-  **pendiente del visto bueno final.** Al dueño le parecía pequeño junto a Johnny; estirado en el juego se le veían
+- **El zombi venenoso (el gordo) ya está en el juego, en grande** (sprite `zombi-venenoso`), **con el visto bueno
+  final del dueño (13 de octubre de 2026).** Al dueño le parecía pequeño junto a Johnny; estirado en el juego se le veían
   los píxeles gordos, así que se volvió a generar a 72×72 con el mismo diseño (67 píxeles de alto, contorno oscuro,
   piel beige: el dueño dio por bueno el diseño). Reposo, andar, escupir, golpe y muerte en las 8 direcciones.
-  Costó 38 generaciones. Ids, textos y pegas en `assets/pixellab.json` (`zombi-venenoso-72`); captura en
+  Costó 49 generaciones (11 de repetir el escupitajo). Ids, textos y pegas en `assets/pixellab.json` (`zombi-venenoso-72`); captura en
   `assets/pruebas/venenoso-grande-en-juego.jpg`, GIF en `assets/pruebas/zombi-venenoso-*.gif`.
   - **Cómo se monta:** `py tools/zombi.py zombi-venenoso-72 zombi-venenoso`, con su `zombi.json` (`casilla` 144,
     `origen` 36/48, `pies` 118, `sangre` viva para no oscurecerle las tripas).
   - **En el juego** (`zombies.js`): la animación de ataque es el escupitajo, se lanza al empezar a prepararlo y el
     moco sale de la boca a los 0,4 s. No da zarpazos. En `ZOMBIE_TYPES` lleva `shadow` (sombra ancha) y `top`
-    (barra de vida por encima de la cabeza). El choque (`r: 16`) no se ha tocado.
-  - **Pegas conocidas:** al escupir, en varias direcciones sale un chorro rojo pintado por PixelLab además del
-    moco verde del juego; de frente y de espaldas apenas mueve las piernas al andar.
+    (barra de vida por encima de la cabeza). El choque se agrandó de 16 a 30 (`r`) para que coincida con el dibujo.
+  - **Escupitajo verde:** PixelLab pintaba un chorro rojo saliendo de la boca. Se repitió dos veces: cinco
+    direcciones se tiñen de verde al montar (`"moco": true` en `zombi.json`) y tres se pidieron ya con baba verde.
+    Captura: `assets/pruebas/venenoso-escupiendo.jpg`.
+  - **Pegas conocidas:** de frente y de espaldas apenas mueve las piernas al andar.
+  - **Limpieza pendiente en PixelLab (solo con su confirmación):** los escupitajos descartados.
 - **Zombi lento, un poco más pequeño** (13 de octubre de 2026, lo pidió el dueño): su dibujo se encoge a ×0,85
   (`spriteScale`), también el cuerpo que deja al morir. El choque (`r: 17`) no se ha tocado.
 

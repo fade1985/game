@@ -7,7 +7,7 @@ Uso (desde la carpeta del proyecto):
 
 La carpeta se llama como la animación en PixelLab (animation_name), menos "andar", que va a walk/.
 """
-import io, os, subprocess, sys, tempfile, zipfile
+import os, re, subprocess, sys, tempfile, zipfile
 
 char, source, only = sys.argv[1], sys.argv[2], sys.argv[3:]
 NAMES = {'andar': 'walk'}
@@ -22,7 +22,8 @@ with tempfile.TemporaryDirectory() as tmp:
             parts = name.split('/')      # <estado>/animations/<animación>/<dirección>/frame_00N.png
             if len(parts) != 5 or parts[1] != 'animations' or not parts[4].startswith('frame_'):
                 continue
-            anim, d, n = parts[2], parts[3], int(parts[4][6:9])
+            # si la misma animación está repartida en varios grupos, PixelLab añade "-<grupo>" al nombre
+            anim, d, n = re.sub(r'-[0-9a-f]{8}$', '', parts[2]), parts[3], int(parts[4][6:9])
             if only and anim not in only:
                 continue
             folder = f'assets/sources/{source}/{NAMES.get(anim, anim)}'

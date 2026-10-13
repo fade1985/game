@@ -224,9 +224,26 @@ def block(folder, key, default, fix):
     return out
 
 
-# con "sangre": true dentro de "ataque" en zombi.json, la sangre del ataque se trata como la de golpe y muerte
+SLIME = [(143, 209, 63), (110, 170, 45), (79, 119, 45)]   # el verde del moco del juego, de claro a oscuro
+
+
+def slime(f):
+    """El venenoso: PixelLab pinta lo que escupe de un rojo puro. Se pasa al verde del moco del juego."""
+    f = f.copy()
+    px = f.load()
+    for y in range(f.height):
+        for x in range(f.width):
+            r, g, b, a = px[x, y]
+            if a >= 128 and r >= 120 and g <= 70 and b <= 70 and r - g >= 110 and nearest((r, g, b))[0] > 35 ** 2:
+                px[x, y] = (*SLIME[0 if r >= 235 else 1 if r >= 200 else 2], 255)
+    return specks(clean(f, spark))
+
+
+# en "ataque" de zombi.json: "sangre": true trata la sangre como en golpe y muerte; "moco": true tiñe de verde
+# el chorro rojo que PixelLab le pinta al venenoso al escupir
+ATK = cfg.get('ataque', {})
 attack = block('ataque', 'ataque', (1, 7),
-               gore if cfg.get('ataque', {}).get('sangre') else lambda f: specks(clean(f, spark)))
+               gore if ATK.get('sangre') else slime if ATK.get('moco') else lambda f: specks(clean(f, spark)))
 hurt = block('golpe', 'golpe', (1, 6), gore)
 death = block('muerte', 'muerte', (1, 12), gore)
 DUR = {'attack': cfg.get('ataque', {}).get('duracion', 0.55), 'hurt': cfg.get('golpe', {}).get('duracion', 0.35),

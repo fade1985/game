@@ -63,7 +63,7 @@ export const ZOMBIE_TYPES = {
   },
   venenoso: {
     // el gordo: su sprite es más grande que los demás (lienzo de 72) para que imponga junto al conserje
-    name: 'Zombi venenoso', r: 16, s: 1.5, shadow: 84, top: 124, hp: 35, speed: 60, dmg: 8, push: 160,
+    name: 'Zombi venenoso', r: 30, s: 1.5, shadow: 84, top: 124, hp: 35, speed: 60, dmg: 8, push: 160,
     look: { skin: '#b5e655', hair: '#4f772d', shirt: '#4f772d', pants: '#31572c', shoes: '#2e2a3a' },
   },
 };

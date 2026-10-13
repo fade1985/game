@@ -52,6 +52,9 @@ ambiguo, preguntar una vez antes de gastar generaciones. Lo que cambia con un di
   el modelo en un lienzo mayor (72×72 para unos 67 de alto). Los lienzos de partida son entonces de 128×128 con
   el dibujo en (28, 44), y en `zombi.json` van `casilla` [144, 144], `origen` [36, 48] y `pies`. En
   `ZOMBIE_TYPES` necesita `shadow` y `top` (sombra y barra de vida a su medida). A 72 cada animación costó 1.
+- **Si el ataque echa algo por la boca (escupir, vomitar):** PixelLab lo pinta aunque se le diga que no, y en
+  rojo. No pelear: pedirlo del color que toca ("a short thick spray of pure bright lime green slime bursts out of
+  his mouth... never red"). Con el venenoso costó 11 generaciones de más aprenderlo.
 - **Si un trabajo falla a los pocos segundos** (pasó con un golpe del venenoso), repetirlo con un texto más neutro:
   "a very large heavy bald man" en vez de "zombie... rotting skin", "flinches" en vez de "hard shove".
 - **Tamaño y choque:** el dibujo es más bajo, pero el `r` del zombi en `ZOMBIE_TYPES` es lo que cuenta para
