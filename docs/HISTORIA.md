@@ -63,7 +63,7 @@ Preguntas pendientes, por orden:
        `"margen_efectos": 10` (para que en la animación `fx` no se cuelen las manos) y `"sin_tinte": {}` (apaga
        la detección automática del tinte amarillo, que aquí se confundía y borraba el humo).
      - **Limpieza pendiente en PixelLab (solo con su confirmación):** el disparo `north-west` teñido de amarillo
-       y el andar `north` que no cerraba el ciclo (ids en `assets/pixellab.json`).
+       (id en `assets/pixellab.json`). El andar `north` que no cerraba el ciclo ya se borró el 14 de octubre.
    - **Si `backblaze.pixellab.ai` no responde** (pasó el 13 de octubre de 2026 y `tools/bajar.py` no puede
      bajar nada): bajar el zip de `https://api.pixellab.ai/mcp/characters/<id>/spritesheet`, que trae una hoja
      con todas las rotaciones y animaciones más un JSON que dice qué hay en cada fila, y recortar las casillas.
@@ -108,6 +108,9 @@ Preguntas pendientes, por orden:
        - La hoja de la escopeta tiene ahora casillas de 96×120 (`celda` y `pivote` en su `arma.json`): el
          fogonazo hacia arriba no cabía en 96. En el MP5, `reposo.cuello` cuenta el cañón que asoma sobre el pelo.
        - Coste: 13 generaciones (MP5: 3 de posturas, una descartada, y 4 de animaciones; escopeta: 2 y 4).
+       - **Lo descartado ya está borrado de PixelLab** (14 de octubre de 2026, con su confirmación): la prueba
+         del MP5 al hombro y el andar y el disparo viejos de `south` y `north` de las dos armas. Copia local en
+         `descartes/` de cada arma. Las animaciones `postura-*` se conservan: de ellas salen las posturas quietas.
        - Con el visto bueno del dueño a las posturas; **pendiente de su visto bueno final jugando**.
      - Al lanzar el andar, PixelLab devolvió un error de servidor pero **sí había lanzado las 8 direcciones**:
        ante un error así, mirar `get_character` antes de reintentar, para no pagar dos veces.

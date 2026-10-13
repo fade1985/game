@@ -446,7 +446,7 @@
         "animation_name": "postura-escopeta-arriba"
       },
       "animaciones_nuevas": "disparo south f7c756d2-57dd-46aa-95e3-907c38eb9894, disparo north 7b4c0925-db63-48a8-9153-c83d4f583eab, andar south da0412b6-dfb7-4187-ae9e-7cdc602b035d, andar north 4d051b17-718c-4bc0-b642-18c41d644062",
-      "descartado": "Siguen en PixelLab; borrar solo con la confirmación del dueño: las direcciones south y north viejas del disparo y del andar. Copia local en descartes/.",
+      "descartado": "Borrado de PixelLab el 14 de octubre de 2026 con la confirmación del dueño: las direcciones south y north viejas del disparo y del andar (incluido el andar north del grupo 963b9863 que no cerraba el ciclo). Copia local en descartes/. Sigue pendiente de antes el disparo north-west teñido de amarillo del grupo 556f2892.",
       "cost": "6 generaciones (2 de posturas, 4 de animaciones)"
     }
   },
@@ -504,7 +504,7 @@
         "action_description": "Strict back view the whole time: we only ever see the back of his head, the knot of the red bandana and the back of his overalls, his shoulders square to the camera; he never turns around and his face is never visible. He quickly straightens the submachine gun so it points straight ahead of him, away from the camera, toward the top edge of the image: he holds it in front of his body with both hands, mostly hidden behind his torso, and only the short black barrel sticks straight up above his right shoulder, perfectly vertical in the image, right next to his head, the muzzle at the top end. The barrel does not lean left or right and nothing sticks out to the left side anymore. Then he holds completely still in that pose for the rest of the animation, feet planted in the same place. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down back view throughout."
       },
       "animaciones_nuevas": "disparo south c3c906b1-05d2-41ce-bb5f-27a49f807e5a, disparo north b982d59c-622b-4b67-adfc-d20f16813161, andar south 3e2ec4c6-ce4e-422c-85cd-32d144f452e2, andar north d6741085-f9da-4ff3-bd2b-97c60dc92132",
-      "descartado": "Siguen en PixelLab; borrar solo con la confirmación del dueño: la primera prueba de postura (bac3ebff-71f5-461d-ab02-7a7de7ec3599, arma al hombro apuntando a cámara: casi no se ve), y las direcciones south y north viejas del disparo (grupos 6d5b0858... y 0dc89069...) y del andar (a2fae0f0...). Copia local en descartes/.",
+      "descartado": "Borrado de PixelLab el 14 de octubre de 2026 con la confirmación del dueño: la primera prueba de postura (arma al hombro apuntando a cámara: casi no se veía) y las direcciones south y north viejas del disparo y del andar. Copia local en descartes/. Las animaciones postura-* se conservan.",
       "cost": "7 generaciones (3 de posturas, 4 de animaciones)"
     }
   },
