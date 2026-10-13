@@ -23,7 +23,7 @@ Johnny con la fregona **ya está en el juego** (solo versión pixel): sprite `co
   `http://localhost:3000/assets/pruebas/ataque-fregona` (sin `.html`: el servidor lo quita).
 - **Johnny con el bate** (`conserje-48-bate`, estado "Bate en guardia") va igual: mismas carpetas, mismo script.
   Su `arma.json` solo dice qué fotogramas del ataque se usan; lo demás lo pone el script.
-- Johnny sin arma (`conserje-48`) sigue igual y es el que se ve con el cuchillo, la única arma sin hoja propia.
+- Johnny sin arma (`conserje-48`) sigue igual; ya no se ve en el juego con ningún arma (el cuchillo tiene su hoja).
 
 Preguntas pendientes, por orden:
 
@@ -67,7 +67,20 @@ Preguntas pendientes, por orden:
    - **Si `backblaze.pixellab.ai` no responde** (pasó el 13 de octubre de 2026 y `tools/bajar.py` no puede
      bajar nada): bajar el zip de `https://api.pixellab.ai/mcp/characters/<id>/spritesheet`, que trae una hoja
      con todas las rotaciones y animaciones más un JSON que dice qué hay en cada fila, y recortar las casillas.
-   - **Arma que queda:** el cuchillo (cuerpo a cuerpo, sale con la skill tal cual).
+   - **El cuchillo está en el juego** (sprite `conserje-48-cuchillo`, 13 de octubre de 2026; 29 generaciones):
+     reposo, andar y ataque en las 8 direcciones, sin tocar el juego. El dueño dio el visto bueno al estado y a
+     la segunda prueba de ataque; **pendiente de su visto bueno final jugando** (hoja del ataque en
+     `assets/pruebas/cuchillo-ataque-hoja.png`).
+     - Como ataca 4 veces por segundo, el ataque dura 0,25 s y lleva solo 6 fotogramas, con el daño en el tercero.
+       Por eso se pidieron 8 fotogramas a PixelLab y no 12: con 12 rellenaba el hueco con posturas inventadas.
+     - De lado es un pinchazo con una rayita blanca corta; de frente y de espaldas, un tajo con una línea larga.
+       No se parecen, pero **al dueño le gustó ese efecto de corte** y se dejó así. La palabra "slash" en el texto
+       hacía que PixelLab dibujase una media luna más alta que Johnny: no usarla.
+     - De frente (`south`) hubo que repetirlo con un texto estricto ("Strict front view the whole time..."): con
+       el común se ponía de perfil.
+     - **Limpieza pendiente en PixelLab (solo con su confirmación):** las dos primeras pruebas de ataque (12
+       fotogramas) y el ataque de frente en el que se gira (ids en `assets/pixellab.json`).
+   - **Ya no queda ningún arma por hacer:** las cinco tienen hoja propia.
 2. **La skill `/arma-nueva` ya existe** (`.claude/skills/arma-nueva/SKILL.md`). Si en una sesión nueva no
    aparece en la lista, leer ese archivo y seguirlo igual.
 3. **Limpieza de los estados de la fregona, del bate y de la pistola: hecha** el 12 de octubre de 2026 con su confirmación. En

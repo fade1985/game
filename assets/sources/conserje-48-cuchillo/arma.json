@@ -1,0 +1,18 @@
+{
+  "nota": "Datos para montar la hoja de sprites de Johnny con el cuchillo (lo lee tools/arma.py). Las medidas y el ciclo del andar no se ponen: valen las de siempre y el script elige el ciclo solo.",
+  "ataque": {
+    "nota": "Qué fotogramas de PixelLab se usan en cada dirección y en qué orden (de 9: el de partida y 8 generados). El cuchillo ataca 4 veces por segundo, así que el ataque entero dura 0,25 s y solo lleva 6 fotogramas. En todas, el destello cae en el tercero (índice 2). De lado es un pinchazo con una rayita corta; de espaldas, un tajo con una línea larga (al dueño le gustó ese efecto de corte). En las diagonales de espaldas se repite el fotograma 0 al principio: PixelLab dibujó el tajo sin preparación (north-west) o girando a Johnny de perfil (north-east).",
+    "duracion": 0.25,
+    "impacto": 2,
+    "fotogramas": {
+      "south":      [0, 1, 2, 3, 5, 7],
+      "south-east": [1, 2, 3, 4, 5, 7],
+      "east":       [1, 2, 3, 4, 5, 8],
+      "north-east": [0, 0, 3, 4, 6, 7],
+      "north":      [0, 1, 2, 3, 6, 7],
+      "north-west": [0, 0, 1, 2, 5, 7],
+      "west":       [2, 3, 4, 5, 6, 7],
+      "south-west": [1, 2, 3, 4, 5, 7]
+    }
+  }
+}

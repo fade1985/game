@@ -100,8 +100,9 @@ Armas de Johnny: skill `/arma-nueva` (`.claude/skills/arma-nueva/SKILL.md`). Zom
 Historia detallada de cada arma y decisiones cerradas: [`docs/HISTORIA.md`](docs/HISTORIA.md). Resumen vivo:
 
 - **En el juego, con visto bueno:** Johnny con fregona, bate y pistola (hojas `conserje-48-guardia`, `-bate`,
-  `-pistola`), la bala y su impacto. El cuchillo es la única arma sin hoja propia (usa `conserje-48`) y la
-  siguiente por hacer con `/arma-nueva cuchillo`.
+  `-pistola`), la bala y su impacto.
+- **Cuchillo** (`conserje-48-cuchillo`): en el juego desde el 13 de octubre de 2026, **pendiente del visto bueno
+  final** jugando. Con él, las cinco armas de Johnny tienen hoja propia.
 - **Escopeta** (`conserje-48-escopeta`): en el juego, con el visto bueno final del dueño (13 de octubre de 2026: "la prueba está perfecta").
 - **Pendientes de limpieza en PixelLab (solo con su confirmación expresa):** ver `docs/HISTORIA.md` y las notas de
   cada sprite en `assets/pixellab.json`.

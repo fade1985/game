@@ -1,0 +1,174 @@
+{
+  "cell": [
+    96,
+    96
+  ],
+  "pivot": [
+    48,
+    72
+  ],
+  "anims": {
+    "still": {
+      "fps": 1,
+      "loop": true,
+      "dirs": {
+        "south": {
+          "row": 0,
+          "col": 0,
+          "frames": 1
+        },
+        "south-east": {
+          "row": 0,
+          "col": 1,
+          "frames": 1
+        },
+        "east": {
+          "row": 0,
+          "col": 2,
+          "frames": 1
+        },
+        "north-east": {
+          "row": 0,
+          "col": 3,
+          "frames": 1
+        },
+        "north": {
+          "row": 0,
+          "col": 4,
+          "frames": 1
+        },
+        "north-west": {
+          "row": 0,
+          "col": 5,
+          "frames": 1
+        },
+        "west": {
+          "row": 0,
+          "col": 6,
+          "frames": 1
+        },
+        "south-west": {
+          "row": 0,
+          "col": 7,
+          "frames": 1
+        }
+      }
+    },
+    "idle": {
+      "fps": 5,
+      "loop": true,
+      "dirs": {
+        "south": {
+          "row": 1,
+          "frames": 20
+        },
+        "south-east": {
+          "row": 2,
+          "frames": 20
+        },
+        "east": {
+          "row": 3,
+          "frames": 20
+        },
+        "north-east": {
+          "row": 4,
+          "frames": 20
+        },
+        "north": {
+          "row": 5,
+          "frames": 20
+        },
+        "north-west": {
+          "row": 6,
+          "frames": 20
+        },
+        "west": {
+          "row": 7,
+          "frames": 20
+        },
+        "south-west": {
+          "row": 8,
+          "frames": 20
+        }
+      }
+    },
+    "walk": {
+      "fps": 12,
+      "loop": true,
+      "dirs": {
+        "south": {
+          "row": 9,
+          "frames": 10
+        },
+        "south-east": {
+          "row": 10,
+          "frames": 10
+        },
+        "east": {
+          "row": 11,
+          "frames": 8
+        },
+        "north-east": {
+          "row": 12,
+          "frames": 10
+        },
+        "north": {
+          "row": 13,
+          "frames": 8
+        },
+        "north-west": {
+          "row": 14,
+          "frames": 10
+        },
+        "west": {
+          "row": 15,
+          "frames": 10
+        },
+        "south-west": {
+          "row": 16,
+          "frames": 8
+        }
+      }
+    },
+    "attack": {
+      "fps": 24,
+      "loop": false,
+      "dirs": {
+        "south": {
+          "row": 17,
+          "frames": 6
+        },
+        "south-east": {
+          "row": 18,
+          "frames": 6
+        },
+        "east": {
+          "row": 19,
+          "frames": 6
+        },
+        "north-east": {
+          "row": 20,
+          "frames": 6
+        },
+        "north": {
+          "row": 21,
+          "frames": 6
+        },
+        "north-west": {
+          "row": 22,
+          "frames": 6
+        },
+        "west": {
+          "row": 23,
+          "frames": 6
+        },
+        "south-west": {
+          "row": 24,
+          "frames": 6
+        }
+      },
+      "hit": 0.333
+    }
+  },
+  "source": "Hecha con tools/arma.py a partir de assets/sources/conserje-48-cuchillo/"
+}

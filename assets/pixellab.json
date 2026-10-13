@@ -249,6 +249,71 @@
       "action_description": "He walks forward in place at a steady pace in a smooth, seamless looping walk cycle: his legs stride alternately, knees lifting and boots stepping one after the other, with a slight bob of the torso on each step. He keeps facing exactly the same direction the whole time and never turns. He keeps holding the wooden baseball bat in the same guard grip with both hands the whole time: the bat stays raised up and tilted back over his shoulder in the same place, only swaying very slightly with each step. His arms do not swing and never let go of the bat. The tail of the red bandana sways a little. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation."
     }
   },
+  "conserje-48-cuchillo": {
+    "kind": "character_state",
+    "character_id": "ec5c0ada-63e3-42ea-a201-4eae224d018c",
+    "source_character_id": "4e6c78c6-d6c6-46d3-99c1-40a2d86f0e6c",
+    "state_name": "Cuchillo en guardia",
+    "nota": "Estado de Johnny con el cuchillo de cocina delante del cuerpo (2026-10-13), hecho con la skill /arma-nueva. Lienzo de 64x64. De espaldas el cuchillo se ve pequeño, junto a la cadera. EN EL JUEGO (sprite conserje-48-cuchillo): reposo, andar y ataque en las 8 direcciones. Pendiente del visto bueno final del dueño. Se monta con: py tools/arma.py conserje-48-cuchillo",
+    "request": {
+      "edit_description": "holding a kitchen knife like a weapon in his right hand, gripping the handle in a reverse-free forward grip, arm bent in front of his body with the short steel blade pointing forward and slightly up, knees slightly bent in a ready combat stance; the knife stays held in front of him in the same hand in every view: front, side and back; small light grey steel blade with a dark outline and a dark handle; same face, same hair and red bandana, same clothes, same body size and proportions",
+      "override_width": 64,
+      "override_height": 64,
+      "use_color_palette_from_reference": true
+    },
+    "cost": "10 generaciones",
+    "updated": "2026-10-13",
+    "ataque": {
+      "nota": "PixMiniMax, 8 fotogramas más el de partida (no 12: el cuchillo ataca 4 veces por segundo y solo se usan 6), lienzo de partida de 96x96. Fotogramas en assets/sources/conserje-48-cuchillo/ataque/. De lado y en las diagonales de frente es un pinchazo con una rayita blanca corta en la punta; de frente y de espaldas PixelLab dibuja un tajo con una línea larga, y al dueño le gustó ese efecto de corte, así que se dejó. Lecciones: la palabra 'slash' hace que dibuje medias lunas enormes; con 12 fotogramas rellena el hueco con posturas inventadas; de frente (south) con el texto común Johnny se gira de lado, hace falta el texto estricto.",
+      "subject_description": "a young male janitor with brown hair and a red bandana, cream shirt and blue work overalls, holding a kitchen knife",
+      "comun": {
+        "group": "3a651987-2789-4996-a3f1-74c27659f962",
+        "animation_name": "ataque-cuchillo-2",
+        "cost": "5 generaciones (east, west, south-east, south-west y un south descartado)",
+        "nota": "Vale para east, west, south-east y south-west cambiando initial_pose ('facing right', 'facing left', 'in three-quarter front view, facing toward the camera and to the right / left').",
+        "initial_pose": "standing in a ready guard stance facing right, holding the knife in front of him with his arm bent, the blade pointing forward and slightly up",
+        "action_description": "He steps forward with the lead foot and stabs with the knife in one very quick, short, sharp thrust: his knife arm snaps straight out in front of him at chest height, the blade pointing straight ahead, then he immediately pulls the arm back. At the moment the arm is fully extended, a short thin white streak appears right at the tip of the blade, no longer than the knife itself, pointing straight ahead in the direction of the thrust. The small streak vanishes at once as he draws the knife back and settles cleanly into the starting guard stance. Only one thrust. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation."
+      },
+      "south": {
+        "group": "a83c234a-7ae2-4bbc-a92f-1a9bd1aa63bb",
+        "animation_name": "ataque-cuchillo-3",
+        "cost": "1 generación",
+        "nota": "Repetido: con el texto común Johnny se ponía de perfil. Levanta el cuchillo y da un tajo hacia abajo.",
+        "initial_pose": "standing in a ready guard stance facing the camera, holding the knife in front of him with his arm bent",
+        "action_description": "Strict front view the whole time: he keeps facing the camera, his face, chest and both shoulders stay turned toward the camera, and his body never turns sideways. His feet stay planted. Using mostly his knife arm, he makes one very quick, sharp downward stab with the knife in front of his body, toward the bottom of the image, then immediately pulls the arm back. His other arm stays close to his body. At the moment of the stab, a thin white streak appears along the blade's path in front of him. The streak vanishes at once as he draws the knife back and settles cleanly into the starting guard stance. Only one stab. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down front view throughout the entire fluid animation."
+      },
+      "north": {
+        "group": "d581aa74-7c17-4da8-8eea-404f16fb8b4f",
+        "animation_name": "ataque-cuchillo-2",
+        "cost": "1 generación",
+        "subject_description": "a young male janitor with brown hair and a red bandana, cream shirt and blue work overalls, holding a kitchen knife, seen from behind",
+        "initial_pose": "seen from behind, his back to the camera, holding the knife in front of him with his arm bent, the blade pointing away from the camera",
+        "action_description": "Seen from behind the whole time: he keeps his back to the camera and never turns around, his face is never visible. He steps forward with the lead foot and stabs with the knife in one very quick, short, sharp thrust away from the camera, toward the top of the image: his knife arm snaps straight out ahead of him, the blade showing just past his shoulder and pointing up the image, then he immediately pulls the arm back. His other arm stays close to his body. At the moment the arm is fully extended, a short thin white streak appears right at the tip of the blade, no longer than the knife itself, pointing up the image. The small streak vanishes at once as he draws the knife back and settles cleanly into the starting guard stance. Only one thrust. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down back view throughout the entire fluid animation."
+      },
+      "diagonales_de_espaldas": {
+        "group": "a5cf6fd8-9c12-4e8b-93bc-f8cf7322962c",
+        "animation_name": "ataque-cuchillo-2",
+        "cost": "2 generaciones (north-east y north-west)",
+        "nota": "El de north-west cambia 'right' por 'left'. En north-east Johnny se gira de perfil en los dos primeros fotogramas: no se usan.",
+        "initial_pose": "standing in a ready guard stance in three-quarter back view, facing away from the camera and to the right, holding the knife in front of him with his arm bent, the blade pointing forward",
+        "action_description": "He keeps the same three-quarter back view the whole time, facing away from the camera and to the right, and never turns to face the camera. He steps forward with the lead foot and stabs with the knife in one very quick, short, sharp thrust away from the camera, toward the upper right of the image: his knife arm snaps straight out ahead of him, the blade pointing up and to the right, then he immediately pulls the arm back. His other arm stays close to his body. At the moment the arm is fully extended, a thin white streak appears along the blade's path. The streak vanishes at once as he draws the knife back and settles cleanly into the starting guard stance. Only one thrust. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down three-quarter back view throughout the entire fluid animation."
+      },
+      "descartados": {
+        "nota": "Siguen en PixelLab; borrar solo con la confirmación del dueño. Copia local en assets/sources/conserje-48-cuchillo/descartes/.",
+        "primera_prueba_east": "grupo c9399a84-664f-4a8b-bea7-88a7104afac2 (12 fotogramas; media luna enorme cruzada al pinchazo)",
+        "primera_prueba_north": "grupo 35ca4f53-c6fc-46e9-922d-c935d8d92983 (12 fotogramas; se queda con el cuchillo en alto)",
+        "south_de_perfil": "dirección south del grupo 3a651987-2789-4996-a3f1-74c27659f962 (Johnny se gira de lado)"
+      }
+    },
+    "andar": {
+      "nota": "PixMiniMax, 12 fotogramas más el de partida, las 8 direcciones con el mismo texto. Todas bien a la primera. Fotogramas en assets/sources/conserje-48-cuchillo/walk/. tools/arma.py avisa de que el ciclo cierra regular en south y north-east.",
+      "group": "272434e1-9429-4f65-88b0-db8541ad2856",
+      "animation_name": "andar-cuchillo",
+      "cost": "8 generaciones",
+      "action_description": "He walks forward in place at a steady pace in a smooth, seamless looping walk cycle: his legs stride alternately, knees lifting and boots stepping one after the other, with a slight bob of the torso on each step. He keeps facing exactly the same direction the whole time and never turns. He keeps holding the kitchen knife in the same guard grip in the same hand the whole time: the knife stays in front of his body in the same place, arm bent, blade pointing forward, only swaying very slightly with each step. His arms do not swing and never let go of the knife. The tail of the red bandana sways a little. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick dark outlines, flat colors, the same character size and the strict original low top-down perspective throughout the entire fluid animation."
+    },
+    "cost_total": "29 generaciones: 10 del estado, 11 del ataque (2 de la primera prueba, descartadas, y el de frente repetido) y 8 del andar"
+  },
   "conserje-48-pistola": {
     "kind": "character_state",
     "character_id": "beabd4dc-d39f-40ea-beb2-046608f0fe1c",

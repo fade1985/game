@@ -113,7 +113,10 @@ Cinco partes, en este orden:
    creíble para el arma:
    - fregona → agua: "leaves a bright, thick crescent-shaped trail of light blue water behind it along the whole arc"
    - bate, palos → aire: "leaves a bright white crescent-shaped swoosh of air behind it along the whole arc"
-   - cuchillo → un destello fino: "leaves a thin, sharp white slash line along its path"
+   - cuchillo → una rayita corta: "a short thin white streak appears right at the tip of the blade, no longer
+     than the knife itself". No escribir "slash": dibuja una media luna más alta que Johnny. Y pedir 8
+     fotogramas, no 12: las armas rápidas (más de 2 golpes por segundo) solo usan unos 6 y con 12 PixelLab
+     rellena el hueco con posturas inventadas. Textos enteros en `conserje-48-cuchillo` → `ataque`.
    - armas con fuego → "leaves a crescent-shaped trail of orange and yellow flames"
    - pistola, escopeta → fogonazo y humo en la boca del arma, sin estela. Pedir 8 fotogramas, no 12 (el gesto
      es corto), y "Only one shot, no second flash". El texto de la pistola está en `assets/pixellab.json`.

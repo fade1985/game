@@ -28,7 +28,7 @@ export const WEAPONS = {
     damage: 16, rate: 1.6, reach: 66, arc: 110, knock: 1.5, trail: '#ffb347',
   },
   cuchillo: {
-    id: 'cuchillo', stash: 'encimera', name: 'Cuchillo', icon: '🔪', type: 'melee',
+    id: 'cuchillo', stash: 'encimera', name: 'Cuchillo', icon: '🔪', type: 'melee', sprite: 'conserje-48-cuchillo',
     damage: 9, rate: 4, reach: 46, arc: 60, knock: 0.5, trail: '#c9b6ff',
   },
   pistola: {
