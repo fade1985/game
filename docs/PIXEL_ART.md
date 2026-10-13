@@ -115,5 +115,6 @@ mismo). Si el suelo no encaja bien al repetirse, se retoca a mano o se dibuja co
 - **Todo el CSS nuevo** está al final de `style.css`, bajo `body.pixel` (colores: hueso sucio, metal, óxido, sangre seca).
 - **Iconos del HUD** (`assets/ui/iconos/*.png`, 32×32, `create_object_pro_flash`, 5 generaciones cada uno): llave, sonido, mudo, pausa, dash y las 5 armas; se usan con `<i class="ico ico-NOMBRE">` (CSS al final de `style.css`).
 - **Iconos del Taller y de los objetos** (10 más, mismo método): vida, fuerza, cordones, reflejos, mochila, proteínas, botiquín, café, guantes y casco (zapatillas reutiliza `dash.png`). Salen en el Taller, la pausa y la barra de objetos del juego (`itemIcon` en `game.js`).
-- **Pendiente:** iconos de edificios, equipo (supervivientes) y estadísticas de la pausa (siguen siendo emojis), barra de vida con sprite,
+- **Barra de vida** (`assets/ui/barra-vida.png`, `create_ui_asset` con `health_bar`, 15 generaciones): el hueco del marco es transparente y la sangre (CSS) se ve por detrás.
+- **Pendiente:** iconos de edificios, equipo (supervivientes) y estadísticas de la pausa (siguen siendo emojis),
   minimapa y carteles dentro del juego.

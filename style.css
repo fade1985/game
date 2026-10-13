@@ -537,3 +537,42 @@ body.pixel .wicon { width: 3.2em; flex: none; font-size: 1em; }
 .ico-cafe { background-image: url('assets/ui/iconos/cafe.png'); }
 .ico-guantes { background-image: url('assets/ui/iconos/guantes.png'); }
 .ico-casco { background-image: url('assets/ui/iconos/casco.png'); }
+
+/* Barra de vida: el hueco del marco es transparente y la sangre se ve por detrás */
+body.pixel .hpbar {
+  width: 20em;
+  height: auto;
+  aspect-ratio: 236 / 26;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+body.pixel .hpbar::before {
+  content: '';
+  position: absolute;
+  left: 4.6%; right: 4.6%; top: 28%; bottom: 28%;
+  background: #1a1620;
+}
+body.pixel .hpbar .fill {
+  position: absolute;
+  left: 4.6%; top: 28%; bottom: 28%;
+  height: auto;
+  width: calc(var(--hp, 100%) * 0.908) !important;
+  background: linear-gradient(#c24a38, #8a1f1a 55%, #6a1512);
+  box-shadow: inset 0 0.12em 0 rgba(255, 190, 170, 0.25);
+  border-radius: 0;
+}
+body.pixel .hpbar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('assets/ui/barra-vida.png') center / 100% 100% no-repeat;
+  image-rendering: pixelated;
+}
+body.pixel .hpbar span {
+  z-index: 2;
+  font-size: 0.8em;
+  color: #f0e8d4;
+  -webkit-text-stroke: 0.25em var(--line);
+}

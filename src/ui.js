@@ -51,7 +51,7 @@ export function createUI(root) {
   function set(key, el, value, prop = 'textContent') {
     if (cache[key] === value) return;
     cache[key] = value;
-    if (prop === 'width') el.style.width = value;
+    if (prop === 'width') { el.style.width = value; el.style.setProperty('--hp', value); }
     else el[prop] = value;
   }
 
