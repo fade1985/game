@@ -102,7 +102,7 @@ Historia detallada de cada arma y decisiones cerradas: [`docs/HISTORIA.md`](docs
 - **En el juego, con visto bueno:** Johnny con fregona, bate y pistola (hojas `conserje-48-guardia`, `-bate`,
   `-pistola`), la bala y su impacto. El cuchillo es la única arma sin hoja propia (usa `conserje-48`) y la
   siguiente por hacer con `/arma-nueva cuchillo`.
-- **Escopeta** (`conserje-48-escopeta`): en el juego, **pendiente del visto bueno final** jugando.
+- **Escopeta** (`conserje-48-escopeta`): en el juego, con el visto bueno final del dueño (13 de octubre de 2026: "la prueba está perfecta").
 - **Pendientes de limpieza en PixelLab (solo con su confirmación expresa):** ver `docs/HISTORIA.md` y las notas de
   cada sprite en `assets/pixellab.json`.
 - **Sin decidir:** rehacer el zombi venenoso (piel beige), reposo de Johnny con PixMiniMax, equilibrado de salas
