@@ -98,7 +98,7 @@
       "dirs": {
         "south": {
           "row": 9,
-          "frames": 9
+          "frames": 8
         },
         "south-east": {
           "row": 10,
@@ -114,7 +114,7 @@
         },
         "north": {
           "row": 13,
-          "frames": 10
+          "frames": 9
         },
         "north-west": {
           "row": 14,
@@ -211,8 +211,8 @@
   "source": "Hecha con tools/arma.py a partir de assets/sources/conserje-48-mp5/",
   "muzzle": {
     "south": [
-      28,
-      -21
+      -1,
+      4
     ],
     "south-east": [
       32,
@@ -227,8 +227,8 @@
       -42
     ],
     "north": [
-      -18,
-      -46
+      7,
+      -61
     ],
     "north-west": [
       -26,

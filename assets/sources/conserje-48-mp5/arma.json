@@ -1,5 +1,10 @@
 {
+  "posturas": "Las posturas quietas de south y north NO son las del estado de PixelLab (allí el arma apuntaba de lado, como las diagonales): se rehicieron el 14 de octubre de 2026 con una animación corta en la que Johnny gira el arma, y se guardó el último fotograma en rotations/. Las originales están en descartes/rotations-viejas/.",
   "nota": "Datos para montar la hoja de sprites de Johnny con el MP5 (lo lee tools/arma.py). Las medidas y el ciclo del andar no se ponen: valen las de siempre y el script elige el ciclo solo.",
+  "reposo": {
+    "nota": "Filas desde lo más alto del dibujo hasta el cuello. Son las de siempre salvo north: ahí el cañón asoma 8 píxeles por encima del pelo y hay que contarlos.",
+    "cuello": { "south": 13, "south-east": 13, "south-west": 13, "east": 14, "west": 14, "north": 20, "north-east": 12, "north-west": 12 }
+  },
   "ataque": {
     "nota": "Disparo. El MP5 dispara 8 veces por segundo, así que cada disparo dura 0,12 s y solo caben 3 fotogramas de los 8 de PixelLab: el fogonazo y dos de humo. La animación se repite con cada bala y se ve como un traqueteo. 'boca': 'fogonazo' hace que el script busque dónde está la boca del arma en cada dirección para que las balas nazcan ahí.",
     "duracion": 0.12,
@@ -11,7 +16,7 @@
       "south-east": [1, 2, 3],
       "east":       [2, 3, 4],
       "north-east": [2, 3, 4],
-      "north":      [1, 2, 3],
+      "north":      [2, 3, 4],
       "north-west": [1, 2, 3],
       "west":       [1, 2, 3],
       "south-west": [1, 2, 3]
