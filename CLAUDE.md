@@ -57,9 +57,9 @@ Arte a 480×320 (2 unidades del juego por píxel), casillas de 16 píxeles, pers
 
 ## Dónde está cada tema
 
-| Tema | Documento | Estado (13 de octubre de 2026) |
+| Tema | Documento | Estado (14 de octubre de 2026) |
 |---|---|---|
-| Armas de Johnny | skill `/arma-nueva` · historia en [`docs/HISTORIA.md`](docs/HISTORIA.md) | Las cinco tienen hoja propia y el visto bueno del dueño. MP5 (arma nueva, la sexta): en el juego, pendiente del visto bueno final y de cerrar sus números |
+| Armas de Johnny | skill `/arma-nueva` · historia en [`docs/HISTORIA.md`](docs/HISTORIA.md) | Las seis tienen hoja propia. Fregona, bate, cuchillo, pistola y escopeta, con visto bueno. **Pendiente de que el dueño pruebe jugando:** el MP5 (arma nueva) y el arreglo de apuntar abajo/arriba en MP5 y escopeta. Al retomar, leer "Armas: dónde lo dejamos" en `docs/HISTORIA.md` |
 | Zombis | skill `/zombi-nuevo` · [`docs/ZOMBIS.md`](docs/ZOMBIS.md) | Normal y lento hechos, con visto bueno; venenoso (el gordo, a 72 píxeles) hecho, con visto bueno. Faltan rápido, explosivo y tentáculos |
 | Mapa (pasillo y apartamentos) | [`docs/MAPA.md`](docs/MAPA.md) | Fases 1–3 hechas (la 3, pendiente de visto bueno). Siguiente: fase 4, sala de mantenimiento |
 | Escenarios (tono oscuro, fondos enteros con ChatGPT) | [`docs/FONDOS.md`](docs/FONDOS.md) | Piloto del baño: bocetos listos, el dueño está generando el primero. Nada en el juego aún |
@@ -72,6 +72,8 @@ Arte a 480×320 (2 unidades del juego por píxel), casillas de 16 píxeles, pers
 - **Escenarios:** lootear y destruir muebles (opciones en `docs/FONDOS.md`); extender los fondos a cocina,
   dormitorio, salón y pasillo cuando el baño tenga el visto bueno; coordinar con la sesión del mapa los tamaños
   fijos de habitación.
+- **Armas:** los números del MP5 y dónde se encuentra (provisionales, los puso Claude); y las **armas
+  arrojadizas**, que el dueño quiere diseñar: hay una propuesta esperando su respuesta (`docs/HISTORIA.md`).
 - **Limpieza en PixelLab** de lo descartado (listas en `docs/HISTORIA.md`, `docs/ZOMBIS.md` y `assets/pixellab.json`).
 - De antes: reposo de Johnny con PixMiniMax, equilibrado de salas grandes, y si el proyecto pasa a Godot
   (`docs/HISTORIA.md`).

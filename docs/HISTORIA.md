@@ -2,6 +2,47 @@
 
 Sacado de CLAUDE.md el 13 de octubre de 2026. Consulta, no hace falta leerlo al empezar.
 
+## Armas: dónde lo dejamos (14 de octubre de 2026) · empezar por aquí
+
+Quedaban 1.228 generaciones de PixelLab (se renuevan el 12 de noviembre). Todo está subido a `main`.
+
+**1. Lo que el dueño tiene que probar jugando** (`http://localhost:3000/?pruebas&armas&mudo`; la tecla 1 saca un
+zombi). No ha dado todavía el visto bueno final a nada de esto:
+
+- **El MP5**, arma nueva (la caja de la derecha del todo en la sala de mantenimiento). Qué mirar: si el traqueteo
+  se siente bien, si es fuerte o flojo frente a la pistola y la escopeta, y el sonido (usa el disparo de la
+  pistola 8 veces por segundo; puede cansar).
+- **Apuntar abajo y arriba con el MP5 y la escopeta**, rehecho el 14 de octubre. Qué mirar: en la escopeta
+  hacia abajo, el retroceso le sube el codo hasta la cabeza y quieto queda algo encorvado; hacia arriba el
+  fogonazo es grande; y al girar de una diagonal a recto el arma salta del hombro a la cadera.
+- **Sin probar por Claude:** andar y disparar a la vez con el MP5, y con las dos armas en abajo/arriba.
+
+**2. Decisiones que le faltan al dueño**
+
+- **Números del MP5** (provisionales, los puso Claude y él no los ha confirmado ni cambiado): daño 4, 8 disparos
+  por segundo, alcance 340, empuje 0,3, `jitter` 0,14. Están en `src/weapons.js`.
+- **Dónde se encuentra el MP5:** ahora, en la caja del sexto hueco, cerrada hasta encontrarlo en un botín.
+  Las alternativas que se le ofrecieron: un mueble propio en la entrada, o desbloquearlo en el Taller.
+- **Borrar o no** el disparo `north-west` de la escopeta teñido de amarillo (lo único descartado que queda en
+  PixelLab de las armas; se le preguntó y no ha contestado).
+
+**3. Armas arrojadizas (lo siguiente que quiere hacer).** El 13 de octubre preguntó por dónde empezar y se le
+propuso esto; **no ha contestado**, así que al retomar hay que volver a preguntárselo, no empezar a programar:
+
+- En el juego no existe nada de arrojadizas. Solo hay armas cuerpo a cuerpo y a distancia, y Johnny ataca solo:
+  no hay botón de atacar, solo moverse y esquivar.
+- Tres decisiones suyas: (a) si son un **objeto aparte con munición** (lo recomendado: Johnny sigue con su arma
+  y además lleva, por ejemplo, 2 botellas, como las bombas de *Isaac*) o un arma más; (b) **cómo se lanzan**:
+  hace falta un botón nuevo, de teclado y táctil, y decidir si van hacia donde apunta Johnny o hacia donde elija
+  el jugador; (c) **cuáles**: se le propusieron botella de lejía (charco que daña; la portera ya lanza lejía,
+  parte del código existe en `bosses.js`), cóctel molotov (fuego en área) y algo que aturda o atraiga, como un
+  despertador (encaja con que los zombis duermen).
+- Orden propuesto: cerrar esas decisiones y los números; programar una sola con dibujos provisionales y ver si
+  es divertida; y solo entonces el pixel art (objeto, vuelo, efecto y Johnny lanzando), que es lo que gasta
+  generaciones.
+
+**4. Para la próxima arma larga:** la skill `/arma-nueva` ya avisa de revisar `south` y `north` en el paso 1.
+
 ## Dónde lo dejamos (12 de octubre de 2026) · preguntar al dueño al retomar
 
 **Al retomar, empezar preguntándole por el punto 1.**
