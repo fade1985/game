@@ -15,9 +15,12 @@ y cuánta luz. La hoja original no se modifica.
 import colorsys, json, shutil, sys
 from PIL import Image
 
-LUZ_CAMISA = 0.42
-AZUL = (185, 250)     # tonos de la ropa, en grados
-VERDE = (60, 130)     # tonos de la piel
+# Qué tonos (en grados) son la ropa y la piel de cada zombi. Con `pantalon` la ropa se parte en camisa (clara) y
+# pantalón (oscuro) por la luz; sin él, toda la ropa se trata como camisa. `luz` aclara la ropa de las variantes.
+ZOMBIS = {
+    'zombi-normal': {'ropa': (185, 250), 'piel': (60, 130), 'pantalon': 0.42, 'luz': 1.0},
+    'zombi-lento':  {'ropa': (22, 50),   'piel': (60, 130), 'pantalon': None, 'luz': 1.5},   # ropa marrón; la sangre (rojo) no se toca
+}
 
 # prenda: (tono nuevo, saturación ×, luz ×)
 VARIANTES = {
@@ -37,6 +40,7 @@ def mover(h, s, v, regla):
 
 
 def variante(origen, nombre, reglas):
+    z = ZOMBIS[origen]
     im = Image.open(f'assets/sprites/{origen}.png').convert('RGBA')
     px = im.load()
     for y in range(im.height):
@@ -48,9 +52,12 @@ def variante(origen, nombre, reglas):
             grados = h * 360
             regla = None
             if s > 0.1 and v > 0.12:
-                if AZUL[0] <= grados <= AZUL[1]:
-                    regla = reglas.get('camisa' if v >= LUZ_CAMISA else 'pantalon')
-                elif VERDE[0] <= grados <= VERDE[1]:
+                if z['ropa'][0] <= grados <= z['ropa'][1]:
+                    pantalon = z['pantalon'] is not None and v < z['pantalon']
+                    regla = reglas.get('pantalon' if pantalon else 'camisa')
+                    if regla and not pantalon:
+                        regla = (regla[0], regla[1], regla[2] * z['luz'])
+                elif z['piel'][0] <= grados <= z['piel'][1]:
                     regla = reglas.get('piel')
             if regla:
                 rr, gg, bb = mover(h, s, v, regla)

@@ -69,8 +69,10 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
 - **En el juego:** `variantes` en `ZOMBIE_TYPES` (zombies.js). Cada zombi elige al nacer una al azar (o la de siempre,
   todas con la misma probabilidad) y su cuerpo muerto conserva el color. Si la hoja no está cargada, usa la de siempre.
   Captura: `assets/pruebas/zombi-normal-variantes.jpg`. **Pendiente del visto bueno del dueño.**
-- **Siguiente:** repetirlo con el lento y con los zombis que vayan teniendo pixel art (cada hoja puede necesitar sus
-  propios umbrales de camisa/pantalón en `tools/variantes.py`).
+- **Zombi lento, con las mismas 6 variantes** (mismas recetas). Su ropa es marrón y no tiene pantalón, y la sangre
+  roja no se toca: cada zombi tiene sus tonos en `ZOMBIS` de `tools/variantes.py`. Pega: abajo del torso queda una
+  franja marrón sin recolorear (si se amplía el rango, también se tiñe el pelo).
+- **Siguiente:** repetirlo con los zombis que vayan teniendo pixel art (añadir su entrada en `ZOMBIS`).
 
 ### Ideas guardadas (no se hacen todavía; el dueño quiere centrarse en el color)
 
