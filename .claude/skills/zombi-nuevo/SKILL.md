@@ -26,6 +26,24 @@ cuesta (un zombi completo salió por unas 43 generaciones). **Nunca se borra nad
   tentáculos morados en la espalda; **venenoso** verde chillón con babas. Colores base en `look`.
   Los grandes (explosivo, tentáculos) se piden más anchos pero dentro de 48×48.
 
+## Si el dueño da un diseño
+
+Lo que escriba después del tipo (`/zombi-nuevo lento: partido por la mitad, arrastrándose...`) **manda sobre los
+rasgos por defecto**: se traduce al inglés y sustituye la parte del cuerpo y la ropa del texto del modelo. Si es
+ambiguo, preguntar una vez antes de gastar generaciones. Lo que cambia con un diseño distinto del normal:
+
+- **Cuerpo bajo o tendido (torso que se arrastra):** pedir en el modelo que ocupe la mitad inferior del lienzo
+  y que la pose sea "dragging himself along the floor with his arms". `tools/piel.py` da por zapatos todo lo que
+  está de la fila `SUELO` (36) hacia abajo: con un cuerpo bajo, ajustar `SUELO` o la piel de los brazos no se corrige.
+- **Andar:** es un arrastrarse a brazadas, no un paso: texto propio ("pulls himself forward with his arms, one
+  after the other, his lower body dragging behind"), y probar primero en `east`.
+- **Muerte:** si ya va por el suelo no tiene mucho que caer; pedir que se quede quieto y se aplane (8 fotogramas
+  bastan).
+- **Tamaño y choque:** el dibujo es más bajo, pero el `r` del zombi en `ZOMBIE_TYPES` es lo que cuenta para
+  los golpes; si el dueño quiere que sea más fácil o difícil de dar, es decisión suya, no del arte.
+- Con detalles muy específicos (rastro de sangre, tripas) PixelLab los pinta a su manera: avisar de que se
+  oscurece la sangre al montar y que los detalles pequeños pueden no salir a 48 píxeles.
+
 ## Pasos
 
 El dueño solo mira en los pasos 1 y 5. En los demás se sigue sin parar.
