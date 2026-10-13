@@ -40,6 +40,6 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
     Captura en `assets/pruebas/zombi-lento-rastro.jpg`.
   - **Piel:** piel y camisa salieron del mismo beige y `tools/piel.py` teñía las dos; este zombi tiene su propio
     script, `assets/sources/zombi-lento-48/piel.py`.
-  - **Pegas conocidas:** la muerte hacia la izquierda deja un charco de sangre que las otras no tienen; el dibujo
-    se ve bajo de frente y largo de espaldas. El choque sigue siendo el de siempre (`r: 17` en `ZOMBIE_TYPES`).
-  - **Limpieza pendiente en PixelLab (solo con su confirmación):** los dos personajes de modelo que no se usan.
+  - **Pegas conocidas:** el dibujo se ve bajo de frente y largo de espaldas. El choque sigue siendo el de siempre (`r: 17` en `ZOMBIE_TYPES`).
+  - Los dos personajes de modelo que no se usaban ya están borrados de PixelLab (con su confirmación) y la muerte
+    hacia la izquierda se repitió para quitarle un charco de sangre (la antigua, en `descartes/muerte/`).
