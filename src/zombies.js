@@ -38,14 +38,14 @@ class Corpse {
 
 export const ZOMBIE_TYPES = {
   lento: {
-    variantes: ['rojo', 'bata', 'mostaza', 'negro', 'militar', 'pijama'],
+    variantes: ['rojo', 'bata', 'mostaza', 'negro', 'militar', 'turquesa'],
     // medio cuerpo: su dibujo se encoge un poco (spriteScale) para que no abulte tanto como uno entero
     name: 'Zombi lento', r: 17, s: 1.05, spriteScale: 0.85, hp: 30, speed: 45, dmg: 10, push: 130,
     look: { skin: '#a8c686', hair: '#5b4a3a', shirt: '#8d7b68', pants: '#5c5470', shoes: '#3b3550' },
   },
   normal: {
     // variantes: hojas con otra ropa (tools/variantes.py); cada zombi sale con una al azar, o con la de siempre
-    variantes: ['rojo', 'bata', 'mostaza', 'negro', 'militar', 'pijama'],
+    variantes: ['rojo', 'bata', 'mostaza', 'negro', 'militar', 'turquesa'],
     name: 'Zombi', r: 16, s: 1, hp: 30, speed: 80, dmg: 10, push: 170,
     look: { skin: '#8fc46a', hair: '#3b2f2a', shirt: '#5b7db1', pants: '#3d4a7a', shoes: '#2e2a3a' },
   },

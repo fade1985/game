@@ -64,14 +64,14 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
 
 ## Variantes de color (13 de octubre de 2026)
 
-- **Hecho: zombi normal con 6 variantes** (`rojo`, `bata`, `mostaza`, `negro`, `militar`, `pijama`; la primera tanda, más apagada, se parecía demasiado y se rehízo) además de la de siempre. Solo cambia el
+- **Hecho: zombi normal con 6 variantes** (`rojo`, `bata`, `mostaza`, `negro`, `militar`, `turquesa`; la primera tanda, más apagada, se parecía demasiado y se rehízo) además de la de siempre. Solo cambia el
   color de la ropa y la piel: misma vida, velocidad y daño. `py tools/variantes.py zombi-normal` genera las hojas
   `assets/sprites/zombi-normal-<variante>.png/.json` a partir de la original (sin tocarla): decide por el tono de cada
   píxel qué es camisa (azul claro), pantalón (azul oscuro) y piel (verde), y conserva el sombreado. Las recetas de
   cada variante están al principio de `tools/variantes.py`.
 - **En el juego:** `variantes` en `ZOMBIE_TYPES` (zombies.js). Cada zombi elige al nacer una al azar (o la de siempre,
   todas con la misma probabilidad) y su cuerpo muerto conserva el color. Si la hoja no está cargada, usa la de siempre.
-  Captura: `assets/pruebas/zombi-normal-variantes.jpg`. **Pendiente del visto bueno del dueño.**
+  Captura: `assets/pruebas/variantes-zombis.png`. **Pendiente del visto bueno del dueño.**
 - **Zombi lento, con las mismas 6 variantes** (mismas recetas). Su ropa es marrón y no tiene pantalón, y la sangre
   roja no se toca: cada zombi tiene sus tonos en `ZOMBIS` de `tools/variantes.py`. Pega: abajo del torso queda una
   franja marrón sin recolorear (si se amplía el rango, también se tiñe el pelo).

@@ -29,7 +29,7 @@ VARIANTES = {
     'mostaza': {'camisa': (46, 2.4, 1.05),  'pantalon': (28, 1.4, 0.8),  'piel': (100, 1.0, 0.8)},    # jersey amarillo, pantalón marrón, piel verde oscura
     'negro':   {'camisa': (240, 0.25, 0.42), 'pantalon': (240, 0.2, 0.35), 'piel': (200, 0.35, 0.95)},  # todo de negro, piel azul grisácea
     'militar': {'camisa': (95, 1.4, 0.75),  'pantalon': (40, 0.9, 0.7),  'piel': (28, 0.55, 1.15)},   # verde militar, piel carne apagada
-    'pijama':  {'camisa': (310, 1.8, 1.05), 'pantalon': (275, 1.6, 0.9), 'piel': (80, 0.6, 1.15)},    # pijama rosa y morado, piel clara
+    'turquesa': {'camisa': (172, 1.5, 0.85), 'pantalon': (30, 0.5, 0.8), 'piel': (80, 0.6, 1.15)},    # camiseta turquesa, pantalón marrón, piel clara
 }
 
 
