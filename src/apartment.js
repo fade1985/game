@@ -357,13 +357,6 @@ function flip(apt) {
   apt.spawn.y = apt.h - apt.spawn.y;
 }
 
-// En qué habitación cae un punto (o null si es muro o hueco de puerta)
-export function roomAt(apt, x, y) {
-  const c = Math.floor(x / CELL), r = Math.floor(y / CELL);
-  if (c < 0 || r < 0 || c >= apt.cols || r >= apt.rows) return null;
-  return apt.rooms[apt.owner[r * apt.cols + c]] || null;
-}
-
 // Repasa que el apartamento está bien hecho. Devuelve la lista de fallos (vacía si todo va bien).
 export function checkApartment(apt) {
   const { cols, rows, grid, owner } = apt;

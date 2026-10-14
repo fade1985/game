@@ -18,7 +18,6 @@ export const PIXEL = 2;
 export const TILE = 16;
 
 export const OUTLINE = '#1d1b2c'; // color del contorno "de dibujo animado"
-export const ALLY_COLORS = ['#4cc9f0', '#80ed99', '#ff8fab', '#c77dff', '#ff9f1c'];
 
 // Aspecto del protagonista: un conserje con su mono de trabajo
 export const PLAYER_LOOK = {

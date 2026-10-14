@@ -4,19 +4,7 @@ export const rand = (a, b) => a + Math.random() * (b - a);
 export const randInt = (a, b) => Math.floor(rand(a, b + 1));
 export const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-export const lerp = (a, b, t) => a + (b - a) * t;
 export const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
-
-// Elige un elemento de una lista [[valor, peso], ...] según su peso
-export function weighted(list) {
-  const total = list.reduce((s, [, w]) => s + w, 0);
-  let r = Math.random() * total;
-  for (const [v, w] of list) {
-    r -= w;
-    if (r <= 0) return v;
-  }
-  return list[list.length - 1][0];
-}
 
 // Generador aleatorio con semilla (para que la decoración de una sala sea estable)
 export function mulberry32(seed) {
