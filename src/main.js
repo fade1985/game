@@ -53,9 +53,20 @@ function frame(now) {
   const dt = Math.min(0.033, (now - last) / 1000);
   last = now;
   game.update(dt);
-  game.render();
+  if (spritesReady) game.render();
+  else drawLoading();
   touchUI.hidden = !(game.state === 'playing' && !game.paused);
   requestAnimationFrame(frame);
+}
+
+// Mientras se descargan los sprites no se dibuja el juego: si no, durante un momento se vería el
+// dibujo de antes (cartoon) en lugar del pixel art. En su lugar, fondo oscuro (el menú va encima).
+let spritesReady = false;
+function drawLoading() {
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = '#0f0d17';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 game.goMenu();
@@ -63,7 +74,11 @@ requestAnimationFrame(frame);
 // Sprites de pixel art (lo que aún no tiene sprite se dibuja a mano, como antes)
 // Con ?sala=<zombi> se salta el menú y se entra directamente a la sala de exposición
 const sala = new URLSearchParams(location.search).has('sala');
-loadSprites().then((ids) => { game.spriteIds = ids; if (sala) game.newRun(); });
+loadSprites().then((ids) => {
+  game.spriteIds = ids;
+  spritesReady = true;
+  if (sala) game.newRun();
+});
 
 // Para depurar desde la consola del navegador: window.game
 window.game = game;
