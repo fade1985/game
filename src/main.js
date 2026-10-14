@@ -53,7 +53,8 @@ function frame(now) {
   const dt = Math.min(0.033, (now - last) / 1000);
   last = now;
   game.update(dt);
-  if (spritesReady) game.render();
+  // en el menú basta con sus sprites; en el resto del juego hacen falta todos
+  if (game.state === 'menu' ? menuReady : allReady) game.render();
   else drawLoading();
   touchUI.hidden = !(game.state === 'playing' && !game.paused);
   requestAnimationFrame(frame);
@@ -61,7 +62,7 @@ function frame(now) {
 
 // Mientras se descargan los sprites no se dibuja el juego: si no, durante un momento se vería el
 // dibujo de antes (cartoon) en lugar del pixel art. En su lugar, fondo oscuro (el menú va encima).
-let spritesReady = false;
+let menuReady = false, allReady = false;
 function drawLoading() {
   const ctx = canvas.getContext('2d');
   ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -74,9 +75,14 @@ requestAnimationFrame(frame);
 // Sprites de pixel art (lo que aún no tiene sprite se dibuja a mano, como antes)
 // Con ?sala=<zombi> se salta el menú y se entra directamente a la sala de exposición
 const sala = new URLSearchParams(location.search).has('sala');
-loadSprites().then((ids) => {
+// Primero se cargan los del menú (Johnny con la fregona, el suelo del pasillo y los muebles) para que
+// aparezca enseguida, y el resto (zombis, armas, objetos...) mientras tanto.
+const MENU_SPRITES = ['conserje-48-guardia', 'suelo-pasillo', 'mueble-'];
+const sprites = loadSprites(MENU_SPRITES);
+sprites.primero.then((ids) => { game.spriteIds = ids; menuReady = true; });
+sprites.todos.then((ids) => {
   game.spriteIds = ids;
-  spritesReady = true;
+  allReady = true;
   if (sala) game.newRun();
 });
 

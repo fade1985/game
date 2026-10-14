@@ -48,15 +48,18 @@ const FALLBACK = {
   north: ['north-east', 'north-west'], south: ['south-east', 'south-west'],
 };
 
-// Carga la lista de sprites (assets/sprites/manifest.json: ["conserje", "zombi-normal", ...])
-export async function loadSprites() {
-  let ids = [];
-  try {
-    const r = await fetch(`${BASE}manifest.json`, { cache: 'no-cache' });
-    if (r.ok) ids = await r.json();
-  } catch { /* sin sprites todavía */ }
-  await Promise.all(ids.map((id) => loadSheet(id).catch((e) => console.warn(`sprite ${id}:`, e.message))));
-  return [...sheets.keys()];
+// Carga la lista de sprites (assets/sprites/manifest.json: ["conserje", "zombi-normal", ...]) en dos tandas:
+// primero las hojas cuyo nombre empieza por algo de `primero` (lo que necesita el menú) y luego el resto.
+// Devuelve dos promesas, { primero, todos }, que dan la lista de sprites cargados al terminar cada tanda.
+export function loadSprites(primero = []) {
+  const lista = fetch(`${BASE}manifest.json`, { cache: 'no-cache' })
+    .then((r) => (r.ok ? r.json() : []))
+    .catch(() => []); // sin sprites todavía
+  const cargar = (ids) => Promise.all(ids.map((id) => loadSheet(id).catch((e) => console.warn(`sprite ${id}:`, e.message))));
+  const esDelMenu = (id) => primero.some((p) => id.startsWith(p));
+  const tanda1 = lista.then((ids) => cargar(ids.filter(esDelMenu))).then(() => [...sheets.keys()]);
+  const tanda2 = tanda1.then(() => lista).then((ids) => cargar(ids.filter((id) => !esDelMenu(id)))).then(() => [...sheets.keys()]);
+  return { primero: tanda1, todos: tanda2 };
 }
 
 async function loadSheet(id) {
