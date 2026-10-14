@@ -27,6 +27,7 @@ Uso (desde la carpeta del proyecto; necesita Python con Pillow):
 import json, os, sys
 from collections import Counter
 from PIL import Image, ImageChops
+from png import guardar_png  # guarda la hoja comprimida sin perder nada
 
 SOURCE, SPRITE = sys.argv[1], sys.argv[2]
 DIRS = ['south', 'south-east', 'east', 'north-east', 'north', 'north-west', 'west', 'south-west']
@@ -267,7 +268,7 @@ for name, b in blocks:
                    'dirs': {d: {'row': row + r, 'frames': len(b[d])} for r, d in enumerate(DIRS)}}
     row += len(DIRS)
 anims['attack']['hit'] = round(HIT / len(attack['south']), 3)
-sheet.save(f'assets/sprites/{SPRITE}.png', optimize=True)
+guardar_png(sheet, f'assets/sprites/{SPRITE}.png')
 json.dump({'cell': [CW, CH], 'pivot': [PX, PY], 'anims': anims,
            'source': f'Hecha con tools/zombi.py a partir de {SRC}/'},
           open(f'assets/sprites/{SPRITE}.json', 'w', encoding='utf-8', newline='\n'), indent=2, ensure_ascii=False)

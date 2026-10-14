@@ -23,6 +23,7 @@ Uso (desde la carpeta del proyecto; necesita Python con Pillow: pip install pill
 """
 import json, os, sys
 from PIL import Image, ImageChops
+from png import guardar_png  # guarda la hoja comprimida sin perder nada
 
 SPRITE = sys.argv[1]
 DIRS = ['south', 'south-east', 'east', 'north-east', 'north', 'north-west', 'west', 'south-west']
@@ -393,7 +394,7 @@ for name, block in blocks:
     row += len(DIRS)
 # en qué punto de la animación (de 0 a 1) llega el golpe: el juego hace el daño ahí
 anims['attack']['hit'] = round(ATK_HIT / NA, 3)
-sheet.save(f'assets/sprites/{SPRITE}.png', optimize=True)
+guardar_png(sheet, f'assets/sprites/{SPRITE}.png')
 meta = {'cell': [CW, CH], 'pivot': [PX, PY], 'anims': anims,
         'source': f'Hecha con tools/arma.py a partir de {SRC}/'}
 if muzzle:
