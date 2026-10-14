@@ -19,7 +19,7 @@
 // ─────────────────────────────────────────────
 import { PIXEL } from './config.js';
 
-const sheets = new Map();     // id → { img, white, meta }
+const sheets = new Map();     // id → { img, meta }
 
 // En el lienzo pequeño (fondo) los sprites se ajustan a la cuadrícula de píxeles del dibujo.
 // Los personajes se dibujan a resolución de pantalla en su posición exacta: así se mueven
@@ -67,7 +67,8 @@ async function loadSheet(id) {
     fetch(`${BASE}${id}.json`, { cache: 'no-cache' }).then((r) => { if (!r.ok) throw new Error('sin JSON'); return r.json(); }),
     new Promise((ok, fail) => {
       const im = new Image();
-      im.onload = () => ok(im);
+      // decode() descomprime el PNG fuera del hilo del juego: así, al llegar cada hoja, no se nota un tirón
+      im.onload = () => im.decode().then(() => ok(im), () => ok(im));
       im.onerror = () => fail(new Error('sin PNG'));
       im.src = `${BASE}${id}.png`;
     }),
@@ -77,16 +78,28 @@ async function loadSheet(id) {
 
 // Registra una hoja ya cargada (también lo usan las pruebas)
 export function registerSheet(id, img, meta) {
-  // versión blanca de la hoja para el destello al recibir un golpe
-  const white = document.createElement('canvas');
-  white.width = img.width; white.height = img.height;
-  const w = white.getContext('2d');
-  w.drawImage(img, 0, 0);
-  w.globalCompositeOperation = 'source-in';
-  w.fillStyle = '#ffffff';
-  w.fillRect(0, 0, white.width, white.height);
   if (!Array.isArray(meta.pivot)) meta.pivot = findFeet(img, meta);
-  sheets.set(id, { img, white, meta });
+  sheets.set(id, { img, meta });
+}
+
+// Destello blanco al recibir un golpe: se pinta de blanco solo el fotograma que toca, en un lienzo pequeño.
+// (Antes se hacía una copia blanca de cada hoja entera al cargarla: las de los zombis son enormes y eso
+// frenaba el juego uno o dos segundos al empezar, además de gastar mucha memoria.)
+let flashCanvas = null;
+function whiteFrame(img, sx, sy, cw, ch) {
+  if (!flashCanvas) flashCanvas = document.createElement('canvas');
+  if (flashCanvas.width < cw || flashCanvas.height < ch) {
+    flashCanvas.width = Math.max(flashCanvas.width, cw);
+    flashCanvas.height = Math.max(flashCanvas.height, ch);
+  }
+  const f = flashCanvas.getContext('2d');
+  f.globalCompositeOperation = 'copy';
+  f.drawImage(img, sx, sy, cw, ch, 0, 0, cw, ch);
+  f.globalCompositeOperation = 'source-in';
+  f.fillStyle = '#ffffff';
+  f.fillRect(0, 0, cw, ch);
+  f.globalCompositeOperation = 'source-over';
+  return flashCanvas;
 }
 
 // Punto de apoyo automático: centro horizontal y la fila más baja con píxeles
@@ -130,7 +143,8 @@ export function drawSprite(ctx, id, anim, dir, t, x, y, o = {}) {
   const dx = snap(x - px * s), dy = snap(y - py * s);
   if (o.alpha !== undefined) ctx.globalAlpha = o.alpha;
   ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(o.flash ? sh.white : sh.img, col * cw, d.row * ch, cw, ch, dx, dy, cw * s, ch * s);
+  if (o.flash) ctx.drawImage(whiteFrame(sh.img, col * cw, d.row * ch, cw, ch), 0, 0, cw, ch, dx, dy, cw * s, ch * s);
+  else ctx.drawImage(sh.img, col * cw, d.row * ch, cw, ch, dx, dy, cw * s, ch * s);
   if (o.alpha !== undefined) ctx.globalAlpha = 1;
   return true;
 }
