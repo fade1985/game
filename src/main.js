@@ -13,7 +13,6 @@ const canvas = document.getElementById('game');
 const touchUI = document.getElementById('touch-ui');
 
 if (window.matchMedia('(pointer: coarse)').matches) document.body.classList.add('touch');
-document.body.classList.add('pixel'); // estilos de la interfaz en pixel art (style.css)
 
 setMusicOn(loadSave().settings.music);
 // Con ?mudo en la dirección el juego arranca sin sonido ni música (para probar sin molestar)

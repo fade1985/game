@@ -1,27 +1,32 @@
 /* ─────────────────────────────────────────────
-   Estilo cartoon: colores planos, contorno grueso,
-   sombras "duras" y botones que se hunden al pulsar
+   Interfaz oscura y sucia (pixel art)
+   Fuente y marcos generados con PixelLab (assets/fuentes y assets/ui).
+   Los marcos son de "9 trozos": las esquinas no se estiran, los lados sí.
    ───────────────────────────────────────────── */
+@font-face {
+  font-family: 'ZS UI';
+  src: url('assets/fuentes/zombie-scape-ui.ttf') format('truetype');
+  font-display: swap;
+}
 :root {
-  --ink: #1d1b2c;
-  --cream: #fff8ea;
-  --yellow: #ffd23f;
-  --green: #5bd16a;
-  --blue: #4cc9f0;
-  --pink: #ff5d73;
-  --purple: #9b6bff;
-  --muted: #5d5873;
+  --ink: #d9d1bd;      /* color del texto: hueso sucio */
+  --line: #0f0d17;     /* contornos */
+  --muted: #9b93a0;
+  --yellow: #c9a227;
+  --metal: #2b2732;
+  --rust: #7a4a33;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 [hidden] { display: none !important; }
 
 html, body { height: 100%; }
+body, body * { font-family: 'ZS UI', 'Pixelify Sans', system-ui, sans-serif; }
+body * { scrollbar-color: #7a4a33 #1a1620; scrollbar-width: thin; }
 
 body {
-  font-family: 'Lilita One', system-ui, sans-serif;
   color: var(--ink);
-  background: radial-gradient(circle at 50% 25%, #5fd4e3, #2b8fb0 65%, #22708e);
+  background: #0f0d17;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -32,26 +37,14 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* patrón de puntitos en el fondo */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.13) 2.5px, transparent 3px);
-  background-size: 30px 30px;
-  pointer-events: none;
-}
-
+/* sin marco: el juego ocupa toda la ventana */
 #game-wrap {
   position: relative;
-  width: min(96vw, calc(92vh * 1.5));
-  width: min(96vw, calc(92dvh * 1.5));
-  aspect-ratio: 3 / 2;
-  border: 5px solid var(--ink);
-  border-radius: 26px;
-  box-shadow: 0 10px 0 var(--ink), 0 26px 50px rgba(0, 0, 0, 0.3);
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
-  background: #5a9e45;
+  background: #1d1b2c;
   container-type: inline-size;
 }
 
@@ -61,18 +54,19 @@ canvas {
   height: 100%;
   touch-action: none;
 }
+#game { image-rendering: pixelated; }
 
-/* ═════════════ Botones ═════════════ */
+/* ═════════════ Botones: chapa con remaches ═════════════ */
 .btn {
-  font-family: inherit;
   font-size: 1.35em;
   letter-spacing: 0.03em;
-  color: var(--ink);
-  background: #d9d5e6;
-  border: 0.2em solid var(--ink);
-  border-radius: 0.8em;
-  padding: 0.45em 1.4em;
-  box-shadow: 0 0.28em 0 var(--ink), inset 0 -0.22em 0 rgba(0, 0, 0, 0.15);
+  color: #e6dec8;
+  background: none;
+  border: 0.9em solid;
+  border-image: url('assets/ui/boton-oscuro.png') 16 fill / 0.9em stretch;
+  image-rendering: pixelated;
+  padding: 0.3em 1.2em;
+  text-shadow: 0 0.1em 0 var(--line);
   cursor: pointer;
   transition: transform 0.08s, box-shadow 0.08s, filter 0.15s;
   display: inline-flex;
@@ -80,27 +74,16 @@ canvas {
   justify-content: center;
   gap: 0.4em;
 }
-.btn:hover { transform: translateY(-2px); filter: brightness(1.06); }
-.btn:active { transform: translateY(0.2em); box-shadow: 0 0.08em 0 var(--ink), inset 0 -0.22em 0 rgba(0, 0, 0, 0.15); }
-.btn:disabled { filter: grayscale(0.8) brightness(0.9); opacity: 0.75; cursor: not-allowed; transform: none; }
-.btn.yellow { background: var(--yellow); }
-.btn.green { background: var(--green); }
-.btn.blue { background: var(--blue); }
-.btn.pink { background: var(--pink); color: #fff; text-shadow: 0 0.08em 0 var(--ink); }
-.btn.big { font-size: 2em; padding: 0.35em 1.6em; }
+.btn:hover { filter: brightness(1.3) sepia(0.2); }
+.btn:active { transform: translateY(0.12em); filter: brightness(0.8); }
+/* rojiza: la misma chapa teñida */
+.btn.pink { filter: sepia(1) saturate(2.5) hue-rotate(-35deg) brightness(0.95); }
+.btn.pink:hover { filter: sepia(1) saturate(2.5) hue-rotate(-35deg) brightness(1.3); }
+.btn.big { font-size: 2em; padding: 0.3em 1.6em; }
 .btn.small { font-size: 1em; }
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3em;
-  background: var(--cream);
-  border: 0.16em solid var(--ink);
-  border-radius: 999px;
-  padding: 0.1em 0.6em;
-  font-size: 0.8em;
-}
-.chip.big { font-size: 1.4em; box-shadow: 0 0.18em 0 var(--ink); }
+.btn:disabled { filter: grayscale(1) brightness(0.6); opacity: 0.75; cursor: not-allowed; transform: none; }
+.btn small { font-size: 0.7em; opacity: 0.8; }
+.keys-chip { background: rgba(0, 0, 0, 0.35); padding: 0 0.45em; margin-left: 0.2em; }
 
 /* ═════════════ Overlays (menús) ═════════════ */
 .overlay {
@@ -114,30 +97,35 @@ canvas {
   gap: 1em;
   padding: 1.5em;
   font-size: clamp(9px, 1.6cqw, 20px);
-  background: rgba(29, 27, 44, 0.5);
-  backdrop-filter: blur(3px);
+  background: rgba(10, 8, 16, 0.72);
   animation: fade 0.2s ease-out;
 }
-.overlay.clear { background: rgba(29, 27, 44, 0.12); backdrop-filter: none; }
+.overlay.clear { background: rgba(10, 8, 16, 0.2); }
 
+.title, .tagline, .record {
+  color: #e6dec8;
+  -webkit-text-stroke: 0.22em var(--line);
+  paint-order: stroke fill;
+  text-shadow: 0 0.12em 0 var(--line);
+  letter-spacing: 0.04em;
+}
 .title {
   font-size: 2.6em;
   font-weight: 400;
-  color: #fff;
-  -webkit-text-stroke: 0.2em var(--ink);
-  paint-order: stroke fill;
-  text-shadow: 0 0.12em 0 var(--ink);
   text-align: center;
   animation: pop 0.35s cubic-bezier(0.3, 1.6, 0.5, 1);
 }
-.sub { font-family: 'Nunito', system-ui, sans-serif; font-weight: 800; color: var(--muted); text-align: center; }
+.sub { font-weight: 800; color: var(--muted); text-align: center; }
 
+/* Paneles: marco de metal oxidado */
 .panel {
-  background: var(--cream);
-  border: 0.25em solid var(--ink);
+  color: var(--ink);
+  background: none;
+  border: 2.9em solid;
+  border-image: url('assets/ui/panel-oscuro.png') 46 fill / 2.9em stretch;
   border-radius: 1.3em;
-  box-shadow: 0 0.4em 0 var(--ink);
-  padding: 1.2em 1.6em;
+  image-rendering: pixelated;
+  padding: 0 0.4em 0.2em;
   animation: pop 0.3s cubic-bezier(0.3, 1.5, 0.5, 1);
 }
 .panel .title { font-size: 2.2em; margin-bottom: 0.2em; }
@@ -162,15 +150,10 @@ canvas {
 }
 /* en pantallas bajitas (móvil en horizontal) el logo se encoge para que quepa todo el menú */
 @media (max-height: 500px) { .logo-px { height: 34vh; } }
-.tagline {
-  color: #fff;
-  font-size: 1.4em;
-  -webkit-text-stroke: 0.2em var(--ink);
-  paint-order: stroke fill;
-}
-.hint { font-family: 'Nunito', system-ui, sans-serif; font-weight: 800; font-size: 0.95em; text-align: center; line-height: 1.5; padding: 0.7em 1.2em; }
-.hint b { font-family: 'Lilita One', system-ui; font-weight: 400; }
-.record { color: #fff; -webkit-text-stroke: 0.2em var(--ink); paint-order: stroke fill; font-size: 1.2em; }
+.tagline { font-size: 1.4em; }
+.hint { font-weight: 800; font-size: 0.95em; text-align: center; line-height: 1.5; }
+.hint b { font-weight: 400; }
+.record { font-size: 1.2em; }
 
 /* Pausa / fin */
 .pause, .end { display: flex; flex-direction: column; align-items: center; gap: 0.8em; min-width: 24em; }
@@ -179,14 +162,13 @@ canvas {
   display: flex;
   justify-content: space-between;
   gap: 1.5em;
-  font-family: 'Nunito', system-ui, sans-serif;
   font-weight: 800;
-  border-bottom: 0.12em dashed rgba(29, 27, 44, 0.2);
+  border-bottom: 0.12em dashed rgba(217, 209, 189, 0.18);
   padding: 0.2em 0.1em;
 }
-.stat b { font-family: 'Lilita One', system-ui; font-weight: 400; font-size: 1.1em; }
-.plist { width: 100%; font-family: 'Nunito', system-ui, sans-serif; font-weight: 700; font-size: 0.85em; }
-.plist-title { font-family: 'Lilita One', system-ui; font-size: 1.15em; margin: 0.2em 0; }
+.stat b { font-weight: 400; font-size: 1.1em; }
+.plist { width: 100%; font-weight: 700; font-size: 0.85em; }
+.plist-title { font-size: 1.15em; margin: 0.2em 0; }
 .plist-row { padding: 0.15em 0.1em; color: var(--muted); }
 .plist-row b { color: var(--ink); }
 .plist-row.empty { font-style: italic; }
@@ -194,60 +176,48 @@ canvas {
 .pause-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 1.4em; width: 100%; align-items: start; }
 .row-btns { display: flex; gap: 0.8em; align-items: center; }
 @media (max-width: 700px) { .pause-grid { grid-template-columns: 1fr; } }
-.end.win .title { color: var(--yellow); }
-.stat.key b small { font-family: 'Nunito', system-ui, sans-serif; font-weight: 800; font-size: 0.75em; color: var(--muted); }
-.keys-chip { background: rgba(255, 255, 255, 0.55); border-radius: 999px; padding: 0 0.45em; margin-left: 0.2em; }
-.btn small { font-size: 0.7em; opacity: 0.85; }
+.end.win .title { color: #e6c34a; }
+.end.lose .title { color: #c4493a; }
+.stat.key b small { font-weight: 800; font-size: 0.75em; color: var(--muted); }
 
 /* ── Selector de edificios ── */
 .picker { display: flex; flex-direction: column; align-items: center; gap: 0.8em; width: min(56em, 100%); max-height: 100%; overflow-y: auto; }
 .bcards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.8em; width: 100%; }
 .bcard {
   display: flex; flex-direction: column; align-items: center; gap: 0.25em; text-align: center;
-  font: inherit; color: var(--ink); background: #fff; cursor: pointer;
-  border: 0.18em solid var(--ink); border-radius: 1em; padding: 0.9em 0.6em 0.7em;
-  box-shadow: 0 0.25em 0 var(--ink); transition: transform 0.12s;
+  font: inherit; color: var(--ink); background: var(--metal); cursor: pointer;
+  border: 0.18em solid var(--line); padding: 0.9em 0.6em 0.7em;
+  box-shadow: inset 0 0 0 0.14em var(--rust), 0 0.25em 0 var(--line); transition: transform 0.12s;
   animation: cardIn 0.35s backwards;
 }
-.bcard:hover { transform: translateY(-0.2em) rotate(-1deg); }
+.bcard:hover { transform: translateY(-0.2em); filter: brightness(1.2); }
 .bcard:nth-child(2) { animation-delay: 0.05s; } .bcard:nth-child(3) { animation-delay: 0.1s; } .bcard:nth-child(4) { animation-delay: 0.15s; }
-.bcard.done { background: #f1ffe9; }
-.bcard.soon { cursor: default; background: #ecebf3; color: var(--muted); box-shadow: 0 0.12em 0 var(--muted); border-color: var(--muted); }
-.bcard.soon:hover { transform: none; }
+.bcard.done { background: #2c3328; }
+.bcard.soon { cursor: default; background: #1c1a22; color: var(--muted); box-shadow: inset 0 0 0 0.14em #3a3640; }
 .bcard.soon .bicon { filter: grayscale(1); opacity: 0.6; }
 .bicon { font-size: 3em; line-height: 1.1; animation: float 2.4s ease-in-out infinite; }
 .bcard.soon .bicon { animation: none; }
-.bname { font-family: 'Lilita One', system-ui; font-size: 1.3em; }
-.bdesc { font-family: 'Nunito', system-ui, sans-serif; font-weight: 700; font-size: 0.78em; color: var(--muted); flex: 1; }
-.bmeta { font-family: 'Nunito', system-ui, sans-serif; font-weight: 800; font-size: 0.75em; color: var(--muted); }
-.bfoot { font-family: 'Lilita One', system-ui; font-size: 0.85em; background: var(--yellow); border-radius: 999px; padding: 0.15em 0.7em; border: 0.12em solid var(--ink); }
-.bcard.soon .bfoot { background: #d7d5e3; border-color: var(--muted); }
+.bname { font-size: 1.3em; }
+.bdesc { font-weight: 700; font-size: 0.78em; color: var(--muted); flex: 1; }
+.bmeta { font-weight: 800; font-size: 0.75em; color: var(--muted); }
+.bfoot { font-size: 0.85em; color: #e6dec8; background: var(--rust); padding: 0.15em 0.7em; border: 0.12em solid var(--line); }
+.bcard.soon .bfoot { background: #3a3640; border-color: var(--muted); }
 @media (max-width: 700px) { .bcards { grid-template-columns: repeat(2, 1fr); } }
 
 /* ── Taller ── */
 .workshop { display: flex; flex-direction: column; align-items: center; gap: 0.6em; width: min(40em, 100%); max-height: 100%; overflow-y: auto; }
 .workshop .sub { font-size: 0.85em; }
-.wallet { font-family: 'Lilita One', system-ui; font-size: 1.5em; background: var(--yellow); border: 0.12em solid var(--ink); border-radius: 999px; padding: 0.1em 0.9em; box-shadow: 0 0.15em 0 var(--ink); }
+.wallet { font-size: 1.5em; color: #e6c34a; background: var(--metal); border: 0.18em solid var(--line); padding: 0.1em 0.9em; box-shadow: inset 0 0 0 0.14em var(--rust); }
 .wrows { display: flex; flex-direction: column; gap: 0.45em; width: 100%; }
-.wrow { display: flex; align-items: center; gap: 0.7em; background: #fff; border: 0.14em solid var(--ink); border-radius: 0.8em; padding: 0.4em 0.7em; }
-.wrow.maxed { background: #f1ffe9; }
-.wicon { font-size: 2em; width: 1.3em; text-align: center; }
-.winfo { flex: 1; display: flex; flex-direction: column; font-family: 'Nunito', system-ui, sans-serif; font-weight: 700; font-size: 0.85em; color: var(--muted); }
-.winfo b { font-family: 'Lilita One', system-ui; font-weight: 400; font-size: 1.25em; color: var(--ink); }
+.wrow { display: flex; align-items: center; gap: 0.7em; color: var(--ink); background: var(--metal); border: 0.18em solid var(--line); padding: 0.4em 0.7em; box-shadow: inset 0 0 0 0.14em var(--rust); }
+.wrow.maxed { background: #2c3328; }
+.wicon { font-size: 1em; width: 3.2em; flex: none; text-align: center; }
+.winfo { flex: 1; display: flex; flex-direction: column; font-weight: 700; font-size: 0.85em; color: var(--muted); }
+.winfo b { font-weight: 400; font-size: 1.25em; color: var(--ink); }
 .pips { display: flex; gap: 0.25em; margin-top: 0.2em; }
-.pips i { width: 0.9em; height: 0.9em; border-radius: 50%; border: 0.12em solid var(--ink); background: #e4e2ee; }
+.pips i { width: 0.9em; height: 0.9em; border: 0.12em solid var(--line); background: #1c1a22; }
 .pips i.on { background: var(--yellow); }
 .wrow .btn { min-width: 4.6em; }
-.end.lose .title { color: var(--pink); }
-
-/* En móvil el juego ocupa casi toda la pantalla (bordes más finos) */
-body.touch #game-wrap {
-  width: min(100vw, calc(98vh * 1.5));
-  width: min(100vw, calc(98dvh * 1.5));
-  border-width: 3px;
-  border-radius: 14px;
-  box-shadow: 0 4px 0 var(--ink);
-}
 
 /* ═════════════ HUD ═════════════ */
 #hud {
@@ -266,37 +236,58 @@ body.touch #game-wrap {
   pointer-events: none;
 }
 .hud-left, .hud-right { display: flex; align-items: center; gap: 0.5em; }
+
+/* Barra de vida: el hueco del marco es transparente y la sangre se ve por detrás */
 .hpbar {
   position: relative;
-  width: 13em;
-  height: 1.7em;
-  background: #3a3550;
-  border: 0.2em solid var(--ink);
-  border-radius: 999px;
-  overflow: hidden;
-  box-shadow: 0 0.18em 0 var(--ink);
+  width: 20em;
+  aspect-ratio: 236 / 26;
 }
-.hpbar .fill { height: 100%; background: linear-gradient(#ff8a9b, #ff3d5a); border-radius: 999px; transition: width 0.2s; }
+.hpbar::before {
+  content: '';
+  position: absolute;
+  left: 4.6%; right: 4.6%; top: 28%; bottom: 28%;
+  background: #1a1620;
+}
+.hpbar .fill {
+  position: absolute;
+  left: 4.6%; top: 28%; bottom: 28%;
+  width: calc(var(--hp, 100%) * 0.908) !important;
+  background: linear-gradient(#c24a38, #8a1f1a 55%, #6a1512);
+  box-shadow: inset 0 0.12em 0 rgba(255, 190, 170, 0.25);
+  transition: width 0.2s;
+}
+.hpbar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('assets/ui/barra-vida.png') center / 100% 100% no-repeat;
+  image-rendering: pixelated;
+}
 .hpbar span {
   position: absolute;
   inset: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  -webkit-text-stroke: 0.2em var(--ink);
+  color: #f0e8d4;
+  -webkit-text-stroke: 0.25em var(--line);
   paint-order: stroke fill;
-  font-size: 0.95em;
+  font-size: 0.8em;
+}
+
+.pill, .icon-btn {
+  color: var(--ink);
+  background: var(--metal);
+  border: 0.2em solid var(--line);
+  box-shadow: inset 0 0 0 0.14em var(--rust);
 }
 .pill {
   display: flex;
   align-items: center;
   gap: 0.3em;
-  background: var(--cream);
-  border: 0.18em solid var(--ink);
-  border-radius: 999px;
   padding: 0.15em 0.65em;
-  box-shadow: 0 0.18em 0 var(--ink);
   font-size: 1.05em;
 }
 .pill b { font-weight: 400; min-width: 1.2em; }
@@ -307,13 +298,10 @@ body.touch #game-wrap {
   height: 2em;
   display: grid;
   place-items: center;
-  background: var(--yellow);
-  border: 0.18em solid var(--ink);
-  border-radius: 0.6em;
-  box-shadow: 0 0.18em 0 var(--ink);
   cursor: pointer;
 }
-.icon-btn:active { transform: translateY(0.12em); box-shadow: none; }
+.icon-btn:active { transform: translateY(0.12em); }
+
 /* ═════════════ Controles táctiles ═════════════ */
 #touch-ui { position: absolute; inset: 0; z-index: 6; pointer-events: none; display: none; }
 body.touch #touch-ui:not([hidden]) { display: block; }
@@ -322,9 +310,8 @@ body.touch #touch-ui:not([hidden]) { display: block; }
   width: 110px;
   height: 110px;
   margin: -55px 0 0 -55px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  border: 4px solid rgba(29, 27, 44, 0.6);
+  background: rgba(0, 0, 0, 0.25);
+  border: 4px solid var(--rust);
 }
 .joy-knob {
   position: absolute;
@@ -332,9 +319,8 @@ body.touch #touch-ui:not([hidden]) { display: block; }
   top: 50%;
   width: 48px;
   height: 48px;
-  border-radius: 50%;
-  background: var(--yellow);
-  border: 4px solid var(--ink);
+  background: var(--metal);
+  border: 4px solid var(--rust);
   transform: translate(-50%, -50%);
 }
 .dash-btn {
@@ -345,13 +331,12 @@ body.touch #touch-ui:not([hidden]) { display: block; }
   width: 4.2em;
   height: 4.2em;
   font-size: clamp(14px, 2.4cqw, 24px);
-  border-radius: 50%;
-  background: var(--blue);
-  border: 0.2em solid var(--ink);
-  box-shadow: 0 0.2em 0 var(--ink);
+  background: var(--metal);
+  border: 0.2em solid var(--line);
+  box-shadow: inset 0 0 0 0.14em var(--rust);
   touch-action: none;
 }
-.dash-btn:active { transform: translateY(0.15em); box-shadow: none; }
+.dash-btn:active { transform: translateY(0.15em); }
 
 .rotate-hint { display: none; }
 @media (orientation: portrait) and (pointer: coarse) {
@@ -370,137 +355,6 @@ body.touch #touch-ui:not([hidden]) { display: block; }
 @keyframes pop { from { transform: scale(0.7); opacity: 0; } }
 @keyframes cardIn { from { transform: translateY(2em) scale(0.8); opacity: 0; } }
 @keyframes float { 50% { transform: translateY(-0.25em); } }
-
-/* ═════════════ Pixel art (modo por defecto, en migración) ═════════════ */
-body.pixel, body.pixel * { font-family: 'ZS UI', 'Pixelify Sans', system-ui, sans-serif !important; }
-body.pixel #game { image-rendering: pixelated; }
-/* sin marco: el juego ocupa toda la ventana */
-body.pixel #game-wrap,
-body.pixel.touch #game-wrap {
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
-  aspect-ratio: auto;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  background: #1d1b2c;
-}
-
-/* ═════════════ Interfaz oscura y sucia (pixel art) ═════════════
-   Fuente y marcos generados con PixelLab (assets/fuentes y assets/ui).
-   Los marcos son de "9 trozos": las esquinas no se estiran, los lados sí. */
-@font-face {
-  font-family: 'ZS UI';
-  src: url('assets/fuentes/zombie-scape-ui.ttf') format('truetype');
-  font-display: swap;
-}
-body.pixel {
-  --ink: #d9d1bd;      /* aquí "ink" es el color del texto: hueso sucio */
-  --line: #0f0d17;     /* contornos */
-  --muted: #9b93a0;
-  --yellow: #c9a227;
-  --green: #6f9a58;
-  --blue: #5b7fa0;
-  --pink: #b3402f;
-  --metal: #2b2732;
-  --rust: #7a4a33;
-  background: #0f0d17;
-  color: var(--ink);
-}
-body.pixel::before { display: none; }
-body.pixel .overlay { background: rgba(10, 8, 16, 0.72); backdrop-filter: none; }
-body.pixel .overlay.clear { background: rgba(10, 8, 16, 0.2); }
-
-body.pixel .title, body.pixel .tagline, body.pixel .record {
-  color: #e6dec8;
-  -webkit-text-stroke: 0.22em var(--line);
-  text-shadow: 0 0.12em 0 var(--line);
-  letter-spacing: 0.04em;
-}
-body.pixel .sub, body.pixel .hint { color: var(--muted); }
-
-/* Paneles: marco de metal oxidado */
-body.pixel .panel {
-  background: none;
-  border: 0;
-  border-style: solid;
-  border-width: 2.9em;
-  border-image: url('assets/ui/panel-oscuro.png') 46 fill / 2.9em stretch;
-  image-rendering: pixelated;
-  box-shadow: none;
-  padding: 0 0.4em 0.2em;
-  color: var(--ink);
-}
-
-/* Botones: chapa con remaches */
-body.pixel .btn {
-  color: #e6dec8;
-  background: none;
-  border: 0;
-  border-style: solid;
-  border-width: 0.9em;
-  border-image: url('assets/ui/boton-oscuro.png') 16 fill / 0.9em stretch;
-  image-rendering: pixelated;
-  border-radius: 0;
-  box-shadow: none;
-  padding: 0.3em 1.2em;
-  text-shadow: 0 0.1em 0 var(--line);
-}
-body.pixel .btn:hover { transform: none; filter: brightness(1.3) sepia(0.2); }
-body.pixel .btn:active { transform: translateY(0.12em); filter: brightness(0.8); }
-body.pixel .btn.pink { filter: sepia(1) saturate(2.5) hue-rotate(-35deg) brightness(0.95); }
-body.pixel .btn.pink:hover { filter: sepia(1) saturate(2.5) hue-rotate(-35deg) brightness(1.3); }
-body.pixel .btn.big { padding: 0.3em 1.6em; }
-body.pixel .btn:disabled { filter: grayscale(1) brightness(0.6); }
-body.pixel .btn small { opacity: 0.8; }
-body.pixel .keys-chip { background: rgba(0, 0, 0, 0.35); border-radius: 0; }
-
-/* Listas y fichas de dentro de los paneles */
-body.pixel .stat { border-bottom: 0.12em dashed rgba(217, 209, 189, 0.18); }
-body.pixel .plist-row { color: var(--muted); }
-body.pixel .plist-row b { color: var(--ink); }
-body.pixel .bcard, body.pixel .wrow {
-  background: var(--metal);
-  border: 0.18em solid var(--line);
-  border-radius: 0;
-  box-shadow: inset 0 0 0 0.14em var(--rust);
-  color: var(--ink);
-}
-body.pixel .bcard { box-shadow: inset 0 0 0 0.14em var(--rust), 0 0.25em 0 var(--line); }
-body.pixel .bcard:hover { transform: translateY(-0.2em); filter: brightness(1.2); }
-body.pixel .bcard.done, body.pixel .wrow.maxed { background: #2c3328; }
-body.pixel .bcard.soon { background: #1c1a22; color: var(--muted); box-shadow: inset 0 0 0 0.14em #3a3640; border-color: var(--line); }
-body.pixel .bfoot { background: var(--rust); color: #e6dec8; border: 0.12em solid var(--line); border-radius: 0; }
-body.pixel .bcard.soon .bfoot { background: #3a3640; }
-body.pixel .wallet { background: var(--metal); color: #e6c34a; border: 0.18em solid var(--line); border-radius: 0; box-shadow: inset 0 0 0 0.14em var(--rust); }
-body.pixel .winfo b { color: var(--ink); }
-body.pixel .pips i { border-radius: 0; border-color: var(--line); background: #1c1a22; }
-body.pixel .pips i.on { background: var(--yellow); }
-body.pixel .end.win .title { color: #e6c34a; }
-body.pixel .end.lose .title { color: #c4493a; }
-
-/* HUD */
-body.pixel .hpbar {
-  background: #1a1620;
-  border: 0.25em solid var(--line);
-  border-radius: 0;
-  box-shadow: inset 0 0 0 0.14em var(--rust);
-}
-body.pixel .hpbar .fill { background: linear-gradient(#b3402f, #7d1f1a); border-radius: 0; }
-body.pixel .hpbar span { color: #e6dec8; -webkit-text-stroke: 0.2em var(--line); }
-body.pixel .pill, body.pixel .icon-btn {
-  background: var(--metal);
-  color: var(--ink);
-  border: 0.2em solid var(--line);
-  border-radius: 0;
-  box-shadow: inset 0 0 0 0.14em var(--rust);
-}
-body.pixel .icon-btn:active { transform: translateY(0.12em); }
-body.pixel .dash-btn { background: var(--metal); border: 0.2em solid var(--line); border-radius: 0; box-shadow: inset 0 0 0 0.14em var(--rust); }
-body.pixel .joy-base { border-radius: 0; background: rgba(0, 0, 0, 0.25); border-color: var(--rust); }
-body.pixel .joy-knob { border-radius: 0; background: var(--metal); border-color: var(--rust); }
-body.pixel * { scrollbar-color: #7a4a33 #1a1620; scrollbar-width: thin; }
 
 /* Iconos pixel art (assets/ui/iconos): sustituyen a los emojis. Se pintan sin suavizar. */
 .ico {
@@ -524,7 +378,6 @@ body.pixel * { scrollbar-color: #7a4a33 #1a1620; scrollbar-width: thin; }
 .ico-pistola { background-image: url('assets/ui/iconos/pistola.png'); }
 .ico-escopeta { background-image: url('assets/ui/iconos/escopeta.png'); }
 
-body.pixel .wicon { width: 3.2em; flex: none; font-size: 1em; }
 .wicon .ico { width: 3.2em; height: 3.2em; }
 .ico-zapatillas { background-image: url('assets/ui/iconos/dash.png'); }
 .ico-vida { background-image: url('assets/ui/iconos/vida.png'); }
@@ -537,45 +390,6 @@ body.pixel .wicon { width: 3.2em; flex: none; font-size: 1em; }
 .ico-cafe { background-image: url('assets/ui/iconos/cafe.png'); }
 .ico-guantes { background-image: url('assets/ui/iconos/guantes.png'); }
 .ico-casco { background-image: url('assets/ui/iconos/casco.png'); }
-
-/* Barra de vida: el hueco del marco es transparente y la sangre se ve por detrás */
-body.pixel .hpbar {
-  width: 20em;
-  height: auto;
-  aspect-ratio: 236 / 26;
-  background: none;
-  border: 0;
-  box-shadow: none;
-  overflow: visible;
-}
-body.pixel .hpbar::before {
-  content: '';
-  position: absolute;
-  left: 4.6%; right: 4.6%; top: 28%; bottom: 28%;
-  background: #1a1620;
-}
-body.pixel .hpbar .fill {
-  position: absolute;
-  left: 4.6%; top: 28%; bottom: 28%;
-  height: auto;
-  width: calc(var(--hp, 100%) * 0.908) !important;
-  background: linear-gradient(#c24a38, #8a1f1a 55%, #6a1512);
-  box-shadow: inset 0 0.12em 0 rgba(255, 190, 170, 0.25);
-  border-radius: 0;
-}
-body.pixel .hpbar::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: url('assets/ui/barra-vida.png') center / 100% 100% no-repeat;
-  image-rendering: pixelated;
-}
-body.pixel .hpbar span {
-  z-index: 2;
-  font-size: 0.8em;
-  color: #f0e8d4;
-  -webkit-text-stroke: 0.25em var(--line);
-}
 
 .bicon .ico { width: 3.2em; height: 3.2em; }
 .plist-title .ico, .stat .ico { width: 1.5em; height: 1.5em; }
