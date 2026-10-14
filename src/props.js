@@ -38,7 +38,7 @@ export class SurvivorNPC {
     // bocadillo
     const text = scared ? '¡Socorro!' : '¡Llévame contigo!';
     const by = y - 52 - Math.abs(Math.sin(game.time * 3)) * 4;
-    ctx.font = '16px "Lilita One", system-ui, sans-serif';
+    ctx.font = '16px "ZS UI", "Pixelify Sans", system-ui, sans-serif';
     const w = ctx.measureText(text).width + 22;
     roundBox(ctx, x - w / 2, by - 14, w, 28, 12, '#fff8ea', 3);
     ctx.beginPath();

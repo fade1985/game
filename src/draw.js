@@ -90,8 +90,8 @@ export function eyes(ctx, x, y, r, lx, ly, { angry = false, blink = false } = {}
 }
 
 // Texto con contorno grueso, como en los juegos casual
-// Tipo de letra de los textos del lienzo (en pixel art se cambia por uno pixelado)
-let textFont = '"Lilita One"';
+// Tipo de letra de los textos del lienzo (game.js pone la pixelada del juego)
+let textFont = '"ZS UI", "Pixelify Sans"';
 export function setTextFont(family) { textFont = family; }
 
 export function outlinedText(ctx, text, x, y, size, fill, { lw = 6, align = 'center', stroke = OUTLINE } = {}) {
