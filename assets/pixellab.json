@@ -1063,5 +1063,37 @@
       "huellas": "c3794191"
     },
     "descartados": "suelo 771370c0 (con degradado, no hace mosaico), banera 9afe0a86 (en diagonal), banera2 04e06787 (img2img sobre la bañera actual con fuerza 180: apenas cambia), cascotes e98031cd (parece una piedra), aplique ed69af13 (bombilla de lado)"
+  },
+  "zombi-rapido-48": {
+    "kind": "character",
+    "character_id": "b0514c8d-dd8c-431d-8519-79a16482b3f7",
+    "name": "Zombi rápido (niño con gorra)",
+    "nota": "Zombi rápido a 48x48 (2026-10-14), diseño del dueño: un niño zombi con gorra que sustituye al rápido (mismos números en ZOMBIE_TYPES). Chándal rojo y blanco, rubio, gorra azul oscuro hacia atrás. Pedido de unos 36 píxeles, salió de 41 (el dueño lo dio por bueno). Hecho con la skill /zombi-nuevo. 1) create_character_pro_flash con la vista de frente de Johnny como estilo (personaje 99900e97, 6 generaciones; vistas en rotations-original/). 2) La piel salió gris pálida, no beige: tools/piel.py no la encontraba y teñía el pelo rubio, así que lleva su propio script (assets/sources/zombi-rapido-48/piel.py: grises cálidos poco saturados a verde). 3) Las 8 vistas corregidas se importaron con create_character v3 + direction_images (0,25): es el character_id de arriba. Visto bueno del dueño al modelo. EN EL JUEGO como sprite zombi-rapido: py tools/zombi.py zombi-rapido-48 zombi-rapido (sin zombi.json; el andar de frente cierra regular, cambian 264 píxeles, pero el ciclo entero era peor).",
+    "request": {
+      "description": "zombie child, a dead boy of about ten years old from an apartment building, realistic child body proportions, short and skinny, clearly much smaller than an adult: he fills only about three quarters of the canvas height, standing on the bottom of the canvas with empty space above his head. Sickly grey-green rotting skin, sunken dark eye sockets with pale dead eyes, open mouth with dark blood around the jaw, messy short blond hair sticking out under a dark navy blue baseball cap worn backwards. Torn dirty bright red and white tracksuit: red zip-up track jacket with white stripes down the sleeves, ripped at one elbow, dried blood stains; red track pants with white side stripes, ripped at one knee; dirty white sneakers. Slightly hunched posture with the head tilted forward, arms hanging limp at his sides, empty hands, detailed shading",
+      "width": 48,
+      "height": 48,
+      "view": "low top-down",
+      "style_image": {
+        "url": "rotations/south.png de conserje-48 (4e6c78c6-d6c6-46d3-99c1-40a2d86f0e6c)",
+        "usage_description": "Match the pixel art style of this character: same outline thickness, same level of detail and shading, same head size in pixels. The new character is a child, so his body is shorter than this adult. Do not copy his clothes, face or colors."
+      },
+      "style_options": {
+        "color_palette": false,
+        "detail": true,
+        "outline": true,
+        "shading": true
+      }
+    },
+    "animaciones": {
+      "nota": "Todo con PixMiniMax, subject_description 'a zombie boy with grey-green skin, blond hair, a dark navy cap worn backwards and a torn red and white tracksuit'. Mismos textos que el zombi normal salvo el andar (carrera encorvada) y el ataque (más rápido). De espaldas, una dirección por llamada con 'Strict back view...' o 'He keeps the same three-quarter back view...'. Atacar, golpe y morir parten del dibujo quieto pegado en (24, 32) de 96x96.",
+      "andar": "grupo c6233a57 (12 fotogramas). Texto: 'He sprints forward in place in a fast, frantic, seamless looping zombie run cycle: his body is bent forward, his legs pump quickly with jerky strides... His arms stay low and swing loosely at his sides.' Ninguna dirección se giró: brazos bajos de entrada en todas.",
+      "ataque": "grupo 712d4ebb (8 fotogramas, partida y final iguales)",
+      "golpe": "grupo 947eac02 (8 fotogramas, partida y final iguales)",
+      "muerte": "grupo b9db606a (12 fotogramas, sin final). Pegas: de espaldas (north) pierde la gorra y queda boca arriba con brazos y piernas abiertos; en north-east deja un charco (se oscurece al montar)."
+    },
+    "cost": "Unas 41 generaciones: 6 del modelo, 0,25 de importarlo, 4 de pruebas de perfil (a 48 px el andar de 12 fotogramas costó 1 de lado y 2 de espaldas) y unas 31 de la tanda.",
+    "descartado": "Personaje 99900e97-a3b7-4b42-9ab0-5f09bdbcba74 (el modelo con la piel sin corregir). Proponer borrarlo; solo con confirmación del dueño.",
+    "updated": "2026-10-14"
   }
 }
