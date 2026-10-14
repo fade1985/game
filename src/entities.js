@@ -257,7 +257,7 @@ export class Player {
     if (behind && !armed) this.drawArm(ctx, a);
     const sp = Math.hypot(this.vx, this.vy);
     // pixel art: sprite del conserje (los pies van 16 unidades por debajo del centro)
-    const sprite = armed || (hasSprite('conserje-48') ? 'conserje-48' : 'conserje'); // prueba del estilo nuevo (48×48)
+    const sprite = armed || 'conserje-48';
     if (hasSprite(sprite)) pixelShadow(ctx, x, y + 15, 28);
     const walking = sp > 20 && (!armed || animFrames(armed, 'walk') > 0);
     const hitting = armed && this.atkAnim ? animFrames(armed, 'attack') : 0;

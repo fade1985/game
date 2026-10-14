@@ -48,7 +48,7 @@ const FALLBACK = {
   north: ['north-east', 'north-west'], south: ['south-east', 'south-west'],
 };
 
-// Carga la lista de sprites (assets/sprites/manifest.json: ["conserje", "zombi-normal", ...]) en dos tandas:
+// Carga la lista de sprites (assets/sprites/manifest.json: ["conserje-48", "zombi-normal", ...]) en dos tandas:
 // primero las hojas cuyo nombre empieza por algo de `primero` (lo que necesita el menú) y luego el resto.
 // Devuelve dos promesas, { primero, todos }, que dan la lista de sprites cargados al terminar cada tanda.
 export function loadSprites(primero = []) {
