@@ -1,0 +1,9 @@
+# Lo que NO se publica en Vercel (sigue en git, solo no se sube a la web).
+# El juego solo necesita index.html, style.css, src/ y assets/{sprites,ui,fuentes,plantillas}.
+assets/sources/
+assets/pruebas/
+assets/pixellab.json
+tools/
+docs/
+CLAUDE.md
+.claude/
