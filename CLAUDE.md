@@ -43,7 +43,8 @@ ni compilación. Se publica en **Vercel** como web estática: lo que se sube a `
 |---|---|
 | `config.js` | Medidas (sala base 960×640, `WALL = 64`, puertas de 96), edificios, estilos de habitación |
 | `main.js` | Arranque, bucle, teclas de prueba, carga de sprites |
-| `game.js` | El corazón: estados, mapas y puertas, combate y dibujo |
+| `game.js` | El corazón: estados, mapas y puertas, oleadas, combate y efectos |
+| `game-dibujo.js` / `game-ataques.js` | Más métodos de `Game`, en archivo aparte: todo el dibujo de la partida, y los ataques especiales de zombis y jefes (explosión, tentáculo, charcos, rastro) |
 | `building.js` / `apartment.js` / `rooms.js` | Generan la planta, cada apartamento y montan cada mapa (puertas, muebles, oleadas) |
 | `shapes.js` | Cuadrícula de cada mapa (casillas de 32), choques y camino de los zombis |
 | `render.js` / `furniture.js` / `camera.js` | Suelo, paredes con cara, muebles, minimapa; cámara |
