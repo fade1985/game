@@ -8,7 +8,7 @@
 import { OUTLINE, PIXEL } from './config.js';
 import { drawSprite, dirFromVector, hasSprite, pixelShadow, animFrames, animDuration, spritePoints } from './sprites.js';
 import { rand } from './utils.js';
-import { drawHuman } from './draw.js';
+import { drawHuman, pixelHpBar } from './draw.js';
 import { drawSpawnWarning } from './entities.js';
 import { sfx } from './sfx.js';
 import { FIRE, MOLOTOV } from './molotov.js';
@@ -242,7 +242,7 @@ export const ZOMBIE_TYPES = {
   lento: {
     variantes: ['rojo', 'bata', 'mostaza', 'negro', 'militar', 'turquesa'],
     // medio cuerpo: su dibujo se encoge un poco (spriteScale) para que no abulte tanto como uno entero
-    name: 'Zombi lento', r: 17, s: 1.05, spriteScale: 0.85, hp: 30, speed: 45, dmg: 10, push: 130,
+    name: 'Zombi lento', r: 17, s: 1.05, spriteScale: 0.85, top: 50, hp: 30, speed: 45, dmg: 10, push: 130,
     look: { skin: '#a8c686', hair: '#5b4a3a', shirt: '#8d7b68', pants: '#5c5470', shoes: '#3b3550' },
   },
   normal: {
@@ -611,11 +611,9 @@ export class Zombie {
 
     // barra de vida pequeña
     if (this.hp < this.maxHp) {
-      const w = 34 * s, bx = x - w / 2, by = y - (this.def.top || 46 * s);   // "top": por encima de la cabeza en los sprites altos
-      ctx.fillStyle = OUTLINE;
-      ctx.beginPath(); ctx.roundRect(bx - 2, by - 2, w + 4, 9, 4); ctx.fill();
-      ctx.fillStyle = '#ff5d73';
-      ctx.beginPath(); ctx.roundRect(bx, by, w * Math.max(0, this.hp / this.maxHp), 5, 3); ctx.fill();
+      // por encima de la cabeza: los sprites son más altos que el dibujo de antes ("top" fija la altura a mano)
+      const by = y - (this.def.top || (sprited ? 82 : 46) * s);
+      pixelHpBar(ctx, x, by, Math.round(17 * s), this.hp / this.maxHp);
     }
   }
 

@@ -2,7 +2,7 @@
 //  Utilidades de dibujo con estilo "cartoon":
 //  formas redondas, contorno grueso y brillo
 // ─────────────────────────────────────────────
-import { OUTLINE } from './config.js';
+import { OUTLINE, PIXEL } from './config.js';
 
 const TAU = Math.PI * 2;
 
@@ -104,6 +104,54 @@ export function outlinedText(ctx, text, x, y, size, fill, { lw = 6, align = 'cen
   ctx.strokeText(text, x, y);
   ctx.fillStyle = fill;
   ctx.fillText(text, x, y);
+}
+
+// ── Barras de vida en pixel art ──
+// Todo encaja en la cuadrícula del arte: 1 píxel del dibujo = PIXEL unidades del juego.
+const snap = (v) => Math.round(v / PIXEL) * PIXEL;
+
+// Barrita sobre la cabeza de un zombi: marco negro, fondo oscuro y sangre con
+// una fila de brillo arriba y otra de sombra abajo. anchoPx = ancho en píxeles del arte.
+export function pixelHpBar(ctx, cx, top, anchoPx, frac) {
+  const P = PIXEL, w = anchoPx * P, x = snap(cx - w / 2), y = snap(top);
+  ctx.fillStyle = OUTLINE;
+  ctx.fillRect(x - P, y - P, w + 2 * P, 5 * P);                    // marco de 1 píxel
+  ctx.fillStyle = '#1a1620';
+  ctx.fillRect(x, y, w, 3 * P);                                     // hueco vacío
+  const lleno = Math.round(anchoPx * Math.max(0, Math.min(1, frac))) * P;
+  if (lleno <= 0) return;
+  ctx.fillStyle = '#b02a22'; ctx.fillRect(x, y, lleno, 3 * P);      // sangre
+  ctx.fillStyle = '#e8604a'; ctx.fillRect(x, y, lleno, P);          // brillo
+  ctx.fillStyle = '#6a1512'; ctx.fillRect(x, y + 2 * P, lleno, P);  // sombra
+}
+
+// Barra grande del jefe: el mismo marco de la barra de Johnny (assets/ui/barra-vida.png,
+// 236×26 píxeles, con el hueco transparente de x 11 a 226 y de y 9 a 16) a tamaño real.
+const MARCO_VIDA = new Image();
+MARCO_VIDA.src = 'assets/ui/barra-vida.png';
+export const MARCO_VIDA_ANCHO = 236 * PIXEL;
+export function pixelBossBar(ctx, x, y, frac, color, { mitad = false } = {}) {
+  const P = PIXEL;
+  x = snap(x); y = snap(y);
+  const hx = x + 11 * P, hy = y + 9 * P, hw = 216 * P, hh = 8 * P;
+  ctx.fillStyle = '#1a1620';
+  ctx.fillRect(hx, hy, hw, hh);
+  const lleno = Math.round(216 * Math.max(0, Math.min(1, frac))) * P;
+  if (lleno > 0) {
+    ctx.fillStyle = color; ctx.fillRect(hx, hy, lleno, hh);
+    ctx.fillStyle = 'rgba(255, 220, 200, 0.3)'; ctx.fillRect(hx, hy, lleno, P);        // brillo
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)'; ctx.fillRect(hx, hy + hh - 3 * P, lleno, 3 * P); // sombra
+  }
+  if (mitad) { ctx.fillStyle = OUTLINE; ctx.fillRect(hx + hw / 2 - P, hy, 2 * P, hh); } // aquí empieza la fase 2
+  if (MARCO_VIDA.complete && MARCO_VIDA.naturalWidth) {
+    const suave = ctx.imageSmoothingEnabled;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(MARCO_VIDA, x, y, MARCO_VIDA_ANCHO, 26 * P);
+    ctx.imageSmoothingEnabled = suave;
+  } else {
+    ctx.strokeStyle = OUTLINE; ctx.lineWidth = 2 * P;              // por si la imagen aún no ha cargado
+    ctx.strokeRect(hx - P, hy - P, hw + 2 * P, hh + 2 * P);
+  }
 }
 
 // Rectángulo redondeado relleno + contorno

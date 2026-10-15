@@ -6,7 +6,7 @@
 import { H, WALL, OUTLINE, DIRS, PIXEL, SLIDE, FADE } from './config.js';
 import { rand, clamp } from './utils.js';
 import { drawRoom, sceneryOf, drawDoors, drawDoorLabels, drawFog, drawPickup, drawBullet, drawMinimap, drawEmoji as drawEmojiAt, minimapRect } from './render.js';
-import { outlinedText, roundBox } from './draw.js';
+import { outlinedText, roundBox, pixelBossBar, MARCO_VIDA_ANCHO } from './draw.js';
 import { setGridSnap, drawSprite } from './sprites.js';
 
 // Iconos pixel art de los objetos (los mismos del CSS); 'zapatillas' reutiliza el del dash
@@ -331,21 +331,14 @@ export class GameDrawing {
   drawBossBar(ctx) {
     const boss = this.enemies.find((e) => e.isBoss && e.active);
     if (!boss) return;
-    const w = 420, x = this.ow / 2 - w / 2, y = H - WALL - 40;
+    const w = MARCO_VIDA_ANCHO, x = this.ow / 2 - w / 2, y = H - WALL - 52;
     // se vuelve transparente si hay alguien debajo, para no tapar el combate
     const toScreen = (e) => this.camera.toScreen(e.x, e.y);
     const under = [this.player, ...this.enemies].some((e) => { const s = toScreen(e); return s.x > x - 30 && s.x < x + w + 30 && s.y > y - 60; });
     ctx.save();
     ctx.globalAlpha = under ? 0.35 : 1;
-    ctx.beginPath(); ctx.roundRect(x - 4, y - 4, w + 8, 26, 13);
-    ctx.fillStyle = OUTLINE; ctx.fill();
-    ctx.beginPath(); ctx.roundRect(x, y, w * Math.max(0, boss.hp / boss.maxHp), 18, 9);
-    ctx.fillStyle = boss.color; ctx.fill();
-    if (boss.type === 'boss' && boss.phase === 1) {
-      // marca de la mitad: ahí empieza la fase 2
-      ctx.fillStyle = OUTLINE;
-      ctx.fillRect(x + w / 2 - 2, y - 2, 4, 22);
-    }
+    // el marco de la barra de Johnny, con la sangre del color de cada jefe; la raya de la mitad marca la fase 2
+    pixelBossBar(ctx, x, y, boss.hp / boss.maxHp, boss.color, { mitad: boss.type === 'boss' && boss.phase === 1 });
     const bossName = `${boss.name}${boss.phase === 2 ? ' · ¡FURIOSO!' : ''}`;
     outlinedText(ctx, bossName, this.ow / 2 + 16, y - 16, 22, '#ffd23f', { lw: 6 });
     ctx.font = '22px "ZS UI"';
