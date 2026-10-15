@@ -28,7 +28,8 @@ const BURNT = {
   ash: 6.5,       // y entre embers y ash se deshace en ceniza: quedan sus restos (quemadura y huesos)
 };
 
-// Los restos, en píxeles del dibujo: o = contorno, b = hueso, s = sombra del hueso, k = cuenca del ojo
+// Los restos dibujados a mano (por si aún no ha cargado la hoja "objeto-restos" de PixelLab), en píxeles del
+// dibujo: o = contorno, b = hueso, s = sombra del hueso, k = cuenca del ojo
 const BONE_COLORS = { o: '#2a211c', b: '#c9bfa6', s: '#8d8370', k: '#140f0d' };
 const SKULL = [
   '..oooo..',
@@ -49,7 +50,7 @@ const BONE = [
 
 // Dibuja los restos de un zombi carbonizado en un lienzo pequeño (1 píxel = 1 píxel del dibujo):
 // una quemadura irregular en el suelo, más negra en el centro, con motas de ceniza, y encima una calavera y
-// un par de huesos colocados al azar. `w` y `h`: lo que medía el cuerpo tendido, en píxeles del dibujo.
+// uno o dos huesos colocados al azar. `w` y `h`: lo que medía el cuerpo tendido, en píxeles del dibujo.
 function drawRemains(w, h) {
   const rx = Math.max(10, w / 2 + 3), ry = Math.max(6, Math.min(rx * 0.55, h / 2 + 4));
   const W = Math.ceil(rx * 2 + 4), H = Math.ceil(ry * 2 + 4);
@@ -70,7 +71,21 @@ function drawRemains(w, h) {
       x.fillRect(px, py, 1, 1);
     }
   }
-  // calavera y huesos: un hueso puede ir tumbado o de pie (se le da la vuelta a la plantilla)
+  const cx = W / 2, cy = H / 2;
+  const nBones = Math.random() < 0.5 ? 1 : 2;
+  if (hasSprite('objeto-restos')) {
+    // las piezas de PixelLab (hoja "objeto-restos": 3 calaveras y 3 huesos), una calavera y uno o dos huesos
+    // al azar; se dibujan a 1 píxel por píxel del dibujo, como el resto del lienzo
+    const piece = (anim, px, py) => drawSprite(x, 'objeto-restos', anim, 'south', 0, px, py,
+      { frame: Math.floor(rand(0, 3)), scale: 1 / PIXEL });
+    // la calavera hacia un lado y los huesos hacia el otro, para que no se tapen
+    const side = Math.random() < 0.5 ? -1 : 1;
+    for (let i = 0; i < nBones; i++) piece('hueso', cx - side * rand(0.1, 0.45) * rx, cy + rand(-ry * 0.3, ry * 0.3));
+    piece('calavera', cx + side * rand(0.1, 0.35) * rx, cy + rand(-ry * 0.25, ry * 0.25));
+    return c;
+  }
+  // sin la hoja (aún no ha cargado): las de siempre, dibujadas aquí. Un hueso puede ir tumbado o de pie
+  // (se le da la vuelta a la plantilla)
   const stamp = (rows, ox, oy, upright) => {
     rows.forEach((row, j) => [...row].forEach((ch, i) => {
       if (ch === '.') return;
@@ -78,8 +93,7 @@ function drawRemains(w, h) {
       x.fillRect(Math.round(ox + (upright ? j : i)), Math.round(oy + (upright ? i : j)), 1, 1);
     }));
   };
-  const cx = W / 2, cy = H / 2;
-  for (let i = 0; i < 2; i++) stamp(BONE, cx + rand(-rx * 0.6, rx * 0.2), cy + rand(-ry * 0.5, ry * 0.1), Math.random() < 0.4);
+  for (let i = 0; i < nBones; i++) stamp(BONE, cx + rand(-rx * 0.6, rx * 0.2), cy + rand(-ry * 0.5, ry * 0.1), Math.random() < 0.4);
   stamp(SKULL, cx + rand(-rx * 0.5, rx * 0.3) - 4, cy + rand(-ry * 0.4, ry * 0.2) - 4, false);
   return c;
 }

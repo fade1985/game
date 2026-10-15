@@ -1,0 +1,44 @@
+{
+  "cell": [
+    20,
+    20
+  ],
+  "pivot": [
+    10.0,
+    10.0
+  ],
+  "anims": {
+    "calavera": {
+      "fps": 1,
+      "loop": false,
+      "dirs": {
+        "south": {
+          "row": 0,
+          "col": 0,
+          "frames": 3
+        }
+      }
+    },
+    "hueso": {
+      "fps": 1,
+      "loop": false,
+      "dirs": {
+        "south": {
+          "row": 1,
+          "col": 0,
+          "frames": 3
+        }
+      }
+    },
+    "idle": {
+      "fps": 1,
+      "dirs": {
+        "south": {
+          "row": 0,
+          "col": 0,
+          "frames": 1
+        }
+      }
+    }
+  }
+}

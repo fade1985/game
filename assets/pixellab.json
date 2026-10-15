@@ -1095,5 +1095,60 @@
     "cost": "Unas 41 generaciones: 6 del modelo, 0,25 de importarlo, 4 de pruebas de perfil (a 48 px el andar de 12 fotogramas costó 1 de lado y 2 de espaldas) y unas 31 de la tanda.",
     "descartado": "Personaje 99900e97-a3b7-4b42-9ab0-5f09bdbcba74 (el modelo con la piel sin corregir). Proponer borrarlo; solo con confirmación del dueño.",
     "updated": "2026-10-14"
+  },
+  "objeto-restos": {
+    "kind": "image",
+    "herramienta": "create_image_pixflux (MCP)",
+    "request": {
+      "width": 32,
+      "height": 32,
+      "no_background": true,
+      "view": "high top-down",
+      "outline": "single color black outline",
+      "shading": "basic shading",
+      "detail": "medium detail"
+    },
+    "piezas": [
+      {
+        "hoja": "calavera 0",
+        "seed": 1101,
+        "job_id": "151f6000-4c2c-40b3-9cdc-83f307156e3a",
+        "description": "small charred human skull lying on the floor, burnt bone color with black soot stains, seen from above at a 3/4 angle, game item sprite"
+      },
+      {
+        "hoja": "calavera 1",
+        "seed": 1102,
+        "job_id": "345373d0-8cc9-480f-94c2-b8ba7b1d47dc",
+        "description": "small burnt human skull lying on its side on the floor, scorched dirty bone color, cracked, soot, seen from above at a 3/4 angle, game item sprite"
+      },
+      {
+        "hoja": "calavera 2",
+        "seed": 1103,
+        "job_id": "6c6f5d5b-32cf-4730-a4f9-bc18fd9d2f37",
+        "description": "small broken charred human skull without lower jaw, blackened burnt bone, seen from above at a 3/4 angle, game item sprite"
+      },
+      {
+        "hoja": "hueso 0",
+        "seed": 1104,
+        "job_id": "14c84e14-7454-4ecf-a551-6d7f7a742868",
+        "description": "single long human bone (femur) lying horizontally on the floor, charred burnt bone color with black soot, seen from above, game item sprite"
+      },
+      {
+        "hoja": "hueso 1",
+        "seed": 1105,
+        "job_id": "6673588a-2d75-46bc-beda-dc22d3ca9373",
+        "description": "small piece of burnt human rib cage, a few curved charred ribs lying on the floor, scorched bone color with soot, seen from above, game item sprite"
+      },
+      {
+        "hoja": "hueso 2",
+        "seed": 1106,
+        "job_id": "7bac5cc0-5a8f-4f69-b9d0-510811082c9f",
+        "description": "two small crossed charred human bones lying on the floor, burnt bone color with black soot stains, seen from above, game item sprite"
+      }
+    ],
+    "montaje": "Cada pieza se recorta, se reduce al 70 % (salían el doble que la cabeza de un zombi), se pasa a una escala común de 5 tonos de hueso quemado (cada una salía de un color) y se le pone contorno nuevo. Hoja de 3×2 celdas de 20 px: fila 0 calaveras, fila 1 huesos.",
+    "uso": "Restos de los zombis que mueren ardiendo (zombies.js: drawRemains), sobre la quemadura del suelo.",
+    "cost": "6 generaciones",
+    "updated": "2026-10-15"
   }
 }
