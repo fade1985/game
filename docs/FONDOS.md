@@ -56,7 +56,8 @@ DETAILS: torn shower curtain, blood handprints on the wall, cracked floor tiles,
 Es el baño 2 ya sin marco, sin puerta y enderezado: el modelo copia el encuadre de lo que se le adjunta, así
 que con esta deja de dibujar el marco de muros y el hueco de la puerta.
 
-**Textos completos, listos para copiar, por tamaño y entrada: [`PROMPTS_BANOS.md`](PROMPTS_BANOS.md).**
+**Textos completos, listos para copiar, por tamaño y entrada: [`PROMPTS_BANOS.md`](PROMPTS_BANOS.md) y
+[`PROMPTS_COCINAS.md`](PROMPTS_COCINAS.md)** (este, con las cuatro entradas, también la de arriba).
 
 ### Diez baños distintos
 
