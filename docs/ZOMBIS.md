@@ -75,6 +75,16 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
   - **Pegas conocidas:** tres andares (`west`, `south-west`, `north-west`) y el abrir de `west` son los de la
     dirección contraria reflejados (PixelLab los giraba de lado o cerraban mal el ciclo). Al reventar deja su cuerpo
     entero tendido, como los demás.
+- **Zombi explosivo, en grande** (15 de octubre de 2026, lo pidió el dueño: se veía más pequeño y menos corpulento
+  que el rápido). Mismo diseño rehecho a 56×56 (unos 52 píxeles de alto, cabeza más grande), con todas las
+  animaciones de nuevo; sustituye al de 48 en el juego. Costó unas 35 generaciones. Ids en `assets/pixellab.json`
+  (`zombi-explosivo-56`); comparativa en `assets/pruebas/explosivo-grande-comparativa.png` y
+  `comparativa-tamanos.png`, GIF en `assets/pruebas/zombi-explosivo-abrir.gif`. **Pendiente del visto bueno.**
+  - **Cómo se monta:** `py tools/zombi.py zombi-explosivo-56 zombi-explosivo`. Las direcciones que PixelLab giraba
+    mal se rellenan con la contraria reflejada: `py assets/sources/zombi-explosivo-56/espejo.py <animación> <origen>
+    <destino>` (pone de fotograma 0 el dibujo quieto de verdad). Reflejados: andar `west`, `south-west` y
+    `north-west`; abrir `west`; muerte `west`, `south-west` y `north-west`.
+  - **En el juego:** `top: 96` en `ZOMBIE_TYPES` para que la barra de vida quede sobre la cabeza.
 
 ## Variantes de color (13 de octubre de 2026)
 

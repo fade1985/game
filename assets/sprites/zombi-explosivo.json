@@ -5,7 +5,7 @@
   ],
   "pivot": [
     48,
-    78
+    84
   ],
   "anims": {
     "still": {
@@ -98,35 +98,35 @@
       "dirs": {
         "south": {
           "row": 9,
-          "frames": 10
+          "frames": 12
         },
         "south-east": {
           "row": 10,
-          "frames": 11
+          "frames": 10
         },
         "east": {
           "row": 11,
-          "frames": 10
+          "frames": 12
         },
         "north-east": {
           "row": 12,
-          "frames": 12
+          "frames": 11
         },
         "north": {
           "row": 13,
-          "frames": 12
+          "frames": 10
         },
         "north-west": {
           "row": 14,
-          "frames": 12
+          "frames": 11
         },
         "west": {
           "row": 15,
-          "frames": 10
+          "frames": 12
         },
         "south-west": {
           "row": 16,
-          "frames": 11
+          "frames": 10
         }
       }
     },
@@ -246,5 +246,5 @@
       }
     }
   },
-  "source": "Hecha con tools/zombi.py a partir de assets/sources/zombi-explosivo-48/"
+  "source": "Hecha con tools/zombi.py a partir de assets/sources/zombi-explosivo-56/"
 }

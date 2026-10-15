@@ -257,7 +257,8 @@ export const ZOMBIE_TYPES = {
     look: { skin: '#9ed36d', hair: '#e9c46a', shirt: '#e76f51', pants: '#264653', shoes: '#ffffff' },
   },
   explosivo: {
-    name: 'Zombi explosivo', r: 19, s: 1.15, hp: 25, speed: 70, dmg: 6, push: 140,
+    // el hombretón de la gabardina: su dibujo es algo más alto que el de los demás (lienzo de 56), "top" sube la barra de vida
+    name: 'Zombi explosivo', r: 19, s: 1.15, top: 96, hp: 25, speed: 70, dmg: 6, push: 140,
     look: { skin: '#c3d96b', hair: '#6b4f3a', shirt: '#f4a261', pants: '#6d4c41', shoes: '#3b3550' },
   },
   tentaculos: {

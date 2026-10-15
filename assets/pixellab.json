@@ -1155,7 +1155,7 @@
     "kind": "character",
     "character_id": "9eeb36b7-25b7-4763-8099-ed1947b906d4",
     "name": "Zombi explosivo (gabardina, piel verde)",
-    "nota": "Zombi explosivo a 48x48 (2026-10-15), diseño del dueño: un hombretón con gabardina gris oscuro cerrada que, al encenderse la mecha, la abre y enseña un chaleco de dinamita roja, y revienta. Hecho con la skill /zombi-nuevo. 1) create_character_pro_flash con la vista de frente de Johnny como estilo (personaje c7074299, 6 generaciones; vistas en rotations-original/). 2) La piel salió gris pálida y la gabardina también es gris cálido: script propio assets/sources/zombi-explosivo-48/piel.py (solo los grises cálidos CLAROS pasan a verde). 3) Importadas con create_character v3 + direction_images (0,25): el character_id de arriba. Visto bueno del dueño al modelo. EN EL JUEGO como sprite zombi-explosivo: py tools/zombi.py zombi-explosivo-48 zombi-explosivo (con zombi.json). Visto bueno final del dueño (2026-10-15).",
+    "nota": "Zombi explosivo a 48x48 (2026-10-15), diseño del dueño: un hombretón con gabardina gris oscuro cerrada que, al encenderse la mecha, la abre y enseña un chaleco de dinamita roja, y revienta. Hecho con la skill /zombi-nuevo. 1) create_character_pro_flash con la vista de frente de Johnny como estilo (personaje c7074299, 6 generaciones; vistas en rotations-original/). 2) La piel salió gris pálida y la gabardina también es gris cálido: script propio assets/sources/zombi-explosivo-48/piel.py (solo los grises cálidos CLAROS pasan a verde). 3) Importadas con create_character v3 + direction_images (0,25): el character_id de arriba. Visto bueno del dueño al modelo. EN EL JUEGO como sprite zombi-explosivo: py tools/zombi.py zombi-explosivo-48 zombi-explosivo (con zombi.json). Visto bueno final del dueño (2026-10-15). SUSTITUIDO en el juego (2026-10-15) por la versión grande, zombi-explosivo-56.",
     "request": {
       "description": "adult male zombie, a dead neighbour from an apartment building, realistic adult body proportions, a big burly broad-shouldered man, small head, sickly grey-green rotting skin, sunken dark eye sockets with pale dead eyes, open mouth with dark blood around the jaw, bald head with a few thin strands of dark hair, wearing a long dark charcoal grey trench coat that reaches below his knees, fully closed and buttoned up to the neck, collar turned up, tied with a dark belt at the waist, the coat is torn and dirty with dried blood stains on the front, black trousers below the coat, worn black shoes, a short frayed fuse wire sticks out of the coat collar, slightly hunched posture with the head tilted, arms hanging limp at his sides, empty hands, detailed shading",
       "width": 48,
@@ -1200,5 +1200,20 @@
       }
     },
     "cost": "8 generaciones (modelo)."
+  },
+  "zombi-explosivo-56": {
+    "kind": "character",
+    "character_id": "da55724f-a24b-4c78-b619-b1a58d96dc30",
+    "name": "Zombi explosivo grande (piel verde)",
+    "nota": "El dueño lo veía más pequeño y menos corpulento que el zombi rápido (2026-10-15): mismo diseño rehecho a 56x56 (unos 52 píxeles de alto) con la cabeza más grande. Modelo con create_character_pro_flash (d190c9d8, 6 generaciones), piel con assets/sources/zombi-explosivo-56/piel.py (no tiñe el bajo de la gabardina de espaldas) e importado con create_character v3 + direction_images (0,25): el character_id de arriba. Visto bueno del dueño al modelo. EN EL JUEGO como sprite zombi-explosivo: py tools/zombi.py zombi-explosivo-56 zombi-explosivo (con zombi.json). En ZOMBIE_TYPES lleva top: 96 (barra de vida sobre la cabeza). A 56 píxeles, PixMiniMax cuesta 1 generación por dirección con 8 o 12 fotogramas.",
+    "animaciones": {
+      "andar": "grupos 54aade3c (east; west y south-west descartados), 44210f93 (south), 740145a1 (south-east), 77e6b942 (north-east), 27ef70e8 (north). west, south-west y north-west son east, south-east y north-east reflejados (espejo.py); tramos en zombi.json.",
+      "ataque": "grupo 15d8716b (abrir la gabardina, 7 direcciones); west es east reflejado.",
+      "golpe": "grupos d2e55428, c5aeef00, 7e0cf804, 45cde3df, d5880ace, e4d8924c, 34897dd3, d1561103 (las 8 direcciones).",
+      "muerte": "grupos b327343b (south), acc72619 (south-east), 4a254c9a (east), 2b9f830b (north-east), f4e902a5 (north, repetida sin charco). west, south-west y north-west reflejados."
+    },
+    "sin_usar_en_pixellab": "grupo dfb143b4 (muerte north con un charco rojo; la nueva es f4e902a5); en el grupo 54aade3c, los andares west y south-west. Y la versión de 48 entera (9eeb36b7, con sus modelos c7074299 y c1f417a6), si el dueño da por buena la grande. Borrar solo con su confirmación.",
+    "cost": "Unas 35 generaciones: 6 del modelo + 0,25 de importar + unas 29 de animaciones.",
+    "updated": "2026-10-15"
   }
 }
