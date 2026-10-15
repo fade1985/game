@@ -1155,7 +1155,7 @@
     "kind": "character",
     "character_id": "9eeb36b7-25b7-4763-8099-ed1947b906d4",
     "name": "Zombi explosivo (gabardina, piel verde)",
-    "nota": "Zombi explosivo a 48x48 (2026-10-15), diseño del dueño: un hombretón con gabardina gris oscuro cerrada que, al encenderse la mecha, la abre y enseña un chaleco de dinamita roja, y revienta. Hecho con la skill /zombi-nuevo. 1) create_character_pro_flash con la vista de frente de Johnny como estilo (personaje c7074299, 6 generaciones; vistas en rotations-original/). 2) La piel salió gris pálida y la gabardina también es gris cálido: script propio assets/sources/zombi-explosivo-48/piel.py (solo los grises cálidos CLAROS pasan a verde). 3) Importadas con create_character v3 + direction_images (0,25): el character_id de arriba. Visto bueno del dueño al modelo. EN EL JUEGO como sprite zombi-explosivo: py tools/zombi.py zombi-explosivo-48 zombi-explosivo (con zombi.json).",
+    "nota": "Zombi explosivo a 48x48 (2026-10-15), diseño del dueño: un hombretón con gabardina gris oscuro cerrada que, al encenderse la mecha, la abre y enseña un chaleco de dinamita roja, y revienta. Hecho con la skill /zombi-nuevo. 1) create_character_pro_flash con la vista de frente de Johnny como estilo (personaje c7074299, 6 generaciones; vistas en rotations-original/). 2) La piel salió gris pálida y la gabardina también es gris cálido: script propio assets/sources/zombi-explosivo-48/piel.py (solo los grises cálidos CLAROS pasan a verde). 3) Importadas con create_character v3 + direction_images (0,25): el character_id de arriba. Visto bueno del dueño al modelo. EN EL JUEGO como sprite zombi-explosivo: py tools/zombi.py zombi-explosivo-48 zombi-explosivo (con zombi.json). Visto bueno final del dueño (2026-10-15).",
     "request": {
       "description": "adult male zombie, a dead neighbour from an apartment building, realistic adult body proportions, a big burly broad-shouldered man, small head, sickly grey-green rotting skin, sunken dark eye sockets with pale dead eyes, open mouth with dark blood around the jaw, bald head with a few thin strands of dark hair, wearing a long dark charcoal grey trench coat that reaches below his knees, fully closed and buttoned up to the neck, collar turned up, tied with a dark belt at the waist, the coat is torn and dirty with dried blood stains on the front, black trousers below the coat, worn black shoes, a short frayed fuse wire sticks out of the coat collar, slightly hunched posture with the head tilted, arms hanging limp at his sides, empty hands, detailed shading",
       "width": 48,
@@ -1183,5 +1183,22 @@
     "sin_usar_en_pixellab": "personaje c7074299 (modelo con la piel beige), grupo 9d0683bc 'ataque' (east de frente) y grupo 422f61bb 'andar-nw'; dentro del grupo de andar, west, south-west y north-west no se usan. Borrar solo con confirmación del dueño.",
     "cost": "unas 43 generaciones (6 modelo + 0,25 importar + 37 animaciones, con 3 repetidas)",
     "updated": "2026-10-15"
+  },
+  "portera-96": {
+    "kind": "character",
+    "character_id": "5b930c2c-7a8b-4fe6-a862-14c3fb119ae9",
+    "name": "Portera mini jefa 96",
+    "nota": "La portera como mini jefa (2026-10-15), a partir de un dibujo del dueño (assets/sources/portera-96/referencia.png). create_character_pro_flash a 128x128 con el dibujo reducido a 128 (referencia-128.png) como imagen de estilo: el estilo tiene que caber en el lienzo. Sale de unos 115 píxeles de alto. Vistas en assets/sources/portera-96/rotations/. Pendiente del visto bueno del dueño.",
+    "request": {
+      "description": "the same character as the reference, a zombie old cleaning lady boss: huge hunched old woman zombie about 100 pixels tall, enormous hunchback with a fleshy lumpy hump, very broad muscular shoulders and thick arms, long messy white hair tied in a high ponytail with loose strands over her face, pale grey wrinkled rotting skin, white blind eyes, one eyeball hanging out of its socket on a red string, open mouth with rotten yellow teeth and blood on her chin, dirty grey t-shirt, long cream apron soaked with red blood splatter and torn at the bottom, baggy dark blue denim trousers, beige crocs clogs, long clawed bloody fingers, holding a wooden mop with a big dirty grey mop head stained with blood in her right hand, mop head resting on the floor, standing wide and menacing, crisp pixel art, dark outline, detailed shading",
+      "width": 128,
+      "height": 128,
+      "view": "low top-down",
+      "style_image": {
+        "url": "assets/sources/portera-96/referencia-128.png",
+        "usage_description": "This is the exact character to draw. Copy her design faithfully: body shape with the big hunchback, white ponytail hair, hanging eyeball, grey t-shirt, bloody cream apron, blue jeans, beige crocs and the bloody mop, with the same colors. Redraw her as a game sprite filling most of the canvas, about 100 pixels tall, with a dark outline."
+      }
+    },
+    "cost": "8 generaciones (modelo)."
   }
 }
