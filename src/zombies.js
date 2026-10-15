@@ -240,6 +240,9 @@ export class Zombie {
           this.spitT = 0.4; // hincha los mofletes antes de escupir
           this.play('attack'); // pixel art: se echa atrás y escupe (el moco sale a los 0,4 s, como marca su hoja)
         }
+        // mientras dura el escupitajo (hasta el último dibujo) se queda plantado y frena en seco:
+        // si se moviera sin mover las piernas, parecería que va flotando
+        if (this.spitT > 0 || this.anim?.name === 'attack') { spd = 0; steer = 30; }
         break;
     }
 
