@@ -28,10 +28,11 @@ export const MOLOTOV = {
   burn: 22,       // daño por segundo a los zombis dentro del fuego
   dps: 12,        // daño por segundo a Johnny dentro del fuego (la esquiva lo cruza sin quemarse)
   tick: 0.25,     // cada cuánto se reparte la quemadura a los zombis
+  afterburn: 1.5, // segundos que un zombi sigue ardiendo (solo a la vista) después de salir del fuego
 };
 
 // Colores del fuego: del centro (blanco amarillento) al borde (rojo) y el suelo chamuscado
-const FIRE = ['#fff3b0', '#ffd23f', '#ff9f1c', '#f0541e', '#b8261c'];
+export const FIRE = ['#fff3b0', '#ffd23f', '#ff9f1c', '#f0541e', '#b8261c'];
 const SCORCH = '#2a1a14';
 
 // ¿Está este punto dentro del charco? (elipse, igual que se dibuja)
@@ -122,7 +123,9 @@ export class MolotovMethods {
       this.particles.push({ x: hz.x, y: hz.y, vx: Math.cos(a) * 120, vy: Math.sin(a) * 70, px: true, size: 1, color: '#b9e3d0', life: 0.3, max: 0.3 }); // cristales
     }
     for (const e of this.enemies) {
-      if (e.active && inside(hz, e.x, e.y, e.r)) e.hurt(MOLOTOV.hit, false, 0, 0, this, 0);
+      if (!e.active || !inside(hz, e.x, e.y, e.r)) continue;
+      e.burnT = MOLOTOV.afterburn;   // la llamarada ya lo prende (si muere del golpe, queda quemado)
+      e.hurt(MOLOTOV.hit, false, 0, 0, this, 0);
     }
   }
 
@@ -136,10 +139,8 @@ export class MolotovMethods {
       for (const e of this.enemies) {
         if (!e.active || !inside(hz, e.x, e.y, e.r * 0.5)) continue;
         e.hurt(MOLOTOV.burn * MOLOTOV.tick, false, 0, 0, this, 0);
-        // el zombi arde: unas llamas le suben por el cuerpo
-        for (let i = 0; i < 3; i++) {
-          this.particles.push({ x: e.x + rand(-e.r, e.r) * 0.7, y: e.y - rand(0, 30), vx: rand(-15, 15), vy: rand(-110, -60), px: true, size: rand(2, 3), color: FIRE[1 + (i % 3)], life: rand(0.25, 0.45), max: 0.45 });
-        }
+        // el zombi arde: sigue en llamas un rato después de salir del fuego (solo se ve; no hace más daño)
+        e.burnT = MOLOTOV.afterburn;
       }
     }
     // chispas y lenguas de fuego que suben (menos cuando se va apagando)

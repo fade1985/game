@@ -11,15 +11,25 @@ import { rand } from './utils.js';
 import { drawHuman } from './draw.js';
 import { drawSpawnWarning } from './entities.js';
 import { sfx } from './sfx.js';
+import { FIRE } from './molotov.js';
 
 const TAU = Math.PI * 2;
 const CORPSES = 12;   // cuántos zombis tendidos se quedan como mucho en una sala
 const REACH = 18;     // a qué distancia del conserje (además de los dos radios) lanza el zarpazo
 
+// Efectos de estado (prueba de concepto: de momento solo el fuego del molotov).
+// Hay dos formas de pintar a un zombi en llamas, para compararlas:
+//   1 → por código: al dibujarlo se le echa una capa naranja que parpadea (sirve para cualquier hoja,
+//       también las de las variantes de color)
+//   2 → hojas ya recoloreadas con Python (tools/quemado.py): "zombi-normal-fuego", etc.
+// Se elige con ?fuego=2 en la dirección, o con la tecla 9 en el modo pruebas.
+export const EFECTOS = { fuego: new URLSearchParams(location.search).get('fuego') === '2' ? 2 : 1 };
+const CHAR = '#2a1a14';   // el negro chamuscado de los que mueren quemados (forma 1)
+
 // Un zombi muerto: cae y se queda tendido en el suelo. Solo es dibujo (no estorba ni se puede coger).
 // Lo deja el propio zombi al morir si su hoja de sprites tiene la animación "death".
 class Corpse {
-  constructor(sprite, x, y, dir, time, scale = 1) {
+  constructor(sprite, x, y, dir, time, scale = 1, burnt = false) {
     this.kind = 'corpse';
     this.sprite = sprite;
     this.x = x;
@@ -29,10 +39,13 @@ class Corpse {
     this.scale = scale;    // el mismo tamaño de dibujo que tenía en vida
     this.solid = false;
     this.taken = true;     // así el juego no intenta recogerlo ni señalarlo
+    this.burnt = burnt;    // murió quemado (forma 1): se queda chamuscado
   }
 
   draw(ctx, game) {
-    drawSprite(ctx, this.sprite, 'death', this.dir, game.time - this.t0, this.x, this.y + 12 + 15, { scale: this.scale });
+    const o = { scale: this.scale };
+    if (this.burnt) o.tint = { color: CHAR, alpha: 0.55 };
+    drawSprite(ctx, this.sprite, 'death', this.dir, game.time - this.t0, this.x, this.y + 12 + 15, o);
   }
 }
 
@@ -102,6 +115,7 @@ export class Zombie {
     this.exploded = false;
     this.tent = null;            // tentáculos: ataque en curso
     this.spitT = 0;              // venenoso: preparando el escupitajo
+    this.burnT = 0;              // segundos que le quedan ardiendo (lo enciende el fuego del molotov)
     this.strafe = Math.random() < 0.5 ? -1 : 1;
     this.asleep = false;         // los de los apartamentos esperan quietos hasta que notan al conserje
     this.wakeT = 0;              // el respingo al despertar: un instante antes de echar a andar
@@ -114,6 +128,26 @@ export class Zombie {
   }
 
   get sprite() { return this.variant ? `zombi-${this.type}-${this.variant}` : `zombi-${this.type}`; }
+
+  // La hoja que se dibuja: la de siempre o, si arde y se usa la forma 2, la recoloreada en llamas
+  // (todas las variantes de color comparten la del tipo: con el fuego encima, la ropa apenas se distingue)
+  get sheet() {
+    const fuego = `zombi-${this.type}-fuego`;
+    return this.burnT > 0 && EFECTOS.fuego === 2 && hasSprite(fuego) ? fuego : this.sprite;
+  }
+
+  // Ardiendo: llamas de píxeles que le suben por el cuerpo
+  burn(dt, game) {
+    this.burnT -= dt;
+    const tall = this.def.top ? this.def.top - 30 : 40 * this.s;   // alto del cuerpo, más o menos
+    if (Math.random() < 28 * dt) {
+      game.particles.push({
+        x: this.x + rand(-this.r, this.r) * 0.6, y: this.y - rand(0, tall),
+        vx: rand(-15, 15), vy: rand(-110, -60), px: true, size: rand(2, 3.5),
+        color: FIRE[Math.floor(rand(0, 4))], life: rand(0.25, 0.45), max: 0.45,
+      });
+    }
+  }
 
   // Pone una animación de la hoja de sprites (si la tiene). Solo es dibujo: no cambia lo que hace el zombi
   play(name) {
@@ -137,6 +171,7 @@ export class Zombie {
     if (this.spawnT > 0) { this.spawnT -= dt; return; }
     this.t += dt;
     this.hitFlash -= dt;
+    if (this.burnT > 0) this.burn(dt, game);
     if (this.anim && (this.anim.t += dt) >= this.anim.dur) this.anim = null;
     if (this.asleep || this.wakeT > 0) {
       // dormido: se balancea en su sitio, mirando a ninguna parte
@@ -280,7 +315,10 @@ export class Zombie {
       const props = game.room.props;
       const old = props.filter((pr) => pr.kind === 'corpse');
       if (old.length >= CORPSES) props.splice(props.indexOf(old[0]), 1);
-      props.push(new Corpse(this.sprite, this.x, this.y, dirFromVector(this.lookX, this.lookY), game.time, this.def.spriteScale));
+      // si muere ardiendo, el cuerpo queda quemado (forma 1: tinte negro · forma 2: la hoja en llamas)
+      const burnt = this.burnT > 0;
+      const id = burnt ? this.sheet : this.sprite;
+      props.push(new Corpse(id, this.x, this.y, dirFromVector(this.lookX, this.lookY), game.time, this.def.spriteScale, burnt && id === this.sprite));
     }
   }
 
@@ -353,7 +391,14 @@ export class Zombie {
     const opts = an ? { flash, frame: Math.floor((an.t / an.dur) * animFrames(this.sprite, an.name)) }
       : sp > 10 ? { flash, cycle: this.walkT / 7 } : { flash };
     if (this.def.spriteScale) opts.scale = this.def.spriteScale;   // dibujo ampliado (ver ZOMBIE_TYPES)
-    const sprited = drawSprite(ctx, this.sprite, an ? an.name : sp > 10 ? 'walk' : 'idle',
+    // en llamas, forma 1: capa naranja que parpadea (y se apaga poco a poco al final)
+    const sheet = this.sheet;
+    if (this.burnT > 0 && sheet === this.sprite) {
+      const fade = Math.min(1, this.burnT / 0.5);
+      const flick = Math.floor(game.time * 12) % 2;
+      opts.tint = { color: flick ? FIRE[2] : FIRE[3], alpha: (0.6 + Math.sin(game.time * 23) * 0.1) * fade };
+    }
+    const sprited = drawSprite(ctx, sheet, an ? an.name : sp > 10 ? 'walk' : 'idle',
       dirFromVector(this.lookX, this.lookY), game.time, x + shake, y + 15 * scale, opts);
     if (!sprited) drawHuman(ctx, x + shake, y, {
       ...this.def.look,

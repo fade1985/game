@@ -1,0 +1,250 @@
+{
+  "cell": [
+    96,
+    96
+  ],
+  "pivot": [
+    48,
+    72
+  ],
+  "anims": {
+    "still": {
+      "fps": 1,
+      "loop": true,
+      "dirs": {
+        "south": {
+          "row": 0,
+          "col": 0,
+          "frames": 1
+        },
+        "south-east": {
+          "row": 0,
+          "col": 1,
+          "frames": 1
+        },
+        "east": {
+          "row": 0,
+          "col": 2,
+          "frames": 1
+        },
+        "north-east": {
+          "row": 0,
+          "col": 3,
+          "frames": 1
+        },
+        "north": {
+          "row": 0,
+          "col": 4,
+          "frames": 1
+        },
+        "north-west": {
+          "row": 0,
+          "col": 5,
+          "frames": 1
+        },
+        "west": {
+          "row": 0,
+          "col": 6,
+          "frames": 1
+        },
+        "south-west": {
+          "row": 0,
+          "col": 7,
+          "frames": 1
+        }
+      }
+    },
+    "idle": {
+      "fps": 1.5,
+      "loop": true,
+      "dirs": {
+        "south": {
+          "row": 1,
+          "frames": 2
+        },
+        "south-east": {
+          "row": 2,
+          "frames": 2
+        },
+        "east": {
+          "row": 3,
+          "frames": 2
+        },
+        "north-east": {
+          "row": 4,
+          "frames": 2
+        },
+        "north": {
+          "row": 5,
+          "frames": 2
+        },
+        "north-west": {
+          "row": 6,
+          "frames": 2
+        },
+        "west": {
+          "row": 7,
+          "frames": 2
+        },
+        "south-west": {
+          "row": 8,
+          "frames": 2
+        }
+      }
+    },
+    "walk": {
+      "fps": 10,
+      "loop": true,
+      "dirs": {
+        "south": {
+          "row": 9,
+          "frames": 12
+        },
+        "south-east": {
+          "row": 10,
+          "frames": 12
+        },
+        "east": {
+          "row": 11,
+          "frames": 12
+        },
+        "north-east": {
+          "row": 12,
+          "frames": 12
+        },
+        "north": {
+          "row": 13,
+          "frames": 12
+        },
+        "north-west": {
+          "row": 14,
+          "frames": 12
+        },
+        "west": {
+          "row": 15,
+          "frames": 12
+        },
+        "south-west": {
+          "row": 16,
+          "frames": 12
+        }
+      }
+    },
+    "attack": {
+      "fps": 12.7,
+      "loop": false,
+      "dirs": {
+        "south": {
+          "row": 17,
+          "frames": 7
+        },
+        "south-east": {
+          "row": 18,
+          "frames": 7
+        },
+        "east": {
+          "row": 19,
+          "frames": 7
+        },
+        "north-east": {
+          "row": 20,
+          "frames": 7
+        },
+        "north": {
+          "row": 21,
+          "frames": 7
+        },
+        "north-west": {
+          "row": 22,
+          "frames": 7
+        },
+        "west": {
+          "row": 23,
+          "frames": 7
+        },
+        "south-west": {
+          "row": 24,
+          "frames": 7
+        }
+      },
+      "hit": 0.429
+    },
+    "hurt": {
+      "fps": 17.1,
+      "loop": false,
+      "dirs": {
+        "south": {
+          "row": 25,
+          "frames": 6
+        },
+        "south-east": {
+          "row": 26,
+          "frames": 6
+        },
+        "east": {
+          "row": 27,
+          "frames": 6
+        },
+        "north-east": {
+          "row": 28,
+          "frames": 6
+        },
+        "north": {
+          "row": 29,
+          "frames": 6
+        },
+        "north-west": {
+          "row": 30,
+          "frames": 6
+        },
+        "west": {
+          "row": 31,
+          "frames": 6
+        },
+        "south-west": {
+          "row": 32,
+          "frames": 6
+        }
+      }
+    },
+    "death": {
+      "fps": 8.9,
+      "loop": false,
+      "dirs": {
+        "south": {
+          "row": 33,
+          "frames": 8
+        },
+        "south-east": {
+          "row": 34,
+          "frames": 8
+        },
+        "east": {
+          "row": 35,
+          "frames": 8
+        },
+        "north-east": {
+          "row": 36,
+          "frames": 8
+        },
+        "north": {
+          "row": 37,
+          "frames": 8
+        },
+        "north-west": {
+          "row": 38,
+          "frames": 8
+        },
+        "west": {
+          "row": 39,
+          "frames": 8
+        },
+        "south-west": {
+          "row": 40,
+          "frames": 8
+        }
+      }
+    }
+  },
+  "source": "Hecha con tools/zombi.py a partir de assets/sources/zombi-lento-48/"
+}

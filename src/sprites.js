@@ -85,8 +85,11 @@ export function registerSheet(id, img, meta) {
 // Destello blanco al recibir un golpe: se pinta de blanco solo el fotograma que toca, en un lienzo pequeño.
 // (Antes se hacía una copia blanca de cada hoja entera al cargarla: las de los zombis son enormes y eso
 // frenaba el juego uno o dos segundos al empezar, además de gastar mucha memoria.)
+// Con `tint` ({ color, alpha }) en vez de blanco entero se le echa una capa de color por encima
+// (el naranja de un zombi en llamas): `alpha` dice cuánto se nota, de 0 a 1.
+// Ojo: el lienzo pequeño se reutiliza, así que el resultado hay que dibujarlo enseguida.
 let flashCanvas = null;
-function whiteFrame(img, sx, sy, cw, ch) {
+function paintFrame(img, sx, sy, cw, ch, tint) {
   if (!flashCanvas) flashCanvas = document.createElement('canvas');
   if (flashCanvas.width < cw || flashCanvas.height < ch) {
     flashCanvas.width = Math.max(flashCanvas.width, cw);
@@ -95,9 +98,21 @@ function whiteFrame(img, sx, sy, cw, ch) {
   const f = flashCanvas.getContext('2d');
   f.globalCompositeOperation = 'copy';
   f.drawImage(img, sx, sy, cw, ch, 0, 0, cw, ch);
-  f.globalCompositeOperation = 'source-in';
-  f.fillStyle = '#ffffff';
-  f.fillRect(0, 0, cw, ch);
+  if (tint) {
+    // "overlay" (superponer): aclara los tonos medios hacia el color y deja el contorno y las sombras oscuros;
+    // como pinta también fuera del dibujo, luego se recorta con la silueta del fotograma (destination-in)
+    f.globalCompositeOperation = 'overlay';
+    f.globalAlpha = tint.alpha;
+    f.fillStyle = tint.color;
+    f.fillRect(0, 0, cw, ch);
+    f.globalAlpha = 1;
+    f.globalCompositeOperation = 'destination-in';
+    f.drawImage(img, sx, sy, cw, ch, 0, 0, cw, ch);
+  } else {
+    f.globalCompositeOperation = 'source-in';
+    f.fillStyle = '#ffffff';
+    f.fillRect(0, 0, cw, ch);
+  }
   f.globalCompositeOperation = 'source-over';
   return flashCanvas;
 }
@@ -121,7 +136,7 @@ function findFeet(img, meta) {
 export const hasSprite = (id) => sheets.has(id);
 
 // Dibuja el fotograma que toca. `t` es el tiempo de la animación en segundos.
-// Opciones: flash (blanco), alpha, scale (1 = tamaño natural), frame (forzar fotograma), cycle (ver abajo).
+// Opciones: flash (blanco), tint ({ color, alpha }: capa de color), alpha, scale (1 = tamaño natural), frame (forzar fotograma), cycle (ver abajo).
 // Devuelve false si el sprite o la animación no existen.
 export function drawSprite(ctx, id, anim, dir, t, x, y, o = {}) {
   const sh = sheets.get(id);
@@ -143,7 +158,7 @@ export function drawSprite(ctx, id, anim, dir, t, x, y, o = {}) {
   const dx = snap(x - px * s), dy = snap(y - py * s);
   if (o.alpha !== undefined) ctx.globalAlpha = o.alpha;
   ctx.imageSmoothingEnabled = false;
-  if (o.flash) ctx.drawImage(whiteFrame(sh.img, col * cw, d.row * ch, cw, ch), 0, 0, cw, ch, dx, dy, cw * s, ch * s);
+  if (o.flash || o.tint) ctx.drawImage(paintFrame(sh.img, col * cw, d.row * ch, cw, ch, o.flash ? null : o.tint), 0, 0, cw, ch, dx, dy, cw * s, ch * s);
   else ctx.drawImage(sh.img, col * cw, d.row * ch, cw, ch, dx, dy, cw * s, ch * s);
   if (o.alpha !== undefined) ctx.globalAlpha = 1;
   return true;
