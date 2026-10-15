@@ -28,7 +28,7 @@ export const MOLOTOV = {
   burn: 22,       // daño por segundo a los zombis dentro del fuego
   dps: 12,        // daño por segundo a Johnny dentro del fuego (la esquiva lo cruza sin quemarse)
   tick: 0.25,     // cada cuánto se reparte la quemadura a los zombis
-  afterburn: 1.5, // segundos que un zombi sigue ardiendo (solo a la vista) después de salir del fuego
+  afterburn: 2,   // segundos que un zombi sigue ardiendo (y quemándose) después de salir del fuego
 };
 
 // Colores del fuego: del centro (blanco amarillento) al borde (rojo) y el suelo chamuscado
@@ -138,9 +138,11 @@ export class MolotovMethods {
       hz.tick -= MOLOTOV.tick;
       for (const e of this.enemies) {
         if (!e.active || !inside(hz, e.x, e.y, e.r * 0.5)) continue;
-        e.hurt(MOLOTOV.burn * MOLOTOV.tick, false, 0, 0, this, 0);
-        // el zombi arde: sigue en llamas un rato después de salir del fuego (solo se ve; no hace más daño)
-        e.burnT = MOLOTOV.afterburn;
+        // el zombi se prende y la quemadura la lleva él (zombies.js: burn): dentro del fuego se le renueva
+        // sin parar, y al salir sigue ardiendo (y quemándose al mismo ritmo) unos segundos más.
+        // Los jefes no saben arder todavía: a ellos se les quema directamente, solo dentro del fuego.
+        if (e.burn) e.burnT = MOLOTOV.afterburn;
+        else e.hurt(MOLOTOV.burn * MOLOTOV.tick, false, 0, 0, this, 0);
       }
     }
     // chispas y lenguas de fuego que suben (menos cuando se va apagando)

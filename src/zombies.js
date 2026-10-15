@@ -11,7 +11,7 @@ import { rand } from './utils.js';
 import { drawHuman } from './draw.js';
 import { drawSpawnWarning } from './entities.js';
 import { sfx } from './sfx.js';
-import { FIRE } from './molotov.js';
+import { FIRE, MOLOTOV } from './molotov.js';
 
 const TAU = Math.PI * 2;
 const CORPSES = 12;   // cuántos zombis tendidos se quedan como mucho en una sala
@@ -19,11 +19,33 @@ const REACH = 18;     // a qué distancia del conserje (además de los dos radio
 
 // Efectos de estado (de momento solo el fuego del molotov). Se pintan por código, sin hojas aparte:
 // al dibujar al zombi se le echa una capa de color por encima, así sirve para cualquier hoja y variante.
+const FLAMES = 70;        // llamas por segundo que le suben a un zombi que arde
 const CHAR = '#2c211c';   // el carbón de los que mueren ardiendo (se multiplica: oscurece sin borrar las sombras)
-const EMBERS = 4;         // segundos que le duran las brasas y el humo a un cadáver carbonizado
+const STAIN = '#16110f';  // la mancha de hollín que queda en el suelo cuando el cuerpo se deshace
+// Lo que le pasa al cuerpo de un zombi que muere ardiendo, en segundos desde que toca el suelo:
+const BURNT = {
+  char: 1.5,      // se va apagando y ennegreciendo (mientras cae, sigue en llamas)
+  embers: 5,      // le quedan brasas y humo hasta aquí
+  ash: 6.5,       // y entre embers y ash se deshace en ceniza: solo queda la mancha
+};
+
+// Llamas de píxeles que suben desde una zona (ancho w, alto h, con los pies en x, y), `rate` por segundo
+function flames(game, x, y, w, h, rate, dt) {
+  let n = rate * dt;
+  for (; n > 0; n--) {
+    if (n < 1 && Math.random() > n) break;
+    game.particles.push({
+      x: x + rand(-w, w) * 0.5, y: y - rand(0, h),
+      vx: rand(-18, 18), vy: rand(-130, -60), px: true, size: rand(2, 4),
+      color: FIRE[Math.floor(rand(0, 4))], life: rand(0.25, 0.55), max: 0.55,
+    });
+  }
+}
 
 // Un zombi muerto: cae y se queda tendido en el suelo. Solo es dibujo (no estorba ni se puede coger).
 // Lo deja el propio zombi al morir si su hoja de sprites tiene la animación "death".
+// Si murió ardiendo: cae en llamas, se apaga y se queda como carbón con brasas y humo, y al final se deshace
+// en ceniza y deja una mancha de hollín en el suelo (que ya no se va).
 class Corpse {
   constructor(sprite, x, y, dir, time, scale = 1, burnt = false) {
     this.kind = 'corpse';
@@ -35,48 +57,92 @@ class Corpse {
     this.scale = scale;    // el mismo tamaño de dibujo que tenía en vida
     this.solid = false;
     this.taken = true;     // así el juego no intenta recogerlo ni señalarlo
-    this.burnt = burnt;    // murió ardiendo: se queda carbonizado
-    this.embers = null;    // dónde salen las brasas (se calcula cuando termina de caer)
+    this.burnt = burnt;    // murió ardiendo
+    this.embers = null;    // dónde salen las brasas y el humo (se calcula cuando termina de caer)
+    this.lastT = time;     // para soltar llamas y ceniza al ritmo del tiempo
   }
 
   draw(ctx, game) {
     const t = game.time - this.t0;
     const fx = this.x, fy = this.y + 12 + 15;   // los pies
-    const o = { scale: this.scale };
-    // carbonizado: mientras cae se va ennegreciendo, hasta quedar como carbón en algo más de medio segundo
-    if (this.burnt) o.tint = { color: CHAR, alpha: Math.min(1, t / 0.6), mode: 'multiply' };
-    drawSprite(ctx, this.sprite, 'death', this.dir, t, fx, fy, o);
-    if (this.burnt && t < EMBERS) this.drawEmbers(ctx, game, t, fx, fy);
+    if (!this.burnt) {
+      drawSprite(ctx, this.sprite, 'death', this.dir, t, fx, fy, { scale: this.scale });
+      return;
+    }
+    const dt = Math.max(0, game.time - this.lastT);
+    this.lastT = game.time;
+    const s = this.scale || 1;
+    const tg = t - animDuration(this.sprite, 'death');   // tiempo desde que tocó el suelo (negativo: cayendo)
+    const sprite = (o) => drawSprite(ctx, this.sprite, 'death', this.dir, t, fx, fy, { scale: this.scale, ...o });
+    const fire = (k) => ({ color: Math.floor(game.time * 12) % 2 ? FIRE[2] : FIRE[3], alpha: 0.65 * k });
+
+    if (tg < 0) {
+      // cae ardiendo, como en vida
+      sprite({ tint: fire(1) });
+      flames(game, fx, fy, 40 * s, 50 * s, FLAMES, dt);
+      return;
+    }
+    if (tg < BURNT.char) {
+      // en el suelo: el fuego se apaga mientras el carbón aparece por encima (de naranja a negro, sin
+      // pasar por sus colores de antes)
+      const k = tg / BURNT.char;
+      sprite({ tint: fire(1) });
+      sprite({ tint: { color: CHAR, alpha: 1, mode: 'multiply' }, alpha: k });
+      flames(game, fx, fy - 4, 44 * s, 24 * s, FLAMES * (1 - k), dt);
+    } else if (tg < BURNT.ash) {
+      // carbón; al final se va deshaciendo (cada vez más transparente) sobre su mancha
+      const k = Math.max(0, (tg - BURNT.embers) / (BURNT.ash - BURNT.embers));
+      if (k > 0) sprite({ tint: { color: STAIN, alpha: 1, mode: 'source-in' }, alpha: 0.5 * k });
+      sprite({ tint: { color: CHAR, alpha: 1, mode: 'multiply' }, alpha: 1 - k });
+      if (k > 0) this.ashes(game, fx, fy, s, dt);
+    } else {
+      // solo queda la mancha de hollín
+      sprite({ tint: { color: STAIN, alpha: 1, mode: 'source-in' }, alpha: 0.5 });
+      return;
+    }
+    if (tg < BURNT.embers) this.drawEmbers(ctx, game, tg, fx, fy, s);
   }
 
-  // Ya en el suelo: brasas que parpadean sobre el cuerpo y dos hilos de humo, que se van apagando
-  drawEmbers(ctx, game, t, fx, fy) {
-    const end = animDuration(this.sprite, 'death');
-    if (t < end) return;
-    const s = this.scale || 1;
+  // Brasas que parpadean sobre el cuerpo y columnas de humo espeso, que se van apagando
+  drawEmbers(ctx, game, tg, fx, fy, s) {
     if (!this.embers) {
-      this.embers = spritePoints(this.sprite, 'death', this.dir, animFrames(this.sprite, 'death') - 1, 9)
+      this.embers = spritePoints(this.sprite, 'death', this.dir, animFrames(this.sprite, 'death') - 1, 12)
         .map(([x, y]) => [x * s, y * s, rand(0, 10)]);
     }
-    const left = 1 - (t - end) / (EMBERS - end);   // de 1 (recién caído) a 0 (apagado)
+    const left = 1 - tg / BURNT.embers;   // de 1 (recién caído) a 0 (apagado)
     const px = PIXEL * s;
     const snap = (v) => Math.round(v / PIXEL) * PIXEL;
     for (const [x, y, ph] of this.embers) {
       const glow = Math.sin(game.time * 7 + ph) * 0.5 + 0.5;
-      if (glow * left < 0.25) continue;            // apagada en este momento
+      if (glow * left < 0.2) continue;             // apagada en este momento
       ctx.globalAlpha = Math.min(1, left * 1.5);
       ctx.fillStyle = glow > 0.7 ? FIRE[1] : FIRE[3];
       ctx.fillRect(snap(fx + x), snap(fy + y), px, px);
     }
-    ctx.fillStyle = '#6b6560';
-    for (const [x, y, ph] of this.embers.slice(0, 2)) {
-      for (let k = 0; k < 3; k++) {
-        const c = (game.time * 0.8 + ph + k / 3) % 1;   // 0 = sale, 1 = se deshace
-        ctx.globalAlpha = (1 - c) * 0.45 * left;
-        ctx.fillRect(snap(fx + x + Math.sin(c * 5 + ph) * 6), snap(fy + y - c * 46), px * 2, px * 2);
+    // humo: cuatro columnas de bocanadas pegadas unas a otras, que crecen al subir y se deshacen
+    for (const [x, y, ph] of this.embers.slice(0, 4)) {
+      for (let k = 0; k < 8; k++) {
+        const c = (game.time * 0.6 + ph + k / 8) % 1;   // 0 = sale, 1 = se deshace
+        const size = px * (3 + c * 5);
+        ctx.globalAlpha = (1 - c) * 0.55 * Math.min(1, left * 1.3);
+        ctx.fillStyle = c < 0.3 ? '#4a4542' : '#6b6560';
+        ctx.fillRect(snap(fx + x + Math.sin(c * 5 + ph) * 8 - size / 2), snap(fy + y - c * 70 - size / 2), size, size);
       }
     }
     ctx.globalAlpha = 1;
+  }
+
+  // Se deshace: copos de ceniza que se levantan del cuerpo
+  ashes(game, fx, fy, s, dt) {
+    let n = 30 * dt;
+    for (; n > 0; n--) {
+      if (n < 1 && Math.random() > n) break;
+      const [x, y] = this.embers?.length ? this.embers[Math.floor(rand(0, this.embers.length))] : [0, -10];
+      game.particles.push({
+        x: fx + x + rand(-6, 6) * s, y: fy + y, vx: rand(-20, 20), vy: rand(-60, -25), px: true,
+        size: rand(1.5, 3), color: Math.random() < 0.5 ? '#3a3330' : '#76706a', life: rand(0.4, 0.8), max: 0.8,
+      });
+    }
   }
 }
 
@@ -147,6 +213,7 @@ export class Zombie {
     this.tent = null;            // tentáculos: ataque en curso
     this.spitT = 0;              // venenoso: preparando el escupitajo
     this.burnT = 0;              // segundos que le quedan ardiendo (lo enciende el fuego del molotov)
+    this.burnTick = 0;           // cuenta para repartir la quemadura a pellizcos
     this.strafe = Math.random() < 0.5 ? -1 : 1;
     this.asleep = false;         // los de los apartamentos esperan quietos hasta que notan al conserje
     this.wakeT = 0;              // el respingo al despertar: un instante antes de echar a andar
@@ -160,16 +227,15 @@ export class Zombie {
 
   get sprite() { return this.variant ? `zombi-${this.type}-${this.variant}` : `zombi-${this.type}`; }
 
-  // Ardiendo: llamas de píxeles que le suben por el cuerpo
+  // Ardiendo: se quema (el mismo daño que dentro del fuego, a tiempos de MOLOTOV.tick) y le suben llamas
   burn(dt, game) {
     this.burnT -= dt;
+    this.burnTick += dt;
     const tall = this.def.top ? this.def.top - 30 : 40 * this.s;   // alto del cuerpo, más o menos
-    if (Math.random() < 28 * dt) {
-      game.particles.push({
-        x: this.x + rand(-this.r, this.r) * 0.6, y: this.y - rand(0, tall),
-        vx: rand(-15, 15), vy: rand(-110, -60), px: true, size: rand(2, 3.5),
-        color: FIRE[Math.floor(rand(0, 4))], life: rand(0.25, 0.45), max: 0.45,
-      });
+    flames(game, this.x, this.y, this.r * 1.2, tall, FLAMES, dt);
+    if (this.burnTick >= MOLOTOV.tick) {
+      this.burnTick -= MOLOTOV.tick;
+      this.hurt(MOLOTOV.burn * MOLOTOV.tick, false, 0, 0, game, 0);
     }
   }
 
