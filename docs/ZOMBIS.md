@@ -79,7 +79,7 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
   que el rápido). Mismo diseño rehecho a 56×56 (unos 52 píxeles de alto, cabeza más grande), con todas las
   animaciones de nuevo; sustituye al de 48 en el juego. Costó unas 35 generaciones. Ids en `assets/pixellab.json`
   (`zombi-explosivo-56`); comparativa en `assets/pruebas/explosivo-grande-comparativa.png` y
-  `comparativa-tamanos.png`, GIF en `assets/pruebas/zombi-explosivo-abrir.gif`. **Pendiente del visto bueno.**
+  `comparativa-tamanos.png`, GIF en `assets/pruebas/zombi-explosivo-abrir.gif`. **Con el visto bueno final del dueño (15 de octubre de 2026).**
   - **Cómo se monta:** `py tools/zombi.py zombi-explosivo-56 zombi-explosivo`. Las direcciones que PixelLab giraba
     mal se rellenan con la contraria reflejada: `py assets/sources/zombi-explosivo-56/espejo.py <animación> <origen>
     <destino>` (pone de fotograma 0 el dibujo quieto de verdad). Reflejados: andar `west`, `south-west` y
