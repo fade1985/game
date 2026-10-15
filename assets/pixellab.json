@@ -1146,7 +1146,7 @@
         "description": "two small crossed charred human bones lying on the floor, burnt bone color with black soot stains, seen from above, game item sprite"
       }
     ],
-    "montaje": "Cada pieza se recorta, se reduce al 70 % (salían el doble que la cabeza de un zombi), se pasa a una escala común de 5 tonos de hueso quemado (cada una salía de un color) y se le pone contorno nuevo. Hoja de 3×2 celdas de 20 px: fila 0 calaveras, fila 1 huesos.",
+    "montaje": "Cada pieza se recorta, se reduce (salían el doble que la cabeza de un zombi), se pasa a una escala común de 5 tonos de hueso quemado (cada una salía de un color) y se le pone contorno nuevo. Tres tallas, para que la calavera vaya con la cabeza de cada zombi: grande (70 %, el venenoso), mediano (47 %, normal y lento) y pequeno (40 %, el rápido). Hoja de 3×6 celdas de 20 px: por talla, una fila de calaveras y otra de huesos (anims calavera-<talla> y hueso-<talla>).",
     "uso": "Restos de los zombis que mueren ardiendo (zombies.js: drawRemains), sobre la quemadura del suelo.",
     "cost": "6 generaciones",
     "updated": "2026-10-15"

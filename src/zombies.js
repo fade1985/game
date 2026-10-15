@@ -50,8 +50,9 @@ const BONE = [
 
 // Dibuja los restos de un zombi carbonizado en un lienzo pequeño (1 píxel = 1 píxel del dibujo):
 // una quemadura irregular en el suelo, más negra en el centro, con motas de ceniza, y encima una calavera y
-// uno o dos huesos colocados al azar. `w` y `h`: lo que medía el cuerpo tendido, en píxeles del dibujo.
-function drawRemains(w, h) {
+// uno o dos huesos colocados al azar. `w` y `h`: lo que medía el cuerpo tendido, en píxeles del dibujo;
+// `size`: la talla de calavera y huesos ("pequeno", "mediano" o "grande"), que va con la cabeza del zombi.
+function drawRemains(w, h, size = 'mediano') {
   const rx = Math.max(10, w / 2 + 3), ry = Math.max(6, Math.min(rx * 0.55, h / 2 + 4));
   const W = Math.ceil(rx * 2 + 4), H = Math.ceil(ry * 2 + 4);
   const c = document.createElement('canvas');
@@ -74,14 +75,14 @@ function drawRemains(w, h) {
   const cx = W / 2, cy = H / 2;
   const nBones = Math.random() < 0.5 ? 1 : 2;
   if (hasSprite('objeto-restos')) {
-    // las piezas de PixelLab (hoja "objeto-restos": 3 calaveras y 3 huesos), una calavera y uno o dos huesos
+    // las piezas de PixelLab (hoja "objeto-restos": 3 calaveras y 3 huesos en cada talla), una calavera y uno o dos huesos
     // al azar; se dibujan a 1 píxel por píxel del dibujo, como el resto del lienzo
     const piece = (anim, px, py) => drawSprite(x, 'objeto-restos', anim, 'south', 0, px, py,
       { frame: Math.floor(rand(0, 3)), scale: 1 / PIXEL });
     // la calavera hacia un lado y los huesos hacia el otro, para que no se tapen
     const side = Math.random() < 0.5 ? -1 : 1;
-    for (let i = 0; i < nBones; i++) piece('hueso', cx - side * rand(0.1, 0.45) * rx, cy + rand(-ry * 0.3, ry * 0.3));
-    piece('calavera', cx + side * rand(0.1, 0.35) * rx, cy + rand(-ry * 0.25, ry * 0.25));
+    for (let i = 0; i < nBones; i++) piece(`hueso-${size}`, cx - side * rand(0.1, 0.45) * rx, cy + rand(-ry * 0.3, ry * 0.3));
+    piece(`calavera-${size}`, cx + side * rand(0.1, 0.35) * rx, cy + rand(-ry * 0.25, ry * 0.25));
     return c;
   }
   // sin la hoja (aún no ha cargado): las de siempre, dibujadas aquí. Un hueso puede ir tumbado o de pie
@@ -116,7 +117,7 @@ function flames(game, x, y, w, h, rate, dt) {
 // Si murió ardiendo: cae en llamas, se apaga y se queda como carbón con brasas y humo, y al final se deshace
 // en ceniza: quedan una quemadura en el suelo y unos huesos (que ya no se van).
 class Corpse {
-  constructor(sprite, x, y, dir, time, scale = 1, burnt = false) {
+  constructor(sprite, x, y, dir, time, scale = 1, burnt = false, remains = 'mediano') {
     this.kind = 'corpse';
     this.sprite = sprite;
     this.x = x;
@@ -127,6 +128,7 @@ class Corpse {
     this.solid = false;
     this.taken = true;     // así el juego no intenta recogerlo ni señalarlo
     this.burnt = burnt;    // murió ardiendo
+    this.remainsSize = remains;   // talla de la calavera y los huesos que deja (ZOMBIE_TYPES: remains)
     this.embers = null;    // dónde salen las brasas y el humo (se calcula cuando termina de caer)
     this.lastT = time;     // para soltar llamas y ceniza al ritmo del tiempo
   }
@@ -210,7 +212,7 @@ class Corpse {
       const minX = Math.min(...xs, -10), maxX = Math.max(...xs, 10);
       const minY = Math.min(...ys, -16), maxY = Math.max(...ys, 0);
       this.remains = {
-        img: drawRemains((maxX - minX) / PIXEL, (maxY - minY) / PIXEL),
+        img: drawRemains((maxX - minX) / PIXEL, (maxY - minY) / PIXEL, this.remainsSize),
         cx: (minX + maxX) / 2, cy: (minY + maxY) / 2,
       };
     }
@@ -251,6 +253,7 @@ export const ZOMBIE_TYPES = {
   },
   rapido: {
     name: 'Zombi rápido', r: 14, s: 0.88, hp: 15, speed: 165, dmg: 8, push: 200,
+    remains: 'pequeno',   // es un niño: si muere quemado, su calavera y sus huesos son de la talla pequeña
     look: { skin: '#9ed36d', hair: '#e9c46a', shirt: '#e76f51', pants: '#264653', shoes: '#ffffff' },
   },
   explosivo: {
@@ -264,6 +267,7 @@ export const ZOMBIE_TYPES = {
   venenoso: {
     // el gordo: su sprite es más grande que los demás (lienzo de 72) para que imponga junto al conserje
     name: 'Zombi venenoso', r: 30, s: 1.5, shadow: 84, top: 124, hp: 35, speed: 60, dmg: 8, push: 160,
+    remains: 'grande',    // y sus restos, de la talla grande (los demás, la mediana)
     look: { skin: '#b5e655', hair: '#4f772d', shirt: '#4f772d', pants: '#31572c', shoes: '#2e2a3a' },
   },
 };
@@ -496,7 +500,7 @@ export class Zombie {
       const old = props.filter((pr) => pr.kind === 'corpse');
       if (old.length >= CORPSES) props.splice(props.indexOf(old[0]), 1);
       // si muere ardiendo, el cuerpo queda carbonizado
-      props.push(new Corpse(this.sprite, this.x, this.y, dirFromVector(this.lookX, this.lookY), game.time, this.def.spriteScale, this.burnT > 0));
+      props.push(new Corpse(this.sprite, this.x, this.y, dirFromVector(this.lookX, this.lookY), game.time, this.def.spriteScale, this.burnT > 0, this.def.remains));
     }
   }
 
