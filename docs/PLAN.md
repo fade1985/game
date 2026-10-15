@@ -67,7 +67,8 @@ Después: ataque manual (cambiando solo el controlador de apuntado), más edific
 - Guardado (`src/save.js`): llaves, mejoras del Taller, récords y progreso por edificio. Sin partidas a medias.
 - Muebles por estilo de habitación (`src/furniture.js`): obstáculos rectangulares pegados a las paredes,
   nunca delante de las puertas. Decoración de pared: cuadros, relojes y ventanas con luz.
-- **Llaves 🔑 + Taller** (decidido): los zombis sueltan llaves (7 %), el mini jefe 3 y la portera 8. Se guardan
+- **Llaves 🔑 + Taller** (decidido; el 15 de octubre de 2026 las llaves pasaron a ser **billetes de dólar** 💵, mismo
+  funcionamiento; en el guardado se siguen llamando `keys`): los zombis sueltan llaves (7 %), el mini jefe 3 y la portera 8. Se guardan
   aunque pierdas y se gastan en 5 mejoras permanentes (vida, daño, velocidad, esquiva y mochila).
 
 ### Fase 8 · Pulido y equilibrado

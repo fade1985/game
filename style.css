@@ -397,6 +397,7 @@ body.touch #touch-ui:not([hidden]) { display: block; }
 .icon-btn .ico { width: 1.5em; height: 1.5em; }
 .dash-btn .ico { width: 2.4em; height: 2.4em; }
 .ico-llave { background-image: url('assets/ui/iconos/llave.png'); }
+.ico-billete { background-image: url('assets/ui/iconos/billete.png'); }
 .ico-molotov { background-image: url('assets/ui/iconos/molotov.png'); }
 .ico-sonido { background-image: url('assets/ui/iconos/sonido.png'); }
 .ico-mudo { background-image: url('assets/ui/iconos/mudo.png'); }

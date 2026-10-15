@@ -494,7 +494,7 @@ export function drawDoorLabels(ctx, room) {
 }
 
 // ═════════════ Objetos recogibles ═════════════
-// Destello blanco que pasa de vez en cuando por la llave
+// Destello blanco que pasa de vez en cuando por un objeto
 function brillo(ctx, pk, y, time) {
   const tw = (time * 1.3 + pk.seed) % 1.6;
   if (tw >= 0.4) return;
@@ -517,31 +517,35 @@ export function drawPickup(ctx, pk, time) {
   ctx.strokeStyle = OUTLINE;
   if (pk.kind === 'heart' && drawSprite(ctx, 'objeto-corazon', 'idle', 'south', 0, pk.x, y)) {
     // sprite pixel art
-  } else if (pk.kind === 'key' && drawSprite(ctx, 'objeto-llave', 'idle', 'south', 0, pk.x, y)) {
+  } else if (pk.kind === 'cash') {
+    drawBill(ctx, pk.x, y, time + pk.seed);
     brillo(ctx, pk, y, time);
   } else if (pk.kind === 'molotov') {
     drawMolotov(ctx, pk.x, y + 4, 0, time);
   } else if (pk.kind === 'heart') {
     heartPath(ctx, pk.x, y + 2, 11);
     ctx.fillStyle = '#ff5d73'; ctx.fill(); ctx.lineJoin = 'round'; ctx.stroke();
-  } else if (pk.kind === 'key') {
-    // llave dorada que se balancea, con un destello
-    ctx.save();
-    ctx.translate(pk.x, y);
-    ctx.rotate(-0.6 + Math.sin(time * 3 + pk.seed) * 0.25);
-    ctx.lineJoin = 'round';
-    ctx.beginPath();
-    ctx.moveTo(-2, -2.5); ctx.lineTo(13, -2.5); ctx.lineTo(13, 6); ctx.lineTo(9.5, 6); ctx.lineTo(9.5, 2.5);
-    ctx.lineTo(6.5, 2.5); ctx.lineTo(6.5, 5); ctx.lineTo(3.5, 5); ctx.lineTo(3.5, 2.5); ctx.lineTo(-2, 2.5);
-    ctx.closePath();
-    ctx.fillStyle = '#ffd23f'; ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.arc(-7, 0, 6.5, 0, TAU);
-    ctx.fillStyle = '#ffd23f'; ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.arc(-7, 0, 2.3, 0, TAU);
-    ctx.fillStyle = '#b8860b'; ctx.fill();
-    ctx.restore();
-    brillo(ctx, pk, y, time);
   }
+}
+
+// Billete de dólar en el suelo (dibujado a mano, en píxeles del dibujo): un rectángulo verde con el
+// círculo del retrato en medio, que ondea un poco como si lo moviera el aire
+function drawBill(ctx, x, y, t) {
+  const u = PIXEL;
+  const wave = Math.round(Math.sin(t * 4)) * u; // las puntas suben y bajan un píxel
+  const px = (cx, cy, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x + cx * u, y + cy * u, w * u, h * u); };
+  px(-7, -4, 14, 8, '#472937');                  // contorno
+  px(-6, -3, 12, 6, '#6aaa5c');                  // papel verde
+  px(-6, -3, 12, 1, '#96ce78');                  // borde claro de arriba
+  px(-6, 2, 12, 1, '#3a7040');                   // sombra de abajo
+  px(-2, -2, 4, 4, '#d6ecb4');                   // el círculo del retrato
+  px(-1, -2, 2, 4, '#3a7040');                   // la "S" del dólar, muy simplificada
+  px(-1, -1, 1, 1, '#d6ecb4'); px(0, 0, 1, 1, '#d6ecb4');
+  px(-5, -2, 1, 1, '#3a7040'); px(4, 1, 1, 1, '#3a7040'); // los números de las esquinas
+  // puntas que ondean
+  ctx.fillStyle = '#472937';
+  ctx.fillRect(x - 8 * u, y - 3 * u + wave, u, 6 * u);
+  ctx.fillRect(x + 7 * u, y - 3 * u - wave, u, 6 * u);
 }
 
 // Bala del conserje y de los compañeros, en pixel art: una trazadora. Son cuadraditos encajados en la

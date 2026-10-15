@@ -36,7 +36,7 @@ const NOTICE = 330;        // a qué distancia nota un zombi dormido al conserje
 const ALERT = 170;         // un zombi que despierta despierta a los que tiene así de cerca
 const NOISE = 430;         // hasta dónde se oye un disparo (despierta aunque haya tabiques)
 
-const KEY_CHANCE = 0.07;   // probabilidad de que un zombi suelte una llave 🔑
+const CASH_CHANCE = 0.07;  // probabilidad de que un zombi suelte un billete de dólar 💵
 const HEART_CHANCE = 0.05; // ...o un corazón
 const HEART_HEAL = 15;
 const BULLET_LIFT = 22;    // pixel art: altura a la que se dibujan las balas de un arma dibujada (la del cuerpo de un zombi)
@@ -134,7 +134,7 @@ export class Game {
     this.ui.showBuildings(loadSave(), BUILDINGS, { pick: (id) => this.newRun(id), back: () => this.goMenu() });
   }
 
-  // Taller: mejoras permanentes que se compran con llaves
+  // Taller: mejoras permanentes que se compran con dólares
   showWorkshop() {
     this.ui.showWorkshop(loadSave(), WORKSHOP, {
       buy: (id) => {
@@ -163,9 +163,9 @@ export class Game {
     this.player = new Player(this.stats);
     this.allies = [];
     this.kills = 0;
-    this.runKeys = 0;          // llaves recogidas en esta partida
+    this.runKeys = 0;          // dólares recogidos en esta partida
     this.molotovs = MOLOTOV.start; // cócteles molotov en la mochila
-    this.wallet = save.keys;   // llaves totales (para el HUD)
+    this.wallet = save.keys;   // dólares ahorrados (para el HUD; en el guardado se siguen llamando "keys")
     this.runTime = 0;
     this.floorNum = 1;
     this.fade = null;
@@ -732,9 +732,9 @@ export class Game {
       pk.vx *= fr; pk.vy *= fr;
       const dx = p.x - pk.x, dy = p.y - pk.y;
       const d = Math.hypot(dx, dy) || 1;
-      // Las llaves siempre vienen a ti; los corazones, solo si te falta vida
+      // Los billetes siempre vienen a ti; los corazones, solo si te falta vida
       // y los molotovs, si caben en la mochila
-      const wanted = pk.kind === 'key' || (pk.kind === 'molotov' ? this.molotovs < MOLOTOV.max : needsHp);
+      const wanted = pk.kind === 'cash' || (pk.kind === 'molotov' ? this.molotovs < MOLOTOV.max : needsHp);
       if (!p.dead && wanted && pk.t > 0.4 && d < this.stats.magnet) {
         pk.vx += (dx / d) * 2200 * dt;
         pk.vy += (dy / d) * 2200 * dt;
@@ -756,11 +756,11 @@ export class Game {
     if (pk.kind === 'heart') {
       this.healPlayer(HEART_HEAL);
       sfx.gem();
-    } else if (pk.kind === 'key') {
-      // las llaves se guardan al momento: no se pierden aunque mueras
+    } else if (pk.kind === 'cash') {
+      // los dólares se guardan al momento: no se pierden aunque mueras
       this.runKeys++;
       this.wallet = updateSave((s) => { s.keys++; s.totalKeys++; }).keys;
-      this.floatText(pk.x, pk.y - 20, '+1 llave', '#ffd23f', 20);
+      this.floatText(pk.x, pk.y - 20, '+$1', '#80ed99', 20);
       sfx.coin();
     } else if (pk.kind === 'molotov') {
       this.molotovs = Math.min(MOLOTOV.max, this.molotovs + 1);
@@ -967,7 +967,7 @@ export class Game {
     this.shake(3);
     sfx.kill();
     if (!e.isBoss) {
-      if (Math.random() < KEY_CHANCE) this.dropPickup('key', e.x, e.y);
+      if (Math.random() < CASH_CHANCE) this.dropPickup('cash', e.x, e.y);
       else if (Math.random() < HEART_CHANCE) this.dropPickup('heart', e.x, e.y);
       else if (Math.random() < MOLOTOV.drop) this.dropPickup('molotov', e.x, e.y);
     }
@@ -992,7 +992,7 @@ export class Game {
     sfx.boom();
     this.dropPickup('heart', boss.x, boss.y);
     this.dropPickup('heart', boss.x, boss.y);
-    for (let i = 0; i < (boss.type === 'boss' ? 8 : 3); i++) this.dropPickup('key', boss.x, boss.y);
+    for (let i = 0; i < (boss.type === 'boss' ? 8 : 3); i++) this.dropPickup('cash', boss.x, boss.y);
     // el mini jefe siempre suelta un arma (lejos de donde saldrán las escaleras)
     if (boss.type === 'miniboss') {
       this.room.props.push(new WeaponProp(randomWeapon(this.player.weapon.id), this.rw / 2, this.rh / 2 + 130));

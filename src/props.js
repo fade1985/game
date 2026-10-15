@@ -55,7 +55,7 @@ export class SurvivorNPC {
 }
 
 // La llave del apartamento del mini jefe: espera en el suelo de alguna habitación de otro apartamento.
-// No es una de las llaves doradas que se gastan en el Taller: abre esa puerta y nada más.
+// No tiene nada que ver con los dólares del Taller: abre esa puerta y nada más.
 export class DoorKey {
   constructor(name, x, y) {
     this.kind = 'doorkey';

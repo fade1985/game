@@ -119,9 +119,9 @@ function think(game, memo) {
   // limpio: recoger lo que haya (la llave, el superviviente, corazones si hacen falta) y salir
   const prop = room.props.find((pr) => !pr.taken && (pr.kind === 'doorkey' || (pr.kind === 'survivor' && game.allies.length < 4)));
   if (prop) return toward(game, prop);
-  // corazones (si hacen falta) y llaves, solo los que tiene cerca y a la vista: los que caen detrás de un mueble se quedan
+  // corazones (si hacen falta) y billetes, solo los que tiene cerca y a la vista: los que caen detrás de un mueble se quedan
   const near = (pk) => dist(pk, p) < 280 && lineClear(room.layout, p.x, p.y, pk.x, pk.y);
-  const loot = game.pickups.find((pk) => (pk.kind === 'key' || p.hp < game.stats.maxHp) && near(pk));
+  const loot = game.pickups.find((pk) => (pk.kind === 'cash' || p.hp < game.stats.maxHp) && near(pk));
   if (loot && !memo.skipLoot) return toward(game, loot);
 
   let ex;

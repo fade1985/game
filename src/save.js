@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────
 //  Guardado del progreso en el navegador (localStorage)
 //
-//  Se guarda: llaves, mejoras del Taller, armas desbloqueadas, récords y el progreso de cada edificio.
+//  Se guarda: dólares, mejoras del Taller, armas desbloqueadas, récords y el progreso de cada edificio.
 //  Las partidas a medias NO se guardan: si cierras, empiezas el edificio de nuevo.
 // ─────────────────────────────────────────────
 const KEY = 'blobquest-save-v2';
@@ -10,8 +10,8 @@ const BUILDING_DEFAULT = { completed: false, runs: 0, wins: 0, bestFloor: 0, bes
 
 const DEFAULT = {
   bestFloor: 0,     // mejor planta alcanzada en cualquier edificio
-  keys: 0,          // llaves para gastar en el Taller
-  totalKeys: 0,     // llaves conseguidas en total
+  keys: 0,          // dólares para gastar en el Taller (antes eran llaves: el nombre se queda para no perder lo ahorrado)
+  totalKeys: 0,     // dólares conseguidos en total
   runs: 0,
   wins: 0,
   kills: 0,

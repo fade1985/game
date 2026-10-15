@@ -76,7 +76,7 @@ export function createUI(root) {
       set('weapon', $('#pill-weapon'), `<i class="ico ico-${w.id}"></i> <b>${w.name}</b>`, 'innerHTML');
       set('team', $('#hud-team'), g.allies.map((al) => `<i class="ico ico-${al.def.id}"></i>`).join(''), 'innerHTML');
       set('teamShow', $('#pill-team'), g.allies.length === 0, 'hidden');
-      set('keys', $('#hud-keys'), String(g.wallet ?? 0));
+      set('keys', $('#hud-keys'), `$${g.wallet ?? 0}`);
       const molotovs = g.testMode ? '∞' : String(g.molotovs);
       set('molotov', $('#hud-molotov'), molotovs);
       set('molotovBtn', document.querySelector('.toss-btn b'), molotovs);
@@ -92,7 +92,7 @@ export function createUI(root) {
           <div class="col">
             <button class="btn yellow big" data-act="play">JUGAR</button>
             ${canFullscreen() ? '<button class="btn green small" data-act="fullscreen">Pantalla completa</button>' : ''}
-            <button class="btn blue" data-act="workshop"><i class="ico ico-herramientas"></i> Taller <span class="keys-chip"><i class="ico ico-llave"></i> ${save.keys}</span>${upgrades ? ` <small>· ${upgrades} mejora${upgrades > 1 ? 's' : ''}</small>` : ''}</button>
+            <button class="btn blue" data-act="workshop"><i class="ico ico-herramientas"></i> Taller <span class="keys-chip"><i class="ico ico-billete"></i> $${save.keys}</span>${upgrades ? ` <small>· ${upgrades} mejora${upgrades > 1 ? 's' : ''}</small>` : ''}</button>
           </div>
           <div class="hint panel small">
             <b>Teclado:</b> WASD moverse · Espacio esquivar · clic derecho o E (mantén y suelta) molotov<br>
@@ -149,7 +149,7 @@ export function createUI(root) {
       });
     },
 
-    // Taller del conserje: mejoras permanentes que se compran con llaves
+    // Taller del conserje: mejoras permanentes que se compran con dólares
     showWorkshop(save, upgrades, { buy, back }) {
       const rows = upgrades.map((up) => {
         const lvl = save.workshop[up.id] || 0;
@@ -161,15 +161,15 @@ export function createUI(root) {
             <div class="wicon"><i class="ico ico-${up.id}"></i></div>
             <div class="winfo"><b>${up.name}</b><span>${up.desc}</span><div class="pips">${pips}</div></div>
             <button class="btn ${maxed ? 'green' : 'yellow'} small" data-act="buy" data-arg="${up.id}" ${maxed || save.keys < price ? 'disabled' : ''}>
-              ${maxed ? 'MÁX' : `<i class="ico ico-llave"></i> ${price}`}
+              ${maxed ? 'MÁX' : `<i class="ico ico-billete"></i> $${price}`}
             </button>
           </div>`;
       }).join('');
       open(`
         <div class="panel workshop">
           <h2 class="title"><i class="ico ico-herramientas"></i> Taller del conserje</h2>
-          <p class="sub">Las llaves <i class="ico ico-llave"></i> que sueltan los zombis se guardan aunque pierdas.<br>Las mejoras se aplican al empezar cada edificio.</p>
-          <div class="wallet"><i class="ico ico-llave"></i> ${save.keys} llave${save.keys === 1 ? '' : 's'}</div>
+          <p class="sub">Los dólares <i class="ico ico-billete"></i> que sueltan los zombis se guardan aunque pierdas.<br>Las mejoras se aplican al empezar cada edificio.</p>
+          <div class="wallet"><i class="ico ico-billete"></i> $${save.keys}</div>
           <div class="wrows">${rows}</div>
           <button class="btn blue small" data-act="back">Volver</button>
         </div>`,
@@ -226,7 +226,7 @@ export function createUI(root) {
             <div class="stat"><span><i class="ico ico-puerta"></i> Apartamentos visitados (última planta)</span><b>${r.explored}</b></div>
             <div class="stat"><span><i class="ico ico-policia"></i> Equipo</span><b>${r.team}</b></div>
             ${r.time ? `<div class="stat"><span>Tiempo</span><b>${r.time}</b></div>` : ''}
-            <div class="stat key"><span><i class="ico ico-llave"></i> Llaves conseguidas</span><b>+${r.keys} <small>(tienes ${r.wallet})</small></b></div>
+            <div class="stat key"><span><i class="ico ico-billete"></i> Dólares conseguidos</span><b>+$${r.keys} <small>(tienes $${r.wallet})</small></b></div>
           </div>
           <div class="col">
             <button class="btn yellow big" data-act="retry">${r.win ? 'Jugar otra vez' : 'Reintentar edificio'}</button>

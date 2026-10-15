@@ -49,13 +49,13 @@ bañeras, neveras... Los muebles van pegados a las paredes, nunca tapan una puer
 y a las balas** (¡el vecino del 4ºB se marea si embiste contra uno!). En las paredes hay cuadros, relojes y
 ventanas por las que entra la luz.
 
-### 🔑 Llaves y Taller
+### 💵 Dólares y Taller
 
-Los zombis sueltan a veces una **llave** 🔑 (el mini jefe suelta 3 y la portera 8). Las llaves vienen solas
+Los zombis sueltan a veces un **billete de dólar** 💵 (el mini jefe suelta 3 y la portera 8). Los billetes vienen solos
 hacia ti y **se guardan al momento, aunque pierdas**. En el **Taller del conserje** (botón en el menú o al
-terminar una partida) las gastas en mejoras permanentes que se aplican al empezar cada edificio:
+terminar una partida) los gastas en mejoras permanentes que se aplican al empezar cada edificio:
 
-| Mejora | Efecto por nivel | Niveles | Precio |
+| Mejora | Efecto por nivel | Niveles | Precio ($) |
 |---|---|---|---|
 | 🥪 Bocadillo | +10 de vida máxima | 5 | 3 · 6 · 10 · 15 · 20 |
 | 🏋️ Pesas | +6 % de daño | 5 | 4 · 8 · 12 · 16 · 20 |
@@ -63,7 +63,7 @@ terminar una partida) las gastas en mejoras permanentes que se aplican al empeza
 | 🌀 Reflejos | La esquiva se recarga un 12 % antes | 3 | 5 · 10 · 15 |
 | 🎒 Mochila | Empiezas cada edificio con un objeto al azar | 1 | 25 |
 
-Todo se guarda en el navegador (`localStorage`): llaves, mejoras, récords y progreso de cada edificio.
+Todo se guarda en el navegador (`localStorage`): dólares, mejoras, récords y progreso de cada edificio.
 Las partidas a medias no se guardan.
 
 ### 🎒 Objetos
@@ -203,7 +203,7 @@ src/
   sprites.js      → carga y dibujo de los sprites de pixel art (modo por defecto)
 assets/sprites/   → sprites de pixel art (PNG + JSON) y su lista (manifest.json)
 tools/pixellab.mjs → herramienta para generar sprites con la API de PixelLab
-  save.js         → guardado en localStorage (llaves, Taller, récords y edificios)
+  save.js         → guardado en localStorage (dólares, Taller, récords y edificios)
   config.js       → constantes, colores, edificios y estilos de habitación
 ```
 

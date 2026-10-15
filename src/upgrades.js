@@ -23,7 +23,7 @@ export function rollItem(seen) {
   return item;
 }
 
-// Mejoras permanentes del Taller (cuarto del conserje). Se compran con llaves 🔑
+// Mejoras permanentes del Taller (cuarto del conserje). Se compran con dólares 💵
 // y se aplican al empezar cada edificio. `cost[n]` es el precio del nivel n+1.
 export const WORKSHOP = [
   { id: 'vida',     icon: '🥪', name: 'Bocadillo',       desc: '+10 de vida máxima por nivel',              max: 5, cost: [3, 6, 10, 15, 20], apply: (s, n) => { s.maxHp += 10 * n; } },
@@ -57,7 +57,7 @@ export function baseStats() {
     damageTaken: 1,      // x daño que recibes (menos es mejor)
     speed: 210,
     dashCd: 0.9,         // segundos que tarda en recargarse la esquiva
-    magnet: 120,         // radio en el que los corazones y las llaves vienen hacia ti
+    magnet: 120,         // radio en el que los corazones y los billetes vienen hacia ti
     teamDamage: 1,
     lifesteal: 0,
   };
