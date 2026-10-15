@@ -51,6 +51,7 @@ ni compilación. Se publica en **Vercel** como web estática: lo que se sube a `
 | `sprites.js` | Carga y dibuja las hojas de sprites; si falta una, usa el dibujo de siempre |
 | `entities.js` / `zombies.js` / `bosses.js` | Johnny, supervivientes, los 6 zombis y los 2 jefes |
 | `weapons.js` / `aim.js` / `props.js` | Armas, apuntado automático, objetos del suelo y muebles con arma |
+| `molotov.js` | El cóctel molotov: apuntar y lanzar (clic derecho / E / botón táctil), el fuego y su dibujo |
 | `upgrades.js` / `ui.js` / `input.js` / `sfx.js` / `save.js` | Mejoras, menús y HUD, controles, sonido, guardado |
 
 Arte a 480×320 (2 unidades del juego por píxel), casillas de 16 píxeles, personajes de 48. Cada sprite es
@@ -74,7 +75,8 @@ Arte a 480×320 (2 unidades del juego por píxel), casillas de 16 píxeles, pers
   dormitorio, salón y pasillo cuando el baño tenga el visto bueno; coordinar con la sesión del mapa los tamaños
   fijos de habitación.
 - **Armas:** los números del MP5 y dónde se encuentra (provisionales, los puso Claude); y las **armas
-  arrojadizas**, que el dueño quiere diseñar: hay una propuesta esperando su respuesta (`docs/HISTORIA.md`).
+  arrojadizas**: el cóctel molotov ya está (`src/molotov.js`), pendiente de que el dueño lo pruebe y de sus
+  números; luego, las demás (`docs/HISTORIA.md`).
 - **Limpieza en PixelLab** de lo descartado (listas en `docs/HISTORIA.md`, `docs/ZOMBIS.md` y `assets/pixellab.json`).
 - De antes: reposo de Johnny con PixMiniMax, equilibrado de salas grandes, y si el proyecto pasa a Godot
   (`docs/HISTORIA.md`).

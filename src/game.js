@@ -18,6 +18,7 @@ import { setTextFont } from './draw.js';
 import { hasSprite } from './sprites.js';
 import { CELL, isWall, isOpen, lineClear, randomFloorPoint, wayTo } from './shapes.js';
 import { getMoveVector, consumeDash, clearInput } from './input.js';
+import { MolotovMethods, MOLOTOV } from './molotov.js';
 import { sfx, music, setMusicOn } from './sfx.js';
 import { ZombieAttacks } from './game-ataques.js';
 import { GameDrawing } from './game-dibujo.js';
@@ -92,6 +93,7 @@ export class Game {
     this.hazards = [];   // charcos de veneno en el suelo
     this.trail = [];     // rastro de sangre del zombi lento
     this.lobs = [];      // mocos volando
+    this.aim = null;     // dónde caería el molotov mientras se apunta
     this.enemies = [];
     this.bullets = [];
     this.particles = [];
@@ -162,6 +164,7 @@ export class Game {
     this.allies = [];
     this.kills = 0;
     this.runKeys = 0;          // llaves recogidas en esta partida
+    this.molotovs = MOLOTOV.start; // cócteles molotov en la mochila
     this.wallet = save.keys;   // llaves totales (para el HUD)
     this.runTime = 0;
     this.floorNum = 1;
@@ -579,6 +582,7 @@ export class Game {
     this.runTime += dt;
     if (!p.dead) p.update(dt, this, getMoveVector(), consumeDash());
     this.camera.update(dt, p);
+    this.updateToss();
     for (const a of this.allies) a.update(dt, this);
 
     this.updateWaves(dt);
@@ -729,7 +733,8 @@ export class Game {
       const dx = p.x - pk.x, dy = p.y - pk.y;
       const d = Math.hypot(dx, dy) || 1;
       // Las llaves siempre vienen a ti; los corazones, solo si te falta vida
-      const wanted = pk.kind === 'key' || needsHp;
+      // y los molotovs, si caben en la mochila
+      const wanted = pk.kind === 'key' || (pk.kind === 'molotov' ? this.molotovs < MOLOTOV.max : needsHp);
       if (!p.dead && wanted && pk.t > 0.4 && d < this.stats.magnet) {
         pk.vx += (dx / d) * 2200 * dt;
         pk.vy += (dy / d) * 2200 * dt;
@@ -757,6 +762,10 @@ export class Game {
       this.wallet = updateSave((s) => { s.keys++; s.totalKeys++; }).keys;
       this.floatText(pk.x, pk.y - 20, '+1 llave', '#ffd23f', 20);
       sfx.coin();
+    } else if (pk.kind === 'molotov') {
+      this.molotovs = Math.min(MOLOTOV.max, this.molotovs + 1);
+      this.floatText(pk.x, pk.y - 20, '+1 molotov', '#ff9f1c', 20);
+      sfx.buy();
     }
   }
 
@@ -960,6 +969,7 @@ export class Game {
     if (!e.isBoss) {
       if (Math.random() < KEY_CHANCE) this.dropPickup('key', e.x, e.y);
       else if (Math.random() < HEART_CHANCE) this.dropPickup('heart', e.x, e.y);
+      else if (Math.random() < MOLOTOV.drop) this.dropPickup('molotov', e.x, e.y);
     }
     if (this.stats.lifesteal && !this.player.dead) this.healPlayer(this.stats.lifesteal);
     if (e.isBoss) this.bossDefeated(e);
@@ -1090,3 +1100,4 @@ function addMethods(target, source) {
 }
 addMethods(Game, ZombieAttacks); // ataques especiales de los zombis (game-ataques.js)
 addMethods(Game, GameDrawing);   // dibujo (game-dibujo.js)
+addMethods(Game, MolotovMethods); // el cóctel molotov de Johnny (molotov.js)

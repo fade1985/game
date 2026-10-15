@@ -221,6 +221,7 @@ export class GameDrawing {
     this.drawTrail(ctx);
     this.drawHazards(ctx);
     for (const pk of this.pickups) drawPickup(ctx, pk, this.time);
+    this.drawTossAim(ctx);
   }
 
   // Personajes, objetos con altura, balas y partículas
@@ -239,6 +240,7 @@ export class GameDrawing {
     for (const b of this.bullets) drawBullet(ctx, b);
     this.drawLobs(ctx);
     this.drawParticles(ctx);
+    this.drawTossArc(ctx);
   }
 
   // Números de daño y textos flotantes

@@ -4,15 +4,41 @@
 const keys = new Set();
 const joy = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0 };
 let dashPressed = false;
+// Lanzar (molotov): se mantiene pulsado para apuntar y se suelta para lanzar
+//  - PC: clic derecho o E; se apunta con el ratón
+//  - móvil: se arrastra desde el botón de lanzar (como un segundo joystick) y se suelta
+const mouse = { x: 0, y: 0, seen: false };       // posición del ratón, en píxeles del lienzo
+const toss = { aiming: false, by: null, released: false, id: null, ox: 0, oy: 0, dx: 0, dy: 0 };
+export const TOSS_DRAG = 70;                     // cuánto hay que arrastrar en el móvil para el alcance máximo
 
 export function initInput(canvas, touchUI) {
   window.addEventListener('keydown', (e) => {
     keys.add(e.code);
     if (e.code === 'Space' || e.code === 'ShiftLeft') { dashPressed = true; e.preventDefault(); }
     if (e.code.startsWith('Arrow')) e.preventDefault();
+    if (e.code === 'KeyE' && !e.repeat) startToss('mouse');
   });
-  window.addEventListener('keyup', (e) => keys.delete(e.code));
-  window.addEventListener('blur', () => keys.clear());
+  window.addEventListener('keyup', (e) => {
+    keys.delete(e.code);
+    if (e.code === 'KeyE') endToss('mouse');
+  });
+  window.addEventListener('blur', () => { keys.clear(); toss.aiming = false; });
+
+  // Ratón: dónde está (para apuntar) y el clic derecho para lanzar
+  const toCanvas = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = (e.clientX - rect.left) * (canvas.width / rect.width);
+    mouse.y = (e.clientY - rect.top) * (canvas.height / rect.height);
+    mouse.seen = true;
+  };
+  window.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') toCanvas(e); });
+  canvas.addEventListener('pointerdown', (e) => {
+    if (e.pointerType !== 'mouse' || e.button !== 2) return;
+    toCanvas(e);
+    startToss('mouse');
+  });
+  window.addEventListener('pointerup', (e) => { if (e.pointerType === 'mouse' && e.button === 2) endToss('mouse'); });
+  canvas.addEventListener('contextmenu', (e) => e.preventDefault()); // sin el menú del clic derecho
 
   // Joystick virtual: toca en cualquier parte del lado izquierdo y arrastra
   const base = touchUI.querySelector('.joy-base');
@@ -51,6 +77,47 @@ export function initInput(canvas, touchUI) {
     e.preventDefault();
     dashPressed = true;
   });
+
+  // Botón de lanzar (móvil): al tocarlo empieza a apuntar; arrastrando se elige hacia dónde y a qué
+  // distancia; al soltar, lanza
+  const tossBtn = touchUI.querySelector('.toss-btn');
+  tossBtn.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    const r = tossBtn.getBoundingClientRect();
+    startToss('touch');
+    toss.id = e.pointerId;
+    toss.ox = r.left + r.width / 2; toss.oy = r.top + r.height / 2;
+    tossBtn.setPointerCapture(e.pointerId);
+  });
+  tossBtn.addEventListener('pointermove', (e) => {
+    if (toss.by !== 'touch' || e.pointerId !== toss.id) return;
+    let dx = (e.clientX - toss.ox) / TOSS_DRAG, dy = (e.clientY - toss.oy) / TOSS_DRAG;
+    const d = Math.hypot(dx, dy);
+    if (d > 1) { dx /= d; dy /= d; }
+    toss.dx = dx; toss.dy = dy;
+  });
+  const endTouch = (e) => { if (e.pointerId === toss.id) endToss('touch'); };
+  tossBtn.addEventListener('pointerup', endTouch);
+  tossBtn.addEventListener('pointercancel', (e) => { if (e.pointerId === toss.id) toss.aiming = false; });
+}
+
+function startToss(by) {
+  if (toss.aiming) return;
+  Object.assign(toss, { aiming: true, by, released: false, dx: 0, dy: 0 });
+}
+
+function endToss(by) {
+  if (!toss.aiming || toss.by !== by) return;
+  toss.aiming = false;
+  toss.released = true;
+}
+
+// Cómo va el lanzamiento: si se está apuntando, si se acaba de soltar (una sola vez por lanzamiento) y
+// hacia dónde: con el ratón, su posición en el lienzo; en el móvil, el arrastre (de -1 a 1)
+export function getToss() {
+  const released = toss.released;
+  toss.released = false;
+  return { aiming: toss.aiming, released, by: toss.by, mouse, dx: toss.dx, dy: toss.dy };
 }
 
 // Devuelve la dirección de movimiento normalizada {x, y}
@@ -77,4 +144,6 @@ export function consumeDash() {
 export function clearInput() {
   keys.clear();
   dashPressed = false;
+  toss.aiming = false;
+  toss.released = false;
 }

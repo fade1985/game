@@ -7,6 +7,7 @@ import { roundBox, outlinedText, heartPath } from './draw.js';
 import { ROOM_TYPES } from './rooms.js';
 import { drawFurniture, drawFurnitureShadow, drawFurnitureLight, drawWallDecor, drawWindowLight } from './furniture.js';
 import { CELL } from './shapes.js';
+import { drawMolotov } from './molotov.js';
 
 const TAU = Math.PI * 2;
 
@@ -518,6 +519,8 @@ export function drawPickup(ctx, pk, time) {
     // sprite pixel art
   } else if (pk.kind === 'key' && drawSprite(ctx, 'objeto-llave', 'idle', 'south', 0, pk.x, y)) {
     brillo(ctx, pk, y, time);
+  } else if (pk.kind === 'molotov') {
+    drawMolotov(ctx, pk.x, y + 4, 0, time);
   } else if (pk.kind === 'heart') {
     heartPath(ctx, pk.x, y + 2, 11);
     ctx.fillStyle = '#ff5d73'; ctx.fill(); ctx.lineJoin = 'round'; ctx.stroke();

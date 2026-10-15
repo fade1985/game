@@ -339,6 +339,31 @@ body.touch #touch-ui:not([hidden]) { display: block; }
   touch-action: none;
 }
 .dash-btn:active { transform: translateY(0.15em); }
+/* Botón del molotov: más pequeño, encima del de esquivar, con las botellas que quedan */
+.toss-btn {
+  pointer-events: auto;
+  position: absolute;
+  right: 4%;
+  bottom: calc(14% + 6.2em);
+  width: 3.2em;
+  height: 3.2em;
+  font-size: clamp(14px, 2.4cqw, 24px);
+  background: var(--metal);
+  border: 0.2em solid var(--line);
+  box-shadow: inset 0 0 0 0.14em var(--rust);
+  touch-action: none;
+}
+.toss-btn .ico { width: 1.9em; height: 1.9em; }
+.toss-btn b {
+  position: absolute;
+  right: 0.15em;
+  bottom: 0;
+  font-weight: 400;
+  font-size: 0.8em;
+  color: #fff;
+  -webkit-text-stroke: 3px var(--ink);
+  paint-order: stroke fill;
+}
 
 .rotate-hint { display: none; }
 @media (orientation: portrait) and (pointer: coarse) {
@@ -370,6 +395,7 @@ body.touch #touch-ui:not([hidden]) { display: block; }
 .icon-btn .ico { width: 1.5em; height: 1.5em; }
 .dash-btn .ico { width: 2.4em; height: 2.4em; }
 .ico-llave { background-image: url('assets/ui/iconos/llave.png'); }
+.ico-molotov { background-image: url('assets/ui/iconos/molotov.png'); }
 .ico-sonido { background-image: url('assets/ui/iconos/sonido.png'); }
 .ico-mudo { background-image: url('assets/ui/iconos/mudo.png'); }
 .ico-pausa { background-image: url('assets/ui/iconos/pausa.png'); }

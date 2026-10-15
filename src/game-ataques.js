@@ -10,12 +10,14 @@ import { BLEACH, drawBottle } from './bosses.js';
 import { POISON, TENTACLE } from './zombies.js';
 import { drawSprite, hasSprite } from './sprites.js';
 import { sfx } from './sfx.js';
+import { MOLOTOV, drawMolotov } from './molotov.js';
 
 // Rastro de sangre del zombi lento: cada cuánto deja una mancha, cuánto dura y cuánto tarda en borrarse al final
 const TRAIL = { step: 9, life: 8, fade: 2.5, max: 400, color: '#680c06', dark: '#4a0804' };
 
-// Charcos que dejan los proyectiles en parábola: moco venenoso y lejía
+// Charcos que dejan los proyectiles en parábola: moco venenoso, lejía y el fuego del molotov de Johnny
 const HAZARDS = {
+  fire: { ...MOLOTOV, fill: 'rgba(255, 159, 28, 0.3)' },
   poison: { ...POISON, fill: '#8fd13f', stroke: '#4f772d', bubble: '#c7f27a', drop: '#9be33b' },
   bleach: { ...BLEACH, fill: '#e9f8ff', stroke: '#2f86c4', bubble: '#ffffff', drop: '#4cb4f0' },
 };
@@ -96,6 +98,7 @@ export class ZombieAttacks {
       if (lb.t >= hd.flight) {
         // ¡splash! deja un charco
         lb.done = true;
+        if (lb.kind === 'fire') { this.molotovLand(lb); continue; }
         this.hazards.push({ x: lb.tx, y: lb.ty, r: hd.radius, life: hd.life, seed: rand(0, 6), kind: lb.kind });
         for (let i = 0; i < 8; i++) {
           const a = rand(0, Math.PI * 2), sp = rand(60, 160);
@@ -110,6 +113,7 @@ export class ZombieAttacks {
       hz.life -= dt;
       // pisar el charco quema poco a poco (la esquiva te deja cruzarlo)
       const hd = HAZARDS[hz.kind];
+      if (hz.kind === 'fire') { this.burnFire(hz, dt); continue; }
       if (!p.dead && p.dashT <= 0 && dist(p, hz) < hz.r + p.r * 0.3) p.poison(hd.dps * dt, this, hd.drop);
     }
     this.hazards = this.hazards.filter((hz) => hz.life > 0);
@@ -145,6 +149,7 @@ export class ZombieAttacks {
 
   drawHazards(ctx) {
     for (const hz of this.hazards) {
+      if (hz.kind === 'fire') { this.drawFire(ctx, hz); continue; }
       const hd = HAZARDS[hz.kind];
       const fade = Math.min(1, hz.life / 0.6) * Math.min(1, (hd.life - hz.life) / 0.15 + 0.3);
       ctx.save();
@@ -187,11 +192,11 @@ export class ZombieAttacks {
       const hd = HAZARDS[lb.kind];
       const k = lb.t / hd.flight;
       const gx = lb.x0 + (lb.tx - lb.x0) * k, gy = lb.y0 + (lb.ty - lb.y0) * k;
-      const h = Math.sin(k * Math.PI) * (lb.kind === 'bleach' ? 130 : 90);
+      const h = Math.sin(k * Math.PI) * (lb.kind === 'bleach' ? 130 : lb.kind === 'fire' ? MOLOTOV.height : 90);
       // aviso de dónde caerá
       ctx.beginPath();
       ctx.ellipse(lb.tx, lb.ty, hd.radius * k, hd.radius * 0.6 * k, 0, 0, Math.PI * 2);
-      ctx.fillStyle = lb.kind === 'bleach' ? 'rgba(90, 169, 214, 0.3)' : 'rgba(155, 227, 59, 0.25)';
+      ctx.fillStyle = lb.kind === 'bleach' ? 'rgba(90, 169, 214, 0.3)' : lb.kind === 'fire' ? hd.fill : 'rgba(155, 227, 59, 0.25)';
       ctx.fill();
       if (lb.kind === 'bleach') {
         ctx.setLineDash([6, 6]);
@@ -203,6 +208,7 @@ export class ZombieAttacks {
       ctx.fillStyle = 'rgba(20,16,40,0.25)';
       ctx.beginPath(); ctx.ellipse(gx, gy, 8, 3.5, 0, 0, Math.PI * 2); ctx.fill();
       if (lb.kind === 'bleach') { drawBottle(ctx, gx, gy - h, lb.t * 10); continue; }
+      if (lb.kind === 'fire') { drawMolotov(ctx, gx, gy - h, lb.t * 12, this.time); continue; }
       if (drawSprite(ctx, 'objeto-moco', 'idle', 'south', 0, gx, gy - h)) continue;
       ctx.beginPath();
       ctx.arc(gx, gy - h, 8, 0, Math.PI * 2);

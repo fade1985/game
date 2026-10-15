@@ -77,6 +77,9 @@ export function createUI(root) {
       set('team', $('#hud-team'), g.allies.map((al) => `<i class="ico ico-${al.def.id}"></i>`).join(''), 'innerHTML');
       set('teamShow', $('#pill-team'), g.allies.length === 0, 'hidden');
       set('keys', $('#hud-keys'), String(g.wallet ?? 0));
+      const molotovs = g.testMode ? '∞' : String(g.molotovs);
+      set('molotov', $('#hud-molotov'), molotovs);
+      set('molotovBtn', document.querySelector('.toss-btn b'), molotovs);
     },
 
     // ═════════════ Pantallas ═════════════
@@ -93,6 +96,7 @@ export function createUI(root) {
           </div>
           <div class="hint panel small">
             <b>Moverse:</b> WASD / flechas · <b>Esquivar:</b> Espacio<br>
+            <b>Molotov:</b> mantén clic derecho o E para apuntar con el ratón y suelta para lanzar<br>
             Atacas solo al enemigo más cercano. ¡Limpia cada sala para abrir sus puertas!
           </div>
           ${save.bestFloor ? `<div class="record"><i class="ico ico-trofeo"></i> Mejor planta alcanzada: ${save.bestFloor}</div>` : ''}

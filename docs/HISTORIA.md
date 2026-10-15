@@ -26,8 +26,13 @@ zombi). No ha dado todavía el visto bueno final a nada de esto:
 - **Borrar o no** el disparo `north-west` de la escopeta teñido de amarillo (lo único descartado que queda en
   PixelLab de las armas; se le preguntó y no ha contestado).
 
-**3. Armas arrojadizas (lo siguiente que quiere hacer).** El 13 de octubre preguntó por dónde empezar y se le
-propuso esto; **no ha contestado**, así que al retomar hay que volver a preguntárselo, no empezar a programar:
+**3. Armas arrojadizas: empezado con el cóctel molotov (15 de octubre de 2026), pendiente de que lo pruebe.**
+Decidió: objeto aparte con munición (empieza con 2, caben 5, los zombis las sueltan a veces); se apunta libre
+manteniendo clic derecho o E (el círculo sigue al ratón) y en el móvil arrastrando desde un botón nuevo encima
+del de esquivar (un toque sin arrastrar lo tira al zombi más cercano); al soltar, se lanza. Mientras se apunta se
+ven el alcance, la parábola y la zona que arderá. El fuego quema también a Johnny (la esquiva lo cruza).
+Todo está en `src/molotov.js` (los números, provisionales, en `MOLOTOV`); dibujos a mano, sin pixel art aún.
+Con `?pruebas` las botellas no se gastan. Lo de abajo es la propuesta original:
 
 - En el juego no existe nada de arrojadizas. Solo hay armas cuerpo a cuerpo y a distancia, y Johnny ataca solo:
   no hay botón de atacar, solo moverse y esquivar.
