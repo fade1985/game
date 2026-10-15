@@ -123,3 +123,33 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
 - **Mutaciones por edificio** (cascos o armaduras; zombis que se parten en dos al morir).
 - **Zombis nuevos con otra mecánica:** escudo (hay que rodearlo), gritón que llama a más zombis, saltador que
   sale de los muebles.
+
+## Jefes
+
+### La portera (15 de octubre de 2026)
+
+Abuela zombi con bata, delantal y una fregona llena de sangre, a partir de un dibujo del dueño
+(`assets/sources/portera-96/referencia.png`). Es la **mini jefa de cada planta** y, hasta que se haga la jefa
+final, también la de la azotea (con el doble de vida). El vecino del 4ºB sigue en `bosses.js`, pero ya no sale.
+
+- **Tamaño:** 96 px en PixelLab (el cuerpo mide unos 115 de alto): unas 2,5 veces Johnny. Lo eligió el dueño
+  para que destaque.
+- **Cómo se hizo** (todo apuntado en `assets/pixellab.json`, entrada `portera-96`; 51 generaciones):
+  1. `create_character_pro_flash` con la referencia como imagen de estilo (recortada a 128×128).
+  2. Retoque gratis con `assets/sources/portera-96/retoque.py`: piel gris de muerta, delantal crema, sangre en las
+     manos, la boca, los zapatos y los pelos de la fregona (el dueño pidió mucha). Las cajas de cada parte están
+     a mano en el script, por vista.
+  3. Las 8 vistas retocadas se subieron como personaje nuevo (`create_character` v3 con `direction_images`) y
+     se animó ese personaje con PixMiniMax: andar, fregonazo, lejía, grito (solo de frente) y muerte. Cada
+     animación parte del dibujo quieto pegado en un lienzo mayor (`partida/`) para que la fregona no se salga.
+  4. Las que salieron mal (muerte de frente y de espaldas que no caía, el fregonazo de espaldas, el andar de
+     espaldas) se repitieron; lo descartado está en `descartes/`.
+- **Hoja:** `py tools/jefe.py portera-96 jefe-portera` monta `assets/sprites/jefe-portera.png` a partir de
+  `assets/sources/portera-96/jefe.json` (casilla 192, qué fotogramas usa cada animación, cuánto dura y en cuál
+  llega el golpe). Iguala los colores a los de las vistas quietas y quita motas.
+- **En el juego** (`Portera.drawPixel` en `bosses.js`), cada ataque usa su animación: levantar la fregona es el
+  aviso del abanico de agua sucia y del fregonazo, y bajarla, el golpe; la lejía, su lanzamiento; el grito, al
+  enfadarse (a mitad de vida) y al llamar a los vecinos; el giro, su postura quieta dando vueltas. En la segunda
+  fase se tiñe un poco de rojo y echa vapor. Al morir cae y su cuerpo se queda en el suelo (`BossCorpse`).
+- **Números provisionales** (los puso Claude): 600 de vida en la planta baja (+25 % por planta), radio 38.
+- **Pendiente:** que el dueño la pruebe; la botella de lejía y el agua sucia siguen dibujadas con código.

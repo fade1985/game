@@ -1,10 +1,13 @@
 // ─────────────────────────────────────────────
 //  Jefes de Apartamentos
 //
-//  · "El vecino del 4ºB" (mini jefe de cada planta): un zombi enorme en
-//    camiseta de tirantes. Embiste, pega pisotones y llama a los vecinos.
-//  · "La portera" (jefa final): barre polvo en abanico, da escobazos,
-//    lanza botellas de lejía y, a mitad de vida, se enfada de verdad.
+//  · "La portera" (mini jefa de cada planta desde el 15 de octubre de 2026, y
+//    de momento también la jefa final): una abuela zombi con una fregona
+//    llena de sangre. Lanza agua sucia en abanico, da fregonazos, tira
+//    botellas de lejía y, a mitad de vida, se enfada de verdad. En pixel art
+//    (hoja "jefe-portera"); sin la hoja, se dibuja como antes.
+//  · "El vecino del 4ºB": el mini jefe de antes. Embiste, pega pisotones y
+//    llama a los vecinos. Ahora no sale, pero se queda por si vuelve.
 //
 //  Cada jefe es una pequeña máquina de estados: anda un rato, elige un
 //  ataque, lo AVISA (siempre se puede esquivar) y lo ejecuta.
@@ -13,19 +16,30 @@ import { WALL, OUTLINE } from './config.js';
 import { rand } from './utils.js';
 import { drawHuman } from './draw.js';
 import { drawSpawnWarning } from './entities.js';
+import { drawSprite, hasSprite, pixelShadow, dirFromVector, animFrames } from './sprites.js';
 import { sfx } from './sfx.js';
 
 const TAU = Math.PI * 2;
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 
 export const BOSS_TYPES = {
+  // sprite: su hoja de pixel art; feet: a cuánto por debajo de su centro dibuja los pies; top: a cuánto por encima
+  // tiene la cabeza (para los números de daño y los gritos); shadow: ancho de la sombra
   miniboss: {
+    name: 'La portera', icon: '🧹', hp: 600, r: 38, s: 1.75, speed: 80, dmg: 10, bar: '#b5179e',
+    sprite: 'jefe-portera', feet: 26, top: 190, shadow: 104,
+    look: { skin: '#b9d38f', hair: '#cfc8dc', shirt: '#9b6bb5', pants: '#6d597a', shoes: '#5c4b6e' },
+  },
+  // la jefa final de la azotea: de momento, la misma portera con el doble de vida (la de verdad se hará más adelante)
+  boss: {
+    name: 'La portera', icon: '👑', hp: 1200, r: 38, s: 1.75, speed: 80, dmg: 10, bar: '#b5179e',
+    sprite: 'jefe-portera', feet: 26, top: 190, shadow: 104,
+    look: { skin: '#b9d38f', hair: '#cfc8dc', shirt: '#9b6bb5', pants: '#6d597a', shoes: '#5c4b6e' },
+  },
+  // el mini jefe de antes (no sale: makeBoss ya no lo crea)
+  vecino: {
     name: 'El vecino del 4ºB', icon: '👹', hp: 400, r: 28, s: 1.9, speed: 70, dmg: 10, bar: '#ff5d73',
     look: { skin: '#9cbf7a', hair: '#7a7468', shirt: '#f1efe6', pants: '#4f6d9a', shoes: '#c94c4c' },
-  },
-  boss: {
-    name: 'La portera', icon: '👑', hp: 1200, r: 26, s: 1.75, speed: 80, dmg: 10, bar: '#b5179e',
-    look: { skin: '#b9d38f', hair: '#cfc8dc', shirt: '#9b6bb5', pants: '#6d597a', shoes: '#5c4b6e' },
   },
 };
 
@@ -57,6 +71,8 @@ class BossBase {
     this.x = x; this.y = y;
     this.r = d.r;
     this.s = d.s;
+    this.sprite = d.sprite && hasSprite(d.sprite) ? d.sprite : null;
+    this.top = this.sprite ? d.top : 60 * d.s;   // altura de la cabeza sobre su centro
     this.maxHp = Math.round(d.hp * hpMul);
     this.hp = this.maxHp;
     this.dmg = d.dmg;
@@ -125,7 +141,7 @@ class BossBase {
     // los jefes apenas se mueven con los golpes
     const push = this.heavy ? 0 : 8 * knock;
     this.kx += dirX * push; this.ky += dirY * push;
-    game.floatText(this.x + rand(-10, 10), this.y - 60 * this.s, Math.round(dmg).toString(), crit ? '#ffd23f' : '#ffffff', crit ? 26 : 18);
+    game.floatText(this.x + rand(-10, 10), this.y - this.top, Math.round(dmg).toString(), crit ? '#ffd23f' : '#ffffff', crit ? 26 : 18);
     sfx.hit();
     if (this.hp <= 0) { this.hp = 0; game.killEnemy(this); }
   }
@@ -219,7 +235,7 @@ function distToWall(x, y, a, r, w, h) {
 // ═════════════ EL VECINO DEL 4ºB ═════════════
 export class Vecino extends BossBase {
   constructor(x, y, hpMul = 1) {
-    super('miniboss', x, y, hpMul);
+    super('vecino', x, y, hpMul);
     this.chargeCd = 1.5;
     this.stompCd = 2;
     this.summonCd = 5;
@@ -238,7 +254,7 @@ export class Vecino extends BossBase {
     // Por debajo del 40 % de vida se enfada: anda más rápido y embiste dos veces
     if (this.phase === 1 && this.hp < this.maxHp * 0.4) {
       this.phase = 2;
-      game.floatText(this.x, this.y - 80 * this.s, '¡SE ACABÓ!', '#ffd23f', 30);
+      game.floatText(this.x, this.y - this.top - 20 * this.s, '¡SE ACABÓ!', '#ffd23f', 30);
       game.shake(12);
       sfx.roar();
     }
@@ -282,7 +298,7 @@ export class Vecino extends BossBase {
           if (st.chain > 0) this.setState('chargeWarn', { warn: 0.5, chain: st.chain - 1, angle: st.angle + Math.PI });
           else {
             this.setState('stunned', { dur: VECINO.stun });
-            game.floatText(this.x, this.y - 80 * this.s, '¡Mareado!', '#ffd23f', 22);
+            game.floatText(this.x, this.y - this.top - 20 * this.s, '¡Mareado!', '#ffd23f', 22);
           }
           return;
         }
@@ -349,7 +365,7 @@ export class Vecino extends BossBase {
     } else if (this.summonCd <= 0 && this.minions(game) < VECINO.maxMinions) {
       this.summonCd = VECINO.summonCd;
       this.setState('summon');
-      game.floatText(this.x, this.y - 80 * this.s, '¡VECINOS!', '#ffd23f', 26);
+      game.floatText(this.x, this.y - this.top - 20 * this.s, '¡VECINOS!', '#ffd23f', 26);
       sfx.roar();
     } else if (this.chargeCd <= 0) {
       this.chargeCd = angry ? 3 : 4;
@@ -450,14 +466,21 @@ export class Vecino extends BossBase {
 
 // ═════════════ LA PORTERA ═════════════
 export class Portera extends BossBase {
-  constructor(x, y, hpMul = 1) {
-    super('boss', x, y, hpMul);
+  constructor(type, x, y, hpMul = 1) {
+    super(type, x, y, hpMul);
     this.last = '';
     this.sweepCd = 1.5;
     this.summonCd = 8;
     this.broom = Math.PI / 2;   // ángulo de la escoba
     this.broomTarget = Math.PI / 2;
     this.spin = 0;
+  }
+
+  // Al morir, su cuerpo cae y se queda en el suelo (como el de los zombis)
+  onDeath(game) {
+    if (this.sprite && animFrames(this.sprite, 'death') && game.room) {
+      game.room.props.push(new BossCorpse(this.sprite, this.x, this.y + this.def.feet, dirFromVector(this.lookX, this.lookY), game.time));
+    }
   }
 
   think(dt, game) {
@@ -546,7 +569,7 @@ export class Portera extends BossBase {
         while (st.thrown < n && st.t >= 0.3 + st.thrown * 0.18) {
           const spreadR = st.thrown === 0 ? 0 : rand(60, 130);
           const a = rand(0, TAU);
-          game.lob(this.x, this.y - 40 * this.s, p.x + p.vx * 0.3 + Math.cos(a) * spreadR, p.y + p.vy * 0.3 + Math.sin(a) * spreadR, 'bleach');
+          game.lob(this.x, this.y - (this.sprite ? this.top * 0.6 : 40 * this.s), p.x + p.vx * 0.3 + Math.cos(a) * spreadR, p.y + p.vy * 0.3 + Math.sin(a) * spreadR, 'bleach');
           sfx.spit();
           st.thrown++;
         }
@@ -591,7 +614,7 @@ export class Portera extends BossBase {
         this.brake(dt);
         this.dmg = 0;
         this.broomTarget = -Math.PI / 2;
-        if (Math.random() < dt * 20) game.puff(this.x + rand(-20, 20), this.y - 70 * this.s, '#ffffff');
+        if (Math.random() < dt * 20) game.puff(this.x + rand(-20, 20), this.y - this.top - 10, '#ffffff');
         if (st.t >= 1.6) this.setState('walk', { dur: 0.3 });
         break;
       }
@@ -617,7 +640,7 @@ export class Portera extends BossBase {
     if (angry && this.summonCd <= 0 && this.minions(game) < 3) {
       this.summonCd = 12;
       this.setState('summon');
-      game.floatText(this.x, this.y - 80 * this.s, '¡LOS DEL 3º!', '#ffd23f', 26);
+      game.floatText(this.x, this.y - this.top - 20 * this.s, '¡LOS DEL 3º!', '#ffd23f', 26);
       sfx.roar();
       return;
     }
@@ -628,10 +651,10 @@ export class Portera extends BossBase {
     if (choice === 'fan') this.setState('fanWarn');
     else if (choice === 'bleach') {
       this.setState('bleach', { thrown: 0 });
-      game.floatText(this.x, this.y - 80 * this.s, '¡LEJÍA!', '#bfe9ff', 24);
+      game.floatText(this.x, this.y - this.top - 20 * this.s, '¡LEJÍA!', '#bfe9ff', 24);
     } else {
       this.setState('spinWarn');
-      game.floatText(this.x, this.y - 80 * this.s, '¡A BARRER!', '#ffd23f', 26);
+      game.floatText(this.x, this.y - this.top - 20 * this.s, '¡A BARRER!', '#ffd23f', 26);
     }
   }
 
@@ -697,10 +720,12 @@ export class Portera extends BossBase {
     }
     if (st.name === 'spinWarn') drawCircleWarn(ctx, x, y + 10, 70, Math.min(1, st.t / 0.6));
 
-    this.drawShadow(ctx);
-    const sp = Math.hypot(this.vx, this.vy);
     const flash = this.hitFlash > 0 || (this.invulnerable && Math.floor(game.time * 16) % 2 === 0);
     const shake = st.name === 'rage' ? rand(-2, 2) : 0;
+    if (this.sprite) { this.drawPixel(ctx, game, flash, shake); return; }
+
+    this.drawShadow(ctx);
+    const sp = Math.hypot(this.vx, this.vy);
     const look = { ...this.def.look };
     if (angry) look.skin = '#d3a07c'; // roja de rabia
 
@@ -725,6 +750,63 @@ export class Portera extends BossBase {
     if (!flash) this.drawDetails(ctx, x + shake, y, s, angry, game.time);
     this.drawBun(ctx, x + shake, y, s, flash, false);
     if (!behind) this.drawBroom(ctx, x + shake, y, s);
+  }
+
+  // Pixel art: cada estado tiene su animación de la hoja
+  //   andar / reposo · fregonazo (el aviso es levantar la fregona; el golpe, bajarla) para el abanico y el
+  //   escobazo · lanzar la lejía · grito para enfadarse y llamar a los vecinos · el giro, su postura quieta
+  //   dando vueltas
+  drawPixel(ctx, game, flash, shake) {
+    const { x, y, state: st } = this;
+    const def = this.def;
+    const sp = Math.hypot(this.vx, this.vy);
+    let dir = dirFromVector(this.lookX, this.lookY);
+    const frames = (anim) => animFrames(this.sprite, anim);
+    const fr = (anim, k) => Math.min(frames(anim) - 1, Math.max(0, Math.floor(k * frames(anim))));
+    const hitF = 2;   // fotograma del fregonazo en el que la fregona toca el suelo
+    const raise = (k) => Math.min(hitF - 1, Math.floor(k * hitF));
+    const strike = (k) => hitF + Math.min(frames('attack') - 1 - hitF, Math.max(0, Math.floor(k * (frames('attack') - hitF))));
+    let anim = sp > 10 ? 'walk' : 'idle';
+    const opts = { flash };
+    if (anim === 'walk') opts.cycle = this.walkT / 7;
+    const set = (a, f) => { anim = a; opts.frame = f; delete opts.cycle; };
+    switch (st.name) {
+      case 'fanWarn': set('attack', raise(st.t / PORTERA.fanWarn)); break;
+      case 'fan': set('attack', st.i === 0 ? hitF : strike(1 - Math.max(0, st.next) / 0.4)); break;
+      case 'sweepWarn':
+        set('attack', raise(st.t / PORTERA.sweepWarn));
+        if (st.angle !== undefined) dir = dirFromVector(Math.cos(st.angle), Math.sin(st.angle));
+        break;
+      case 'sweep': set('attack', strike(st.t / 0.35)); dir = dirFromVector(Math.cos(st.angle), Math.sin(st.angle)); break;
+      case 'bleach': {
+        const n = this.phase === 2 ? PORTERA.bottles + 2 : PORTERA.bottles;
+        set('throw', fr('throw', st.t / (0.3 + n * 0.18 + 0.4)));
+        break;
+      }
+      case 'spinWarn': case 'spin':
+        set('still', 0);
+        dir = dirFromVector(Math.cos(this.spin), Math.sin(this.spin));
+        break;
+      case 'summon': set('roar', fr('roar', st.t / 1.1)); break;
+      case 'rage': set('roar', fr('roar', st.t / 1.6)); break;
+    }
+    // en la segunda fase, un poco más roja de rabia
+    if (this.phase === 2 && !flash) opts.tint = { color: '#ff3b2f', alpha: 0.18 };
+    pixelShadow(ctx, x, y + def.feet - 2, def.shadow);
+    drawSprite(ctx, this.sprite, anim, dir, game.time, x + shake, y + def.feet, opts);
+    if (this.phase === 2) {
+      // vapor saliendo de la cabeza
+      ctx.save();
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      for (let i = 0; i < 3; i++) {
+        const k = (game.time * 1.2 + i / 3) % 1;
+        ctx.beginPath();
+        ctx.arc(x + (i - 1) * 24, y - this.top + 10 - k * 40, 4 + k * 8, 0, TAU);
+        ctx.globalAlpha = 1 - k;
+        ctx.fill();
+      }
+      ctx.restore();
+    }
   }
 
   // Moño (detrás o delante de la cabeza según hacia dónde mire)
@@ -849,8 +931,28 @@ export class Portera extends BossBase {
   }
 }
 
+// El cuerpo de un jefe en el suelo: hace su animación de morir y se queda en el último fotograma
+class BossCorpse {
+  constructor(sprite, x, feetY, dir, time) {
+    this.kind = 'corpse';
+    this.sprite = sprite;
+    this.x = x;
+    this.y = feetY - 30;   // se ordena un poco más arriba: los que siguen en pie se dibujan por encima
+    this.feetY = feetY;
+    this.dir = dir;
+    this.t0 = time;
+    this.solid = false;
+    this.taken = true;     // así el juego no intenta recogerlo ni señalarlo
+  }
+
+  draw(ctx, game) {
+    drawSprite(ctx, this.sprite, 'death', this.dir, game.time - this.t0, this.x, this.feetY);
+  }
+}
+
+// Las dos plantas de jefe tienen a la portera (el vecino se queda guardado)
 export function makeBoss(type, x, y, hpMul = 1) {
-  return type === 'boss' ? new Portera(x, y, hpMul) : new Vecino(x, y, hpMul);
+  return type === 'vecino' ? new Vecino(x, y, hpMul) : new Portera(type, x, y, hpMul);
 }
 
 // Dibujo de la botella de lejía en el aire

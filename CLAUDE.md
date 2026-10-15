@@ -29,7 +29,7 @@ ni compilación. Se publica en **Vercel** como web estática: lo que se sube a `
 `npm run dev` sirve la carpeta en `http://localhost:3000` (el servidor quita el `.html` de las direcciones).
 
 - **Abrir siempre con `?mudo`** (sin sonido; lo pidió el dueño) y cerrar la pestaña al terminar.
-- `?pruebas` → teclas **1–6** sacan cada zombi, **7** el mini jefe, **8** la portera; abre también las armas.
+- `?pruebas` → teclas **1–6** sacan cada zombi, **7** la portera (mini jefa), **8** la jefa final; abre también las armas.
 - `?armas` → todas las armas en la sala de mantenimiento. `?sala=<zombi>` → sala de exposición de un zombi.
 - Se combinan: `?pruebas&mudo`.
 - En la consola el juego es `window.game` (`game.update(1/60)` lo adelanta). `tools/bot.js` juega solo para medir
@@ -64,6 +64,7 @@ Arte a 480×320 (2 unidades del juego por píxel), casillas de 16 píxeles, pers
 |---|---|---|
 | Armas de Johnny | skill `/arma-nueva` · historia en [`docs/HISTORIA.md`](docs/HISTORIA.md) | Las seis tienen hoja propia. Fregona, bate, cuchillo, pistola y escopeta, con visto bueno. **Pendiente de que el dueño pruebe jugando:** el MP5 (arma nueva) y el arreglo de apuntar abajo/arriba en MP5 y escopeta. Al retomar, leer "Armas: dónde lo dejamos" en `docs/HISTORIA.md` |
 | Zombis | skill `/zombi-nuevo` · [`docs/ZOMBIS.md`](docs/ZOMBIS.md) | Normal y lento hechos, con visto bueno; venenoso (el gordo, a 72 píxeles) hecho, con visto bueno. Rápido = niño con gorra y chándal (14 oct), pendiente de visto bueno. Explosivo = hombretón con gabardina que la abre y enseña la dinamita al encender la mecha (15 oct), con visto bueno; rehecho en grande (56 px) el mismo día, también con visto bueno. Falta tentáculos |
+| Jefes | [`docs/ZOMBIS.md`](docs/ZOMBIS.md) (al final) | La portera (96 px, PixelLab) es la mini jefa de cada planta y, de momento, también la final. En el juego el 15 oct, **pendiente de que el dueño la pruebe**. Vida y números provisionales |
 | Mapa (pasillo y apartamentos) | [`docs/MAPA.md`](docs/MAPA.md) | Fases 1–3 hechas (la 3, pendiente de visto bueno). Siguiente: fase 4, sala de mantenimiento |
 | Escenarios (tono oscuro, fondos enteros con ChatGPT) | [`docs/FONDOS.md`](docs/FONDOS.md) | Piloto del baño: bocetos listos, el dueño está generando el primero. Nada en el juego aún |
 | PixelLab (receta, costes, trucos) | [`docs/PIXELLAB.md`](docs/PIXELLAB.md) | Todo lo generado se apunta en `assets/pixellab.json`. Antes de tandas grandes, decir el coste |

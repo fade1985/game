@@ -1188,7 +1188,7 @@
     "kind": "character",
     "character_id": "5b930c2c-7a8b-4fe6-a862-14c3fb119ae9",
     "name": "Portera mini jefa 96",
-    "nota": "La portera como mini jefa (2026-10-15), a partir de un dibujo del dueño (assets/sources/portera-96/referencia.png). create_character_pro_flash a 128x128 con el dibujo reducido a 128 (referencia-128.png) como imagen de estilo: el estilo tiene que caber en el lienzo. Sale de unos 115 píxeles de alto. Vistas en assets/sources/portera-96/rotations/. Pendiente del visto bueno del dueño.",
+    "nota": "La portera como mini jefa (2026-10-15), a partir de un dibujo del dueño (assets/sources/portera-96/referencia.png). create_character_pro_flash a 128x128 con el dibujo reducido a 128 (referencia-128.png) como imagen de estilo: el estilo tiene que caber en el lienzo. Sale de unos 115 píxeles de alto. Vistas en assets/sources/portera-96/rotations/. Pendiente del visto bueno del dueño. Retocada gratis con assets/sources/portera-96/retoque.py (lo pidió el dueño): piel gris verdosa, delantal crema, crocs beige con sangre, sangre en manos y boca, fregona clara con sangre. Originales en rotations-original/.",
     "request": {
       "description": "the same character as the reference, a zombie old cleaning lady boss: huge hunched old woman zombie about 100 pixels tall, enormous hunchback with a fleshy lumpy hump, very broad muscular shoulders and thick arms, long messy white hair tied in a high ponytail with loose strands over her face, pale grey wrinkled rotting skin, white blind eyes, one eyeball hanging out of its socket on a red string, open mouth with rotten yellow teeth and blood on her chin, dirty grey t-shirt, long cream apron soaked with red blood splatter and torn at the bottom, baggy dark blue denim trousers, beige crocs clogs, long clawed bloody fingers, holding a wooden mop with a big dirty grey mop head stained with blood in her right hand, mop head resting on the floor, standing wide and menacing, crisp pixel art, dark outline, detailed shading",
       "width": 128,
@@ -1199,7 +1199,30 @@
         "usage_description": "This is the exact character to draw. Copy her design faithfully: body shape with the big hunchback, white ponytail hair, hanging eyeball, grey t-shirt, bloody cream apron, blue jeans, beige crocs and the bloody mop, with the same colors. Redraw her as a game sprite filling most of the canvas, about 100 pixels tall, with a dark outline."
       }
     },
-    "cost": "8 generaciones (modelo)."
+    "cost": "8 del modelo + 0,25 de importar + 10 de pruebas de perfil + 28 de la tanda + 5 de repetir = 51,25 generaciones.",
+    "character_id_retocada": "4ce7c0cc-19af-4274-87bf-1426622c72c4",
+    "pruebas_de_perfil": {
+      "nota": "2026-10-15, sobre 4ce7c0cc (las 8 vistas retocadas importadas, 0,25). PixMiniMax a 128 px: 1 generación por dirección (8 y 12 fotogramas). Ataques con partida y final = dibujo quieto pegado en (16, 28) de un lienzo de 160x160 (partida/<dirección>.png). Bajado con py tools/bajar_zip.py 4ce7c0cc-19af-4274-87bf-1426622c72c4 portera-96. GIFs en assets/pruebas/portera-*.gif.",
+      "subject_description": "a huge hunched zombie old woman with grey-green skin, long white hair in a ponytail, a grey t-shirt, a bloody cream apron, dark blue jeans and beige crocs, holding a long wooden mop with a bloody white mop head",
+      "initial_pose": "standing hunched facing right, the mop held low in one hand with the mop head near the floor",
+      "andar": "grupo 6f41b757, 8 fotogramas: se gira hacia la cámara a mitad del paso. Descartable.",
+      "andar2": "grupo 026739cb, 8 fotogramas, 'Strict side profile view the whole time... walks in place like on a treadmill': se sigue girando un poco (se le ve la cara en los fotogramas 3-6).",
+      "andar3": "grupo ddac24e4, skeleton-v3 con la plantilla scary-walk, 3 generaciones: la encoge, la agacha y le deforma la fregona. Descartada.",
+      "fregonazo": "grupo 19468601: barrido bajo en arco con salpicón de sangre; se gira hacia la cámara durante el golpe.",
+      "fregonazo2": "grupo e3ea5b23, 'Strict side profile...', golpe de arriba abajo como una maza: también se gira al levantarla.",
+      "lejia": "grupo 1b268d5e: saca una botella blanca del delantal y la lanza por encima del hombro. Bien.",
+      "grito": "grupo a947a243, solo south: ruge, levanta la fregona y da un golpe en el suelo. Bien.",
+      "muerte": "grupo 4f1eb34d, 12 fotogramas, solo partida: suelta la fregona, cae de rodillas y boca abajo. Bien."
+    },
+    "animaciones": {
+      "nota": "2026-10-15. Todo con PixMiniMax sobre 4ce7c0cc, 1 generación por dirección (8 y 12 fotogramas, a 128/160 px). Elegidas por el dueño: andar2 (andar), fregonazo2 (la maza), lejia, grito (solo south) y muerte. Ataques: partida y final = partida/<dirección>.png (dibujo quieto en (16, 28) de 160x160); muerte: solo partida. initial_pose según la dirección ('facing the camera', 'in three-quarter front view, facing toward the camera and to the right/left', 'facing left', 'in three-quarter back view, facing away from the camera and to the right/left', 'seen from behind, her back to the camera'); de espaldas el texto empieza con 'Strict back view the whole time...' o 'She keeps the same three-quarter back view the whole time and never turns to face the camera'. Fotogramas en assets/sources/portera-96/{andar2,fregonazo2,lejia,grito,muerte}/; hojas en hoja-<animación>.png.",
+      "andar2": "grupo 026739cb, 8 direcciones (7 en llamadas sin initial_pose: 'She keeps exactly the same view and facing as the first frame...'). north y north-west se repitieron con 'Strict back view the whole time...' porque se giraban de lado (las malas en descartes/andar2/).",
+      "fregonazo2": "grupo e3ea5b23, 8 direcciones. north se repitió: acababa con la fregona en alto (la mala en descartes/fregonazo2/).",
+      "lejia": "grupo 1b268d5e, 8 direcciones, todas a la primera.",
+      "grito": "grupo a947a243, solo south.",
+      "muerte": "grupo 4f1eb34d, 8 direcciones. south y north se repitieron cayendo de lado ('topples over sideways... lying flat on her side'): cayendo hacia la cámara o de espaldas no llegaba a caerse (las malas en descartes/muerte/)."
+    },
+    "sin_usar_en_pixellab": "Personaje 5b930c2c (modelo sin retocar). En 4ce7c0cc: grupos andar (6f41b757), andar3 (ddac24e4, skeleton-v3) y fregonazo (19468601); y las direcciones repetidas de andar2 (north, north-west), fregonazo2 (north) y muerte (south, north). Borrar solo con confirmación del dueño."
   },
   "zombi-explosivo-56": {
     "kind": "character",

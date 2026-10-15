@@ -12,7 +12,7 @@ pudiendo ver añadiendo **`?cartoon`** a la dirección (por ejemplo `http://loca
 | 1 · Prueba | Conserje, zombi normal, sofá y suelo del salón en una habitación | ✅ Hecha (13 generaciones) · pendiente de tu visto bueno |
 | 2 · Escenarios | 5 suelos, paredes, puertas, escaleras y unos 20 muebles | 🟡 Suelos (7), paredes con cara (pintadas con código) y los 20 muebles en tres cuartos; faltan muebles de lado, puertas, alfombras, decoración de pared y los muebles de las armas |
 | 3 · Personajes | Conserje, 3 supervivientes y 6 zombis con sus animaciones | ⏳ |
-| 4 · Jefes | El vecino del 4ºB y la portera; después, el glotón y el gymbro | ⏳ |
+| 4 · Jefes | La portera (mini jefa de cada planta); después, la jefa final, el glotón y el gymbro | 🟡 La portera, en el juego (15 oct), pendiente de visto bueno. Detalle en `docs/ZOMBIS.md` |
 | 5 · Objetos e interfaz | Armas, objetos, corazón, llave, proyectiles, charcos, efectos, iconos y fuente | ⏳ |
 
 ## Medidas
@@ -122,7 +122,7 @@ mismo). Si el suelo no encaja bien al repetirse, se retoca a mano o se dibuja co
 - **Emojis de botones y carteles:** quitados (▶ ← ↻ ⛶ 🎵 ✅ ⏱️ fuera, sin sustituto). Los carteles del lienzo (`drawBanner`) llevan `icon: '<id>'` y dibujan el icono PNG junto al título; la llave del minimapa usa `drawEmoji` (la barra del jefe ya no lleva icono). El "+1 llave" flotante es solo texto.
 - **Objetos del suelo:** `objeto-corazon`, `objeto-llave` (la dorada del Taller) y `objeto-llave-puerta` (la plateada del mini jefe), 5 generaciones cada uno (`create_object_pro_flash`, 24 y 32 px). Fuentes en `assets/sources/suelo`. `drawPickup` y `DoorKey.draw` usan el sprite y, si falta, el dibujo de siempre.
 - **Charcos y moco:** `objeto-charco-veneno` (80x48), `objeto-charco-lejia` (108x64) y `objeto-moco` (16x16), 5-6 generaciones cada uno. Ojo: 1 píxel de sprite = 2 unidades del juego, así que el lienzo se pide del tamaño del charco (radio x 2 / 2). Salen a veces espejados (`drawHazards`).
-- **Pendiente:** sprites de jefes, la trazadora de bala (sigue en código), la botella de lejía (`drawBottle`) y efectos.
+- **Pendiente:** sprites del resto de jefes, la trazadora de bala (sigue en código), la botella de lejía (`drawBottle`) y efectos.
 
 ## Partículas y efectos
 

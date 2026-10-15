@@ -1,0 +1,13 @@
+{
+  "casilla": [192, 192],
+  "origen": [32, 40],
+  "pies": 164,
+  "cintura": 62,
+  "animaciones": {
+    "walk":   { "carpeta": "andar2",     "fotogramas": [0, 7],  "duracion": 0.9,  "repite": true },
+    "attack": { "carpeta": "fregonazo2", "fotogramas": [1, 7],  "duracion": 0.7,  "impacto": 2 },
+    "throw":  { "carpeta": "lejia",      "fotogramas": [1, 7],  "duracion": 0.7,  "impacto": 4 },
+    "roar":   { "carpeta": "grito",      "fotogramas": [1, 7],  "duracion": 0.9,  "solo": "south" },
+    "death":  { "carpeta": "muerte",     "fotogramas": [1, 12], "duracion": 1.2 }
+  }
+}
