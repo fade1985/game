@@ -1,0 +1,8 @@
+{
+  "ataque": { "fotogramas": [1, 2, 3, 4, 5, 6, 7, 8], "duracion": 0.5 },
+  "andar": {
+    "south-east": [1, 11], "south-west": [1, 11],
+    "north-east": [1, 12], "north-west": [1, 12], "north": [1, 12],
+    "west": [2, 10]
+  }
+}

@@ -61,6 +61,20 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
   - Los escupitajos descartados ya están borrados de PixelLab (con su confirmación).
 - **Zombi lento, un poco más pequeño** (13 de octubre de 2026, lo pidió el dueño): su dibujo se encoge a ×0,85
   (`spriteScale`), también el cuerpo que deja al morir. El choque (`r: 17`) no se ha tocado.
+- **El zombi explosivo ya está en el juego** (sprite `zombi-explosivo`, 15 de octubre de 2026), **pendiente del visto
+  bueno del dueño.** Diseño suyo: un hombretón con gabardina gris oscuro cerrada que, al acercarse, la abre, enseña
+  un chaleco de dinamita y revienta. Andar, abrir la gabardina, golpe y muerte en las 8 direcciones. Costó unas 43
+  generaciones. Ids, textos y pegas en `assets/pixellab.json` (`zombi-explosivo-48`); captura en
+  `assets/pruebas/zombi-explosivo-juego.jpg` y GIF en `assets/pruebas/zombi-explosivo-abrir.gif`.
+  - **En el juego** (`zombies.js`): su animación de ataque es abrir la gabardina; se lanza al encenderse la mecha y
+    se queda abierta (`anim.hold`) hasta reventar. Mientras, no se encoge con los golpes ni da zarpazos, y parpadea
+    en rojo (en blanco tapaba la dinamita).
+  - **Cómo se monta:** `py tools/zombi.py zombi-explosivo-48 zombi-explosivo`, con su `zombi.json` (fotogramas 1-8
+    del ataque en 0,5 s y el tramo de andar de cada dirección). Piel con su propio `piel.py` (la gabardina también
+    es gris cálido).
+  - **Pegas conocidas:** tres andares (`west`, `south-west`, `north-west`) y el abrir de `west` son los de la
+    dirección contraria reflejados (PixelLab los giraba de lado o cerraban mal el ciclo). Al reventar deja su cuerpo
+    entero tendido, como los demás.
 
 ## Variantes de color (13 de octubre de 2026)
 

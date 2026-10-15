@@ -356,7 +356,10 @@ export class Zombie {
     this.t += dt;
     this.hitFlash -= dt;
     if (this.burnT > 0) this.burn(dt, game);
-    if (this.anim && (this.anim.t += dt) >= this.anim.dur) this.anim = null;
+    if (this.anim && (this.anim.t += dt) >= this.anim.dur) {
+      if (this.anim.hold) this.anim.t = this.anim.dur;   // se queda en el último fotograma (la gabardina abierta)
+      else this.anim = null;
+    }
     if (this.asleep || this.wakeT > 0) {
       // dormido: se balancea en su sitio, mirando a ninguna parte
       if (this.asleep) {
@@ -416,6 +419,9 @@ export class Zombie {
           }
         } else if (sees && d < EXPLOSION.trigger + p.r) {
           this.fuse = EXPLOSION.fuse; // ¡se enciende la mecha!
+          // pixel art: abre la gabardina, enseña la dinamita y se queda así hasta reventar
+          this.play('attack');
+          if (this.anim) this.anim.hold = true;
         }
         break;
 
@@ -481,8 +487,8 @@ export class Zombie {
     this.lookX += (ux - this.lookX) * Math.min(1, dt * 8);
     this.lookY += (uy - this.lookY) * Math.min(1, dt * 8);
     // al llegar al conserje, lanza el zarpazo (el daño sigue siendo por contacto, como siempre)
-    // (el venenoso no da zarpazos: su animación de ataque es el escupitajo)
-    if (!this.anim && sees && this.dmg > 0 && this.type !== 'venenoso' && !p.dead && d < this.r + p.r + REACH) this.play('attack');
+    // (el venenoso no da zarpazos: su animación de ataque es el escupitajo; la del explosivo, abrir la gabardina)
+    if (!this.anim && sees && this.dmg > 0 && this.type !== 'venenoso' && this.type !== 'explosivo' && !p.dead && d < this.r + p.r + REACH) this.play('attack');
   }
 
   detonate(game) {
@@ -514,7 +520,7 @@ export class Zombie {
     game.floatText(this.x + rand(-8, 8), this.y - 38 * this.s, Math.round(dmg).toString(), crit ? '#ffd23f' : '#ffffff', crit ? 26 : 18);
     sfx.hit();
     if (this.hp <= 0) game.killEnemy(this);
-    else this.play('hurt');
+    else if (!this.anim?.hold) this.play('hurt');   // con la gabardina abierta no se encoge
   }
 
   draw(ctx, game) {
@@ -558,9 +564,12 @@ export class Zombie {
     let flash = this.hitFlash > 0;
     let scale = s;
     let shake = 0;
+    let fuseK = 0, fuseBlink = false;
     if (this.fuse > 0) {
-      const k = 1 - this.fuse / EXPLOSION.fuse;
-      flash = flash || Math.floor(this.t * (8 + k * 16)) % 2 === 0; // parpadea cada vez más rápido
+      const k = fuseK = 1 - this.fuse / EXPLOSION.fuse;
+      fuseBlink = Math.floor(this.t * (8 + k * 16)) % 2 === 0; // parpadea cada vez más rápido
+      // con pixel art parpadea en rojo (en blanco taparía la dinamita); con el dibujo de antes, en blanco
+      if (!hasSprite(`zombi-${this.type}`)) flash = flash || fuseBlink;
       scale = s * (1 + k * 0.15);
       shake = rand(-1.5, 1.5);
     }
@@ -578,7 +587,7 @@ export class Zombie {
       const fade = Math.min(1, this.burnT / 0.5);
       const flick = Math.floor(game.time * 12) % 2;
       opts.tint = { color: flick ? FIRE[2] : FIRE[3], alpha: (0.6 + Math.sin(game.time * 23) * 0.1) * fade };
-    }
+    } else if (fuseBlink) opts.tint = { color: '#ff3b2f', alpha: 0.25 + fuseK * 0.3 };
     const sprited = drawSprite(ctx, this.sprite, an ? an.name : sp > 10 ? 'walk' : 'idle',
       dirFromVector(this.lookX, this.lookY), game.time, x + shake, y + 15 * scale, opts);
     if (!sprited) drawHuman(ctx, x + shake, y, {

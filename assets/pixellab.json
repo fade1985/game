@@ -1150,5 +1150,38 @@
     "uso": "Restos de los zombis que mueren ardiendo (zombies.js: drawRemains), sobre la quemadura del suelo.",
     "cost": "6 generaciones",
     "updated": "2026-10-15"
+  },
+  "zombi-explosivo-48": {
+    "kind": "character",
+    "character_id": "9eeb36b7-25b7-4763-8099-ed1947b906d4",
+    "name": "Zombi explosivo (gabardina, piel verde)",
+    "nota": "Zombi explosivo a 48x48 (2026-10-15), diseño del dueño: un hombretón con gabardina gris oscuro cerrada que, al encenderse la mecha, la abre y enseña un chaleco de dinamita roja, y revienta. Hecho con la skill /zombi-nuevo. 1) create_character_pro_flash con la vista de frente de Johnny como estilo (personaje c7074299, 6 generaciones; vistas en rotations-original/). 2) La piel salió gris pálida y la gabardina también es gris cálido: script propio assets/sources/zombi-explosivo-48/piel.py (solo los grises cálidos CLAROS pasan a verde). 3) Importadas con create_character v3 + direction_images (0,25): el character_id de arriba. Visto bueno del dueño al modelo. EN EL JUEGO como sprite zombi-explosivo: py tools/zombi.py zombi-explosivo-48 zombi-explosivo (con zombi.json).",
+    "request": {
+      "description": "adult male zombie, a dead neighbour from an apartment building, realistic adult body proportions, a big burly broad-shouldered man, small head, sickly grey-green rotting skin, sunken dark eye sockets with pale dead eyes, open mouth with dark blood around the jaw, bald head with a few thin strands of dark hair, wearing a long dark charcoal grey trench coat that reaches below his knees, fully closed and buttoned up to the neck, collar turned up, tied with a dark belt at the waist, the coat is torn and dirty with dried blood stains on the front, black trousers below the coat, worn black shoes, a short frayed fuse wire sticks out of the coat collar, slightly hunched posture with the head tilted, arms hanging limp at his sides, empty hands, detailed shading",
+      "width": 48,
+      "height": 48,
+      "view": "low top-down",
+      "style_image": {
+        "url": "rotations/south.png de conserje-48 (4e6c78c6-d6c6-46d3-99c1-40a2d86f0e6c)",
+        "usage_description": "Match the pixel art style of this character: same outline thickness, same level of detail and shading, same head size in pixels. The new character is a bigger, broader man. Do not copy his clothes, face or colors."
+      },
+      "style_options": {
+        "color_palette": false,
+        "detail": true,
+        "outline": true,
+        "shading": true
+      }
+    },
+    "animaciones": {
+      "nota": "Todo con PixMiniMax, subject_description 'a big burly zombie man with grey-green skin in a long closed dark charcoal grey trench coat'. A 48 px, 12 fotogramas costaron 1 generación de frente y de perfil y 2 en tres cuartos de espaldas. Atacar (abrir), golpe y morir parten del dibujo quieto pegado en (24, 32) de 96x96.",
+      "andar": "grupo 20fd1e2c. Brazos estirados (texto común) en east, west, south-west y north-west; brazos bajos ('Strict front view...' / 'three-quarter...') en south, south-east, north-east y north. north-west se giraba de perfil dos veces (la 2ª en el grupo 422f61bb 'andar-nw'): en el juego va el de north-east reflejado; west y south-west cerraban mal el ciclo: van east y south-east reflejados (el fotograma 0 de cada uno es su vista quieta de verdad). Originales en descartes/.",
+      "ataque": "Es ABRIR LA GABARDINA: grupo e2a37b53 'abrir', 8 fotogramas, sin fotograma final (se queda abierta). De perfil hay que decir 'Strict side profile view the whole time... never turns toward the camera' o se gira de frente para enseñar la dinamita (le pasó al primer intento, grupo 9d0683bc 'ataque', solo east: descartado, en descartes/ataque-frente/; y a west, que se cambió por east reflejado). De espaldas se ven las alas de la gabardina y algún cartucho asomando. En zombi.json: fotogramas 1-8 en 0,5 s.",
+      "golpe": "grupo bcf8eb67, 8 direcciones, partida y final iguales. Sangre oscurecida al montar.",
+      "muerte": "grupo 2e3732e7, 8 direcciones, 12 fotogramas sin final. De espaldas, el texto dice hacia dónde quedan la cabeza y los pies."
+    },
+    "juego": "zombies.js: al encenderse la mecha reproduce 'attack' (abrir) y se queda en el último fotograma (anim.hold) hasta reventar; con la gabardina abierta no se encoge al recibir golpes; no da zarpazo; con sprite el parpadeo de la mecha es rojo (el blanco tapaba la dinamita). Al reventar deja el cuerpo tendido, como los demás.",
+    "sin_usar_en_pixellab": "personaje c7074299 (modelo con la piel beige), grupo 9d0683bc 'ataque' (east de frente) y grupo 422f61bb 'andar-nw'; dentro del grupo de andar, west, south-west y north-west no se usan. Borrar solo con confirmación del dueño.",
+    "cost": "unas 43 generaciones (6 modelo + 0,25 importar + 37 animaciones, con 3 repetidas)",
+    "updated": "2026-10-15"
   }
 }
