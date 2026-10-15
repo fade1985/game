@@ -12,7 +12,7 @@ pudiendo ver añadiendo **`?cartoon`** a la dirección (por ejemplo `http://loca
 | 1 · Prueba | Conserje, zombi normal, sofá y suelo del salón en una habitación | ✅ Hecha (13 generaciones) · pendiente de tu visto bueno |
 | 2 · Escenarios | 5 suelos, paredes, puertas, escaleras y unos 20 muebles | 🟡 Suelos (7), paredes con cara (pintadas con código) y los 20 muebles en tres cuartos; faltan muebles de lado, puertas, alfombras, decoración de pared y los muebles de las armas |
 | 3 · Personajes | Conserje, 3 supervivientes y 6 zombis con sus animaciones | ⏳ |
-| 4 · Jefes | El vecino del 4ºB y la portera | ⏳ |
+| 4 · Jefes | El vecino del 4ºB y la portera; después, el glotón y el gymbro | ⏳ |
 | 5 · Objetos e interfaz | Armas, objetos, corazón, llave, proyectiles, charcos, efectos, iconos y fuente | ⏳ |
 
 ## Medidas
@@ -134,3 +134,16 @@ mismo). Si el suelo no encaja bien al repetirse, se retoca a mano o se dibuja co
   en `assets/sources/efectos/`. Si el sprite falta, `explode` usa el dibujo de siempre.
 - **Pendiente:** sangre al golpear y al morir (`burst`), polvo al andar, el rastro del zombi lento y
   las manchas del suelo siguen siendo círculos o dibujo de código; la botella de lejía (`drawBottle`).
+
+## Jefes nuevos: referencias (15 de octubre de 2026)
+
+Ilustraciones del dueño en `assets/sources/jefes/`, para pasarlas a pixel art más adelante. La forma de atacar
+de cada uno **está por decidir** (la dirá el dueño; no inventarla).
+
+- **Glotón** (`gloton-referencia.jpg`): vecino gordísimo a cuatro patas, con camiseta de tirantes y calzoncillos,
+  una boca enorme y lenguas como tentáculos. Ideas acordadas para el pixel art: silueta ancha (más que alta,
+  unos 128×96), boca roja con **una sola fila** de dientes, 2 o 3 lenguas, babas verdes y el cuerpo en rosa y
+  rojo carne para no confundirlo con el venenoso (que es verde). Las lenguas, mejor dibujadas aparte del cuerpo
+  para poder estirarlas.
+- **Gymbro** (`gymbro-referencia.webp`): mazado y calvo, con barba larga, sin camiseta, pantalón de chándal gris
+  con rayas y zapatillas, la piel desgarrada y unos brazos y manos enormes.
