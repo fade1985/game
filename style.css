@@ -76,6 +76,8 @@ canvas {
 }
 .btn:hover { filter: brightness(1.3) sepia(0.2); }
 .btn:active { transform: translateY(0.12em); filter: brightness(0.8); }
+/* el botón elegido con el mando */
+.pad-focus { outline: 0.18em solid #ffd23f; outline-offset: -0.4em; }
 /* rojiza: la misma chapa teñida */
 .btn.pink { filter: sepia(1) saturate(2.5) hue-rotate(-35deg) brightness(0.95); }
 .btn.pink:hover { filter: sepia(1) saturate(2.5) hue-rotate(-35deg) brightness(1.3); }

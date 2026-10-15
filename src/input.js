@@ -1,7 +1,9 @@
 // ─────────────────────────────────────────────
-//  Controles: teclado + joystick táctil
+//  Controles: teclado + joystick táctil (+ mando, que lee mando.js y deja aquí lo que pulsa)
 // ─────────────────────────────────────────────
 const keys = new Set();
+// Lo que hace el mando en la partida (lo rellena mando.js en cada fotograma)
+export const pad = { x: 0, y: 0 };
 const joy = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0 };
 let dashPressed = false;
 // Lanzar (molotov): se mantiene pulsado para apuntar y se suelta para lanzar
@@ -101,19 +103,28 @@ export function initInput(canvas, touchUI) {
   tossBtn.addEventListener('pointercancel', (e) => { if (e.pointerId === toss.id) toss.aiming = false; });
 }
 
-function startToss(by) {
+export function startToss(by) {
   if (toss.aiming) return;
   Object.assign(toss, { aiming: true, by, released: false, dx: 0, dy: 0 });
 }
 
-function endToss(by) {
+export function endToss(by) {
   if (!toss.aiming || toss.by !== by) return;
   toss.aiming = false;
   toss.released = true;
 }
 
+// Hacia dónde apunta el mando (stick derecho, de -1 a 1), mientras se mantiene el gatillo
+export function aimToss(dx, dy) {
+  if (toss.by !== 'pad') return;
+  toss.dx = dx; toss.dy = dy;
+}
+
+// Esquivar con el mando
+export function pressDash() { dashPressed = true; }
+
 // Cómo va el lanzamiento: si se está apuntando, si se acaba de soltar (una sola vez por lanzamiento) y
-// hacia dónde: con el ratón, su posición en el lienzo; en el móvil, el arrastre (de -1 a 1)
+// hacia dónde: con el ratón, su posición en el lienzo; en el móvil o con el mando, el arrastre o el stick (de -1 a 1)
 export function getToss() {
   const released = toss.released;
   toss.released = false;
@@ -128,6 +139,7 @@ export function getMoveVector() {
   if (keys.has('KeyW') || keys.has('ArrowUp')) y -= 1;
   if (keys.has('KeyS') || keys.has('ArrowDown')) y += 1;
   if (joy.active) { x += joy.x; y += joy.y; }
+  x += pad.x; y += pad.y;
   const len = Math.hypot(x, y);
   if (len > 1) { x /= len; y /= len; }
   if (len < 0.15) return { x: 0, y: 0 };

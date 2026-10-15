@@ -95,8 +95,8 @@ export function createUI(root) {
             <button class="btn blue" data-act="workshop"><i class="ico ico-herramientas"></i> Taller <span class="keys-chip"><i class="ico ico-llave"></i> ${save.keys}</span>${upgrades ? ` <small>· ${upgrades} mejora${upgrades > 1 ? 's' : ''}</small>` : ''}</button>
           </div>
           <div class="hint panel small">
-            <b>Moverse:</b> WASD / flechas · <b>Esquivar:</b> Espacio<br>
-            <b>Molotov:</b> mantén clic derecho o E para apuntar con el ratón y suelta para lanzar<br>
+            <b>Teclado:</b> WASD moverse · Espacio esquivar · clic derecho o E (mantén y suelta) molotov<br>
+            <b>Mando:</b> stick moverse · A esquivar · RT (mantén y apunta) molotov · Start pausa<br>
             Atacas solo al enemigo más cercano. ¡Limpia cada sala para abrir sus puertas!
           </div>
           ${save.bestFloor ? `<div class="record"><i class="ico ico-trofeo"></i> Mejor planta alcanzada: ${save.bestFloor}</div>` : ''}

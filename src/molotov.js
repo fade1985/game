@@ -53,7 +53,8 @@ export class MolotovMethods {
   }
 
   // Dónde caería: con el ratón, donde está el puntero (sin pasarse del alcance); en el móvil, hacia donde
-  // se arrastra y tan lejos como se arrastre. Si apenas se arrastra (un toque), al zombi más cercano.
+  // se arrastra y tan lejos como se arrastre (con el mando, igual con el stick derecho). Si apenas se
+  // arrastra (un toque, o el stick suelto), al zombi más cercano.
   tossTarget(t) {
     const p = this.player;
     let dx, dy;
@@ -61,7 +62,7 @@ export class MolotovMethods {
       const cam = this.camera, k = this.canvas.height / cam.vh;
       dx = cam.left + t.mouse.x / k - p.x;
       dy = cam.top + t.mouse.y / k - p.y;
-    } else if (t.by === 'touch' && Math.hypot(t.dx, t.dy) > 0.25) {
+    } else if ((t.by === 'touch' || t.by === 'pad') && Math.hypot(t.dx, t.dy) > 0.25) {
       dx = t.dx * MOLOTOV.range;
       dy = t.dy * MOLOTOV.range * 0.6;
     } else {

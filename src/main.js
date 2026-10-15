@@ -4,6 +4,7 @@
 import { Game } from './game.js';
 import { createUI } from './ui.js';
 import { initInput } from './input.js';
+import { updatePad } from './mando.js';
 import { unlockAudio, setMusicOn, toggleMute } from './sfx.js';
 import { loadSave } from './save.js';
 import { loadSprites } from './sprites.js';
@@ -11,6 +12,7 @@ import { loadSprites } from './sprites.js';
 const root = document.getElementById('game-wrap');
 const canvas = document.getElementById('game');
 const touchUI = document.getElementById('touch-ui');
+const overlay = document.getElementById('overlay');
 
 if (window.matchMedia('(pointer: coarse)').matches) document.body.classList.add('touch');
 
@@ -51,6 +53,7 @@ let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.033, (now - last) / 1000);
   last = now;
+  updatePad(game, overlay, dt); // el mando (si hay uno conectado)
   game.update(dt);
   // en el menú basta con sus sprites; en el resto del juego hacen falta todos
   if (game.state === 'menu' ? menuReady : allReady) game.render();

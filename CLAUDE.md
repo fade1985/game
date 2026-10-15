@@ -51,7 +51,8 @@ ni compilación. Se publica en **Vercel** como web estática: lo que se sube a `
 | `sprites.js` | Carga y dibuja las hojas de sprites; si falta una, usa el dibujo de siempre |
 | `entities.js` / `zombies.js` / `bosses.js` | Johnny, supervivientes, los 6 zombis y los 2 jefes |
 | `weapons.js` / `aim.js` / `props.js` | Armas, apuntado automático, objetos del suelo y muebles con arma |
-| `molotov.js` | El cóctel molotov: apuntar y lanzar (clic derecho / E / botón táctil), el fuego y su dibujo |
+| `molotov.js` | El cóctel molotov: apuntar y lanzar (clic derecho / E / botón táctil / RT del mando), el fuego y su dibujo |
+| `mando.js` | Jugar con mando: lo lee en cada fotograma; en la partida lo pasa a `input.js` y en los menús va de botón en botón |
 | `upgrades.js` / `ui.js` / `input.js` / `sfx.js` / `save.js` | Mejoras, menús y HUD, controles, sonido, guardado |
 
 Arte a 480×320 (2 unidades del juego por píxel), casillas de 16 píxeles, personajes de 48. Cada sprite es

@@ -10,6 +10,11 @@ Hecho con **HTML5 Canvas + JavaScript puro**, sin librerías ni paso de compilac
 
 - **Moverse:** `WASD` o flechas (en móvil: arrastra en la mitad izquierda de la pantalla)
 - **Esquivar:** `Espacio` (en móvil: botón 💨). Te hace invulnerable un instante.
+- **Cóctel molotov:** mantén clic derecho o `E`, apunta con el ratón y suelta (en móvil: arrastra desde el botón
+  de la botella y suelta).
+- **Con mando** (Xbox, PlayStation...): stick izquierdo o cruceta para moverte, `A` esquivar, `RT` mantenido +
+  stick derecho para apuntar el molotov (se lanza al soltar), `Start` pausa. En los menús: cruceta o stick para
+  elegir, `A` para pulsar y `B` para volver.
 - **Atacar:** de momento es automático: apuntas al enemigo más cercano (más adelante será manual).
 - **Pausa:** `Esc` o `P` (desde la pausa puedes quitar la música; el botón 🔊 silencia todo)
 
