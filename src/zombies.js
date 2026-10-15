@@ -5,8 +5,8 @@
 //  y cada tipo tiene su color, tamaño y comportamiento. Los ataques
 //  peligrosos SIEMPRE avisan antes, para que se puedan esquivar.
 // ─────────────────────────────────────────────
-import { OUTLINE } from './config.js';
-import { drawSprite, dirFromVector, hasSprite, pixelShadow, animFrames, animDuration } from './sprites.js';
+import { OUTLINE, PIXEL } from './config.js';
+import { drawSprite, dirFromVector, hasSprite, pixelShadow, animFrames, animDuration, spritePoints } from './sprites.js';
 import { rand } from './utils.js';
 import { drawHuman } from './draw.js';
 import { drawSpawnWarning } from './entities.js';
@@ -17,14 +17,10 @@ const TAU = Math.PI * 2;
 const CORPSES = 12;   // cuántos zombis tendidos se quedan como mucho en una sala
 const REACH = 18;     // a qué distancia del conserje (además de los dos radios) lanza el zarpazo
 
-// Efectos de estado (prueba de concepto: de momento solo el fuego del molotov).
-// Hay dos formas de pintar a un zombi en llamas, para compararlas:
-//   1 → por código: al dibujarlo se le echa una capa naranja que parpadea (sirve para cualquier hoja,
-//       también las de las variantes de color)
-//   2 → hojas ya recoloreadas con Python (tools/quemado.py): "zombi-normal-fuego", etc.
-// Se elige con ?fuego=2 en la dirección, o con la tecla 9 en el modo pruebas.
-export const EFECTOS = { fuego: new URLSearchParams(location.search).get('fuego') === '2' ? 2 : 1 };
-const CHAR = '#2a1a14';   // el negro chamuscado de los que mueren quemados (forma 1)
+// Efectos de estado (de momento solo el fuego del molotov). Se pintan por código, sin hojas aparte:
+// al dibujar al zombi se le echa una capa de color por encima, así sirve para cualquier hoja y variante.
+const CHAR = '#2c211c';   // el carbón de los que mueren ardiendo (se multiplica: oscurece sin borrar las sombras)
+const EMBERS = 4;         // segundos que le duran las brasas y el humo a un cadáver carbonizado
 
 // Un zombi muerto: cae y se queda tendido en el suelo. Solo es dibujo (no estorba ni se puede coger).
 // Lo deja el propio zombi al morir si su hoja de sprites tiene la animación "death".
@@ -39,13 +35,48 @@ class Corpse {
     this.scale = scale;    // el mismo tamaño de dibujo que tenía en vida
     this.solid = false;
     this.taken = true;     // así el juego no intenta recogerlo ni señalarlo
-    this.burnt = burnt;    // murió quemado (forma 1): se queda chamuscado
+    this.burnt = burnt;    // murió ardiendo: se queda carbonizado
+    this.embers = null;    // dónde salen las brasas (se calcula cuando termina de caer)
   }
 
   draw(ctx, game) {
+    const t = game.time - this.t0;
+    const fx = this.x, fy = this.y + 12 + 15;   // los pies
     const o = { scale: this.scale };
-    if (this.burnt) o.tint = { color: CHAR, alpha: 0.55 };
-    drawSprite(ctx, this.sprite, 'death', this.dir, game.time - this.t0, this.x, this.y + 12 + 15, o);
+    // carbonizado: mientras cae se va ennegreciendo, hasta quedar como carbón en algo más de medio segundo
+    if (this.burnt) o.tint = { color: CHAR, alpha: Math.min(1, t / 0.6), mode: 'multiply' };
+    drawSprite(ctx, this.sprite, 'death', this.dir, t, fx, fy, o);
+    if (this.burnt && t < EMBERS) this.drawEmbers(ctx, game, t, fx, fy);
+  }
+
+  // Ya en el suelo: brasas que parpadean sobre el cuerpo y dos hilos de humo, que se van apagando
+  drawEmbers(ctx, game, t, fx, fy) {
+    const end = animDuration(this.sprite, 'death');
+    if (t < end) return;
+    const s = this.scale || 1;
+    if (!this.embers) {
+      this.embers = spritePoints(this.sprite, 'death', this.dir, animFrames(this.sprite, 'death') - 1, 9)
+        .map(([x, y]) => [x * s, y * s, rand(0, 10)]);
+    }
+    const left = 1 - (t - end) / (EMBERS - end);   // de 1 (recién caído) a 0 (apagado)
+    const px = PIXEL * s;
+    const snap = (v) => Math.round(v / PIXEL) * PIXEL;
+    for (const [x, y, ph] of this.embers) {
+      const glow = Math.sin(game.time * 7 + ph) * 0.5 + 0.5;
+      if (glow * left < 0.25) continue;            // apagada en este momento
+      ctx.globalAlpha = Math.min(1, left * 1.5);
+      ctx.fillStyle = glow > 0.7 ? FIRE[1] : FIRE[3];
+      ctx.fillRect(snap(fx + x), snap(fy + y), px, px);
+    }
+    ctx.fillStyle = '#6b6560';
+    for (const [x, y, ph] of this.embers.slice(0, 2)) {
+      for (let k = 0; k < 3; k++) {
+        const c = (game.time * 0.8 + ph + k / 3) % 1;   // 0 = sale, 1 = se deshace
+        ctx.globalAlpha = (1 - c) * 0.45 * left;
+        ctx.fillRect(snap(fx + x + Math.sin(c * 5 + ph) * 6), snap(fy + y - c * 46), px * 2, px * 2);
+      }
+    }
+    ctx.globalAlpha = 1;
   }
 }
 
@@ -128,13 +159,6 @@ export class Zombie {
   }
 
   get sprite() { return this.variant ? `zombi-${this.type}-${this.variant}` : `zombi-${this.type}`; }
-
-  // La hoja que se dibuja: la de siempre o, si arde y se usa la forma 2, la recoloreada en llamas
-  // (todas las variantes de color comparten la del tipo: con el fuego encima, la ropa apenas se distingue)
-  get sheet() {
-    const fuego = `zombi-${this.type}-fuego`;
-    return this.burnT > 0 && EFECTOS.fuego === 2 && hasSprite(fuego) ? fuego : this.sprite;
-  }
 
   // Ardiendo: llamas de píxeles que le suben por el cuerpo
   burn(dt, game) {
@@ -315,10 +339,8 @@ export class Zombie {
       const props = game.room.props;
       const old = props.filter((pr) => pr.kind === 'corpse');
       if (old.length >= CORPSES) props.splice(props.indexOf(old[0]), 1);
-      // si muere ardiendo, el cuerpo queda quemado (forma 1: tinte negro · forma 2: la hoja en llamas)
-      const burnt = this.burnT > 0;
-      const id = burnt ? this.sheet : this.sprite;
-      props.push(new Corpse(id, this.x, this.y, dirFromVector(this.lookX, this.lookY), game.time, this.def.spriteScale, burnt && id === this.sprite));
+      // si muere ardiendo, el cuerpo queda carbonizado
+      props.push(new Corpse(this.sprite, this.x, this.y, dirFromVector(this.lookX, this.lookY), game.time, this.def.spriteScale, this.burnT > 0));
     }
   }
 
@@ -391,14 +413,13 @@ export class Zombie {
     const opts = an ? { flash, frame: Math.floor((an.t / an.dur) * animFrames(this.sprite, an.name)) }
       : sp > 10 ? { flash, cycle: this.walkT / 7 } : { flash };
     if (this.def.spriteScale) opts.scale = this.def.spriteScale;   // dibujo ampliado (ver ZOMBIE_TYPES)
-    // en llamas, forma 1: capa naranja que parpadea (y se apaga poco a poco al final)
-    const sheet = this.sheet;
-    if (this.burnT > 0 && sheet === this.sprite) {
+    // en llamas: capa naranja que parpadea (y se apaga poco a poco al final)
+    if (this.burnT > 0) {
       const fade = Math.min(1, this.burnT / 0.5);
       const flick = Math.floor(game.time * 12) % 2;
       opts.tint = { color: flick ? FIRE[2] : FIRE[3], alpha: (0.6 + Math.sin(game.time * 23) * 0.1) * fade };
     }
-    const sprited = drawSprite(ctx, sheet, an ? an.name : sp > 10 ? 'walk' : 'idle',
+    const sprited = drawSprite(ctx, this.sprite, an ? an.name : sp > 10 ? 'walk' : 'idle',
       dirFromVector(this.lookX, this.lookY), game.time, x + shake, y + 15 * scale, opts);
     if (!sprited) drawHuman(ctx, x + shake, y, {
       ...this.def.look,

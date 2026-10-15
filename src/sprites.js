@@ -85,8 +85,9 @@ export function registerSheet(id, img, meta) {
 // Destello blanco al recibir un golpe: se pinta de blanco solo el fotograma que toca, en un lienzo pequeño.
 // (Antes se hacía una copia blanca de cada hoja entera al cargarla: las de los zombis son enormes y eso
 // frenaba el juego uno o dos segundos al empezar, además de gastar mucha memoria.)
-// Con `tint` ({ color, alpha }) en vez de blanco entero se le echa una capa de color por encima
-// (el naranja de un zombi en llamas): `alpha` dice cuánto se nota, de 0 a 1.
+// Con `tint` ({ color, alpha, mode }) en vez de blanco entero se le echa una capa de color por encima
+// (el naranja de un zombi en llamas): `alpha` dice cuánto se nota, de 0 a 1, y `mode` cómo se mezcla
+// ("overlay" por defecto; "multiply" oscurece todo conservando las sombras: el cadáver carbonizado).
 // Ojo: el lienzo pequeño se reutiliza, así que el resultado hay que dibujarlo enseguida.
 let flashCanvas = null;
 function paintFrame(img, sx, sy, cw, ch, tint) {
@@ -101,7 +102,7 @@ function paintFrame(img, sx, sy, cw, ch, tint) {
   if (tint) {
     // "overlay" (superponer): aclara los tonos medios hacia el color y deja el contorno y las sombras oscuros;
     // como pinta también fuera del dibujo, luego se recorta con la silueta del fotograma (destination-in)
-    f.globalCompositeOperation = 'overlay';
+    f.globalCompositeOperation = tint.mode || 'overlay';
     f.globalAlpha = tint.alpha;
     f.fillStyle = tint.color;
     f.fillRect(0, 0, cw, ch);
@@ -186,6 +187,29 @@ export const animHit = (id, anim) => sheets.get(id)?.meta.anims[anim]?.hit ?? 1 
 export function spriteMuzzle(id, dir) {
   const m = sheets.get(id)?.meta.muzzle?.[dir];
   return m ? [m[0] * PIXEL, m[1] * PIXEL] : null;
+}
+
+// Unos cuantos puntos al azar que caen dentro del dibujo de un fotograma (para poner brasas encima de un
+// cadáver, por ejemplo). Devuelve [x, y] en unidades del juego respecto a los pies; [] si no hay hoja.
+export function spritePoints(id, anim, dir, frame, n) {
+  const sh = sheets.get(id);
+  const d = sh?.meta.anims[anim]?.dirs[dir];
+  if (!d) return [];
+  const [cw, ch] = sh.meta.cell;
+  const [px, py] = sh.meta.pivot || [cw / 2, ch];
+  const c = document.createElement('canvas');
+  c.width = cw; c.height = ch;
+  const x = c.getContext('2d');
+  x.drawImage(sh.img, ((d.col || 0) + Math.min(frame, d.frames - 1)) * cw, d.row * ch, cw, ch, 0, 0, cw, ch);
+  const data = x.getImageData(0, 0, cw, ch).data;
+  const solid = [];
+  for (let i = 0; i < cw * ch; i++) if (data[i * 4 + 3] > 200) solid.push(i);
+  const out = [];
+  for (let k = 0; k < n && solid.length; k++) {
+    const i = solid[Math.floor(Math.random() * solid.length)];
+    out.push([((i % cw) - px) * PIXEL, (Math.floor(i / cw) - py) * PIXEL]);
+  }
+  return out;
 }
 
 // Duración de una animación (para saber cuándo termina una que no se repite)

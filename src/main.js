@@ -8,7 +8,6 @@ import { updatePad } from './mando.js';
 import { unlockAudio, setMusicOn, toggleMute } from './sfx.js';
 import { loadSave } from './save.js';
 import { loadSprites } from './sprites.js';
-import { EFECTOS } from './zombies.js';
 
 const root = document.getElementById('game-wrap');
 const canvas = document.getElementById('game');
@@ -36,19 +35,11 @@ window.addEventListener('keydown', unlockAudio);
 window.addEventListener('keydown', (e) => {
   if ((e.code === 'Escape' || e.code === 'KeyP') && !e.uiHandled) game.openPause();
 });
-// Modo pruebas (?pruebas): las teclas 1-6 invocan cada tipo de zombi, 7 el mini jefe y 8 la jefa final;
-// la 9 cambia cómo se pintan los zombis en llamas
+// Modo pruebas (?pruebas): las teclas 1-6 invocan cada tipo de zombi, 7 el mini jefe y 8 la jefa final
 const TEST_ZOMBIES = ['lento', 'normal', 'rapido', 'explosivo', 'tentaculos', 'venenoso', 'miniboss', 'boss'];
 window.addEventListener('keydown', (e) => {
   if (!game.testMode || game.state !== 'playing' || game.paused || e.uiHandled) return;
   const n = Number(e.key);
-  // 9: cambia la forma de pintar a los zombis en llamas (1 = por código, 2 = hojas recoloreadas)
-  if (n === 9) {
-    EFECTOS.fuego = EFECTOS.fuego === 1 ? 2 : 1;
-    const p = game.player;
-    game.floatText(p.x, p.y - 70, `Fuego: forma ${EFECTOS.fuego}`, '#ff9f1c', 22);
-    return;
-  }
   if (n >= 1 && n <= TEST_ZOMBIES.length) {
     const pos = game.findSpawnPoint();
     game.spawnEnemy(TEST_ZOMBIES[n - 1], pos.x, pos.y);
