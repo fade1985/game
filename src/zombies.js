@@ -21,13 +21,68 @@ const REACH = 18;     // a qué distancia del conserje (además de los dos radio
 // al dibujar al zombi se le echa una capa de color por encima, así sirve para cualquier hoja y variante.
 const FLAMES = 70;        // llamas por segundo que le suben a un zombi que arde
 const CHAR = '#2c211c';   // el carbón de los que mueren ardiendo (se multiplica: oscurece sin borrar las sombras)
-const STAIN = '#16110f';  // la mancha de hollín que queda en el suelo cuando el cuerpo se deshace
 // Lo que le pasa al cuerpo de un zombi que muere ardiendo, en segundos desde que toca el suelo:
 const BURNT = {
   char: 1.5,      // se va apagando y ennegreciendo (mientras cae, sigue en llamas)
   embers: 5,      // le quedan brasas y humo hasta aquí
-  ash: 6.5,       // y entre embers y ash se deshace en ceniza: solo queda la mancha
+  ash: 6.5,       // y entre embers y ash se deshace en ceniza: quedan sus restos (quemadura y huesos)
 };
+
+// Los restos, en píxeles del dibujo: o = contorno, b = hueso, s = sombra del hueso, k = cuenca del ojo
+const BONE_COLORS = { o: '#2a211c', b: '#c9bfa6', s: '#8d8370', k: '#140f0d' };
+const SKULL = [
+  '..oooo..',
+  '.obbbbo.',
+  'obbbbbso',
+  'obkbbkso',
+  'obbbbbso',
+  '.osbsso.',
+  '..obob..',
+];
+const BONE = [
+  'oo.....oo',
+  'obooooobo',
+  '.obbbbso.',
+  'obooooobo',
+  'oo.....oo',
+];
+
+// Dibuja los restos de un zombi carbonizado en un lienzo pequeño (1 píxel = 1 píxel del dibujo):
+// una quemadura irregular en el suelo, más negra en el centro, con motas de ceniza, y encima una calavera y
+// un par de huesos colocados al azar. `w` y `h`: lo que medía el cuerpo tendido, en píxeles del dibujo.
+function drawRemains(w, h) {
+  const rx = Math.max(10, w / 2 + 3), ry = Math.max(6, Math.min(rx * 0.55, h / 2 + 4));
+  const W = Math.ceil(rx * 2 + 4), H = Math.ceil(ry * 2 + 4);
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  // quemadura: cada píxel mira lo lejos que está del centro, con un poco de ruido para que el borde sea irregular
+  const lumps = Array.from({ length: 5 }, () => [rand(0, TAU), rand(0.1, 0.25)]);
+  for (let py = 0; py < H; py++) {
+    for (let px = 0; px < W; px++) {
+      const dx = (px - W / 2) / rx, dy = (py - H / 2) / ry;
+      const a = Math.atan2(dy, dx);
+      const bump = lumps.reduce((t, [p, k]) => t + Math.cos(a * 3 + p) * k, 0) / 2;
+      const d = Math.hypot(dx, dy) - bump + rand(-0.08, 0.08);
+      if (d > 1) continue;
+      if (Math.random() < 0.05) x.fillStyle = 'rgba(122, 116, 110, 0.8)';   // mota de ceniza
+      else x.fillStyle = d < 0.45 ? 'rgba(20, 15, 13, 0.9)' : d < 0.75 ? 'rgba(42, 26, 20, 0.7)' : 'rgba(58, 42, 34, 0.4)';
+      x.fillRect(px, py, 1, 1);
+    }
+  }
+  // calavera y huesos: un hueso puede ir tumbado o de pie (se le da la vuelta a la plantilla)
+  const stamp = (rows, ox, oy, upright) => {
+    rows.forEach((row, j) => [...row].forEach((ch, i) => {
+      if (ch === '.') return;
+      x.fillStyle = BONE_COLORS[ch];
+      x.fillRect(Math.round(ox + (upright ? j : i)), Math.round(oy + (upright ? i : j)), 1, 1);
+    }));
+  };
+  const cx = W / 2, cy = H / 2;
+  for (let i = 0; i < 2; i++) stamp(BONE, cx + rand(-rx * 0.6, rx * 0.2), cy + rand(-ry * 0.5, ry * 0.1), Math.random() < 0.4);
+  stamp(SKULL, cx + rand(-rx * 0.5, rx * 0.3) - 4, cy + rand(-ry * 0.4, ry * 0.2) - 4, false);
+  return c;
+}
 
 // Llamas de píxeles que suben desde una zona (ancho w, alto h, con los pies en x, y), `rate` por segundo
 function flames(game, x, y, w, h, rate, dt) {
@@ -45,7 +100,7 @@ function flames(game, x, y, w, h, rate, dt) {
 // Un zombi muerto: cae y se queda tendido en el suelo. Solo es dibujo (no estorba ni se puede coger).
 // Lo deja el propio zombi al morir si su hoja de sprites tiene la animación "death".
 // Si murió ardiendo: cae en llamas, se apaga y se queda como carbón con brasas y humo, y al final se deshace
-// en ceniza y deja una mancha de hollín en el suelo (que ya no se va).
+// en ceniza: quedan una quemadura en el suelo y unos huesos (que ya no se van).
 class Corpse {
   constructor(sprite, x, y, dir, time, scale = 1, burnt = false) {
     this.kind = 'corpse';
@@ -90,14 +145,14 @@ class Corpse {
       sprite({ tint: { color: CHAR, alpha: 1, mode: 'multiply' }, alpha: k });
       flames(game, fx, fy - 4, 44 * s, 24 * s, FLAMES * (1 - k), dt);
     } else if (tg < BURNT.ash) {
-      // carbón; al final se va deshaciendo (cada vez más transparente) sobre su mancha
+      // carbón; al final se va deshaciendo (cada vez más transparente) y debajo aparecen sus restos
       const k = Math.max(0, (tg - BURNT.embers) / (BURNT.ash - BURNT.embers));
-      if (k > 0) sprite({ tint: { color: STAIN, alpha: 1, mode: 'source-in' }, alpha: 0.5 * k });
+      if (k > 0) this.drawRemains(ctx, fx, fy, s, k);
       sprite({ tint: { color: CHAR, alpha: 1, mode: 'multiply' }, alpha: 1 - k });
       if (k > 0) this.ashes(game, fx, fy, s, dt);
     } else {
-      // solo queda la mancha de hollín
-      sprite({ tint: { color: STAIN, alpha: 1, mode: 'source-in' }, alpha: 0.5 });
+      // solo quedan la quemadura del suelo y los huesos
+      this.drawRemains(ctx, fx, fy, s, 1);
       return;
     }
     if (tg < BURNT.embers) this.drawEmbers(ctx, game, tg, fx, fy, s);
@@ -129,6 +184,27 @@ class Corpse {
         ctx.fillRect(snap(fx + x + Math.sin(c * 5 + ph) * 8 - size / 2), snap(fy + y - c * 70 - size / 2), size, size);
       }
     }
+    ctx.globalAlpha = 1;
+  }
+
+  // Los restos (quemadura y huesos), centrados donde estaba el cuerpo tendido. Se dibujan una sola vez en su
+  // lienzo y luego solo se copian; cada zombi tiene los suyos (forma y huesos al azar).
+  drawRemains(ctx, fx, fy, s, alpha) {
+    if (!this.remains) {
+      const pts = spritePoints(this.sprite, 'death', this.dir, animFrames(this.sprite, 'death') - 1, 80);
+      const xs = pts.map((p) => p[0] * s), ys = pts.map((p) => p[1] * s);
+      const minX = Math.min(...xs, -10), maxX = Math.max(...xs, 10);
+      const minY = Math.min(...ys, -16), maxY = Math.max(...ys, 0);
+      this.remains = {
+        img: drawRemains((maxX - minX) / PIXEL, (maxY - minY) / PIXEL),
+        cx: (minX + maxX) / 2, cy: (minY + maxY) / 2,
+      };
+    }
+    const { img, cx, cy } = this.remains;
+    const snap = (v) => Math.round(v / PIXEL) * PIXEL;
+    ctx.globalAlpha = alpha;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(img, snap(fx + cx - (img.width * PIXEL) / 2), snap(fy + cy - (img.height * PIXEL) / 2), img.width * PIXEL, img.height * PIXEL);
     ctx.globalAlpha = 1;
   }
 
