@@ -340,9 +340,7 @@ export class GameDrawing {
     // el marco de la barra de Johnny, con la sangre del color de cada jefe; la raya de la mitad marca la fase 2
     pixelBossBar(ctx, x, y, boss.hp / boss.maxHp, boss.color, { mitad: boss.type === 'boss' && boss.phase === 1 });
     const bossName = `${boss.name}${boss.phase === 2 ? ' · ¡FURIOSO!' : ''}`;
-    outlinedText(ctx, bossName, this.ow / 2 + 16, y - 16, 22, '#ffd23f', { lw: 6 });
-    ctx.font = '22px "ZS UI"';
-    drawEmojiAt(ctx, boss.icon, this.ow / 2 + 16 - ctx.measureText(bossName).width / 2 - 20, y - 16, 22);
+    outlinedText(ctx, bossName, this.ow / 2, y - 16, 22, '#ffd23f', { lw: 6 });
     ctx.restore();
   }
 
