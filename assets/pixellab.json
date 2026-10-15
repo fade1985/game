@@ -1180,7 +1180,7 @@
       "muerte": "grupo 2e3732e7, 8 direcciones, 12 fotogramas sin final. De espaldas, el texto dice hacia dónde quedan la cabeza y los pies."
     },
     "juego": "zombies.js: al encenderse la mecha reproduce 'attack' (abrir) y se queda en el último fotograma (anim.hold) hasta reventar; con la gabardina abierta no se encoge al recibir golpes; no da zarpazo; con sprite el parpadeo de la mecha es rojo (el blanco tapaba la dinamita). Al reventar deja el cuerpo tendido, como los demás.",
-    "sin_usar_en_pixellab": "personaje c7074299 (modelo con la piel beige), grupo 9d0683bc 'ataque' (east de frente) y grupo 422f61bb 'andar-nw'; dentro del grupo de andar, west, south-west y north-west no se usan. Borrar solo con confirmación del dueño.",
+    "sin_usar_en_pixellab": "Todo borrado de PixelLab (2026-10-15, con confirmación del dueño): el personaje 9eeb36b7 con sus animaciones y los modelos c7074299 y c1f417a6. Los fotogramas siguen en assets/sources/zombi-explosivo-48/.",
     "cost": "unas 43 generaciones (6 modelo + 0,25 importar + 37 animaciones, con 3 repetidas)",
     "updated": "2026-10-15"
   },
@@ -1212,7 +1212,7 @@
       "golpe": "grupos d2e55428, c5aeef00, 7e0cf804, 45cde3df, d5880ace, e4d8924c, 34897dd3, d1561103 (las 8 direcciones).",
       "muerte": "grupos b327343b (south), acc72619 (south-east), 4a254c9a (east), 2b9f830b (north-east), f4e902a5 (north, repetida sin charco). west, south-west y north-west reflejados."
     },
-    "sin_usar_en_pixellab": "grupo dfb143b4 (muerte north con un charco rojo; la nueva es f4e902a5); en el grupo 54aade3c, los andares west y south-west. Y la versión de 48 entera (9eeb36b7, con sus modelos c7074299 y c1f417a6), si el dueño da por buena la grande. Borrar solo con su confirmación.",
+    "sin_usar_en_pixellab": "Borrados (2026-10-15, con confirmación del dueño): la muerte north con charco (grupo dfb143b4) y los andares west y south-west del grupo 54aade3c. Queda el modelo d190c9d8 (piel sin corregir), no incluido en la limpieza.",
     "cost": "Unas 35 generaciones: 6 del modelo + 0,25 de importar + unas 29 de animaciones.",
     "updated": "2026-10-15"
   }
