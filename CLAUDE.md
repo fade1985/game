@@ -34,6 +34,10 @@ ni compilación. Se publica en **Vercel** como web estática: lo que se sube a `
 - Se combinan: `?pruebas&mudo`.
 - En la consola el juego es `window.game` (`game.update(1/60)` lo adelanta). `tools/bot.js` juega solo para medir
   el equilibrado (uso en su cabecera).
+- **`npm test`** abre el juego sin pantalla, pasa por menú, zombis, jefes, armas, molotov y partidas del bot, y
+  falla si sale algún error (capturas en `tools/prueba-salida/`). Con el azar fijo, cada vez pasa lo mismo:
+  `npm test -- --comparar` dice si el juego se comporta igual que la huella guardada (`tools/prueba-huella.json`).
+  Pasarlo antes y después de reordenar código; si se cambia a propósito cómo juega algo, `-- --guardar`.
 - Python se llama con `py` (tiene Pillow); poner `PYTHONIOENCODING=utf-8` delante si escribe tildes.
 - Guardado en `localStorage`, clave `blobquest-save-v2`.
 

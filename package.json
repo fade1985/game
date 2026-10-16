@@ -4,6 +4,7 @@
   "private": true,
   "description": "Roguelike de zombis por edificios en el navegador (HTML5 Canvas + JavaScript)",
   "scripts": {
-    "dev": "npx --yes serve -l 3000 ."
+    "dev": "npx --yes serve -l 3000 .",
+    "test": "node tools/prueba.mjs"
   }
 }
