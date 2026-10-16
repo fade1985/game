@@ -256,6 +256,14 @@ export function sceneryOf(room) {
   }
   // cuadros, ventanas y relojes de la pared de arriba, justo encima de su cara
   const decor = room.layout.wallDecor || [];
+  // las puertas del muro de arriba (con su letrero), también encima de su cara
+  list.push({
+    y: WALL + 0.4,
+    draw(ctx, game) {
+      drawDoors(ctx, room, game && game.room === room ? game.doorOpen : 1, true);
+      drawDoorLabels(ctx, room, true);
+    },
+  });
   if (decor.length) list.push({ y: WALL + 0.5, draw(ctx, game) { for (const d of decor) drawWallDecor(ctx, d, game ? game.time : 0); } });
   for (const o of room.layout.obstacles) {
     if (o.shape !== 'rect') continue;
@@ -446,9 +454,12 @@ function drawObstacle(ctx, o) {
 // estuvieran en el muro de arriba y se giran: el lado +y local siempre mira hacia el suelo.
 
 // open: 0 = cerradas, 1 = abiertas (las que tienen cerrojo no se abren aunque el mapa esté limpio)
-export function drawDoors(ctx, room, open) {
+// up: true = solo las del muro de arriba, false = las demás. Las de arriba van con la escena (sceneryOf),
+// después de la cara de su muro, que mide 3 casillas y si no las taparía.
+export function drawDoors(ctx, room, open, up = false) {
   const trim = room.layout.style.trim;
   for (const ex of room.exits) {
+    if ((ex.dir === 'up') !== up) continue;
     const w = DOOR_W, h = WALL + 10;
     const gap = ex.locked ? 0 : open;
     ctx.save();
@@ -533,9 +544,9 @@ export function drawDoors(ctx, room, open) {
 
 // Letrero de cada puerta ("1ºA", "Escaleras"...), al otro lado de la insignia.
 // Va aparte porque se dibuja a resolución de pantalla, para que se pueda leer.
-export function drawDoorLabels(ctx, room) {
+export function drawDoorLabels(ctx, room, up = false) {
   for (const ex of room.exits) {
-    if (!ex.label) continue;
+    if (!ex.label || (ex.dir === 'up') !== up) continue;
     if (ex.dir === 'left' || ex.dir === 'right') {
       // en los muros laterales no cabe a lo ancho: va dentro, encima de la puerta
       outlinedText(ctx, ex.label, ex.x + (ex.dir === 'left' ? 62 : -62), ex.y - DOOR_W / 2 - 22, 15, '#fff8ea', { lw: 4 });
