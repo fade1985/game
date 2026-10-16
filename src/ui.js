@@ -81,12 +81,19 @@ export function createUI(root) {
       set('meleeOn', $('#pill-melee'), p.hand === 'melee', 'class:on');
       set('rangedHide', $('#pill-ranged'), !ranged, 'hidden');
       if (ranged) {
-        const ammo = `${p.mag}/${g.testMode ? '∞' : p.reserve}`; // mientras recarga, parpadea (style.css)
-        set('ranged', $('#pill-ranged'), `<i class="ico ico-${ranged.id}"></i> <b>${ranged.name}</b> <span class="ammo">${ammo}</span>`, 'innerHTML');
+        set('ranged', $('#pill-ranged'), `<i class="ico ico-${ranged.id}"></i> <b>${ranged.name}</b>`, 'innerHTML');
         set('rangedOn', $('#pill-ranged'), p.hand === 'ranged', 'class:on');
-        set('rangedEmpty', $('#pill-ranged'), p.mag === 0 && !p.reloading, 'class:empty');
-        set('rangedReload', $('#pill-ranged'), p.reloading, 'class:reloading');
+        // las balas sobre la vida: una por cada bala que cabe en el cargador (las gastadas, apagadas) y la reserva
+        const row = $('.ammo-row');
+        const balas = Array.from({ length: ranged.mag }, (_, i) => (i < p.mag ? '<i></i>' : '<i class="spent"></i>')).join('');
+        set('ammoRow', row, `${balas}<b>${g.testMode ? '∞' : `+${p.reserve}`}</b>`, 'innerHTML');
+        set('ammoShells', row, !!ranged.shell, 'class:shells');
+        set('ammoMany', row, ranged.mag > 16, 'class:many');
+        set('ammoAway', row, p.hand !== 'ranged', 'class:away');
+        set('ammoReload', row, p.reloading, 'class:reloading');
+        set('ammoEmpty', row, p.mag === 0 && !p.reloading && !p.hasReserve(g), 'class:empty');
       }
+      set('ammoHide', $('.ammo-row'), !ranged, 'hidden');
       // y los botones redondos del móvil (lo mismo, en pequeño)
       set('bMelee', $touch('.slot-melee .ico'), `ico ico-${melee.id}`, 'className');
       set('bMeleeOn', $touch('.slot-melee'), p.hand === 'melee', 'class:on');
@@ -94,8 +101,6 @@ export function createUI(root) {
       if (ranged) {
         set('bRanged', $touch('.slot-ranged .ico'), `ico ico-${ranged.id}`, 'className');
         set('bRangedOn', $touch('.slot-ranged'), p.hand === 'ranged', 'class:on');
-        set('bAmmo', $touch('.slot-ranged b'), String(p.mag));
-        set('bEmpty', $touch('.slot-ranged'), p.mag === 0 && !p.reloading, 'class:empty');
         // el aro de recarga: de 0 a 1 según lo que lleva (style.css lo pinta con --recarga)
         const k = p.reloading ? (1 - p.reloadT / p.reloadDur).toFixed(2) : '0';
         set('bReload', $touch('.slot-ranged'), k, 'reload');

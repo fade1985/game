@@ -135,7 +135,7 @@ async function pruebas() {
   for (const arma of Object.keys(WEAPONS)) {
     sala(arma);
     for (const tipo of ['normal', 'lento', 'rapido']) { const pt = game.findSpawnPoint(); game.spawnEnemy(tipo, pt.x, pt.y); }
-    for (let t = 0; t < 10; t++) { inmortal(); paso(1); if (t === 2) await foto(`05-arma-${arma}`); }
+    for (let t = 0; t < 10; t++) { inmortal(); paso(1); if (t === 2) { game.ui.updateHud(game); await foto(`05-arma-${arma}`); } }
     huella[`arma-${arma}`] = estado();
   }
 

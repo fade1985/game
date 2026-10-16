@@ -267,6 +267,40 @@ canvas {
   background: url('assets/ui/barra-vida.png') center / 100% 100% no-repeat;
   image-rendering: pixelated;
 }
+/* Las balas del cargador, en fila sobre la barra de vida: las gastadas se quedan como una sombra, para ver
+   cuántas caben. Al final, las de reserva. Más apagadas si llevas en la mano el arma cuerpo a cuerpo */
+.ammo-row {
+  position: absolute;
+  left: 4.6%;
+  bottom: 100%;
+  margin-bottom: 0.25em;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.12em;
+  white-space: nowrap;
+}
+.ammo-row[hidden] { display: none; }
+.ammo-row i {
+  width: 0.7em;
+  height: 1.4em;
+  background: url('assets/ui/iconos/bala.png') center / 100% 100% no-repeat;
+  image-rendering: pixelated;
+}
+.ammo-row.shells i { width: 0.9em; height: 1.8em; background-image: url('assets/ui/iconos/cartucho.png'); }
+.ammo-row.many { gap: 0.08em; }
+.ammo-row.many i { width: 0.5em; height: 1em; } /* cargadores grandes (el MP5): más pequeñas, para que quepan sobre la barra */
+.ammo-row i.spent { opacity: 0.22; filter: grayscale(1); }
+.ammo-row b {
+  margin-left: 0.35em;
+  font-weight: 400;
+  font-size: 0.8em;
+  color: #f0e8d4;
+  -webkit-text-stroke: 0.25em var(--line);
+  paint-order: stroke fill;
+}
+.ammo-row.away { opacity: 0.5; }
+.ammo-row.reloading i.spent { animation: recarga 0.4s steps(2) infinite; }
+.ammo-row.empty b { color: #ff5d73; }
 .hpbar span {
   position: absolute;
   inset: 0;
@@ -297,10 +331,7 @@ canvas {
 /* Carteles de las armas: se pueden tocar. El del arma que está en la mano se ve encendido; el otro, apagado */
 .weapon-pill { pointer-events: auto; cursor: pointer; opacity: 0.55; }
 .weapon-pill.on { opacity: 1; }
-.weapon-pill .ammo { color: #ffd23f; }
-.weapon-pill.empty .ammo { color: #ff5d73; }
-.weapon-pill.reloading .ammo { animation: recarga 0.4s steps(2) infinite; }
-@keyframes recarga { 50% { opacity: 0.25; } }
+@keyframes recarga { 50% { opacity: 0.6; } }
 .icon-btn {
   pointer-events: auto;
   font-size: 1.1em;
@@ -373,7 +404,7 @@ body.touch #touch-ui:not([hidden]) { display: block; }
 .toss-btn:active { transform: translateY(0.15em); }
 .toss-btn .ico { width: 1.9em; height: 1.9em; }
 /* Botones redondos de las armas. El del arma que está en la mano, con el aro amarillo y encendido;
-   el otro, apagado. En el de fuego, las balas del cargador y, al recargar, un aro blanco que se va llenando */
+   el otro, apagado. En el de fuego, al recargar, un aro blanco que se va llenando (las balas van sobre la vida) */
 .slot-btn {
   pointer-events: auto;
   position: absolute;
@@ -403,17 +434,6 @@ body.touch #touch-ui:not([hidden]) { display: block; }
   mask: radial-gradient(closest-side, transparent 76%, #000 78%);
   pointer-events: none;
 }
-.slot-btn b {
-  position: absolute;
-  right: -0.2em;
-  bottom: -0.3em;
-  font-weight: 400;
-  font-size: 0.95em;
-  color: #ffd23f;
-  -webkit-text-stroke: 3px var(--ink);
-  paint-order: stroke fill;
-}
-.slot-btn.empty b { color: #ff5d73; }
 /* en el móvil los botones redondos ya enseñan las armas: los carteles de abajo sobran */
 body.touch .weapon-pill { display: none; }
 .toss-btn b {
@@ -455,7 +475,7 @@ body.touch .weapon-pill { display: none; }
   image-rendering: pixelated;
 }
 .icon-btn .ico { width: 1.5em; height: 1.5em; }
-.dash-btn .ico { width: 2.4em; height: 2.4em; }
+.dash-btn .ico { width: 2.4em; height: 2.4em; transform: translate(0.3em, -0.08em); } /* el dibujo de la zapatilla está corrido a la izquierda en su imagen: así queda centrado en el botón */
 .ico-llave { background-image: url('assets/ui/iconos/llave.png'); }
 .ico-billete { background-image: url('assets/ui/iconos/billete.png'); }
 .ico-molotov { background-image: url('assets/ui/iconos/molotov.png'); }

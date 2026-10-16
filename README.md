@@ -15,7 +15,7 @@ Hecho con **HTML5 Canvas + JavaScript puro**, sin librerías ni paso de compilac
 - **Cambiar de arma:** `Q` o la rueda del ratón (en móvil: toca el botón redondo de la otra arma, a la derecha,
   junto al de esquivar).
 - **Recargar:** `R` (en móvil: toca el botón redondo del arma de fuego cuando la llevas en la mano; un aro blanco
-  se va llenando mientras recarga). También recarga sola
+  se va llenando mientras recarga y las balas de encima de la vida parpadean). También recarga sola
   al vaciar el cargador o cuando no hay ningún zombi a tiro.
 - **Con mando** (Xbox, PlayStation...): stick izquierdo o cruceta para moverte, `A` esquivar, `X` recargar, `Y`
   cambiar de arma, `RT` mantenido + stick derecho para apuntar el molotov (se lanza al soltar), `Start` pausa. En los menús: cruceta o stick para
@@ -100,8 +100,9 @@ las dos; la que está en la mano, encendida. Empiezas cada edificio con la **fre
 por encima de un arma del suelo la coges: si ya llevabas una de ese tipo, la vieja se queda en el suelo. El mini
 jefe siempre suelta un arma.
 
-**Munición:** cada arma de fuego tiene su **cargador** y llevas balas de reserva en la mochila (el cartel dice
-`cargador/reserva`). Al cogerla viene con el cargador lleno y 2 cargadores de reserva; caben como mucho 4. Los
+**Munición:** cada arma de fuego tiene su **cargador** y llevas balas de reserva en la mochila. Encima de la
+barra de vida se ven las balas del cargador, una a una (los cartuchos rojos, en la escopeta): al disparar se van
+apagando, y al final de la fila pone las de reserva (`+24`). Al cogerla viene con el cargador lleno y 2 cargadores de reserva; caben como mucho 4. Los
 zombis sueltan a veces una **caja de munición** (un cargador más) y el mini jefe suelta 2. Si te quedas sin
 ninguna bala, Johnny saca solo la de cuerpo a cuerpo, y vuelve a la de fuego al coger una caja. La escopeta
 mete los cartuchos **de uno en uno** y puede disparar a mitad de recarga. En el modo de pruebas la reserva es infinita.

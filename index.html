@@ -24,10 +24,11 @@
     <!-- HUD: va sobre el muro inferior, dejando libre el centro (puerta de abajo) -->
     <div id="hud" hidden>
       <div class="hud-left">
-        <div class="hpbar"><div class="fill"></div><span></span></div>
+        <!-- encima de la barra de vida, las balas del cargador: una por bala, y se apagan al disparar -->
+        <div class="hpbar"><div class="fill"></div><span></span><div class="ammo-row" hidden></div></div>
         <!-- las dos armas: la que está en la mano se resalta. Al tocar la otra se cambia; al tocar la de fuego en la mano, se recarga -->
         <div class="pill weapon-pill on" id="pill-melee" title="Arma cuerpo a cuerpo (Q o rueda para cambiar)"><i class="ico ico-fregona"></i> <b>Fregona</b></div>
-        <div class="pill weapon-pill" id="pill-ranged" title="Arma de fuego (Q o rueda para cambiar · R para recargar)" hidden><i class="ico ico-pistola"></i> <b>Pistola</b> <span class="ammo"></span></div>
+        <div class="pill weapon-pill" id="pill-ranged" title="Arma de fuego (Q o rueda para cambiar · R para recargar)" hidden><i class="ico ico-pistola"></i> <b>Pistola</b></div>
         <div class="pill" id="pill-keys" title="Dólares para el Taller"><i class="ico ico-billete"></i> <b id="hud-keys">$0</b></div>
         <div class="pill" id="pill-molotov" title="Cócteles molotov (clic derecho o E)"><i class="ico ico-molotov"></i> <b id="hud-molotov">0</b></div>
       </div>
@@ -46,7 +47,7 @@
       <button class="toss-btn"><i class="ico ico-molotov"></i><b>0</b></button>
       <!-- las dos armas, en arco alrededor del botón de esquivar: tocar la otra la saca; tocar la de fuego
            que ya está en la mano, recarga (un aro blanco se va llenando mientras recarga) -->
-      <button class="slot-btn slot-ranged" data-slot="ranged" hidden><i class="ico ico-pistola"></i><b></b></button>
+      <button class="slot-btn slot-ranged" data-slot="ranged" hidden><i class="ico ico-pistola"></i></button>
       <button class="slot-btn slot-melee on" data-slot="melee"><i class="ico ico-fregona"></i></button>
     </div>
 
