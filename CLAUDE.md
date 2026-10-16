@@ -60,7 +60,7 @@ ni compilación. Se publica en **Vercel** como web estática: lo que se sube a `
 | `molotov.js` | El cóctel molotov: apuntar y lanzar (clic derecho / E / botón táctil / RT del mando), el fuego y su dibujo |
 | `mando.js` | Jugar con mando: lo lee en cada fotograma; en la partida lo pasa a `input.js` y en los menús va de botón en botón |
 | `upgrades.js` / `ui.js` / `input.js` / `sfx.js` / `save.js` | Mejoras, menús y HUD, controles, sonido, guardado |
-| `musica.js` | Música de fondo siniestra que se inventa sobre la marcha (tramos de tensión, acordes y sucesos al azar con su propio dado); `node tools/grabar-musica.mjs` la graba a un .wav |
+| `musica.js` | Música de fondo siniestra que se inventa sobre la marcha (tramos de tensión, acordes y sucesos al azar con su propio dado); `node tools/grabar-musica.mjs` la graba a un .wav. Con visto bueno (16 oct) |
 
 Arte a 480×320 (2 unidades del juego por píxel), casillas de 16 píxeles, personajes de 48. Cada sprite es
 `assets/sprites/<id>.png` + `.json` y su id va en `assets/sprites/manifest.json`.
