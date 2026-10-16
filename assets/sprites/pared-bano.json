@@ -1,13 +1,14 @@
 {
   "cell": [
-    230,
-    96
+    460,
+    192
   ],
   "pivot": [
     0,
     0
   ],
-  "scale": 0.5,
+  "scale": 0.25,
+  "suave": true,
   "anims": {
     "idle": {
       "fps": 1,

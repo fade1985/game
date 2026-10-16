@@ -183,10 +183,12 @@ export function drawSprite(ctx, id, anim, dir, t, x, y, o = {}) {
   // ajustamos a la cuadrícula de píxeles para que no se vea borroso
   const dx = snap(x - px * s), dy = snap(y - py * s);
   if (o.alpha !== undefined) ctx.globalAlpha = o.alpha;
-  ctx.imageSmoothingEnabled = false;
+  // las texturas de mucho detalle ("suave" en su .json) se dibujan suavizadas; el pixel art, nunca
+  ctx.imageSmoothingEnabled = !!sh.meta.suave;
   if (o.flash || o.tint) ctx.drawImage(tintedFrame(id, sh.img, col * cw, d.row * ch, cw, ch, o.flash ? null : o.tint), 0, 0, cw, ch, dx, dy, cw * s, ch * s);
   else ctx.drawImage(sh.img, col * cw, d.row * ch, cw, ch, dx, dy, cw * s, ch * s);
   if (o.alpha !== undefined) ctx.globalAlpha = 1;
+  ctx.imageSmoothingEnabled = false;
   return true;
 }
 

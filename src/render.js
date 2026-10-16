@@ -110,10 +110,8 @@ export function drawRoom(ctx, room, time) {
   if (shape) ctx.stroke(shape.edges);
   else ctx.strokeRect(WALL, WALL, iw, ih);
 
-  // la cara del muro de arriba, con sus cuadros y ventanas. Las de los tabiques y los muebles tienen
-  // altura y pueden tapar a un personaje: no van en esta imagen, se dibujan con ellos (sceneryOf)
-  for (const f of wallFaces(room.layout)) if (f.outer) drawFace(ctx, f);
-  for (const d of wallDecor) drawWallDecor(ctx, d, time);
+  // las caras de los muros (también la de arriba, con sus cuadros y ventanas) no van en esta imagen: se dibujan
+  // con los personajes y a la resolución de la pantalla, para que se vea todo el detalle de su textura (sceneryOf)
   for (const o of obstacles) {
     if (o.shape === 'rect') drawFurnitureShadow(ctx, o);
     else drawObstacle(ctx, o);
@@ -125,8 +123,7 @@ export function drawRoom(ctx, room, time) {
 // Cada muro que tiene suelo justo debajo enseña una cara con el papel pintado de esa habitación.
 // La cara mide FACE_H (3 casillas) y sube desde el pie del muro: la de un tabique tapa las dos últimas filas de
 // la habitación de detrás (se vuelve transparente si hay alguien ahí) y la del muro de arriba se sale del mapa.
-const CAP = 8;         // grosor de la tapa del muro que se ve por encima de la cara
-const OUTER_CAP = TOP_EXTRA - (FACE_H - WALL); // lo mismo en el muro de fuera
+const CAP = TOP_EXTRA - (FACE_H - WALL); // grosor de la tapa (el techo) que se ve por encima de la cara
 
 // Aclara (k > 0) u oscurece (k < 0) un color "#rrggbb"
 function shade(hex, k) {
@@ -166,21 +163,21 @@ export function wallFaces(layout) {
 
 export function drawFace(ctx, f) {
   const { x, w, y, top, style } = f;
-  const capH = f.outer ? OUTER_CAP : CAP;
-  ctx.fillStyle = f.cap;
-  ctx.fillRect(x, top - capH, w, capH);
-  const tex = `pared-${slug(style.name)}`;
+  const tex = `pared-${slug(style.name)}`, roof = `techo-${slug(style.name)}`;
+  if (hasSprite(roof)) strip(ctx, roof, x, top - CAP, w, CAP);
+  else {
+    ctx.fillStyle = f.cap;
+    ctx.fillRect(x, top - CAP, w, CAP);
+  }
   if (hasSprite(tex)) {
-    // textura de la estancia (con su rodapié), repetida a lo ancho y alineada con el mapa para que casen los tramos
-    const meta = spriteMeta(tex);
-    const scale = meta.scale || 1;
-    const step = meta.cell[0] * PIXEL * scale;
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(x, top, w, y - top);
-    ctx.clip();
-    for (let sx = Math.floor(x / step) * step; sx < x + w; sx += step) drawSprite(ctx, tex, 'idle', 'south', 0, sx, y - FACE_H, { scale });
-    ctx.restore();
+    // textura de la estancia (con su rodapié), sin contornos: la moldura del techo ya la remata
+    strip(ctx, tex, x, top, w, y - top);
+    if (!f.outer) {
+      ctx.fillStyle = OUTLINE;
+      ctx.fillRect(x, top - CAP, 2, y - top + CAP);
+      ctx.fillRect(x + w - 2, top - CAP, 2, y - top + CAP);
+    }
+    return;
   } else {
     // papel pintado a rayas, para las estancias que aún no tienen textura
     ctx.fillStyle = style.wall;
@@ -204,20 +201,26 @@ export function drawFace(ctx, f) {
   }
 }
 
-// Lo que la pared de arriba sobresale del mapa (y < 0). La imagen guardada del mapa no llega ahí, así que se
-// pinta en cada fotograma: tapa, caras del muro de fuera y lo que cuelga de ellas (cuadros, ventanas...).
-export function drawWallTops(ctx, room, time) {
-  const { layout } = room;
-  const RW = layout.w || W;
+// Una textura repetida a lo ancho en el rectángulo (x, y, w, h), pegada a su borde de abajo y alineada con el
+// mapa (para que casen los tramos de una misma pared)
+function strip(ctx, id, x, y, w, h) {
+  const meta = spriteMeta(id);
+  const scale = meta.scale || 1;
+  const step = meta.cell[0] * PIXEL * scale;
   ctx.save();
   ctx.beginPath();
-  ctx.rect(0, -TOP_EXTRA, RW, TOP_EXTRA);
+  ctx.rect(x, y, w, h);
   ctx.clip();
-  ctx.fillStyle = capColor(layout.style);
-  ctx.fillRect(0, -TOP_EXTRA, RW, TOP_EXTRA);
-  for (const f of wallFaces(layout)) if (f.outer) drawFace(ctx, f);
-  for (const d of layout.wallDecor || []) drawWallDecor(ctx, d, time);
+  for (let sx = Math.floor(x / step) * step; sx < x + w; sx += step) drawSprite(ctx, id, 'idle', 'south', 0, sx, y + h - meta.cell[1] * PIXEL * scale, { scale });
   ctx.restore();
+}
+
+// Lo que la pared de arriba sobresale del mapa (y < 0): la imagen guardada del mapa no llega ahí, así que se
+// pinta del color de la tapa en cada fotograma (las caras del muro y sus cuadros van encima, con la escena)
+export function drawWallTops(ctx, room) {
+  const { layout } = room;
+  ctx.fillStyle = capColor(layout.style);
+  ctx.fillRect(0, -TOP_EXTRA, layout.w || W, TOP_EXTRA);
 }
 
 // ¿Hay alguien en la franja de la habitación de detrás que tapa esta cara?
@@ -234,7 +237,6 @@ export function sceneryOf(room) {
   const list = [];
   const zones = room.layout.zones;
   for (const f of wallFaces(room.layout)) {
-    if (f.outer) continue;
     list.push({
       y: f.y,
       draw(ctx, game) {
@@ -252,6 +254,9 @@ export function sceneryOf(room) {
       },
     });
   }
+  // cuadros, ventanas y relojes de la pared de arriba, justo encima de su cara
+  const decor = room.layout.wallDecor || [];
+  if (decor.length) list.push({ y: WALL + 0.5, draw(ctx, game) { for (const d of decor) drawWallDecor(ctx, d, game ? game.time : 0); } });
   for (const o of room.layout.obstacles) {
     if (o.shape !== 'rect') continue;
     const zone = zones && o.zone !== undefined ? zones[o.zone] : null;

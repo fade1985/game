@@ -16,6 +16,9 @@ obligatorios (fogón en la cocina) y grupos (cama + mesillas). **Los muebles, su
 - **Pared:** `py tools/textura_pared.py <imagen> <estancia> x0 x1 y0 y1` recorta la pared de frente de junta a
   junta y crea `assets/sprites/pared-<estancia>` (48 píxeles de alto, con rodapié). La del baño sale de
   `assets/sources/suelos/bano-vacio.webp`. Las estancias sin textura siguen con el papel pintado a rayas.
+  Con `t0 t1` saca también la moldura del techo (`techo-<estancia>`), que remata la pared en vez de la tapa lisa.
+  La pared va a 192 píxeles de alto (cuatro veces el detalle de los personajes) y suavizada (`"suave"` en su
+  `.json`): las caras de los muros se dibujan con la escena, a la resolución de la pantalla, no en el fondo.
 - **Paredes de 3 casillas (opción A, elegida por el dueño el 16 de octubre):** la cara mide `FACE_H` (96) y sube
   desde el pie del muro, sin cambiar el generador: en los tabiques tapa las dos últimas filas de la habitación
   de detrás (se vuelve medio transparente si hay alguien ahí) y en el muro de arriba se sale del mapa (la cámara
