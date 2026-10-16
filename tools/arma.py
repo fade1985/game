@@ -231,6 +231,20 @@ for d in DIRS:
             how += '; descartados por fogonazo o humo: ' + ', '.join(str(i) for i, c in enumerate(clean) if not c)
     walk[d] = [placed(same_colors(fs[i], rot[d]), ox, oy, d, i) for i in range(a, a + n)]
     print(f'andar  {d:11s} lienzo {fs[0].size}, desplazado ({ox}, {oy}), fotogramas {a} a {a + n - 1} ({how})')
+
+# A veces PixelLab da un andar a trompicones en una dirección (pocas posturas intermedias) y bien en la
+# contraria. Con "espejo": {"east": "west"} en arma.json, el andar hacia el este es el del oeste dado la vuelta,
+# movido lo justo para que coincida con el dibujo quieto del este (así al echar a andar no da un saltito)
+for d, src in cfg.get('andar', {}).get('espejo', {}).items():
+    if src not in walk:
+        continue
+    flip = lambda im: im.transpose(Image.FLIP_LEFT_RIGHT)
+    here, there = cell(rot[d]), flip(cell(rot[src]))
+    shift = lambda im, x, y: ImageChops.offset(im, x, y)
+    dx, dy = min(((x, y) for x in range(-6, 7) for y in range(-4, 5)),
+                 key=lambda q: differ(here, shift(there, *q)))
+    walk[d] = [same_colors(shift(flip(f), dx, dy), rot[d]) for f in walk[src]]
+    print(f'andar  {d:11s} = el de {src} en espejo ({len(walk[d])} fotogramas, movido ({dx}, {dy}))')
 if len(walk) < len(DIRS):
     print('andar: faltan direcciones en', f'{SRC}/walk', '→ la hoja sale sin la animación de andar')
     walk = {}

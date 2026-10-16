@@ -17,7 +17,9 @@
       "north-west": [4, 8],
       "west":       [1, 10],
       "south-west": [1, 9]
-    }
+    },
+    "espejo": { "east": "west" },
+    "nota_espejo": "El andar hacia el este que dio PixelLab va a trompicones (solo 4 posturas): se usa el del oeste dado la vuelta (2026-10-16)."
   },
   "ataque": {
     "nota": "Qué fotogramas de PixelLab se usan en cada dirección y en qué orden. Es la versión con estela de agua (2026-10-12). En todas, el arco de agua llega al suelo en el cuarto (índice 3). Se quitan los fotogramas repetidos con la mopa en el suelo y los flojos de la recogida.",

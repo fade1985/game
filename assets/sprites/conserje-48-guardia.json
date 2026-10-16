@@ -106,7 +106,7 @@
         },
         "east": {
           "row": 11,
-          "frames": 8
+          "frames": 10
         },
         "north-east": {
           "row": 12,
