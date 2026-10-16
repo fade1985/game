@@ -7,6 +7,10 @@
 import { rand } from './utils.js';
 import { hasSprite } from './sprites.js';
 
+// Rendimiento: como mucho tantas partículas a la vez (con muchos zombis ardiendo se pasaba de 700).
+// Si hay más, se quitan las más antiguas, que son las que ya se están apagando
+const MAX_PARTICLES = 350;
+
 export class GameEffects {
   updateParticles(dt) {
     for (const pt of this.particles) {
@@ -17,6 +21,7 @@ export class GameEffects {
       pt.vx *= fr; pt.vy *= fr;
     }
     this.particles = this.particles.filter((pt) => pt.life > 0);
+    if (this.particles.length > MAX_PARTICLES) this.particles.splice(0, this.particles.length - MAX_PARTICLES);
     for (const t of this.texts) {
       t.t += dt;
       t.y += t.vy * dt;
@@ -94,6 +99,7 @@ export class GameEffects {
     const colors = { explosivo: '#2b2633', venenoso: '#8fd13f', tentaculos: '#7b4fa0' };
     const base = e.isBoss ? 1.8 : 1;
     decals.push({ x: e.x, y: e.y + 10, r: rand(14, 20) * base, color: colors[e.type] || '#5b7d3a', seed: rand(0, 6) });
+    this.room.decalCount = (this.room.decalCount || 0) + 1; // para saber que hay que repintar el suelo (game-dibujo.js)
     if (decals.length > 60) decals.shift();
   }
 

@@ -20,6 +20,7 @@ const REACH = 18;     // a qué distancia del conserje (además de los dos radio
 // Efectos de estado (de momento solo el fuego del molotov). Se pintan por código, sin hojas aparte:
 // al dibujar al zombi se le echa una capa de color por encima, así sirve para cualquier hoja y variante.
 const FLAMES = 70;        // llamas por segundo que le suben a un zombi que arde
+const BURN_TEXT = 0.5;   // cada cuánto saca el número del daño que le va haciendo la quemadura
 const CHAR = '#2c211c';   // el carbón de los que mueren ardiendo (se multiplica: oscurece sin borrar las sombras)
 // Lo que le pasa al cuerpo de un zombi que muere ardiendo, en segundos desde que toca el suelo:
 const BURNT = {
@@ -330,7 +331,16 @@ export class Zombie {
     flames(game, this.x, this.y, this.r * 1.2, tall, FLAMES, dt);
     if (this.burnTick >= MOLOTOV.tick) {
       this.burnTick -= MOLOTOV.tick;
-      this.hurt(MOLOTOV.burn * MOLOTOV.tick, false, 0, 0, game, 0);
+      // el número de daño no sale en cada pellizco, sino sumado cada BURN_TEXT segundos (con muchos zombis
+      // ardiendo había decenas de números a la vez, y el texto es caro de dibujar)
+      this.burnAcc = (this.burnAcc || 0) + MOLOTOV.burn * MOLOTOV.tick;
+      this.burnTextT = (this.burnTextT || 0) + MOLOTOV.tick;
+      const show = this.burnTextT >= BURN_TEXT || this.hp <= MOLOTOV.burn * MOLOTOV.tick;
+      if (show) {
+        game.floatText(this.x + rand(-8, 8), this.y - 38 * this.s, String(Math.round(this.burnAcc)), '#ff9f1c', 18);
+        this.burnAcc = 0; this.burnTextT = 0;
+      }
+      this.hurt(MOLOTOV.burn * MOLOTOV.tick, false, 0, 0, game, 0, true);
     }
   }
 
@@ -525,15 +535,18 @@ export class Zombie {
     }
   }
 
-  hurt(dmg, crit, dirX, dirY, game, knock = 1) {
+  // `quiet`: sin número de daño ni sonido (la quemadura saca los suyos, sumados)
+  hurt(dmg, crit, dirX, dirY, game, knock = 1, quiet = false) {
     if (this.dead) return;
     this.wake(game);
     this.hp -= dmg;
     this.hitFlash = 0.08;
     const push = this.def.push * knock;
     this.kx += dirX * push; this.ky += dirY * push;
-    game.floatText(this.x + rand(-8, 8), this.y - 38 * this.s, Math.round(dmg).toString(), crit ? '#ffd23f' : '#ffffff', crit ? 26 : 18);
-    sfx.hit();
+    if (!quiet) {
+      game.floatText(this.x + rand(-8, 8), this.y - 38 * this.s, Math.round(dmg).toString(), crit ? '#ffd23f' : '#ffffff', crit ? 26 : 18);
+      sfx.hit();
+    }
     if (this.hp <= 0) game.killEnemy(this);
     else if (!this.anim?.hold) this.play('hurt');   // con la gabardina abierta no se encoge
   }

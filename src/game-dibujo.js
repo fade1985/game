@@ -9,6 +9,8 @@ import { drawRoom, sceneryOf, drawDoors, drawDoorLabels, drawFog, drawPickup, dr
 import { outlinedText, roundBox, pixelBossBar, pixelHpBar, MARCO_VIDA_ANCHO } from './draw.js';
 import { setGridSnap, drawSprite } from './sprites.js';
 
+const REPAINT = 0.5; // cada cuánto, como mucho, se repinta el suelo para añadir manchas nuevas
+
 // Iconos pixel art de los objetos (los mismos del CSS); 'zapatillas' reutiliza el del dash
 const ITEM_ICONS = {};
 function itemIcon(id) {
@@ -94,9 +96,13 @@ export class GameDrawing {
   }
 
   // Cada mapa (suelo, paredes, muebles, manchas) se dibuja una vez y se guarda como imagen
+  // Rendimiento: las manchas nuevas no repintan el mapa al momento, sino como mucho cada REPAINT segundos
+  // (con un molotov mueren varios zombis por segundo y cada uno lo repintaba entero)
   roomImage(room) {
-    const key = `${(room.decals || []).length}:${(this.spriteIds || []).length}`;
-    if (!room.cache || room.cacheKey !== key) {
+    const key = `${room.decalCount || 0}:${(this.spriteIds || []).length}`;
+    const soon = room.cache && room.cacheKey.split(':')[1] === key.split(':')[1] && this.time - (room.cacheT ?? -1e9) < REPAINT;
+    if (!room.cache || (room.cacheKey !== key && !soon)) {
+      room.cacheT = this.time;
       const c = room.cache || document.createElement('canvas');
       c.width = room.layout.w / PIXEL; c.height = room.layout.h / PIXEL;
       const x = c.getContext('2d');

@@ -89,6 +89,28 @@ export function registerSheet(id, img, meta) {
 // (el naranja de un zombi en llamas): `alpha` dice cuánto se nota, de 0 a 1, y `mode` cómo se mezcla
 // ("overlay" por defecto; "multiply" oscurece todo conservando las sombras: el cadáver carbonizado).
 // Ojo: el lienzo pequeño se reutiliza, así que el resultado hay que dibujarlo enseguida.
+//
+// Rendimiento: cada fotograma ya pintado (blanco o teñido) se guarda en TINTED para reutilizarlo. Así un zombi
+// en llamas o un cadáver carbonizado no repite la mezcla de colores en cada fotograma (con muchos a la vez,
+// rehacerla siempre frenaba el juego). La transparencia del tinte se redondea a décimas para que basten
+// pocas copias; si se juntan demasiadas, se vacía y se empieza de nuevo.
+const TINTED = new Map();
+const TINTED_MAX = 600;
+function tintedFrame(id, img, sx, sy, cw, ch, tint) {
+  const a = tint ? Math.round(tint.alpha * 10) / 10 : 0;
+  const key = tint ? `${id}|${sx}|${sy}|${tint.color}|${tint.mode || ''}|${a}` : `${id}|${sx}|${sy}|blanco`;
+  let c = TINTED.get(key);
+  if (!c) {
+    if (TINTED.size >= TINTED_MAX) TINTED.clear();
+    const src = paintFrame(img, sx, sy, cw, ch, tint && { ...tint, alpha: a });
+    c = document.createElement('canvas');
+    c.width = cw; c.height = ch;
+    c.getContext('2d').drawImage(src, 0, 0, cw, ch, 0, 0, cw, ch);
+    TINTED.set(key, c);
+  }
+  return c;
+}
+
 let flashCanvas = null;
 function paintFrame(img, sx, sy, cw, ch, tint) {
   if (!flashCanvas) flashCanvas = document.createElement('canvas');
@@ -159,7 +181,7 @@ export function drawSprite(ctx, id, anim, dir, t, x, y, o = {}) {
   const dx = snap(x - px * s), dy = snap(y - py * s);
   if (o.alpha !== undefined) ctx.globalAlpha = o.alpha;
   ctx.imageSmoothingEnabled = false;
-  if (o.flash || o.tint) ctx.drawImage(paintFrame(sh.img, col * cw, d.row * ch, cw, ch, o.flash ? null : o.tint), 0, 0, cw, ch, dx, dy, cw * s, ch * s);
+  if (o.flash || o.tint) ctx.drawImage(tintedFrame(id, sh.img, col * cw, d.row * ch, cw, ch, o.flash ? null : o.tint), 0, 0, cw, ch, dx, dy, cw * s, ch * s);
   else ctx.drawImage(sh.img, col * cw, d.row * ch, cw, ch, dx, dy, cw * s, ch * s);
   if (o.alpha !== undefined) ctx.globalAlpha = 1;
   return true;
