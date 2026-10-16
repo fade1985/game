@@ -23,7 +23,13 @@ obligatorios (fogón en la cocina) y grupos (cama + mesillas). **Los muebles, su
     ajusta al alto de la alfombra y la repite a lo largo (si no, la alfombra de color de antes).
   - Prompts: vista cenital, luz plana y pareja, sin perspectiva, detalles gruesos (motivos de 20–30 cm) y solo
     manchas pequeñas repartidas (las grandes se repetirían; las pinta el juego aparte).
-  - Siguiente: la pared del pasillo (el papel amarillo a rayas desentona).
+  - **Pared** (17 oct, con visto bueno): papel verde oliva y zócalo de madera oscura, de
+    `assets/sources/suelos/pasillo-pared-1.png` (era una captura: se rehízo la tira de 256 × 64 cogiendo el centro
+    de cada bloque). Se igualó la luz (iba a ondas) y se volvió a su paleta; el cuerpo se llevó a 96 filas
+    (`pared-pasillo`, 402 × 96, `"scale": 0.5`, 1 unidad por píxel como el suelo, sin suavizar) y las 3 filas de
+    moldura a `techo-pasillo` (402 × 12). **Pendiente:** el dueño hará variantes de la misma pared para alternarlas
+    (cortarlas por las juntas entre rollos), y una versión generada a 1536 × 384 tendría más detalle.
+    Los destrozos grandes (agujeros, salpicones) irían como adornos sueltos encima, no en la tira.
 - **Pared:** `py tools/textura_pared.py <imagen> <estancia> x0 x1 y0 y1` recorta la pared de frente de junta a
   junta y crea `assets/sprites/pared-<estancia>` (48 píxeles de alto, con rodapié). La del baño sale de
   `assets/sources/suelos/bano-vacio.webp`. Las estancias sin textura siguen con el papel pintado a rayas.
