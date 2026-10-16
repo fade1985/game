@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────
 //  Dibujo del escenario: habitaciones, puertas, objetos y minimapa
 // ─────────────────────────────────────────────
-import { W, H, WALL, DOOR_W, OUTLINE, PIXEL, TILE } from './config.js';
-import { drawSprite, hasSprite } from './sprites.js';
+import { W, H, WALL, DOOR_W, OUTLINE, PIXEL } from './config.js';
+import { drawSprite, hasSprite, spriteMeta } from './sprites.js';
 import { roundBox, outlinedText, heartPath } from './draw.js';
 import { ROOM_TYPES } from './rooms.js';
 import { drawFurniture, drawFurnitureShadow, drawFurnitureLight, drawWallDecor, drawWindowLight } from './furniture.js';
@@ -296,15 +296,22 @@ function drawFloor(ctx, style, seams, x0, y0, w, h) {
   // baldosa del estilo repetida por todo el suelo
   const tile = `suelo-${slug(style.name)}`;
   if (hasSprite(tile)) {
-    const step = TILE * 2 * PIXEL; // las baldosas de suelo miden 32×32 píxeles de dibujo
+    // las baldosas de PixelLab miden 32×32 píxeles de dibujo; las texturas enteras son más grandes y se
+    // dibujan a media escala ("scale" en su .json) para tener el doble de detalle
+    const meta = spriteMeta(tile);
+    const scale = meta.scale || 1;
+    const step = meta.cell[0] * PIXEL * scale;
     for (let y = Math.floor(y0 / step) * step; y < y0 + h; y += step) {
-      for (let x = Math.floor(x0 / step) * step; x < x0 + w; x += step) drawSprite(ctx, tile, 'idle', 'south', 0, x, y);
+      for (let x = Math.floor(x0 / step) * step; x < x0 + w; x += step) drawSprite(ctx, tile, 'idle', 'south', 0, x, y, { scale });
     }
     // suavizamos el dibujo del suelo con el color de la habitación para que los personajes destaquen
-    ctx.globalAlpha = 0.45;
-    ctx.fillStyle = style.floorA;
-    ctx.fillRect(x0, y0, w, h);
-    ctx.globalAlpha = 1;
+    const suavizar = meta.suavizar ?? 0.45;
+    if (suavizar > 0) {
+      ctx.globalAlpha = suavizar;
+      ctx.fillStyle = style.floorA;
+      ctx.fillRect(x0, y0, w, h);
+      ctx.globalAlpha = 1;
+    }
     return;
   }
   // los suelos que aún no tienen baldosa dibujada se pintan a mano

@@ -1,3 +1,23 @@
+# Escenarios: salas generadas con texturas (desde el 16 de octubre de 2026)
+
+Los fondos enteros con ChatGPT/Gemini costaban demasiado (no se controla dónde pone cada mueble). Decidido por
+el dueño: **vuelta a las salas generadas**, con suelo y pared texturizados y muebles colocados por el juego con
+**plantillas con huecos** (como *Isaac*): cada estancia tiene varias plantillas ("aquí algo alto de pared",
+"aquí encimera"...) y el juego llena los huecos de un pool de muebles con límites (una lavadora por cocina),
+obligatorios (fogón en la cocina) y grupos (cama + mesillas). **Los muebles, suelos y paredes los trae el dueño.**
+
+- **Suelo:** textura entera, vista cenital, sin costura, con N × N baldosas rectas. `py tools/textura_suelo.py
+  <imagen> <estancia> <N>` la reduce a 32 píxeles por baldosa y crea `assets/sprites/suelo-<estancia>`; el
+  juego la dibuja a media escala (doble detalle que los personajes) y la repite. **Recortar baldosa a baldosa
+  quedaba peor** (se veían las juntas pintadas): `tools/extraer_baldosas.py` se queda solo para probar.
+- Baño: `assets/sources/suelos/bano-suelo-gemini.webp` (Gemini, 12 × 12). Va mejor si los detalles son gruesos.
+- **Pared:** pendiente; saldrá de `assets/sources/suelos/bano-vacio.webp` (de frente, sin muebles). Tira de 48
+  píxeles de alto: hay que subir la cara de los muros (ahora ~26) y avisar a la sesión del mapa.
+- Textos para Gemini: pedir "perfectly flat orthographic view from directly above, NO perspective, exactly
+  N x N square tiles aligned with the image edges, flat even lighting", y los detalles dentro de cada baldosa.
+
+---
+
 # Fondos de las estancias con ChatGPT (piloto: el baño)
 
 Decidido por el dueño el 13 de octubre de 2026: el juego va a un tono **oscuro, sucio y con sangre**, y las

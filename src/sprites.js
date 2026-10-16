@@ -161,6 +161,9 @@ export const hasSprite = (id) => sheets.has(id);
 // Dibuja el fotograma que toca. `t` es el tiempo de la animación en segundos.
 // Opciones: flash (blanco), tint ({ color, alpha }: capa de color), alpha, scale (1 = tamaño natural), frame (forzar fotograma), cycle (ver abajo).
 // Devuelve false si el sprite o la animación no existen.
+// Datos del .json de una hoja (medidas, escala…), o undefined si no está cargada
+export const spriteMeta = (id) => sheets.get(id)?.meta;
+
 export function drawSprite(ctx, id, anim, dir, t, x, y, o = {}) {
   const sh = sheets.get(id);
   if (!sh) return false;
