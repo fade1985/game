@@ -151,5 +151,8 @@ final, también la de la azotea (con el doble de vida). El vecino del 4ºB, que 
   aviso del abanico de agua sucia y del fregonazo, y bajarla, el golpe; la lejía, su lanzamiento; el grito, al
   enfadarse (a mitad de vida) y al llamar a los vecinos; el giro, su postura quieta dando vueltas. En la segunda
   fase se tiñe un poco de rojo y echa vapor. Al morir cae y su cuerpo se queda en el suelo (`BossCorpse`).
+- **Andar (16 oct, con visto bueno):** parecía que levitaba. Su paso va atado a la distancia andada (`STRIDE`)
+  y, como en el dibujo lo que toca el suelo es la fregona, se baja de 3 a 9 píxeles según la dirección para que
+  las zapatillas pisen la sombra (`FEET_DY` en `src/jefe-portera.js`). Si se rehace la hoja, volver a medirlo.
 - **Números provisionales** (los puso Claude): 600 de vida en la planta baja (+25 % por planta), radio 38.
 - **Pendiente:** que el dueño la pruebe; la botella de lejía y el agua sucia siguen dibujadas con código.
