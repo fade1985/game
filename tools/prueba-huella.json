@@ -159,8 +159,8 @@
     "vida": 100,
     "x": 480,
     "y": 360,
-    "muertes": 0,
-    "zombis": 2,
+    "muertes": 1,
+    "zombis": 1,
     "balas": 0,
     "mano": "ranged",
     "cargador": 0,
@@ -172,23 +172,23 @@
       "floor": 1,
       "dead": true,
       "jammed": false,
-      "time": 170
+      "time": 124
     },
     {
       "state": "over",
       "floor": 1,
       "dead": true,
       "jammed": false,
-      "time": 161
+      "time": 145
     }
   ],
   "botPlantas": [
     {
-      "state": "over",
-      "floor": 6,
+      "state": "playing",
+      "floor": 5,
       "dead": false,
       "jammed": false,
-      "time": 479
+      "time": 557
     }
   ],
   "botMapas": 33,
