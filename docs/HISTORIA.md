@@ -6,6 +6,10 @@ Sacado de CLAUDE.md el 13 de octubre de 2026. Consulta, no hace falta leerlo al 
 
 Quedaban 1.228 generaciones de PixelLab (se renuevan el 12 de noviembre). Todo está subido a `main`.
 
+**16 oct, con visto bueno:** el andar hacia la derecha de la fregona y la pistola daba un salto (PixelLab lo
+dio con pocas posturas). Ahora es el de la izquierda dado la vuelta: `"espejo": {"east": "west"}` en el
+`arma.json` de cada una (lo entiende `tools/arma.py`). Si otra arma salta al andar en una dirección, mismo truco.
+
 **1. Lo que el dueño tiene que probar jugando** (`http://localhost:3000/?pruebas&armas&mudo`; la tecla 1 saca un
 zombi). No ha dado todavía el visto bueno final a nada de esto:
 
