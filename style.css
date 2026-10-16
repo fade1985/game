@@ -342,6 +342,7 @@ body.touch #touch-ui:not([hidden]) { display: block; }
   width: 4.2em;
   height: 4.2em;
   font-size: clamp(14px, 2.4cqw, 24px);
+  border-radius: 50%;          /* redondo, a juego con los de las armas y el molotov */
   background: var(--metal);
   border: 0.2em solid var(--line);
   box-shadow: inset 0 0 0 0.14em var(--rust);
@@ -363,11 +364,13 @@ body.touch #touch-ui:not([hidden]) { display: block; }
   width: 3.2em;
   height: 3.2em;
   font-size: clamp(14px, 2.4cqw, 24px);
+  border-radius: 50%;
   background: var(--metal);
   border: 0.2em solid var(--line);
   box-shadow: inset 0 0 0 0.14em var(--rust);
   touch-action: none;
 }
+.toss-btn:active { transform: translateY(0.15em); }
 .toss-btn .ico { width: 1.9em; height: 1.9em; }
 /* Botones redondos de las armas. El del arma que está en la mano, con el aro amarillo y encendido;
    el otro, apagado. En el de fuego, las balas del cargador y, al recargar, un aro blanco que se va llenando */
@@ -415,10 +418,10 @@ body.touch #touch-ui:not([hidden]) { display: block; }
 body.touch .weapon-pill { display: none; }
 .toss-btn b {
   position: absolute;
-  right: 0.15em;
-  bottom: 0;
+  right: -0.2em;
+  bottom: -0.3em;
   font-weight: 400;
-  font-size: 0.8em;
+  font-size: 0.95em;
   color: #fff;
   -webkit-text-stroke: 3px var(--ink);
   paint-order: stroke fill;
