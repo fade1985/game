@@ -122,8 +122,8 @@ async function pruebas() {
     huella[`zombi-${tipo}`] = estado();
   }
 
-  // 4. Los jefes (mini jefa y jefa final), con la escopeta
-  for (const tipo of ['miniboss', 'boss']) {
+  // 4. Los jefes (mini jefa, jefa final y el vecino de antes), con la escopeta
+  for (const tipo of ['miniboss', 'boss', 'vecino']) { // el vecino ya no sale, pero se guarda
     sala('escopeta');
     const pt = game.findSpawnPoint();
     game.spawnEnemy(tipo, pt.x, pt.y);

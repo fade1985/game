@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────
 import { WALL, OUTLINE, PIXEL } from './config.js';
 import { rand, clamp, dist } from './utils.js';
-import { BLEACH, drawBottle } from './bosses.js';
+import { BLEACH, drawBottle } from './jefe-portera.js';
 import { POISON, TENTACLE } from './zombies.js';
 import { drawSprite, hasSprite } from './sprites.js';
 import { sfx } from './sfx.js';
