@@ -22,6 +22,9 @@ export const FADE = 0.6;        // duración de cada mitad del fundido al cambia
 // Así los muros miden 2 baldosas de grueso y las puertas, 3 de ancho.
 export const PIXEL = 2;
 export const TILE = 16;
+// El fondo (suelo, paredes, lo pintado a mano) se pinta al doble de detalle: 1 píxel = BG_PIXEL unidades.
+// Los sprites siguen a PIXEL, así que se ven igual; las texturas de suelo y pared aprovechan el detalle extra.
+export const BG_PIXEL = 1;
 
 export const OUTLINE = '#1d1b2c'; // color del contorno "de dibujo animado"
 

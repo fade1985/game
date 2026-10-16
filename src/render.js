@@ -172,12 +172,14 @@ export function drawFace(ctx, f) {
   const tex = `pared-${slug(style.name)}`;
   if (hasSprite(tex)) {
     // textura de la estancia (con su rodapié), repetida a lo ancho y alineada con el mapa para que casen los tramos
-    const step = spriteMeta(tex).cell[0] * PIXEL;
+    const meta = spriteMeta(tex);
+    const scale = meta.scale || 1;
+    const step = meta.cell[0] * PIXEL * scale;
     ctx.save();
     ctx.beginPath();
     ctx.rect(x, top, w, y - top);
     ctx.clip();
-    for (let sx = Math.floor(x / step) * step; sx < x + w; sx += step) drawSprite(ctx, tex, 'idle', 'south', 0, sx, y - FACE_H);
+    for (let sx = Math.floor(x / step) * step; sx < x + w; sx += step) drawSprite(ctx, tex, 'idle', 'south', 0, sx, y - FACE_H, { scale });
     ctx.restore();
   } else {
     // papel pintado a rayas, para las estancias que aún no tienen textura
@@ -335,11 +337,13 @@ function drawFloor(ctx, style, seams, x0, y0, w, h) {
   // baldosa del estilo repetida por todo el suelo
   const tile = `suelo-${slug(style.name)}`;
   if (hasSprite(tile)) {
-    // las baldosas de PixelLab miden 32×32 píxeles de dibujo; las texturas enteras, más (lo dice su .json)
+    // las baldosas de PixelLab miden 32×32 píxeles de dibujo; las texturas enteras son más grandes y se dibujan a
+    // media escala ("scale" en su .json), con el doble de detalle
     const meta = spriteMeta(tile);
-    const step = meta.cell[0] * PIXEL;
+    const scale = meta.scale || 1;
+    const step = meta.cell[0] * PIXEL * scale;
     for (let y = Math.floor(y0 / step) * step; y < y0 + h; y += step) {
-      for (let x = Math.floor(x0 / step) * step; x < x0 + w; x += step) drawSprite(ctx, tile, 'idle', 'south', 0, x, y);
+      for (let x = Math.floor(x0 / step) * step; x < x0 + w; x += step) drawSprite(ctx, tile, 'idle', 'south', 0, x, y, { scale });
     }
     // suavizamos el dibujo del suelo con el color de la habitación para que los personajes destaquen
     const suavizar = meta.suavizar ?? 0.45;

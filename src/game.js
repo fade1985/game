@@ -55,7 +55,7 @@ export class Game {
     this.time = 0;
     this.shakeAmt = 0;
     this.camera = new Camera();
-    // El mundo se dibuja en un lienzo pequeño (un píxel de dibujo = PIXEL unidades) que luego se amplía
+    // El mundo se dibuja en un lienzo pequeño (un píxel = BG_PIXEL unidades, el doble de detalle que los sprites) que luego se amplía
     // sin suavizado. Su tamaño se ajusta en cada fotograma a lo que enseña la cámara.
     this.low = document.createElement('canvas');
     this.lowCtx = this.low.getContext('2d');

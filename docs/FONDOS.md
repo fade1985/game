@@ -10,7 +10,8 @@ obligatorios (fogón en la cocina) y grupos (cama + mesillas). **Los muebles, su
   <imagen> <estancia> <N>` la reduce a 32 píxeles por baldosa y crea `assets/sprites/suelo-<estancia>`; el
   juego la dibuja a media escala (doble detalle que los personajes) y la repite. **Recortar baldosa a baldosa
   quedaba peor** (se veían las juntas pintadas): `tools/extraer_baldosas.py` se queda solo para probar.
-  Ojo: el fondo se pinta a la resolución del pixel art, así que más detalle que 16 píxeles por baldosa no se ve.
+  El fondo se pinta al **doble de detalle** que los sprites (`BG_PIXEL = 1` en `config.js`, elegido por el dueño):
+  las texturas salen a 32 píxeles por casilla y se dibujan a media escala (`"scale": 0.5` en su `.json`).
 - Baño: `assets/sources/suelos/bano-suelo-gemini.webp` (Gemini, 12 × 12). Va mejor si los detalles son gruesos.
 - **Pared:** `py tools/textura_pared.py <imagen> <estancia> x0 x1 y0 y1` recorta la pared de frente de junta a
   junta y crea `assets/sprites/pared-<estancia>` (48 píxeles de alto, con rodapié). La del baño sale de

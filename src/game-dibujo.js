@@ -3,7 +3,7 @@
 //
 //  Son métodos de Game: game.js los añade a la clase, así que dentro "this" es la partida.
 // ─────────────────────────────────────────────
-import { H, WALL, OUTLINE, DIRS, PIXEL, SLIDE, FADE } from './config.js';
+import { H, WALL, OUTLINE, DIRS, PIXEL, BG_PIXEL, SLIDE, FADE } from './config.js';
 import { rand, clamp } from './utils.js';
 import { drawRoom, drawWallTops, sceneryOf, drawDoors, drawDoorLabels, drawFog, drawPickup, drawBullet, drawMinimap, drawEmoji as drawEmojiAt, minimapRect } from './render.js';
 import { outlinedText, roundBox, pixelBossBar, pixelHpBar, MARCO_VIDA_ANCHO } from './draw.js';
@@ -51,20 +51,20 @@ export class GameDrawing {
     const camX = cam.left - offX, camY = cam.top - offY; // esquina exacta de lo que se ve
 
     // 1) fondo en el lienzo pequeño
-    const sx = Math.floor(camX / PIXEL) * PIXEL, sy = Math.floor(camY / PIXEL) * PIXEL;
-    const bw = Math.ceil(vw / PIXEL) + 2, bh = Math.ceil(vh / PIXEL) + 2;
+    const sx = Math.floor(camX / BG_PIXEL) * BG_PIXEL, sy = Math.floor(camY / BG_PIXEL) * BG_PIXEL;
+    const bw = Math.ceil(vw / BG_PIXEL) + 2, bh = Math.ceil(vh / BG_PIXEL) + 2;
     if (this.low.width !== bw || this.low.height !== bh) { this.low.width = bw; this.low.height = bh; }
     const ctx = this.lowCtx;
-    ctx.setTransform(1 / PIXEL, 0, 0, 1 / PIXEL, -sx / PIXEL, -sy / PIXEL);
+    ctx.setTransform(1 / BG_PIXEL, 0, 0, 1 / BG_PIXEL, -sx / BG_PIXEL, -sy / BG_PIXEL);
     ctx.imageSmoothingEnabled = false;
     ctx.fillStyle = OUTLINE;
-    ctx.fillRect(sx, sy, bw * PIXEL, bh * PIXEL);
+    ctx.fillRect(sx, sy, bw * BG_PIXEL, bh * BG_PIXEL);
     if (tr) {
       // el mapa que se deja sale con su propia cámara
       const [dx, dy] = DIRS[tr.dir];
       const prev = tr.cam || { left: 0, top: 0 };
-      const tx = Math.round((camX - prev.left - dx * vw * tr.e) / PIXEL) * PIXEL;
-      const ty = Math.round((camY - prev.top - dy * vh * tr.e) / PIXEL) * PIXEL;
+      const tx = Math.round((camX - prev.left - dx * vw * tr.e) / BG_PIXEL) * BG_PIXEL;
+      const ty = Math.round((camY - prev.top - dy * vh * tr.e) / BG_PIXEL) * BG_PIXEL;
       ctx.save();
       ctx.translate(tx, ty);
       ctx.drawImage(this.roomImage(tr.from), 0, 0, tr.from.layout.w, tr.from.layout.h);
@@ -79,7 +79,7 @@ export class GameDrawing {
     out.setTransform(1, 0, 0, 1, 0, 0);
     out.clearRect(0, 0, out.canvas.width, out.canvas.height);
     out.imageSmoothingEnabled = false;
-    out.drawImage(this.low, (sx - camX) * k, (sy - camY) * k, bw * PIXEL * k, bh * PIXEL * k);
+    out.drawImage(this.low, (sx - camX) * k, (sy - camY) * k, bw * BG_PIXEL * k, bh * BG_PIXEL * k);
 
     // 2) personajes y efectos a resolución de pantalla
     out.setTransform(k, 0, 0, k, -camX * k, -camY * k);
@@ -105,9 +105,9 @@ export class GameDrawing {
     if (!room.cache || (room.cacheKey !== key && !soon)) {
       room.cacheT = this.time;
       const c = room.cache || document.createElement('canvas');
-      c.width = room.layout.w / PIXEL; c.height = room.layout.h / PIXEL;
+      c.width = room.layout.w / BG_PIXEL; c.height = room.layout.h / BG_PIXEL;
       const x = c.getContext('2d');
-      x.setTransform(1 / PIXEL, 0, 0, 1 / PIXEL, 0, 0);
+      x.setTransform(1 / BG_PIXEL, 0, 0, 1 / BG_PIXEL, 0, 0);
       x.imageSmoothingEnabled = false;
       drawRoom(x, room, this.time);
       room.cache = c;
