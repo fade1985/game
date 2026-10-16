@@ -5,7 +5,7 @@
 //  botellas de lejía y, a mitad de vida, se enfada de verdad. En pixel art
 //  (hoja "jefe-portera"); sin la hoja, se dibuja como antes.
 // ─────────────────────────────────────────────
-import { OUTLINE } from './config.js';
+import { OUTLINE, PIXEL } from './config.js';
 import { rand } from './utils.js';
 import { drawHuman } from './draw.js';
 import { drawSpawnWarning } from './entities.js';
@@ -24,6 +24,11 @@ export const PORTERA = {
 // unos 6 píxeles por fotograma. Así los pies se quedan pegados al suelo y no parece que patine o flote
 const STRIDE = 96;
 
+// En su dibujo lo que toca el suelo es la fregona, y las zapatillas quedan unos píxeles más arriba (más o menos
+// según hacia dónde mire): parecía que flotaba sobre su sombra. Cuántos píxeles se baja en cada dirección
+const FEET_DY = { south: 5, 'south-east': 9, east: 3, 'north-east': 5, north: 5, 'north-west': 5, west: 3, 'south-west': 4 };
+const feetDy = (dir) => (FEET_DY[dir] || 0) * PIXEL;
+
 export const BLEACH = { hit: 10, dps: 8, life: 5, radius: 54, flight: 0.9 };
 
 // ═════════════ LA PORTERA ═════════════
@@ -41,7 +46,8 @@ export class Portera extends BossBase {
   // Al morir, su cuerpo cae y se queda en el suelo (como el de los zombis)
   onDeath(game) {
     if (this.sprite && animFrames(this.sprite, 'death') && game.room) {
-      game.room.props.push(new BossCorpse(this.sprite, this.x, this.y + this.def.feet, dirFromVector(this.lookX, this.lookY), game.time));
+      const dir = dirFromVector(this.lookX, this.lookY);
+      game.room.props.push(new BossCorpse(this.sprite, this.x, this.y + this.def.feet + feetDy(dir), dir, game.time));
     }
   }
 
@@ -367,7 +373,9 @@ export class Portera extends BossBase {
     // en la segunda fase, un poco más roja de rabia
     if (this.phase === 2 && !flash) opts.tint = { color: '#ff3b2f', alpha: 0.18 };
     pixelShadow(ctx, x, y + def.feet - 2, def.shadow);
-    drawSprite(ctx, this.sprite, anim, dir, game.time, x + shake, y + def.feet, opts);
+    // el rugido solo está dibujado mirando al sur: se baja lo que toca a esa dirección
+    const dy = feetDy(anim === 'roar' ? 'south' : dir);
+    drawSprite(ctx, this.sprite, anim, dir, game.time, x + shake, y + def.feet + dy, opts);
     if (this.phase === 2) {
       // vapor saliendo de la cabeza
       ctx.save();
