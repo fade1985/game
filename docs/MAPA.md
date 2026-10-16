@@ -95,7 +95,7 @@ El juego ya usa el mapa nuevo de principio a fin. Capturas: `assets/pruebas/mapa
   donde se ha llegado a la izquierda (en la planta baja, el portal) y las escaleras de emergencia a la derecha.
 - **Planta baja:** la puerta A es la sala de mantenimiento. De momento es una sala sencilla con los muebles de
   las armas de siempre; la tablet, el arcón y las taquillas son la fase 4.
-- **El mini jefe** está en una puerta al azar, menos en la 4ª planta, que vive en el 4ºB (es "el vecino del 4ºB").
+- **El mini jefe** está en una puerta al azar, menos en la 4ª planta, que vive en el 4ºB (antes era "el vecino del 4ºB"; ahora es la portera).
 - **La llave** ("Llave del 2ºC") está en el suelo de una habitación que no sea el salón, en uno de los otros
   apartamentos. Se gasta al abrir la puerta. Mientras se lleva, sale debajo del minimapa.
 - **El superviviente** está en cualquier habitación de un apartamento normal.

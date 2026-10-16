@@ -78,7 +78,7 @@ export function generateFloor(num, floors) {
   // Qué hay detrás de cada puerta. En la planta baja, la A es la sala de mantenimiento.
   const ground = num === 1;
   const free = slots.filter((s) => !(ground && s.letter === 'A'));
-  // el vecino del 4ºB vive en el 4ºB; los mini jefes de las demás plantas, donde toque
+  // la mini jefa vive en el 4ºB (en la 4ª planta); en las demás, detrás de una puerta al azar
   const bossSlot = free.find((s) => doorName(num, s.letter) === '4ºB') || pick(free);
   for (const s of slots) {
     let room, back, look = {};

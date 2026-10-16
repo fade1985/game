@@ -55,7 +55,7 @@ ni compilación. Se publica en **Vercel** como web estática: lo que se sube a `
 | `render.js` / `furniture.js` / `camera.js` | Suelo, paredes con cara, muebles, minimapa; cámara |
 | `sprites.js` | Carga y dibuja las hojas de sprites; si falta una, usa el dibujo de siempre |
 | `entities.js` / `zombies.js` | Johnny, supervivientes y los 6 zombis |
-| `bosses.js` / `jefe-base.js` / `jefe-portera.js` / `jefe-vecino.js` | Jefes: `bosses.js` los reúne y los crea; la ficha de cada uno y lo común en `jefe-base.js`; cada jefe en su archivo (el vecino ya no sale, se guarda) |
+| `bosses.js` / `jefe-base.js` / `jefe-portera.js` | Jefes: `bosses.js` los reúne y los crea; la ficha de cada uno y lo común en `jefe-base.js`; cada jefe en su archivo (de momento, solo la portera) |
 | `weapons.js` / `aim.js` / `props.js` | Armas, apuntado automático, objetos del suelo y muebles con arma |
 | `molotov.js` | El cóctel molotov: apuntar y lanzar (clic derecho / E / botón táctil / RT del mando), el fuego y su dibujo |
 | `mando.js` | Jugar con mando: lo lee en cada fotograma; en la partida lo pasa a `input.js` y en los menús va de botón en botón |

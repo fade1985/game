@@ -36,8 +36,8 @@ puerta se cierra** y no se abre hasta que lo limpias.
 | 🧟 Apartamentos | Con oleadas de zombis. No hace falta limpiarlos todos |
 | 🗝️ La llave | El apartamento del mini jefe está **cerrado con llave**. La llave está en el suelo de alguna habitación de otro apartamento |
 | 🙋 Superviviente | Uno por planta, en alguna habitación: limpia el apartamento y acércate para que se una a tu equipo |
-| 👹 Mini jefe | Uno por planta: **El vecino del 4ºB**, cada vez más duro. Al derrotarlo se abren las **escaleras de emergencia**, al fondo del pasillo |
-| 👑 Azotea | Arriba del todo espera **La portera**. Derrótala para completar el edificio |
+| 👹 Mini jefe | Uno por planta: **La portera**, cada vez más dura. Al derrotarlo se abren las **escaleras de emergencia**, al fondo del pasillo |
+| 👑 Azotea | Arriba del todo espera la jefa final: de momento, **La portera** con el doble de vida. Derrótala para completar el edificio |
 
 El **minimapa** (arriba a la derecha) es un plano de la planta: gris lo que no has visitado, rojo lo que
 tiene zombis, blanco lo limpio y amarillo donde estás. En el pasillo hay además un ascensor averiado y,
@@ -46,7 +46,7 @@ Los atributos y el equipo se conservan entre plantas; si caes, vuelves a empezar
 
 Cada habitación está amueblada según su estilo (salón, cocina, dormitorio, pasillo o baño): sofás, camas,
 bañeras, neveras... Los muebles van pegados a las paredes, nunca tapan una puerta y **paran a los personajes
-y a las balas** (¡el vecino del 4ºB se marea si embiste contra uno!). En las paredes hay cuadros, relojes y
+y a las balas**. En las paredes hay cuadros, relojes y
 ventanas por las que entra la luz.
 
 ### 💵 Dólares y Taller
@@ -127,18 +127,8 @@ Todos los ataques especiales avisan antes: ¡muévete o usa la esquiva!
 
 ### 👹 Jefes
 
-**El vecino del 4ºB** (mini jefe, 400 de vida y +25 % por planta). Un zombi enorme en camiseta de tirantes.
-
-| Ataque | Aviso | Qué hace |
-|---|---|---|
-| Embestida | Pasillo rojo con flechas | Carga en línea recta. Si choca contra la pared se queda **mareado** (no hace daño al tocarlo): ¡aprovecha! |
-| Pisotón | Círculo rojo mientras salta | Cae y lanza una onda que daña y empuja |
-| ¡Vecinos! | Levanta los brazos | Llama a 2 zombis |
-
-Por debajo del 40 % de vida se enfada: anda más rápido, embiste dos veces seguidas, llama a 3 zombis y su
-pisotón suelta cascotes en todas direcciones.
-
-**La portera** (jefa final, 1.200 de vida). Con moño, gafas, delantal y escoba. Tiene **dos fases**:
+**La portera** (mini jefa de cada planta: 600 de vida y +25 % por planta; en la azotea, jefa final con 1.200).
+Abuela zombi con bata, delantal y una fregona llena de sangre. Tiene **dos fases**:
 
 | Ataque | Fase | Aviso | Qué hace |
 |---|---|---|---|
@@ -155,8 +145,8 @@ rápida, abanicos más anchos y más botellas. Los barridos de las armas cuerpo 
 en la versión cartoon original, que ya no existe. Ver [`docs/PIXEL_ART.md`](docs/PIXEL_ART.md).
 
 **Modo de pruebas:** añade `?pruebas` a la dirección (por ejemplo `http://localhost:3000/?pruebas`): todas
-las armas estarán abiertas en la sala de mantenimiento, las teclas **1 a 6** invocan cada tipo de zombi, la **7** al vecino del 4ºB
-y la **8** a la portera.
+las armas estarán abiertas en la sala de mantenimiento, las teclas **1 a 6** invocan cada tipo de zombi, la **7** a la portera (mini jefa)
+y la **8** a la jefa final.
 
 ## 🚀 Ejecutar en local
 
@@ -182,7 +172,8 @@ style.css         → estilo cartoon de botones, paneles y HUD
 docs/PLAN.md      → plan de desarrollo por fases y decisiones
 src/
   main.js         → arranque y bucle principal (update + render)
-  game.js         → flujo de la partida: plantas, mapas, puertas, oleadas, colisiones
+  game.js         → flujo de la partida: plantas, mapas, puertas y oleadas
+  game-*.js       → más partes de la partida: combate, efectos, mapa (choques y niebla), dibujo y ataques
   building.js     → generador de plantas: pasillo, cuatro puertas, llave, escaleras y azotea
   apartment.js    → generador de apartamentos (habitaciones, tabiques y puertas)
   rooms.js        → lo que hay en cada mapa: estilo, muebles, decoración y oleadas
@@ -192,7 +183,9 @@ src/
   aim.js          → controlador de apuntado (automático; el manual irá aquí)
   entities.js     → jugador y compañeros (comportamiento + dibujo)
   zombies.js      → los 6 tipos de zombi y sus ataques especiales
-  bosses.js       → los jefes: el vecino del 4ºB y la portera (ataques, fases y dibujo)
+  bosses.js       → reúne a los jefes y los crea
+  jefe-base.js    → lo común de los jefes: su ficha, la base, los avisos de ataque
+  jefe-portera.js → la portera (ataques, fases y dibujo)
   render.js       → dibujo de habitaciones, puertas en los 4 lados y minimapa
   furniture.js    → muebles de cada estilo de habitación y decoración de las paredes
   draw.js         → ayudas de dibujo: personaje humano, "blobs", ojos, sombras, texto

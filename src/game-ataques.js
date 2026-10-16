@@ -55,22 +55,6 @@ export class ZombieAttacks {
     this.shake(5);
   }
 
-  // Onda expansiva (pisotón): daña y empuja al jugador si está dentro del radio
-  shockwave(x, y, radius, dmg, push) {
-    this.shake(16);
-    this.fx('objeto-fx-humo', x, y);
-    this.particles.push({ x, y, vx: 0, vy: 0, r: radius * 0.5, ring: true, color: '#ffffff', life: 0.35, max: 0.35 });
-    for (let i = 0; i < 18; i++) {
-      const a = rand(0, Math.PI * 2), sp = rand(150, 320);
-      this.particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.6, r: rand(4, 9), color: '#d8cbb0', life: rand(0.3, 0.6), max: 0.6, outline: true });
-    }
-    const p = this.player;
-    const d = dist(p, { x, y });
-    if (p.dead || d > radius + p.r) return;
-    p.hurt(dmg, this);
-    if (push) { p.vx += ((p.x - x) / (d || 1)) * push; p.vy += ((p.y - y) / (d || 1)) * push; }
-  }
-
   // La portera pasa a la fase 2: borra las balas y te aparta de un grito
   bossRage(boss) {
     this.bullets = this.bullets.filter((b) => b.friendly);

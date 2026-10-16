@@ -130,7 +130,7 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
 
 Abuela zombi con bata, delantal y una fregona llena de sangre, a partir de un dibujo del dueño
 (`assets/sources/portera-96/referencia.png`). Es la **mini jefa de cada planta** y, hasta que se haga la jefa
-final, también la de la azotea (con el doble de vida). El vecino del 4ºB sigue en `bosses.js`, pero ya no sale.
+final, también la de la azotea (con el doble de vida). El vecino del 4ºB, que ya no salía, se borró el 16 de octubre de 2026 (queda en el historial de git).
 
 - **Tamaño:** 96 px en PixelLab (el cuerpo mide unos 115 de alto): unas 2,5 veces Johnny. Lo eligió el dueño
   para que destaque.

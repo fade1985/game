@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────
-//  Utilidades de dibujo con estilo "cartoon":
-//  formas redondas, contorno grueso y brillo
+//  Utilidades de dibujo: el dibujo hecho a mano de antes (formas redondas con contorno grueso),
+//  que se sigue usando para lo que aún no tiene sprite; y sombras, textos y barras de vida
 // ─────────────────────────────────────────────
 import { OUTLINE, PIXEL } from './config.js';
 
