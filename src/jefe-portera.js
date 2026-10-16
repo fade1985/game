@@ -62,130 +62,142 @@ export class Portera extends BossBase {
       return;
     }
 
+    const to = { p, d, aim, angry };
     switch (st.name) {
-      case 'walk': {
+      case 'walk':
         this.steer(dt, p.x, p.y, angry ? 105 : 75);
         this.look(dt, p.x, p.y);
         if (st.t >= st.dur) this.choose(game, d);
         break;
-      }
-      case 'fanWarn': {
+      case 'fanWarn':
         // levanta la escoba hacia atrás
         this.brake(dt);
         this.look(dt, p.x, p.y);
         this.broomTarget = aim - 2.2;
         if (st.t >= PORTERA.fanWarn) this.setState('fan', { shots: angry ? 3 : 2, next: 0, i: 0 });
         break;
-      }
-      case 'fan': {
-        this.brake(dt);
-        this.look(dt, p.x, p.y);
-        this.broomTarget = st.i % 2 ? aim - 1.4 : aim + 1.4;
-        st.next -= dt;
-        if (st.next <= 0 && st.i < st.shots) {
-          const n = angry ? PORTERA.fanCount + 3 : PORTERA.fanCount;
-          const spread = PORTERA.fanSpread * (angry ? 1.3 : 1);
-          const off = st.i % 2 ? spread / (n - 1) / 2 : 0; // un abanico sí y otro no, desplazado medio hueco
-          for (let i = 0; i < n; i++) {
-            const a = aim - spread / 2 + (i / (n - 1)) * spread + off;
-            game.enemyShoot(this.x + Math.cos(aim) * 30, this.y + Math.sin(aim) * 30, a, PORTERA.fanSpeed, PORTERA.fanDmg, { color: '#cbb994', r: 9, sound: false });
-          }
-          sfx.broom();
-          game.burst(this.x + Math.cos(aim) * 50, this.y + Math.sin(aim) * 50, '#cbb994', 6, 10);
-          st.i++;
-          st.next = 0.4;
-        }
-        if (st.i >= st.shots && st.next <= 0) this.setState('walk', { dur: angry ? 0.5 : 0.9 });
-        break;
-      }
-      case 'sweepWarn': {
-        // escobazo: fija la dirección al empezar el aviso
-        this.brake(dt);
-        if (st.angle === undefined) st.angle = aim;
-        this.lookX = Math.cos(st.angle); this.lookY = Math.sin(st.angle);
-        this.broomTarget = st.angle - 2.0;
-        if (st.t >= PORTERA.sweepWarn) {
-          this.setState('sweep', { angle: st.angle });
-          this.broom = st.angle - 1.6;
-          sfx.broom();
-          this.sweepHit(game, st.angle);
-        }
-        break;
-      }
-      case 'sweep': {
+      case 'fan': this.fan(dt, game, to); break;
+      case 'sweepWarn': this.sweepWarn(dt, game, to); break;
+      case 'sweep':
         this.brake(dt);
         this.broomTarget = st.angle + 1.6;
         if (st.t >= 0.35) this.setState('walk', { dur: angry ? 0.4 : 0.8 });
         break;
-      }
-      case 'bleach': {
-        // lanza botellas de lejía alrededor de donde estás
-        this.brake(dt);
-        this.look(dt, p.x, p.y);
-        this.broomTarget = aim + 1.6;
-        const n = angry ? PORTERA.bottles + 2 : PORTERA.bottles;
-        while (st.thrown < n && st.t >= 0.3 + st.thrown * 0.18) {
-          const spreadR = st.thrown === 0 ? 0 : rand(60, 130);
-          const a = rand(0, TAU);
-          game.lob(this.x, this.y - (this.sprite ? this.top * 0.6 : 40 * this.s), p.x + p.vx * 0.3 + Math.cos(a) * spreadR, p.y + p.vy * 0.3 + Math.sin(a) * spreadR, 'bleach');
-          sfx.spit();
-          st.thrown++;
-        }
-        if (st.t >= 0.3 + n * 0.18 + 0.4) this.setState('walk', { dur: angry ? 0.5 : 1 });
-        break;
-      }
-      case 'spinWarn': {
+      case 'bleach': this.bleach(dt, game, to); break;
+      case 'spinWarn':
         this.brake(dt);
         this.spin += dt * 6 * (st.t / 0.6);
         if (st.t >= 0.6) this.setState('spin', { next: 0 });
         break;
-      }
-      case 'spin': {
-        // torbellino: gira con la escoba y escupe polvo en espiral
-        this.steer(dt, p.x, p.y, 120);
-        this.spin += dt * 16;
-        this.dmg = PORTERA.spinDmg;
-        st.next -= dt;
-        if (st.next <= 0) {
-          st.next = 0.11;
-          for (const k of [0, Math.PI]) game.enemyShoot(this.x, this.y, this.spin * 0.45 + k, 170, 10, { color: '#cbb994', r: 8, sound: false });
-          sfx.broom();
-        }
-        if (st.t >= PORTERA.spinTime) this.setState('recover', { dur: 0.9 });
-        break;
-      }
-      case 'summon': {
-        this.brake(dt);
-        if (st.t >= 0.8 && !st.done) {
-          st.done = true;
-          for (const [i, type] of ['normal', 'rapido'].entries()) {
-            const a = (i / 2) * TAU + rand(-0.5, 0.5);
-            game.spawnEnemy(type, this.x + Math.cos(a) * 120, this.y + Math.sin(a) * 90);
-          }
-        }
-        if (st.t >= 1.1) this.setState('walk', { dur: 0.6 });
-        break;
-      }
-      case 'rage': {
-        // transición a la fase 2: invulnerable un momento y echa al jugador hacia atrás
-        this.invulnerable = true;
-        this.brake(dt);
-        this.dmg = 0;
-        this.broomTarget = -Math.PI / 2;
-        if (Math.random() < dt * 20) game.puff(this.x + rand(-20, 20), this.y - this.top - 10, '#ffffff');
-        if (st.t >= 1.6) this.setState('walk', { dur: 0.3 });
-        break;
-      }
-      case 'recover': {
+      case 'spin': this.whirl(dt, game, to); break;
+      case 'summon': this.summon(dt, game); break;
+      case 'rage': this.rage(dt, game); break;
+      case 'recover':
         this.brake(dt, 4);
         if (st.t >= st.dur) this.setState('walk', { dur: 0.4 });
         break;
-      }
     }
     this.move(dt, game);
     // la escoba gira con suavidad hacia su posición
     if (st.name === 'spin' || st.name === 'spinWarn') this.broom = this.spin;
     else this.broom += wrap(this.broomTarget - this.broom) * (1 - Math.exp(-dt * (st.name === 'sweep' ? 30 : 12)));
+  }
+
+  // ── Cada ataque, paso a paso (los llama think según el estado en que está) ──
+
+  // Abanico de agua sucia: dos tandas (tres enfadada), cada una desplazada medio hueco
+  fan(dt, game, { p, aim, angry }) {
+    const st = this.state;
+    this.brake(dt);
+    this.look(dt, p.x, p.y);
+    this.broomTarget = st.i % 2 ? aim - 1.4 : aim + 1.4;
+    st.next -= dt;
+    if (st.next <= 0 && st.i < st.shots) {
+      const n = angry ? PORTERA.fanCount + 3 : PORTERA.fanCount;
+      const spread = PORTERA.fanSpread * (angry ? 1.3 : 1);
+      const off = st.i % 2 ? spread / (n - 1) / 2 : 0; // un abanico sí y otro no, desplazado medio hueco
+      for (let i = 0; i < n; i++) {
+        const a = aim - spread / 2 + (i / (n - 1)) * spread + off;
+        game.enemyShoot(this.x + Math.cos(aim) * 30, this.y + Math.sin(aim) * 30, a, PORTERA.fanSpeed, PORTERA.fanDmg, { color: '#cbb994', r: 9, sound: false });
+      }
+      sfx.broom();
+      game.burst(this.x + Math.cos(aim) * 50, this.y + Math.sin(aim) * 50, '#cbb994', 6, 10);
+      st.i++;
+      st.next = 0.4;
+    }
+    if (st.i >= st.shots && st.next <= 0) this.setState('walk', { dur: angry ? 0.5 : 0.9 });
+  }
+
+  // Aviso del escobazo: fija la dirección al empezar el aviso y, al acabar, golpea
+  sweepWarn(dt, game, { aim }) {
+    const st = this.state;
+    this.brake(dt);
+    if (st.angle === undefined) st.angle = aim;
+    this.lookX = Math.cos(st.angle); this.lookY = Math.sin(st.angle);
+    this.broomTarget = st.angle - 2.0;
+    if (st.t >= PORTERA.sweepWarn) {
+      this.setState('sweep', { angle: st.angle });
+      this.broom = st.angle - 1.6;
+      sfx.broom();
+      this.sweepHit(game, st.angle);
+    }
+  }
+
+  // Lanza botellas de lejía alrededor de donde estás (la primera, justo donde vas a estar)
+  bleach(dt, game, { p, aim, angry }) {
+    const st = this.state;
+    this.brake(dt);
+    this.look(dt, p.x, p.y);
+    this.broomTarget = aim + 1.6;
+    const n = angry ? PORTERA.bottles + 2 : PORTERA.bottles;
+    while (st.thrown < n && st.t >= 0.3 + st.thrown * 0.18) {
+      const spreadR = st.thrown === 0 ? 0 : rand(60, 130);
+      const a = rand(0, TAU);
+      game.lob(this.x, this.y - (this.sprite ? this.top * 0.6 : 40 * this.s), p.x + p.vx * 0.3 + Math.cos(a) * spreadR, p.y + p.vy * 0.3 + Math.sin(a) * spreadR, 'bleach');
+      sfx.spit();
+      st.thrown++;
+    }
+    if (st.t >= 0.3 + n * 0.18 + 0.4) this.setState('walk', { dur: angry ? 0.5 : 1 });
+  }
+
+  // Torbellino (solo enfadada): gira con la escoba, te persigue y escupe polvo en espiral
+  whirl(dt, game, { p }) {
+    const st = this.state;
+    this.steer(dt, p.x, p.y, 120);
+    this.spin += dt * 16;
+    this.dmg = PORTERA.spinDmg;
+    st.next -= dt;
+    if (st.next <= 0) {
+      st.next = 0.11;
+      for (const k of [0, Math.PI]) game.enemyShoot(this.x, this.y, this.spin * 0.45 + k, 170, 10, { color: '#cbb994', r: 8, sound: false });
+      sfx.broom();
+    }
+    if (st.t >= PORTERA.spinTime) this.setState('recover', { dur: 0.9 });
+  }
+
+  // Llama a los vecinos del 3º: un zombi normal y uno rápido a sus lados
+  summon(dt, game) {
+    const st = this.state;
+    this.brake(dt);
+    if (st.t >= 0.8 && !st.done) {
+      st.done = true;
+      for (const [i, type] of ['normal', 'rapido'].entries()) {
+        const a = (i / 2) * TAU + rand(-0.5, 0.5);
+        game.spawnEnemy(type, this.x + Math.cos(a) * 120, this.y + Math.sin(a) * 90);
+      }
+    }
+    if (st.t >= 1.1) this.setState('walk', { dur: 0.6 });
+  }
+
+  // Paso a la fase 2: invulnerable un momento y echa al jugador hacia atrás (game.bossRage), echando humo
+  rage(dt, game) {
+    const st = this.state;
+    this.invulnerable = true;
+    this.brake(dt);
+    this.dmg = 0;
+    this.broomTarget = -Math.PI / 2;
+    if (Math.random() < dt * 20) game.puff(this.x + rand(-20, 20), this.y - this.top - 10, '#ffffff');
+    if (st.t >= 1.6) this.setState('walk', { dur: 0.3 });
   }
 
   choose(game, d) {
