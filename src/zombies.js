@@ -361,21 +361,10 @@ export class Zombie {
       if (this.anim.hold) this.anim.t = this.anim.dur;   // se queda en el último fotograma (la gabardina abierta)
       else this.anim = null;
     }
-    if (this.asleep || this.wakeT > 0) {
-      // dormido: se balancea en su sitio, mirando a ninguna parte
-      if (this.asleep) {
-        this.lookX = Math.cos(this.t * 0.5);
-        this.lookY = Math.sin(this.t * 0.5);
-        if (game.notices(this)) this.wake(game);
-      } else this.wakeT -= dt;
-      this.x += this.kx * dt; this.y += this.ky * dt;
-      const kd = Math.exp(-dt * 10);
-      this.kx *= kd; this.ky *= kd;
-      game.collideWorld(this);
-      return;
-    }
+    if (this.asleep || this.wakeT > 0) { this.doze(dt, game); return; }
     this.cd -= dt;
 
+    // hacia dónde está el conserje
     const p = game.player;
     const dx = p.x - this.x, dy = p.y - this.y;
     const d = Math.hypot(dx, dy) || 1;
@@ -385,111 +374,136 @@ export class Zombie {
     if (way) { ux = way.x; uy = way.y; }
     // y desde detrás de un tabique nadie ataca: primero hay que llegar a ver al conserje
     const sees = !way || game.sees(this);
-    let mx = ux, my = uy, spd = this.speed, steer = 8;
+    const to = { p, dx, dy, d, ux, uy, sees };
+    // cómo quiere moverse: dirección (x, y), velocidad y lo rápido que gira (steer)
+    const m = { x: ux, y: uy, spd: this.speed, steer: 8 };
 
+    // cada tipo cambia su forma de andar y lanza su ataque especial
     switch (this.type) {
       case 'lento':
         // se arrastra: avanza a tirones y deja un rastro de sangre
         game.dropTrail(this);
-        spd *= 0.55 + 0.45 * Math.abs(Math.sin(this.t * 2));
-        mx += -uy * Math.sin(this.t * 1.5) * 0.3;
-        my += ux * Math.sin(this.t * 1.5) * 0.3;
+        m.spd *= 0.55 + 0.45 * Math.abs(Math.sin(this.t * 2));
+        m.x += -uy * Math.sin(this.t * 1.5) * 0.3;
+        m.y += ux * Math.sin(this.t * 1.5) * 0.3;
         break;
-
       case 'normal':
-        mx += -uy * Math.sin(this.t * 2.3) * 0.2;
-        my += ux * Math.sin(this.t * 2.3) * 0.2;
+        m.x += -uy * Math.sin(this.t * 2.3) * 0.2;
+        m.y += ux * Math.sin(this.t * 2.3) * 0.2;
         break;
-
       case 'rapido':
         // gira muy poco: corre en línea recta y se pasa de largo si lo esquivas
-        steer = 2.2;
+        m.steer = 2.2;
         break;
-
-      case 'explosivo':
-        if (this.fuse > 0) {
-          spd = 0;
-          const before = this.fuse;
-          this.fuse -= dt;
-          if (Math.floor(before * 8) !== Math.floor(this.fuse * 8)) sfx.beep();
-          if (this.fuse <= 0) {
-            this.detonate(game);
-            this.hp = 0;
-            game.killEnemy(this);
-            return;
-          }
-        } else if (sees && d < EXPLOSION.trigger + p.r) {
-          this.fuse = EXPLOSION.fuse; // ¡se enciende la mecha!
-          // pixel art: abre la gabardina, enseña la dinamita y se queda así hasta reventar
-          this.play('attack');
-          if (this.anim) this.anim.hold = true;
-        }
-        break;
-
-      case 'tentaculos':
-        if (this.tent) {
-          spd = 0;
-          const tn = this.tent;
-          tn.t += dt;
-          if (tn.phase === 'warn' && tn.t >= TENTACLE.warn) {
-            tn.phase = 'strike'; tn.t = 0;
-            sfx.whip();
-            game.tentacleHit(this, tn.angle);
-          } else if (tn.phase === 'strike' && tn.t >= TENTACLE.strike) {
-            this.tent = null;
-            this.cd = TENTACLE.cd;
-          }
-        } else if (sees && this.cd <= 0 && d < TENTACLE.range + p.r) {
-          // apunta a donde estás AHORA: si te mueves, fallará
-          this.tent = { angle: Math.atan2(dy, dx), phase: 'warn', t: 0 };
-        } else if (sees && d < 140) {
-          spd = 0;
-        }
-        break;
-
-      case 'venenoso':
-        // mantiene la distancia y escupe mocos
-        if (!sees) { mx = ux; my = uy; }
-        else if (d < 220) { mx = -ux; my = -uy; }
-        else if (d > 310) { mx = ux; my = uy; }
-        else { mx = -uy * this.strafe; my = ux * this.strafe; }
-        if (this.spitT > 0) {
-          spd = 0;
-          this.spitT -= dt;
-          if (this.spitT <= 0) {
-            // con sprite, el moco sale de la boca (bastante más arriba que en el dibujo de antes)
-            game.lob(this.x + this.lookX * 26, this.y - (hasSprite(this.sprite) ? 88 : 18 * this.s), p.x, p.y);
-            this.cd = POISON.cd;
-            sfx.spit();
-          }
-        } else if (sees && this.cd <= 0 && d < 430) {
-          this.spitT = 0.4; // hincha los mofletes antes de escupir
-          this.play('attack'); // pixel art: se echa atrás y escupe (el moco sale a los 0,4 s, como marca su hoja)
-        }
-        // mientras dura el escupitajo (hasta el último dibujo) se queda plantado y frena en seco:
-        // si se moviera sin mover las piernas, parecería que va flotando
-        if (this.spitT > 0 || this.anim?.name === 'attack') { spd = 0; steer = 30; }
-        break;
+      case 'explosivo': if (this.fuseTick(dt, game, to, m)) return; break; // true: ha reventado
+      case 'tentaculos': this.tentacle(dt, game, to, m); break;
+      case 'venenoso': this.spit(dt, game, to, m); break;
     }
 
-    const l = Math.hypot(mx, my) || 1;
-    const k = 1 - Math.exp(-dt * steer);
-    this.vx += ((mx / l) * spd - this.vx) * k;
-    this.vy += ((my / l) * spd - this.vy) * k;
-    this.x += (this.vx + this.kx) * dt;
-    this.y += (this.vy + this.ky) * dt;
-    const kd = Math.exp(-dt * 10);
-    this.kx *= kd; this.ky *= kd;
-    game.collideWorld(this);
-
-    const sp = Math.hypot(this.vx, this.vy);
-    this.walkT += dt * (sp > 10 ? 3 + sp / 25 : 0);
+    this.walk(dt, game, m);
     // mira hacia el jugador (suavizado)
     this.lookX += (ux - this.lookX) * Math.min(1, dt * 8);
     this.lookY += (uy - this.lookY) * Math.min(1, dt * 8);
     // al llegar al conserje, lanza el zarpazo (el daño sigue siendo por contacto, como siempre)
     // (el venenoso no da zarpazos: su animación de ataque es el escupitajo; la del explosivo, abrir la gabardina)
     if (!this.anim && sees && this.dmg > 0 && this.type !== 'venenoso' && this.type !== 'explosivo' && !p.dead && d < this.r + p.r + REACH) this.play('attack');
+  }
+
+  // Dormido: se balancea en su sitio, mirando a ninguna parte, hasta que nota al conserje.
+  // Recién despierto, un respingo antes de echar a andar. Los golpes le siguen empujando.
+  doze(dt, game) {
+    if (this.asleep) {
+      this.lookX = Math.cos(this.t * 0.5);
+      this.lookY = Math.sin(this.t * 0.5);
+      if (game.notices(this)) this.wake(game);
+    } else this.wakeT -= dt;
+    this.x += this.kx * dt; this.y += this.ky * dt;
+    const kd = Math.exp(-dt * 10);
+    this.kx *= kd; this.ky *= kd;
+    game.collideWorld(this);
+  }
+
+  // Explosivo: al llegar a tu lado enciende la mecha, se planta y revienta. Devuelve true si ha reventado
+  fuseTick(dt, game, { p, d, sees }, m) {
+    if (this.fuse > 0) {
+      m.spd = 0;
+      const before = this.fuse;
+      this.fuse -= dt;
+      if (Math.floor(before * 8) !== Math.floor(this.fuse * 8)) sfx.beep();
+      if (this.fuse <= 0) {
+        this.detonate(game);
+        this.hp = 0;
+        game.killEnemy(this);
+        return true;
+      }
+    } else if (sees && d < EXPLOSION.trigger + p.r) {
+      this.fuse = EXPLOSION.fuse; // ¡se enciende la mecha!
+      // pixel art: abre la gabardina, enseña la dinamita y se queda así hasta reventar
+      this.play('attack');
+      if (this.anim) this.anim.hold = true;
+    }
+    return false;
+  }
+
+  // Tentáculos: avisa con una línea en el suelo y luego golpea en esa dirección
+  tentacle(dt, game, { p, dx, dy, d, sees }, m) {
+    if (this.tent) {
+      m.spd = 0;
+      const tn = this.tent;
+      tn.t += dt;
+      if (tn.phase === 'warn' && tn.t >= TENTACLE.warn) {
+        tn.phase = 'strike'; tn.t = 0;
+        sfx.whip();
+        game.tentacleHit(this, tn.angle);
+      } else if (tn.phase === 'strike' && tn.t >= TENTACLE.strike) {
+        this.tent = null;
+        this.cd = TENTACLE.cd;
+      }
+    } else if (sees && this.cd <= 0 && d < TENTACLE.range + p.r) {
+      // apunta a donde estás AHORA: si te mueves, fallará
+      this.tent = { angle: Math.atan2(dy, dx), phase: 'warn', t: 0 };
+    } else if (sees && d < 140) {
+      m.spd = 0;
+    }
+  }
+
+  // Venenoso: mantiene la distancia y escupe mocos
+  spit(dt, game, { p, d, ux, uy, sees }, m) {
+    if (!sees) { m.x = ux; m.y = uy; }
+    else if (d < 220) { m.x = -ux; m.y = -uy; }
+    else if (d > 310) { m.x = ux; m.y = uy; }
+    else { m.x = -uy * this.strafe; m.y = ux * this.strafe; }
+    if (this.spitT > 0) {
+      m.spd = 0;
+      this.spitT -= dt;
+      if (this.spitT <= 0) {
+        // con sprite, el moco sale de la boca (bastante más arriba que en el dibujo de antes)
+        game.lob(this.x + this.lookX * 26, this.y - (hasSprite(this.sprite) ? 88 : 18 * this.s), p.x, p.y);
+        this.cd = POISON.cd;
+        sfx.spit();
+      }
+    } else if (sees && this.cd <= 0 && d < 430) {
+      this.spitT = 0.4; // hincha los mofletes antes de escupir
+      this.play('attack'); // pixel art: se echa atrás y escupe (el moco sale a los 0,4 s, como marca su hoja)
+    }
+    // mientras dura el escupitajo (hasta el último dibujo) se queda plantado y frena en seco:
+    // si se moviera sin mover las piernas, parecería que va flotando
+    if (this.spitT > 0 || this.anim?.name === 'attack') { m.spd = 0; m.steer = 30; }
+  }
+
+  // Anda hacia donde quiere (m), sin girar de golpe, más el empuje de los golpes; y no atraviesa paredes
+  walk(dt, game, m) {
+    const l = Math.hypot(m.x, m.y) || 1;
+    const k = 1 - Math.exp(-dt * m.steer);
+    this.vx += ((m.x / l) * m.spd - this.vx) * k;
+    this.vy += ((m.y / l) * m.spd - this.vy) * k;
+    this.x += (this.vx + this.kx) * dt;
+    this.y += (this.vy + this.ky) * dt;
+    const kd = Math.exp(-dt * 10);
+    this.kx *= kd; this.ky *= kd;
+    game.collideWorld(this);
+    const sp = Math.hypot(this.vx, this.vy);
+    this.walkT += dt * (sp > 10 ? 3 + sp / 25 : 0);
   }
 
   detonate(game) {
