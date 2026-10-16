@@ -6,7 +6,7 @@
 //  Se ven "en tres cuartos": enseñan el frente y tienen altura, como los personajes.
 //  Por eso cada uno solo puede ir en las paredes para las que tiene dibujo (ver goesOn).
 // ─────────────────────────────────────────────
-import { W, H, WALL, DOOR_W, OUTLINE } from './config.js';
+import { W, H, WALL, DOOR_W, OUTLINE, FACE_H } from './config.js';
 import { drawSprite, hasSprite } from './sprites.js';
 import { CELL, rectIsFloor } from './shapes.js';
 
@@ -423,7 +423,7 @@ export function drawFurniture(ctx, f, alpha = 1) {
 
 // Cuadros, ventanas y relojes de la pared de arriba
 export function drawWallDecor(ctx, d, time) {
-  const cy = WALL / 2 + 2;
+  const cy = WALL - FACE_H / 2 + 6; // a media altura de la cara del muro de arriba
   ctx.save();
   ctx.lineJoin = 'round';
   if (d.kind === 'window') {

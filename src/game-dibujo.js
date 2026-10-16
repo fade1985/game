@@ -5,7 +5,7 @@
 // ─────────────────────────────────────────────
 import { H, WALL, OUTLINE, DIRS, PIXEL, SLIDE, FADE } from './config.js';
 import { rand, clamp } from './utils.js';
-import { drawRoom, sceneryOf, drawDoors, drawDoorLabels, drawFog, drawPickup, drawBullet, drawMinimap, drawEmoji as drawEmojiAt, minimapRect } from './render.js';
+import { drawRoom, drawWallTops, sceneryOf, drawDoors, drawDoorLabels, drawFog, drawPickup, drawBullet, drawMinimap, drawEmoji as drawEmojiAt, minimapRect } from './render.js';
 import { outlinedText, roundBox, pixelBossBar, pixelHpBar, MARCO_VIDA_ANCHO } from './draw.js';
 import { setGridSnap, drawSprite } from './sprites.js';
 
@@ -68,6 +68,7 @@ export class GameDrawing {
       ctx.save();
       ctx.translate(tx, ty);
       ctx.drawImage(this.roomImage(tr.from), 0, 0, tr.from.layout.w, tr.from.layout.h);
+      drawWallTops(ctx, tr.from, this.time);
       drawDoors(ctx, tr.from, 1);
       for (const s of [...sceneryOf(tr.from)].sort((a, b) => a.y - b.y)) s.draw(ctx, this);
       ctx.restore();
@@ -223,6 +224,7 @@ export class GameDrawing {
 
   // Lo que va pegado al suelo: puertas, charcos y cosas para recoger
   drawBackground(ctx) {
+    drawWallTops(ctx, this.room, this.time);
     drawFog(ctx, this.room.layout);
     drawDoors(ctx, this.room, this.doorOpen);
     this.drawTrail(ctx);

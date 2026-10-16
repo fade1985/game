@@ -8,6 +8,10 @@ export const W = 960;
 export const H = 640;
 export const WALL = 64;         // grosor de los muros de cada sala (2 baldosas en pixel art)
 export const DOOR_W = 96;       // ancho de las puertas
+// Alto de la cara de los muros (3 casillas). Sube por encima del muro: en los tabiques tapa el fondo de la
+// habitación de detrás y en el muro de arriba se sale del mapa, así que la cámara deja ver TOP_EXTRA más arriba.
+export const FACE_H = 96;
+export const TOP_EXTRA = FACE_H - WALL + 12; // lo que sobresale la cara del muro de arriba, más su tapa
 export const MAX_ALLIES = 4;    // tamaño máximo del equipo
 export const SLIDE = 0.4;       // duración del deslizamiento de cámara al cruzar una puerta
 export const FADE = 0.6;        // duración de cada mitad del fundido al cambiar de planta

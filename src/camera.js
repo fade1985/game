@@ -6,7 +6,7 @@
 //  mapa es más pequeño que la pantalla (el pasillo es estrecho), lo centra. Con un
 //  jefe delante se aleja un poco para que se vean bien sus ataques.
 // ─────────────────────────────────────────────
-import { W, H } from './config.js';
+import { W, H, TOP_EXTRA } from './config.js';
 import { clamp } from './utils.js';
 
 export const ZOOM = 1.5;       // acercamiento normal
@@ -32,10 +32,12 @@ export class Camera {
   get left() { return this.x - this.vw / 2; }
   get top() { return this.y - this.vh / 2; }
 
-  // Que la vista no se salga del mapa (si la pantalla es más grande que el mapa, se centra)
+  // Que la vista no se salga del mapa (si la pantalla es más grande que el mapa, se centra).
+  // Por arriba deja ver TOP_EXTRA más: lo que la pared del fondo sobresale del mapa.
   clampToRoom() {
+    const top = -TOP_EXTRA, h = this.rh + TOP_EXTRA;
     this.x = this.vw >= this.rw ? this.rw / 2 : clamp(this.x, this.vw / 2, this.rw - this.vw / 2);
-    this.y = this.vh >= this.rh ? this.rh / 2 : clamp(this.y, this.vh / 2, this.rh - this.vh / 2);
+    this.y = this.vh >= h ? top + h / 2 : clamp(this.y, top + this.vh / 2, this.rh - this.vh / 2);
   }
 
   // Al entrar en un mapa: sus medidas, para no enseñar lo que hay fuera

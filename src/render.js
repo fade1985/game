@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────
 //  Dibujo del escenario: habitaciones, puertas, objetos y minimapa
 // ─────────────────────────────────────────────
-import { W, H, WALL, DOOR_W, OUTLINE, PIXEL } from './config.js';
+import { W, H, WALL, DOOR_W, OUTLINE, PIXEL, FACE_H, TOP_EXTRA } from './config.js';
 import { drawSprite, hasSprite, spriteMeta } from './sprites.js';
 import { roundBox, outlinedText, heartPath } from './draw.js';
 import { ROOM_TYPES } from './rooms.js';
@@ -123,9 +123,10 @@ export function drawRoom(ctx, room, time) {
 // ═════════════ Paredes y muebles con altura ("tres cuartos") ═════════════
 // El suelo se ve desde arriba, pero todo lo que está de pie enseña su frente, como los personajes.
 // Cada muro que tiene suelo justo debajo enseña una cara con el papel pintado de esa habitación.
+// La cara mide FACE_H (3 casillas) y sube desde el pie del muro: la de un tabique tapa las dos últimas filas de
+// la habitación de detrás (se vuelve transparente si hay alguien ahí) y la del muro de arriba se sale del mapa.
 const CAP = 8;         // grosor de la tapa del muro que se ve por encima de la cara
-const OUTER_CAP = 12;  // lo mismo en el muro de fuera
-const OVER = 12;       // lo que sube la cara de un tabique por encima de su casilla (tapa esa franja de la habitación de detrás)
+const OUTER_CAP = TOP_EXTRA - (FACE_H - WALL); // lo mismo en el muro de fuera
 
 // Aclara (k > 0) u oscurece (k < 0) un color "#rrggbb"
 function shade(hex, k) {
@@ -154,7 +155,7 @@ export function wallFaces(layout) {
       const outer = r < WALL / CELL;
       const zone = (zones && zones[z]) || null;
       faces.push({
-        x: c0 * CELL, w: (c - c0) * CELL, y: (r + 1) * CELL, top: outer ? OUTER_CAP : r * CELL - OVER,
+        x: c0 * CELL, w: (c - c0) * CELL, y: (r + 1) * CELL, top: (r + 1) * CELL - FACE_H,
         outer, zone, style: (zone && zone.style) || layout.style, cap: capColor(layout.style),
       });
       c--;
@@ -165,20 +166,32 @@ export function wallFaces(layout) {
 
 export function drawFace(ctx, f) {
   const { x, w, y, top, style } = f;
-  if (!f.outer) {
-    ctx.fillStyle = f.cap;
-    ctx.fillRect(x, top - CAP, w, CAP);
+  const capH = f.outer ? OUTER_CAP : CAP;
+  ctx.fillStyle = f.cap;
+  ctx.fillRect(x, top - capH, w, capH);
+  const tex = `pared-${slug(style.name)}`;
+  if (hasSprite(tex)) {
+    // textura de la estancia (con su rodapié), repetida a lo ancho y alineada con el mapa para que casen los tramos
+    const step = spriteMeta(tex).cell[0] * PIXEL;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, top, w, y - top);
+    ctx.clip();
+    for (let sx = Math.floor(x / step) * step; sx < x + w; sx += step) drawSprite(ctx, tex, 'idle', 'south', 0, sx, y - FACE_H);
+    ctx.restore();
+  } else {
+    // papel pintado a rayas, para las estancias que aún no tienen textura
+    ctx.fillStyle = style.wall;
+    ctx.fillRect(x, top, w, y - top);
+    ctx.fillStyle = style.stripe;
+    for (let sx = Math.floor(x / 28) * 28; sx < x + w; sx += 28) {
+      const a = Math.max(sx, x), b = Math.min(sx + 12, x + w);
+      if (b > a) ctx.fillRect(a, top, b - a, y - top);
+    }
+    ctx.fillStyle = style.trim;
+    ctx.fillRect(x, y - 8, w, 8);
   }
-  ctx.fillStyle = style.wall;
-  ctx.fillRect(x, top, w, y - top);
-  ctx.fillStyle = style.stripe;
-  for (let sx = Math.floor(x / 28) * 28; sx < x + w; sx += 28) {
-    const a = Math.max(sx, x), b = Math.min(sx + 12, x + w);
-    if (b > a) ctx.fillRect(a, top, b - a, y - top);
-  }
-  // rodapié y contorno
-  ctx.fillStyle = style.trim;
-  ctx.fillRect(x, y - 8, w, 8);
+  // contorno
   ctx.fillStyle = OUTLINE;
   ctx.fillRect(x, top, w, 2);
   ctx.fillRect(x, y - 2, w, 2);
@@ -187,6 +200,29 @@ export function drawFace(ctx, f) {
     ctx.fillRect(x, top - CAP, 2, y - top + CAP);
     ctx.fillRect(x + w - 2, top - CAP, 2, y - top + CAP);
   }
+}
+
+// Lo que la pared de arriba sobresale del mapa (y < 0). La imagen guardada del mapa no llega ahí, así que se
+// pinta en cada fotograma: tapa, caras del muro de fuera y lo que cuelga de ellas (cuadros, ventanas...).
+export function drawWallTops(ctx, room, time) {
+  const { layout } = room;
+  const RW = layout.w || W;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, -TOP_EXTRA, RW, TOP_EXTRA);
+  ctx.clip();
+  ctx.fillStyle = capColor(layout.style);
+  ctx.fillRect(0, -TOP_EXTRA, RW, TOP_EXTRA);
+  for (const f of wallFaces(layout)) if (f.outer) drawFace(ctx, f);
+  for (const d of layout.wallDecor || []) drawWallDecor(ctx, d, time);
+  ctx.restore();
+}
+
+// ¿Hay alguien en la franja de la habitación de detrás que tapa esta cara?
+function someoneBehind(f, game) {
+  if (!game) return false;
+  const behind = (e) => e && e.x > f.x - 12 && e.x < f.x + f.w + 12 && e.y > f.top && e.y < f.y - CELL + 8;
+  return behind(game.player) || (game.enemies || []).some(behind) || (game.allies || []).some(behind);
 }
 
 // Lo que tiene altura en un mapa (caras de los tabiques y muebles), como una lista de cosas con `y` y `draw`,
@@ -199,8 +235,11 @@ export function sceneryOf(room) {
     if (f.outer) continue;
     list.push({
       y: f.y,
-      draw(ctx) {
+      draw(ctx, game) {
+        // si tapa a alguien, se vuelve medio transparente
+        if (someoneBehind(f, game)) ctx.globalAlpha = 0.45;
         drawFace(ctx, f);
+        ctx.globalAlpha = 1;
         if (f.zone && f.zone.fog > 0) {
           // la habitación aún está a oscuras
           ctx.globalAlpha = 0.9 * f.zone.fog;
@@ -296,13 +335,11 @@ function drawFloor(ctx, style, seams, x0, y0, w, h) {
   // baldosa del estilo repetida por todo el suelo
   const tile = `suelo-${slug(style.name)}`;
   if (hasSprite(tile)) {
-    // las baldosas de PixelLab miden 32×32 píxeles de dibujo; las texturas enteras son más grandes y se
-    // dibujan a media escala ("scale" en su .json) para tener el doble de detalle
+    // las baldosas de PixelLab miden 32×32 píxeles de dibujo; las texturas enteras, más (lo dice su .json)
     const meta = spriteMeta(tile);
-    const scale = meta.scale || 1;
-    const step = meta.cell[0] * PIXEL * scale;
+    const step = meta.cell[0] * PIXEL;
     for (let y = Math.floor(y0 / step) * step; y < y0 + h; y += step) {
-      for (let x = Math.floor(x0 / step) * step; x < x0 + w; x += step) drawSprite(ctx, tile, 'idle', 'south', 0, x, y, { scale });
+      for (let x = Math.floor(x0 / step) * step; x < x0 + w; x += step) drawSprite(ctx, tile, 'idle', 'south', 0, x, y);
     }
     // suavizamos el dibujo del suelo con el color de la habitación para que los personajes destaquen
     const suavizar = meta.suavizar ?? 0.45;

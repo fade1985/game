@@ -10,9 +10,16 @@ obligatorios (fogón en la cocina) y grupos (cama + mesillas). **Los muebles, su
   <imagen> <estancia> <N>` la reduce a 32 píxeles por baldosa y crea `assets/sprites/suelo-<estancia>`; el
   juego la dibuja a media escala (doble detalle que los personajes) y la repite. **Recortar baldosa a baldosa
   quedaba peor** (se veían las juntas pintadas): `tools/extraer_baldosas.py` se queda solo para probar.
+  Ojo: el fondo se pinta a la resolución del pixel art, así que más detalle que 16 píxeles por baldosa no se ve.
 - Baño: `assets/sources/suelos/bano-suelo-gemini.webp` (Gemini, 12 × 12). Va mejor si los detalles son gruesos.
-- **Pared:** pendiente; saldrá de `assets/sources/suelos/bano-vacio.webp` (de frente, sin muebles). Tira de 48
-  píxeles de alto: hay que subir la cara de los muros (ahora ~26) y avisar a la sesión del mapa.
+- **Pared:** `py tools/textura_pared.py <imagen> <estancia> x0 x1 y0 y1` recorta la pared de frente de junta a
+  junta y crea `assets/sprites/pared-<estancia>` (48 píxeles de alto, con rodapié). La del baño sale de
+  `assets/sources/suelos/bano-vacio.webp`. Las estancias sin textura siguen con el papel pintado a rayas.
+- **Paredes de 3 casillas (opción A, elegida por el dueño el 16 de octubre):** la cara mide `FACE_H` (96) y sube
+  desde el pie del muro, sin cambiar el generador: en los tabiques tapa las dos últimas filas de la habitación
+  de detrás (se vuelve medio transparente si hay alguien ahí) y en el muro de arriba se sale del mapa (la cámara
+  deja ver `TOP_EXTRA` más arriba y `drawWallTops` pinta ese trozo en cada fotograma). Pega: en los baños
+  pequeños (6 de fondo) se ven pocas filas de suelo libres.
 - Textos para Gemini: pedir "perfectly flat orthographic view from directly above, NO perspective, exactly
   N x N square tiles aligned with the image edges, flat even lighting", y los detalles dentro de cada baldosa.
 
