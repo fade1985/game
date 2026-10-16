@@ -46,7 +46,19 @@ export function drawRoom(ctx, room, time) {
     }
   } else drawFloor(ctx, style, seams, WALL, WALL, iw, ih);
 
-  if (rug) {
+  const rugTex = rug && `alfombra-${slug(style.name)}`;
+  if (rug && hasSprite(rugTex)) {
+    // alfombra con textura (una tira que empalma por los lados): se ajusta a su alto y se repite a lo largo
+    const meta = spriteMeta(rugTex);
+    const scale = rug.h / (meta.cell[1] * PIXEL);
+    const step = meta.cell[0] * PIXEL * scale;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(rug.x, rug.y, rug.w, rug.h);
+    ctx.clip();
+    for (let x = rug.x; x < rug.x + rug.w; x += step) drawSprite(ctx, rugTex, 'idle', 'south', 0, x, rug.y, { scale });
+    ctx.restore();
+  } else if (rug) {
     roundBox(ctx, rug.x, rug.y, rug.w, rug.h, 18, rug.color, 4);
     ctx.setLineDash([10, 8]);
     ctx.lineWidth = 3;

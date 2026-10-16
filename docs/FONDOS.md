@@ -13,6 +13,17 @@ obligatorios (fogón en la cocina) y grupos (cama + mesillas). **Los muebles, su
   El fondo se pinta al **doble de detalle** que los sprites (`BG_PIXEL = 1` en `config.js`, elegido por el dueño):
   las texturas salen a 32 píxeles por casilla y se dibujan a media escala (`"scale": 0.5` en su `.json`).
 - Baño: `assets/sources/suelos/bano-suelo-gemini.webp` (Gemini, 12 × 12). Va mejor si los detalles son gruesos.
+- Pasillo (17 oct, con visto bueno): **moqueta** burdeos y mostaza con octógonos y una **alfombra** roja de borde
+  mostaza en medio. El dueño las genera realistas y las pixela con tezumie.github.io (tamaño de píxel 4, con su
+  paleta). Originales en `assets/sources/suelos/pasillo-moqueta.png` y `pasillo-alfombra.png`.
+  - La moqueta de ahora es un recorte de prueba de 128 × 128 (4 × 4 casillas; su dibujo se repite cada 32 píxeles
+    y el recorte se eligió donde mejor casaban los bordes): la imagen era alargada. **Pendiente:** una cuadrada,
+    sin costura, de 1536 × 1536 pixelada a 4 (384 píxeles, 12 × 12 casillas), para que no se repita tan a menudo.
+  - La alfombra es una tira de 256 × 64 que empalma por los lados: si existe `alfombra-<estancia>`, `render.js` la
+    ajusta al alto de la alfombra y la repite a lo largo (si no, la alfombra de color de antes).
+  - Prompts: vista cenital, luz plana y pareja, sin perspectiva, detalles gruesos (motivos de 20–30 cm) y solo
+    manchas pequeñas repartidas (las grandes se repetirían; las pinta el juego aparte).
+  - Siguiente: la pared del pasillo (el papel amarillo a rayas desentona).
 - **Pared:** `py tools/textura_pared.py <imagen> <estancia> x0 x1 y0 y1` recorta la pared de frente de junta a
   junta y crea `assets/sprites/pared-<estancia>` (48 píxeles de alto, con rodapié). La del baño sale de
   `assets/sources/suelos/bano-vacio.webp`. Las estancias sin textura siguen con el papel pintado a rayas.
