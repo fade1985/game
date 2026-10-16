@@ -3,25 +3,27 @@
 //  menú → edificio → plantas → pasillo y apartamentos
 // ─────────────────────────────────────────────
 import { W, H, WALL, DOOR_W, MAX_ALLIES, BUILDINGS, SURVIVORS, SLIDE, FADE } from './config.js';
-import { rand, clamp, dist, pushOut, obstacleGap } from './utils.js';
+import { rand, clamp, dist, obstacleGap } from './utils.js';
 import { Player, Ally } from './entities.js';
 import { makeBoss, BOSS_TYPES } from './bosses.js';
 import { Zombie } from './zombies.js';
 import { generateFloor, floorName } from './building.js';
 import { makePlainLayout } from './rooms.js';
 import { baseStats, rollItem, applyWorkshop, WORKSHOP } from './upgrades.js';
-import { SurvivorNPC, DoorKey, WeaponProp, WeaponStash, Maniqui } from './props.js';
-import { WEAPONS, randomWeapon, weaponSummary } from './weapons.js';
+import { SurvivorNPC, DoorKey, WeaponStash, Maniqui } from './props.js';
+import { WEAPONS, weaponSummary } from './weapons.js';
 import { loadSave, updateSave, buildingSave } from './save.js';
 import { Camera, ZOOM, BOSS_ZOOM } from './camera.js';
 import { setTextFont } from './draw.js';
-import { hasSprite } from './sprites.js';
-import { CELL, isWall, isOpen, lineClear, randomFloorPoint, wayTo } from './shapes.js';
+import { isOpen, randomFloorPoint } from './shapes.js';
 import { getMoveVector, consumeDash, clearInput } from './input.js';
 import { MolotovMethods, MOLOTOV } from './molotov.js';
 import { sfx, music, setMusicOn } from './sfx.js';
 import { ZombieAttacks } from './game-ataques.js';
 import { GameDrawing } from './game-dibujo.js';
+import { GameCombat } from './game-combate.js';
+import { GameEffects } from './game-efectos.js';
+import { GameMap } from './game-mapa.js';
 
 // Dónde va el mueble de cada arma en la pared de arriba de la sala de mantenimiento, en el orden de
 // WEAPONS. Hay sitio para seis; si algún día hay más armas, harán falta más huecos.
@@ -32,14 +34,6 @@ const bossHpMul = (type, floorNum) => (type === 'boss' ? 1 : 1 + (floorNum - 1) 
 // Cuánto más duros son los zombis en cada planta (provisional: se equilibra en la fase 3 del mapa nuevo)
 const FLOOR_HP = 0.15;
 const NOPE_EVERY = 1.6;    // cada cuánto se repite el aviso de una puerta que no se abre
-const NOTICE = 330;        // a qué distancia nota un zombi dormido al conserje, si lo ve
-const ALERT = 170;         // un zombi que despierta despierta a los que tiene así de cerca
-const NOISE = 430;         // hasta dónde se oye un disparo (despierta aunque haya tabiques)
-
-const CASH_CHANCE = 0.07;  // probabilidad de que un zombi suelte un billete de dólar 💵
-const HEART_CHANCE = 0.05; // ...o un corazón
-const HEART_HEAL = 15;
-const BULLET_LIFT = 22;    // pixel art: altura a la que se dibujan las balas de un arma dibujada (la del cuerpo de un zombi)
 
 const formatTime = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
@@ -672,422 +666,12 @@ export class Game {
     }
   }
 
-  separateEnemies() {
-    const es = this.enemies;
-    for (let i = 0; i < es.length; i++) {
-      for (let j = i + 1; j < es.length; j++) {
-        const a = es[i], b = es[j];
-        if (!a.active || !b.active) continue;
-        const dx = b.x - a.x, dy = b.y - a.y;
-        const d = Math.hypot(dx, dy) || 0.01;
-        const overlap = a.r + b.r - d;
-        if (overlap > 0) {
-          const wa = a.isBoss ? 0 : b.isBoss ? 1 : 0.5;
-          a.x -= (dx / d) * overlap * wa; a.y -= (dy / d) * overlap * wa;
-          b.x += (dx / d) * overlap * (1 - wa); b.y += (dy / d) * overlap * (1 - wa);
-        }
-      }
-    }
-  }
-
-  updateBullets(dt) {
-    const p = this.player;
-    for (const b of this.bullets) {
-      b.x += b.vx * dt;
-      b.y += b.vy * dt;
-      b.life -= dt;
-      // pixel art: la bala sale a la altura del cañón y baja enseguida a la del cuerpo (solo el dibujo)
-      if (b.lift > BULLET_LIFT) b.lift += (BULLET_LIFT - b.lift) * (1 - Math.exp(-dt * 14));
-      const outside = isWall(this.room.layout, b.x, b.y);
-      if (outside || this.room.layout.obstacles.some((o) => obstacleGap(o, b) < b.r * 0.5)) {
-        b.dead = true;
-        if (b.friendly) this.bulletImpact(b, true); else this.puff(b.x, b.y, b.color);
-        continue;
-      }
-      if (b.friendly) {
-        for (const e of this.enemies) {
-          if (!e.active || b.hit.has(e)) continue;
-          if (dist(e, b) < e.r + b.r) {
-            b.hit.add(e);
-            const l = Math.hypot(b.vx, b.vy) || 1;
-            e.hurt(b.dmg, b.crit, b.vx / l, b.vy / l, this, b.knock ?? 1);
-            this.bulletImpact(b, false);
-            if (b.pierce-- <= 0) { b.dead = true; break; }
-          }
-        }
-      } else if (!p.dead && p.invuln <= 0 && dist(p, b) < p.r + b.r - 2) {
-        p.hurt(b.dmg, this);
-        b.dead = true;
-      }
-    }
-    this.bullets = this.bullets.filter((b) => !b.dead && b.life > 0);
-  }
-
-  updatePickups(dt) {
-    const p = this.player;
-    const needsHp = p.hp < this.stats.maxHp;
-    for (const pk of this.pickups) {
-      pk.t += dt;
-      const fr = Math.exp(-dt * 5);
-      pk.vx *= fr; pk.vy *= fr;
-      const dx = p.x - pk.x, dy = p.y - pk.y;
-      const d = Math.hypot(dx, dy) || 1;
-      // Los billetes siempre vienen a ti; los corazones, solo si te falta vida
-      // y los molotovs, si caben en la mochila
-      const wanted = pk.kind === 'cash' || (pk.kind === 'molotov' ? this.molotovs < MOLOTOV.max : needsHp);
-      if (!p.dead && wanted && pk.t > 0.4 && d < this.stats.magnet) {
-        pk.vx += (dx / d) * 2200 * dt;
-        pk.vy += (dy / d) * 2200 * dt;
-        const sp = Math.hypot(pk.vx, pk.vy);
-        if (sp > 650) { pk.vx *= 650 / sp; pk.vy *= 650 / sp; }
-      }
-      pk.x = clamp(pk.x + pk.vx * dt, WALL + 14, this.rw - WALL - 14);
-      pk.y = clamp(pk.y + pk.vy * dt, WALL + 14, this.rh - WALL - 14);
-      for (const b of this.room.layout.blocks) pushOut(pk, b);
-      for (const o of this.room.layout.obstacles) pushOut(pk, o); // que nada se quede debajo de un mueble
-      if (!p.dead && wanted && pk.t > 0.25 && d < p.r + 12) this.collect(pk);
-    }
-    this.pickups = this.pickups.filter((pk) => !pk.dead);
-    this.room.pickups = this.pickups;
-  }
-
-  collect(pk) {
-    pk.dead = true;
-    if (pk.kind === 'heart') {
-      this.healPlayer(HEART_HEAL);
-      sfx.gem();
-    } else if (pk.kind === 'cash') {
-      // los dólares se guardan al momento: no se pierden aunque mueras
-      this.runKeys++;
-      this.wallet = updateSave((s) => { s.keys++; s.totalKeys++; }).keys;
-      this.floatText(pk.x, pk.y - 20, '+$1', '#80ed99', 20);
-      sfx.coin();
-    } else if (pk.kind === 'molotov') {
-      this.molotovs = Math.min(MOLOTOV.max, this.molotovs + 1);
-      this.floatText(pk.x, pk.y - 20, '+1 molotov', '#ff9f1c', 20);
-      sfx.buy();
-    }
-  }
-
-  updateParticles(dt) {
-    for (const pt of this.particles) {
-      pt.life -= dt;
-      pt.x += pt.vx * dt;
-      pt.y += pt.vy * dt;
-      const fr = Math.exp(-dt * 4);
-      pt.vx *= fr; pt.vy *= fr;
-    }
-    this.particles = this.particles.filter((pt) => pt.life > 0);
-    for (const t of this.texts) {
-      t.t += dt;
-      t.y += t.vy * dt;
-      t.vy *= Math.exp(-dt * 3);
-    }
-    this.texts = this.texts.filter((t) => t.t < t.life);
-  }
-
-  // ═════════════ Combate ═════════════
-
-  collideWorld(ent) {
-    ent.x = clamp(ent.x, WALL + ent.r, this.rw - WALL - ent.r);
-    ent.y = clamp(ent.y, WALL + ent.r, this.rh - WALL - ent.r);
-    for (const b of this.room.layout.blocks) pushOut(ent, b); // tabiques de los apartamentos
-    for (const o of this.room.layout.obstacles) pushOut(ent, o);
-    for (const pr of this.room.props) if (pr.solid) pushOut(ent, pr);
-  }
-
-  // Hacia dónde tiene que andar un enemigo para llegar al jugador rodeando muros y muebles
-  // (null si puede ir en línea recta, que es lo normal)
-  wayTo(ent) {
-    return wayTo(this.room.layout, ent, this.player);
-  }
-
-  // ¿Ve este enemigo al conserje, o hay un tabique en medio?
-  sees(ent) {
-    return lineClear(this.room.layout, ent.x, ent.y, this.player.x, this.player.y);
-  }
-
-  // ═════════════ Habitaciones de un apartamento ═════════════
-
-  // En qué habitación del apartamento cae un punto (null en un tabique, en el hueco de una puerta
-  // o en un mapa sin habitaciones)
-  zoneAt(x, y) {
-    const l = this.room.layout;
-    if (!l.zones) return null;
-    return l.zones[l.owner[Math.floor(y / CELL) * l.cols + Math.floor(x / CELL)]] || null;
-  }
-
-  // ¿Está esto en una habitación que aún no se ha pisado? (entonces ni se dibuja ni se le apunta)
-  hidden(ent) {
-    const z = this.zoneAt(ent.x, ent.y);
-    return !!z && z.fog > 0.5;
-  }
-
-  // Descubre la habitación en la que está el conserje y, si está en una puerta o pegado a ella,
-  // las dos que comunica; y va aclarando las descubiertas
-  updateFog(dt) {
-    const l = this.room && this.room.layout;
-    if (!l || !l.zones) return;
-    const p = this.player;
-    const c = Math.floor(p.x / CELL), r = Math.floor(p.y / CELL);
-    const here = l.zones[l.owner[r * l.cols + c]];
-    if (here) here.seen = true;
-    for (const d of l.inner) {
-      if (c >= d.c - 1 && c <= d.c + d.w && r >= d.r - 1 && r <= d.r + d.h) l.zones[d.a].seen = l.zones[d.b].seen = true;
-    }
-    for (const z of l.zones) if (z.seen && z.fog > 0) z.fog = Math.max(0, z.fog - dt * 3.5);
-  }
-
-  // ¿Nota este zombi dormido al conserje? Si entra en su habitación, o si lo ve de cerca
-  notices(z) {
-    const p = this.player;
-    if (p.dead) return false;
-    const zone = this.zoneAt(p.x, p.y);
-    if (zone && zone.id === z.zone) return true;
-    return dist(z, p) < NOTICE && this.sees(z);
-  }
-
-  // Un zombi que despierta arrastra a los dormidos que tiene cerca y a la vista (con un pequeño retraso)
-  wakeNear(z) {
-    for (const e of this.enemies) {
-      if (e !== z && e.asleep && dist(e, z) < ALERT && lineClear(this.room.layout, e.x, e.y, z.x, z.y)) this.later(rand(0.15, 0.4), () => e.wake(this));
-    }
-  }
-
-  // Un ruido fuerte (un disparo) despierta a los dormidos que haya cerca, aunque no vean nada
-  noise(x, y, radius = NOISE) {
-    for (const e of this.enemies) if (e.asleep && Math.hypot(e.x - x, e.y - y) < radius) this.later(rand(0.1, 0.5), () => e.wake(this));
-  }
-
-  nearestEnemy(x, y, range) {
-    let best = null, bd = range;
-    for (const e of this.enemies) {
-      if (!e.active) continue;
-      // con la cámara cerca solo se apunta a lo que se ve en pantalla
-      if (!this.camera.inView(e, 30)) continue;
-      // ni a lo que queda detrás de un muro o en una habitación a oscuras
-      if (!lineClear(this.room.layout, x, y, e.x, e.y) || this.hidden(e)) continue;
-      const d = Math.hypot(e.x - x, e.y - y) - e.r;
-      if (d < bd) { bd = d; best = e; }
-    }
-    return best;
-  }
-
-  // Dispara una o varias balas aliadas. `o` admite: dmg, count, spread, jitter,
-  // speed, life, pierce, knock, color, r, x, y (punto de salida) y lift (altura a la que se dibuja al salir)
-  fireVolley(src, angle, o) {
-    if (src === this.player) this.noise(src.x, src.y);
-    const n = o.count || 1;
-    const spread = o.spread ?? 0.16;
-    for (let i = 0; i < n; i++) {
-      const off = n > 1 ? (i / (n - 1) - 0.5) * spread * (n > 2 ? 1 : 0.6) : 0;
-      const a = angle + off + (Math.random() - 0.5) * (o.jitter || 0);
-      const crit = Math.random() < this.stats.crit;
-      const speed = (o.speed || 560) * (o.jitter ? 0.9 + Math.random() * 0.2 : 1);
-      const r = o.r || 7;
-      this.bullets.push({
-        x: o.x ?? src.x + Math.cos(a) * src.r,
-        y: o.y ?? src.y + Math.sin(a) * src.r,
-        vx: Math.cos(a) * speed,
-        vy: Math.sin(a) * speed,
-        r: crit ? r + 3 : r,
-        dmg: crit ? o.dmg * 2 : o.dmg,
-        crit,
-        pierce: o.pierce || 0,
-        knock: o.knock ?? 1,
-        friendly: true,
-        color: crit ? '#ffd23f' : (o.color || '#fff6d5'),
-        life: o.life || 1.2,
-        hit: new Set(),
-        lift: o.lift || 0,
-      });
-    }
-  }
-
-  // Golpe cuerpo a cuerpo: daña a todo lo que esté dentro del abanico
-  // y además rompe los proyectiles enemigos (¡se pueden "barrer"!)
-  meleeHit(src, angle, half, reach, dmg, w) {
-    const inArc = (x, y, r) => {
-      const dx = x - src.x, dy = y - src.y;
-      const d = Math.hypot(dx, dy);
-      if (d - r > reach) return false;
-      const diff = Math.abs(Math.atan2(Math.sin(Math.atan2(dy, dx) - angle), Math.cos(Math.atan2(dy, dx) - angle)));
-      return diff <= half + 0.2 || d < r + 12;
-    };
-    let hits = 0;
-    for (const e of this.enemies) {
-      if (!e.active || !inArc(e.x, e.y, e.r)) continue;
-      const crit = Math.random() < this.stats.crit;
-      const l = Math.hypot(e.x - src.x, e.y - src.y) || 1;
-      e.hurt(crit ? dmg * 2 : dmg, crit, (e.x - src.x) / l, (e.y - src.y) / l, this, w.knock);
-      this.hitSpark(e.x - ((e.x - src.x) / l) * e.r * 0.6, e.y - ((e.y - src.y) / l) * e.r * 0.6 - 10, crit);
-      hits++;
-      // salpicaduras (de agua, si es la fregona)
-      for (let i = 0; i < 5; i++) {
-        const a = angle + (Math.random() - 0.5) * 1.6, sp = rand(120, 260);
-        this.particles.push({ x: e.x, y: e.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: rand(3, 5), color: w.trail, life: 0.35, max: 0.35, outline: true });
-      }
-    }
-    for (const b of this.bullets) {
-      if (!b.friendly && inArc(b.x, b.y, b.r)) { b.dead = true; this.puff(b.x, b.y, '#ffffff'); }
-    }
-    if (hits) {
-      this.hitStop = Math.max(this.hitStop || 0, 0.05); // pequeña pausa de impacto: da sensación de golpe
-      this.shake(3 + hits);
-      sfx.thud();
-    }
-  }
-
-  // Casquillo que sale despedido al disparar
-  casing(x, y, angle) {
-    const side = Math.cos(angle) >= 0 ? -1 : 1;
-    const a = angle + side * Math.PI / 2 + rand(-0.4, 0.4);
-    this.particles.push({ x, y, vx: Math.cos(a) * rand(90, 150), vy: Math.sin(a) * rand(90, 150) - 60, r: 2.6, color: '#ffd23f', life: 0.5, max: 0.5, outline: true });
-  }
-
-  // Proyectil enemigo. `o` admite: color, r, sound (false para no sonar)
-  enemyShoot(x, y, angle, speed, dmg, o = {}) {
-    this.bullets.push({
-      x, y,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      r: o.r || 8, dmg, friendly: false, color: o.color || '#ff4d6d', life: 6,
-    });
-    if (o.sound !== false) sfx.enemyShot();
-  }
-
-  killEnemy(e) {
-    if (e.dead) return;
-    e.dead = true;
-    this.kills++;
-    if (e.onDeath) e.onDeath(this);
-    if (!e.isBoss) sfx.splat();
-    this.addDecal(e);
-    this.burst(e.x, e.y, e.color, 12, e.r);
-    this.shake(3);
-    sfx.kill();
-    if (!e.isBoss) {
-      if (Math.random() < CASH_CHANCE) this.dropPickup('cash', e.x, e.y);
-      else if (Math.random() < HEART_CHANCE) this.dropPickup('heart', e.x, e.y);
-      else if (Math.random() < MOLOTOV.drop) this.dropPickup('molotov', e.x, e.y);
-    }
-    if (this.stats.lifesteal && !this.player.dead) this.healPlayer(this.stats.lifesteal);
-    if (e.isBoss) this.bossDefeated(e);
-  }
-
-  // Al caer un jefe desaparecen sus esbirros y sus proyectiles
-  bossDefeated(boss) {
-    for (const e of this.enemies) {
-      if (!e.dead) { e.dead = true; this.burst(e.x, e.y, e.color, 8, e.r); }
-    }
-    this.bullets = this.bullets.filter((b) => b.friendly);
-    this.hazards = [];
-    this.trail = [];
-    this.lobs = [];
-    this.burst(boss.x, boss.y, '#ffd23f', 30, boss.r);
-    this.burst(boss.x, boss.y - 40, boss.color, 20, boss.r);
-    this.fx('objeto-fx-chispa', boss.x, boss.y - 20);
-    this.shake(20);
-    this.hitStop = 0.35; // cámara lenta un instante: ¡golpe final!
-    sfx.boom();
-    this.dropPickup('heart', boss.x, boss.y);
-    this.dropPickup('heart', boss.x, boss.y);
-    for (let i = 0; i < (boss.type === 'boss' ? 8 : 3); i++) this.dropPickup('cash', boss.x, boss.y);
-    // el mini jefe siempre suelta un arma (lejos de donde saldrán las escaleras)
-    if (boss.type === 'miniboss') {
-      this.room.props.push(new WeaponProp(randomWeapon(this.player.weapon.id), this.rw / 2, this.rh / 2 + 130));
-    }
-  }
-
   onPlayerDeath() {
     const p = this.player;
     p.dead = true;
     this.burst(p.x, p.y, '#ffd23f', 30, p.r);
     this.shake(18);
     this.later(1.4, () => this.endRun(false));
-  }
-
-  dropPickup(kind, x, y) {
-    const a = rand(0, Math.PI * 2), s = rand(80, 220);
-    this.pickups.push({ kind, x, y, r: 14, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0, seed: rand(0, 6) });
-  }
-
-  // ═════════════ Efectos ═════════════
-
-  shake(a) { this.shakeAmt = Math.max(this.shakeAmt, a); }
-
-  puff(x, y, color) {
-    this.particles.push({ x, y, vx: rand(-30, 30), vy: rand(-30, 10), r: rand(3, 6), color, life: 0.3, max: 0.3 });
-  }
-
-  burst(x, y, color, n, r) {
-    for (let i = 0; i < n; i++) {
-      const a = rand(0, Math.PI * 2), s = rand(80, 260);
-      this.particles.push({
-        x: x + Math.cos(a) * r * 0.5, y: y + Math.sin(a) * r * 0.5,
-        vx: Math.cos(a) * s, vy: Math.sin(a) * s,
-        r: rand(4, 9), color, life: rand(0.35, 0.7), max: 0.7, outline: true,
-      });
-    }
-    this.particles.push({ x, y, vx: 0, vy: 0, r, ring: true, color: '#ffffff', life: 0.3, max: 0.3 });
-  }
-
-  // Impacto de una bala del conserje o de un compañero, en pixel art: un destello cuadrado y unas chispas
-  // (cuadraditos del color de la bala) que rebotan hacia atrás. Contra un muro salta además algo de polvo.
-  // Se pinta a la altura a la que se ve la bala, no a la del suelo.
-  bulletImpact(b, wall) {
-    const x = b.x, y = b.y - (b.lift || 0);
-    const back = Math.atan2(-b.vy, -b.vx);
-    const colors = b.crit ? ['#ffffff', '#ffe9a8', '#ff9a3c', '#ff4d2e'] : ['#fffbe0', '#ffe066', '#ffb020', '#f0701a'];
-    this.particles.push({ x, y, vx: 0, vy: 0, px: true, size: b.crit ? 5 : 4, color: colors[0], life: 0.07, max: 0.07 });
-    const n = (b.crit ? 7 : 5) - (b.r < 6 ? 2 : 0); // los perdigones sueltan menos chispas
-    for (let i = 0; i < n; i++) {
-      const a = back + rand(-1.1, 1.1), sp = rand(110, 300);
-      this.particles.push({
-        x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, px: true, size: i < 2 ? 2 : 1,
-        color: colors[1 + (i % 3)], life: rand(0.14, 0.28), max: 0.28,
-      });
-    }
-    if (wall) {
-      for (let i = 0; i < 3; i++) {
-        const a = back + rand(-0.8, 0.8), sp = rand(30, 90);
-        this.particles.push({
-          x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 20, px: true, size: 2,
-          color: i ? '#b9bec9' : '#e3e6ec', life: rand(0.25, 0.4), max: 0.4,
-        });
-      }
-    }
-  }
-
-  // Efecto animado de pixel art (explosión, chispa, humo): se reproduce una vez en su sitio
-  fx(id, x, y) {
-    const dur = { 'objeto-fx-explosion': 12 / 14, 'objeto-fx-chispa': 7 / 16, 'objeto-fx-humo': 10 / 12 }[id];
-    if (!hasSprite(id)) return false;
-    this.particles.push({ fx: id, x, y, vx: 0, vy: 0, life: dur, max: dur });
-    return true;
-  }
-
-  // Chispas en forma de estrella donde se golpea
-  hitSpark(x, y, crit) {
-    const n = crit ? 6 : 4;
-    for (let i = 0; i < n; i++) {
-      const a = rand(0, Math.PI * 2), sp = rand(160, 300);
-      this.particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: crit ? 7 : 5, color: crit ? '#ffd23f' : '#ffffff', life: 0.16, max: 0.16, star: true });
-    }
-  }
-
-  // Mancha que se queda en el suelo al morir un enemigo
-  addDecal(e) {
-    const decals = this.room && this.room.decals;
-    if (!decals) return;
-    const colors = { explosivo: '#2b2633', venenoso: '#8fd13f', tentaculos: '#7b4fa0' };
-    const base = e.isBoss ? 1.8 : 1;
-    decals.push({ x: e.x, y: e.y + 10, r: rand(14, 20) * base, color: colors[e.type] || '#5b7d3a', seed: rand(0, 6) });
-    if (decals.length > 60) decals.shift();
-  }
-
-  floatText(x, y, text, color, size = 18) {
-    this.texts.push({ x, y, text, color, size, t: 0, life: 0.9, vy: -70 });
   }
 
 }
@@ -1098,6 +682,9 @@ function addMethods(target, source) {
     if (name !== 'constructor') Object.defineProperty(target.prototype, name, Object.getOwnPropertyDescriptor(source.prototype, name));
   }
 }
+addMethods(Game, GameCombat);    // balas, golpes, muertes y botín (game-combate.js)
+addMethods(Game, GameEffects);   // partículas, manchas, textos y temblor (game-efectos.js)
+addMethods(Game, GameMap);       // choques, niebla y lo que ven y oyen los zombis (game-mapa.js)
 addMethods(Game, ZombieAttacks); // ataques especiales de los zombis (game-ataques.js)
 addMethods(Game, GameDrawing);   // dibujo (game-dibujo.js)
 addMethods(Game, MolotovMethods); // el cóctel molotov de Johnny (molotov.js)
