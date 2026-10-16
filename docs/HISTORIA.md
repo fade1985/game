@@ -9,6 +9,8 @@ Quedaban 1.228 generaciones de PixelLab (se renuevan el 12 de noviembre). Todo e
 **16 oct, con visto bueno:** el andar hacia la derecha de la fregona y la pistola daba un salto (PixelLab lo
 dio con pocas posturas). Ahora es el de la izquierda dado la vuelta: `"espejo": {"east": "west"}` en el
 `arma.json` de cada una (lo entiende `tools/arma.py`). Si otra arma salta al andar en una dirección, mismo truco.
+También con visto bueno: al disparar andando (pistola, escopeta, MP5) Johnny se echa entero un poco hacia atrás,
+porque andando no se ve el retroceso de los brazos (`KICK` y `KICK_T` en `src/entities.js`).
 
 **1. Lo que el dueño tiene que probar jugando** (`http://localhost:3000/?pruebas&armas&mudo`; la tecla 1 saca un
 zombi). No ha dado todavía el visto bueno final a nada de esto:
