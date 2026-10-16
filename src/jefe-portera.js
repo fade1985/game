@@ -20,6 +20,10 @@ export const PORTERA = {
   bottles: 3, spinTime: 2.6, spinDmg: 10,
 };
 // Charco de lejía (lo usa game.js igual que los de veneno)
+// Unidades que avanza la portera en un ciclo de andar (dos pasos), medidas en su dibujo: el pie apoyado retrocede
+// unos 6 píxeles por fotograma. Así los pies se quedan pegados al suelo y no parece que patine o flote
+const STRIDE = 96;
+
 export const BLEACH = { hit: 10, dps: 8, life: 5, radius: 54, flight: 0.9 };
 
 // ═════════════ LA PORTERA ═════════════
@@ -338,7 +342,7 @@ export class Portera extends BossBase {
     const strike = (k) => hitF + Math.min(frames('attack') - 1 - hitF, Math.max(0, Math.floor(k * (frames('attack') - hitF))));
     let anim = sp > 10 ? 'walk' : 'idle';
     const opts = { flash };
-    if (anim === 'walk') opts.cycle = this.walkT / 7;
+    if (anim === 'walk') opts.cycle = this.stepT / STRIDE;
     const set = (a, f) => { anim = a; opts.frame = f; delete opts.cycle; };
     switch (st.name) {
       case 'fanWarn': set('attack', raise(st.t / PORTERA.fanWarn)); break;

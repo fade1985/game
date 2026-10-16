@@ -52,6 +52,7 @@ export class BossBase {
     this.spawnT = SPAWN;
     this.t = 0;
     this.walkT = 0;
+    this.stepT = 0;   // pixel art: distancia andada, para que los pies vayan al paso de lo que avanza
     this.hitFlash = 0;
     this.dead = false;
     this.lookX = 0; this.lookY = 1;
@@ -95,6 +96,7 @@ export class BossBase {
     game.collideWorld(this);
     const sp = Math.hypot(this.vx, this.vy);
     this.walkT += dt * (sp > 10 ? 3 + sp / 30 : 0);
+    if (sp > 10) this.stepT += sp * dt;
   }
 
   update(dt, game) {
