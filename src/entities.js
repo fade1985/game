@@ -19,6 +19,10 @@ const STEP = 140;
 // siempre, pero se dibuja levantada: sale del cañón y baja enseguida hasta la altura del cuerpo de los zombis
 const MUZZLE_LIFT = 50;
 
+// Retroceso al disparar andando: cuántas unidades se echa Johnny hacia atrás (2 unidades = 1 píxel del dibujo)
+// y en cuántos segundos vuelve a su sitio
+const KICK = 6, KICK_T = 0.12;
+
 // ═════════════ JUGADOR ═════════════
 const wrapAngle = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 
@@ -384,15 +388,21 @@ export class Player {
     let anim = walking ? 'walk' : 'idle', frame, cycle = walking ? (this.stepT || 0) / STEP : undefined;
     // disparar andando: si la hoja trae los efectos del disparo aparte ("fx": fogonazo, humo y casquillo),
     // Johnny sigue andando entero, de una pieza, y los efectos se pintan encima
-    let fx;
+    let fx, kx = 0, ky = 0;
     if (hitting) {
       frame = Math.floor((this.atkAnim.t / this.atkAnim.dur) * hitting);
-      if (walking && animFrames(armed, 'fx') > 0) { fx = frame; frame = undefined; }
+      if (walking && animFrames(armed, 'fx') > 0) {
+        fx = frame; frame = undefined;
+        // como andando no se ve el retroceso de los brazos, el disparo empuja a Johnny entero un poquito
+        // hacia atrás (en contra de donde apunta) y vuelve enseguida. La escopeta empuja más
+        const k = Math.max(0, 1 - this.atkAnim.t / KICK_T) * (this.weapon.pellets > 1 ? KICK * 1.6 : KICK);
+        kx = -this.lookX * k; ky = -this.lookY * k;
+      }
       else { anim = 'attack'; cycle = undefined; }
     }
-    const sprited = drawSprite(ctx, sprite, anim, dir, now, x, y + 16,
+    const sprited = drawSprite(ctx, sprite, anim, dir, now, x + kx, y + 16 + ky,
       { flash: this.hurtT > 0, frame, cycle });
-    if (sprited && fx !== undefined) drawSprite(ctx, sprite, 'fx', dir, now, x, y + 16, { frame: fx });
+    if (sprited && fx !== undefined) drawSprite(ctx, sprite, 'fx', dir, now, x + kx, y + 16 + ky, { frame: fx });
     if (!sprited) drawHuman(ctx, x, y, {
       ...PLAYER_LOOK,
       lookX: this.lookX,
