@@ -45,10 +45,14 @@ window.addEventListener('keydown', (e) => {
     game.spawnEnemy(TEST_ZOMBIES[n - 1], pos.x, pos.y);
   }
 });
-// Carteles de las armas (sobre todo para el móvil): tocar la otra arma la saca; tocar la de fuego que
-// ya está en la mano, recarga
-for (const [id, slot] of [['pill-melee', 'melee'], ['pill-ranged', 'ranged']]) {
-  document.getElementById(id).addEventListener('pointerdown', (e) => {
+// Carteles de las armas (abajo) y botones redondos de las armas (móvil): tocar la otra arma la saca;
+// tocar la de fuego que ya está en la mano, recarga
+const slotButtons = [
+  [document.getElementById('pill-melee'), 'melee'], [document.getElementById('pill-ranged'), 'ranged'],
+  ...[...document.querySelectorAll('.slot-btn')].map((el) => [el, el.dataset.slot]),
+];
+for (const [el, slot] of slotButtons) {
+  el.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     if (game.state !== 'playing' || game.paused) return;
     if (game.player.hand === slot) { if (slot === 'ranged') pressReload(); } else pressSwitch();

@@ -18,6 +18,7 @@ export function createUI(root) {
   const overlay = root.querySelector('#overlay');
   const hud = root.querySelector('#hud');
   const $ = (sel) => hud.querySelector(sel);
+  const $touch = (sel) => document.querySelector(`#touch-ui ${sel}`); // botones táctiles (fuera del HUD)
   let actions = {};
   let keyHandler = null;
 
@@ -53,6 +54,7 @@ export function createUI(root) {
     cache[key] = value;
     if (prop === 'width') { el.style.width = value; el.style.setProperty('--hp', value); }
     else if (prop.startsWith('class:')) el.classList.toggle(prop.slice(6), value); // 'class:on' pone o quita la clase "on"
+    else if (prop === 'reload') el.style.setProperty('--recarga', value);
     else el[prop] = value;
   }
 
@@ -84,6 +86,19 @@ export function createUI(root) {
         set('rangedOn', $('#pill-ranged'), p.hand === 'ranged', 'class:on');
         set('rangedEmpty', $('#pill-ranged'), p.mag === 0 && !p.reloading, 'class:empty');
         set('rangedReload', $('#pill-ranged'), p.reloading, 'class:reloading');
+      }
+      // y los botones redondos del móvil (lo mismo, en pequeño)
+      set('bMelee', $touch('.slot-melee .ico'), `ico ico-${melee.id}`, 'className');
+      set('bMeleeOn', $touch('.slot-melee'), p.hand === 'melee', 'class:on');
+      set('bRangedHide', $touch('.slot-ranged'), !ranged, 'hidden');
+      if (ranged) {
+        set('bRanged', $touch('.slot-ranged .ico'), `ico ico-${ranged.id}`, 'className');
+        set('bRangedOn', $touch('.slot-ranged'), p.hand === 'ranged', 'class:on');
+        set('bAmmo', $touch('.slot-ranged b'), String(p.mag));
+        set('bEmpty', $touch('.slot-ranged'), p.mag === 0 && !p.reloading, 'class:empty');
+        // el aro de recarga: de 0 a 1 según lo que lleva (style.css lo pinta con --recarga)
+        const k = p.reloading ? (1 - p.reloadT / p.reloadDur).toFixed(2) : '0';
+        set('bReload', $touch('.slot-ranged'), k, 'reload');
       }
       set('team', $('#hud-team'), g.allies.map((al) => `<i class="ico ico-${al.def.id}"></i>`).join(''), 'innerHTML');
       set('teamShow', $('#pill-team'), g.allies.length === 0, 'hidden');

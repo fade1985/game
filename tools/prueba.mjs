@@ -216,6 +216,27 @@ try {
   // esperar a que estén todos los sprites (los de los zombis llegan en la segunda tanda)
   await page.waitForFunction(() => window.game?.spriteIds?.some?.((id) => id.startsWith('zombi-')), null, { timeout: 30000, polling: 200 });
   huella = await page.evaluate(pruebas);
+
+  // En un móvil en horizontal (táctil): los botones de esquivar, molotov y las dos armas, con la pistola
+  // en la mano y recargando. Solo una captura para mirar cómo quedan (no cuenta para la huella)
+  const movil = await browser.newPage({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
+  movil.on('pageerror', (e) => errores.push(`error (móvil): ${e.message}`));
+  await movil.addInitScript(preparar);
+  await movil.goto(URL_JUEGO);
+  await movil.waitForFunction(() => window.game?.spriteIds?.some?.((id) => id.startsWith('zombi-')), null, { timeout: 30000, polling: 200 });
+  await movil.evaluate(async () => {
+    const game = window.game;
+    const { WEAPONS } = await import('/src/weapons.js');
+    game.newRun();
+    game.banner = null;
+    game.player.weapon = WEAPONS.pistola;
+    game.player.mag = 0;
+    game.player.startReload(game);
+    for (let i = 0; i < 40; i++) game.update(1 / 60);
+    game.render();
+    document.getElementById('touch-ui').hidden = false; // (lo enseña el bucle normal, que aquí está parado)
+  });
+  await movil.screenshot({ path: path.join(OUT, '09-movil.png') });
 } catch (e) {
   errores.push(`la prueba no pudo terminar: ${e.message.split('\n')[0]}`);
 } finally {

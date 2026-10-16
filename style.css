@@ -348,12 +348,18 @@ body.touch #touch-ui:not([hidden]) { display: block; }
   touch-action: none;
 }
 .dash-btn:active { transform: translateY(0.15em); }
+/* Los botones pequeños (molotov y las dos armas) van en arco alrededor del de esquivar, a la misma
+   distancia de su centro, para que el pulgar llegue a todos sin moverse apenas:
+     molotov arriba (90°) · arma cuerpo a cuerpo en la diagonal (135°) · arma de fuego a la izquierda (180°).
+   --cx/--cy: centro del botón de esquivar (desde la esquina de abajo a la derecha); --r: radio del arco;
+   los botones pequeños miden 3.2em (radio 1.6em) */
+#touch-ui { --cx: calc(4% + 2.1em); --cy: calc(14% + 2.1em); --r: 5em; font-size: clamp(14px, 2.4cqw, 24px); }
 /* Botón del molotov: más pequeño, encima del de esquivar, con las botellas que quedan */
 .toss-btn {
   pointer-events: auto;
   position: absolute;
-  right: 4%;
-  bottom: calc(14% + 6.2em);
+  right: calc(var(--cx) - 1.6em);
+  bottom: calc(var(--cy) + var(--r) - 1.6em);
   width: 3.2em;
   height: 3.2em;
   font-size: clamp(14px, 2.4cqw, 24px);
@@ -363,6 +369,50 @@ body.touch #touch-ui:not([hidden]) { display: block; }
   touch-action: none;
 }
 .toss-btn .ico { width: 1.9em; height: 1.9em; }
+/* Botones redondos de las armas. El del arma que está en la mano, con el aro amarillo y encendido;
+   el otro, apagado. En el de fuego, las balas del cargador y, al recargar, un aro blanco que se va llenando */
+.slot-btn {
+  pointer-events: auto;
+  position: absolute;
+  width: 3.2em;
+  height: 3.2em;
+  font-size: clamp(14px, 2.4cqw, 24px);
+  border-radius: 50%;
+  background: var(--metal);
+  border: 0.2em solid var(--line);
+  box-shadow: inset 0 0 0 0.14em var(--rust);
+  opacity: 0.6;
+  touch-action: none;
+  --recarga: 0;
+}
+.slot-btn.on { opacity: 1; border-color: #ffd23f; }
+.slot-btn:active { transform: translateY(0.15em); }
+.slot-btn .ico { width: 1.9em; height: 1.9em; }
+.slot-melee { right: calc(var(--cx) + var(--r) * 0.7071 - 1.6em); bottom: calc(var(--cy) + var(--r) * 0.7071 - 1.6em); }
+.slot-ranged { right: calc(var(--cx) + var(--r) - 1.6em); bottom: calc(var(--cy) - 1.6em); }
+.slot-ranged::before {
+  content: '';
+  position: absolute;
+  inset: -0.5em;
+  border-radius: 50%;
+  background: conic-gradient(#fff6d5 calc(var(--recarga) * 1turn), transparent 0);
+  -webkit-mask: radial-gradient(closest-side, transparent 76%, #000 78%);
+  mask: radial-gradient(closest-side, transparent 76%, #000 78%);
+  pointer-events: none;
+}
+.slot-btn b {
+  position: absolute;
+  right: -0.2em;
+  bottom: -0.3em;
+  font-weight: 400;
+  font-size: 0.95em;
+  color: #ffd23f;
+  -webkit-text-stroke: 3px var(--ink);
+  paint-order: stroke fill;
+}
+.slot-btn.empty b { color: #ff5d73; }
+/* en el móvil los botones redondos ya enseñan las armas: los carteles de abajo sobran */
+body.touch .weapon-pill { display: none; }
 .toss-btn b {
   position: absolute;
   right: 0.15em;
@@ -415,6 +465,7 @@ body.touch #touch-ui:not([hidden]) { display: block; }
 .ico-cuchillo { background-image: url('assets/ui/iconos/cuchillo.png'); }
 .ico-pistola { background-image: url('assets/ui/iconos/pistola.png'); }
 .ico-escopeta { background-image: url('assets/ui/iconos/escopeta.png'); }
+.ico-mp5 { background-image: url('assets/ui/iconos/pistola.png'); } /* (sin icono propio todavía) */
 
 .wicon .ico { width: 3.2em; height: 3.2em; }
 .ico-zapatillas { background-image: url('assets/ui/iconos/dash.png'); }
