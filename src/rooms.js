@@ -5,7 +5,7 @@
 // ─────────────────────────────────────────────
 import { W, H, WALL, DOOR_W, STYLES } from './config.js';
 import { mulberry32, pick, clamp, obstacleGap } from './utils.js';
-import { placeFurniture, placeWallDecor } from './furniture.js';
+import { placeFurniture, placeWallDecor, placeBackWall, hasTemplates } from './furniture.js';
 import { CELL, BASE_COLS, BASE_ROWS, plainGrid, toBlocks, isWall, isOpen } from './shapes.js';
 
 // Tipos de mapa. `frame` es el color del marco de las puertas que llevan a él.
@@ -210,7 +210,11 @@ export function makeApartmentLayout(apt) {
     const [min, max] = FURNITURE[rm.use];
     // en las habitaciones grandes cabe algún mueble más
     const extra = Math.min(2, Math.floor(rm.cells / 220));
-    obstacles.push(...placeFurniture(st.name, rng, min + extra, max + extra, { layout: geo, zone: rm.id, clear, fits }));
+    // las estancias con plantillas (de momento el baño) solo amueblan la pared del fondo; si en ella no cabe nada
+    // (una puerta en medio), como antes: muebles sueltos en las demás paredes
+    const back = hasTemplates(st.name) ? placeBackWall(st.name, rng, { layout: geo, zone: rm.id, clear, fits }) : [];
+    if (back.length) obstacles.push(...back);
+    else obstacles.push(...placeFurniture(st.name, rng, min + extra, max + extra, { layout: geo, zone: rm.id, clear, fits }));
     // seen y fog: las habitaciones que aún no se han pisado se ven a oscuras (fog va de 1, negro, a 0)
     return { id: rm.id, use: rm.use, name: rm.name, style: st, cells: rm.cells, x: rm.c0 * CELL, y: rm.r0 * CELL, w: rm.w * CELL, h: rm.h * CELL, cx: rm.x, cy: rm.y, seen: false, fog: 1 };
   });

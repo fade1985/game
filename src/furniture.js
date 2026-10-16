@@ -52,6 +52,9 @@ const BY_STYLE = {
 // o se ven igual desde cualquier sitio. En la de abajo solo estos últimos: se verían de espaldas.
 const ANY_WALL = ['lamp', 'plant', 'coatstand'];
 const SIDE_WALL = ['sofa', 'armchair', 'bathtub', 'toilet', 'nightstand'];
+// Cuántos de cada mueble puede haber en una misma habitación (los que no salen aquí, uno)
+const MAX_SAME = { counter: 2, nightstand: 2 };
+
 const goesOn = (kind, side) => side === 'top' || ANY_WALL.includes(kind) || (side !== 'bottom' && SIDE_WALL.includes(kind));
 
 // Tramos de pared libres (sin puerta) donde se pueden poner muebles en la sala de siempre (960×640)
@@ -117,8 +120,8 @@ export function placeFurniture(styleName, rng, min, max, { skipSide = null, layo
     const seg = from[Math.floor(rng() * from.length)];
     if (seg.side === skipSide) continue;
     const fit = pool.filter((k) => goesOn(k, seg.side) && PIECES[k].len <= seg.b - seg.a
-      // lámparas, plantas y percheros valen en cualquier pared: que no lo llenen todo
-      && !(ANY_WALL.includes(k) && placed.some((p) => p.kind === k)));
+      // nada repetido de más (ni dos lavadoras en la cocina ni dos váteres en el baño)
+      && placed.filter((p) => p.kind === k).length < (MAX_SAME[k] || 1));
     if (!fit.length) continue;
     const kind = fit[Math.floor(rng() * fit.length)];
     const pc = PIECES[kind];
@@ -140,6 +143,89 @@ export function placeFurniture(styleName, rng, min, max, { skipSide = null, layo
     placed.push(o);
   }
   return placed;
+}
+
+// ═════════════ Plantillas de la pared del fondo ═════════════
+// La pared del fondo es la que más se ve (es alta y de frente), así que no se llena al azar: cada estancia tiene
+// varias plantillas que dicen qué va en ella de izquierda a derecha. El juego elige una que quepa y reparte los
+// muebles a lo largo. Los marcados con '?' son opcionales: si no cabe todo, se quitan (en el orden de DROP).
+// Cada mueble sale una vez por plantilla, así nunca hay dos lavadoras en el mismo baño.
+const TEMPLATES = {
+  'Baño': [
+    ['bathtub?', 'toilet', 'sink?'],
+    ['sink?', 'toilet', 'bathtub?'],
+    ['toilet', 'sink?', 'washer?'],
+    ['washer?', 'sink?', 'toilet'],
+    ['sink?', 'toilet', 'washer?'],
+    ['bathtub?', 'sink?', 'toilet'],
+  ],
+};
+const DROP = ['bathtub', 'washer', 'sink']; // lo primero que se quita si no cabe
+
+export const hasTemplates = (styleName) => !!TEMPLATES[styleName];
+
+// Amuebla la pared del fondo de una habitación (sus tramos de pared de arriba) con una de sus plantillas.
+// Si la pared tiene una puerta, o delante de una puerta lateral hay que dejar sitio, los muebles se reparten
+// por los trozos libres que quedan, en el mismo orden. Mismas opciones que placeFurniture.
+export function placeBackWall(styleName, rng, { layout, zone, clear = [], fits = null }) {
+  const tops = wallSegments(layout, zone).filter((s) => s.side === 'top');
+  if (!tops.length) return [];
+  const base = Math.min(...tops.map((s) => s.base));
+  const SEP = 8;   // separación mínima entre muebles
+  const DEP = 60;  // fondo del mueble más hondo: la franja de suelo que se mira para no tapar puertas
+  // trozos libres de la pared: sus tramos, quitando lo que tiene que quedar despejado
+  let free = tops.filter((s) => s.base === base).map((s) => [s.a, s.b]);
+  for (const k of clear) {
+    if (k.y1 <= base || k.y0 >= base + DEP) continue;
+    free = free.flatMap(([a, b]) => [[a, Math.min(b, k.x0)], [Math.max(a, k.x1), b]]).filter(([a, b]) => b - a >= 30);
+  }
+  free.sort((p, q) => p[0] - q[0]);
+
+  // reparte los muebles por orden en los trozos: cada uno en el primero donde aún quepa
+  const flow = (kinds) => {
+    const groups = free.map(() => []);
+    let i = 0, used = 0;
+    for (const k of kinds) {
+      const len = PIECES[k].len;
+      while (i < free.length && used + (groups[i].length ? SEP : 0) + len > free[i][1] - free[i][0]) { i++; used = 0; }
+      if (i >= free.length) return null;
+      used += (groups[i].length ? SEP : 0) + len;
+      groups[i].push(k);
+    }
+    return groups;
+  };
+
+  for (const tpl of [...TEMPLATES[styleName]].sort(() => rng() - 0.5)) {
+    // primero entera; si no cabe, quitando opcionales uno a uno
+    let kinds = tpl.map((k) => k.replace('?', ''));
+    const optional = tpl.filter((k) => k.endsWith('?')).map((k) => k.slice(0, -1))
+      .sort((p, q) => DROP.indexOf(q) - DROP.indexOf(p)); // pop() saca el primero de DROP
+    let groups = flow(kinds);
+    while (!groups && optional.length) { kinds = kinds.filter((k) => k !== optional.pop()); groups = flow(kinds); }
+    if (!groups) continue;
+    // en cada trozo, el sitio que sobra se reparte en huecos al azar (a los lados y entre muebles)
+    const placed = [];
+    groups.forEach((ks, g) => {
+      if (!ks.length) return;
+      const [a, b] = free[g];
+      const spare = b - a - ks.reduce((s, k) => s + PIECES[k].len, 0) - SEP * (ks.length - 1);
+      const cuts = ks.map(() => rng()).concat(rng() * 0.5, rng() * 0.5);
+      const sum = cuts.reduce((s, v) => s + v, 0);
+      let x = a + spare * cuts[ks.length] / sum;
+      ks.forEach((k, i) => {
+        const pc = PIECES[k];
+        const cx = Math.round((x + pc.len / 2) / 2) * 2; // en píxeles enteros del dibujo
+        placed.push({ shape: 'rect', kind: k, side: 'top', len: pc.len, dep: pc.dep, seed: rng(), zone,
+          x: cx, y: base + pc.dep / 2, w: pc.len, h: pc.dep });
+        x += pc.len + SEP + (i < ks.length - 1 ? spare * cuts[i] / sum : 0);
+      });
+    });
+    if (!placed.every((o) => rectIsFloor(layout, o.x, o.y, o.w, o.h))) continue;
+    // fits() deja apuntado cada mueble que acepta, así que nos quedamos con los que quepan (casi siempre, todos)
+    const kept = placed.filter((o) => !fits || fits(o));
+    if (kept.length) return kept;
+  }
+  return [];
 }
 
 // Decoración de la pared de arriba: cuadros, ventanas y relojes.
