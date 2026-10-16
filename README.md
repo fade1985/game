@@ -12,8 +12,11 @@ Hecho con **HTML5 Canvas + JavaScript puro**, sin librerías ni paso de compilac
 - **Esquivar:** `Espacio` (en móvil: botón 💨). Te hace invulnerable un instante.
 - **Cóctel molotov:** mantén clic derecho o `E`, apunta con el ratón y suelta (en móvil: arrastra desde el botón
   de la botella y suelta).
-- **Con mando** (Xbox, PlayStation...): stick izquierdo o cruceta para moverte, `A` esquivar, `RT` mantenido +
-  stick derecho para apuntar el molotov (se lanza al soltar), `Start` pausa. En los menús: cruceta o stick para
+- **Cambiar de arma:** `Q` o la rueda del ratón (en móvil: toca el cartel de la otra arma, abajo).
+- **Recargar:** `R` (en móvil: toca el cartel del arma de fuego cuando la llevas en la mano). También recarga sola
+  al vaciar el cargador o cuando no hay ningún zombi a tiro.
+- **Con mando** (Xbox, PlayStation...): stick izquierdo o cruceta para moverte, `A` esquivar, `X` recargar, `Y`
+  cambiar de arma, `RT` mantenido + stick derecho para apuntar el molotov (se lanza al soltar), `Start` pausa. En los menús: cruceta o stick para
   elegir, `A` para pulsar y `B` para volver.
 - **Atacar:** de momento es automático: apuntas al enemigo más cercano (más adelante será manual).
 - **Pausa:** `Esc` o `P` (desde la pausa puedes quitar la música; el botón 🔊 silencia todo)
@@ -90,8 +93,16 @@ ven arriba a la izquierda y en la pausa.
 
 ### 🧹 Armas
 
-Empiezas cada edificio con la **fregona**. Al pasar por encima de un arma del suelo la cambias por la tuya
-(la vieja se queda en el suelo). El mini jefe siempre suelta un arma.
+Johnny lleva **dos armas a la vez**: una cuerpo a cuerpo y una de fuego (el molotov va aparte). Abajo se ven
+las dos; la que está en la mano, encendida. Empiezas cada edificio con la **fregona** y sin arma de fuego. Al pasar
+por encima de un arma del suelo la coges: si ya llevabas una de ese tipo, la vieja se queda en el suelo. El mini
+jefe siempre suelta un arma.
+
+**Munición:** cada arma de fuego tiene su **cargador** y llevas balas de reserva en la mochila (el cartel dice
+`cargador/reserva`). Al cogerla viene con el cargador lleno y 2 cargadores de reserva; caben como mucho 4. Los
+zombis sueltan a veces una **caja de munición** (un cargador más) y el mini jefe suelta 2. Si te quedas sin
+ninguna bala, Johnny saca solo la de cuerpo a cuerpo, y vuelve a la de fuego al coger una caja. La escopeta
+mete los cartuchos **de uno en uno** y puede disparar a mitad de recarga. En el modo de pruebas la reserva es infinita.
 
 **Elegir arma al empezar:** en la sala de mantenimiento cada arma espera en su mueble, pegado a la pared de arriba:
 la fregona en su cubo, el bate en el paragüero, el cuchillo en la encimera, la pistola en el cajón de la cómoda
@@ -99,14 +110,14 @@ y la escopeta en la taquilla. Arrímate a un mueble abierto para coger su arma (
 Los muebles con candado guardan armas que aún no has encontrado: **la primera vez que coges un arma en una
 partida queda desbloqueada para siempre**. Con `?armas` en la dirección se ven todas abiertas, sin tocar el guardado.
 
-| Arma | Tipo | Daño | Ataques/s | Detalle |
-|---|---|---|---|---|
-| 🧹 Fregona | Cuerpo a cuerpo | 8 | 1,8 | Barrido amplio que empuja mucho |
-| 🏏 Bate | Cuerpo a cuerpo | 16 | 1,6 | Golpe fuerte |
-| 🔪 Cuchillo | Cuerpo a cuerpo | 9 | 4 | Rapidísimo pero de corto alcance |
-| 🔫 Pistola | A distancia | 10 | 2,5 | Largo alcance |
-| 💥 Escopeta | A distancia | 7 × 5 | 1 | Abanico de perdigones |
-| 🔫 MP5 | A distancia | 4 | 8 | Ráfaga continua, algo imprecisa |
+| Arma | Tipo | Daño | Ataques/s | Cargador · recarga | Detalle |
+|---|---|---|---|---|---|
+| 🧹 Fregona | Cuerpo a cuerpo | 8 | 1,8 | | Barrido amplio que empuja mucho |
+| 🏏 Bate | Cuerpo a cuerpo | 16 | 1,6 | | Golpe fuerte |
+| 🔪 Cuchillo | Cuerpo a cuerpo | 9 | 4 | | Rapidísimo pero de corto alcance |
+| 🔫 Pistola | A distancia | 10 | 2,5 | 12 · 1,1 s | Largo alcance |
+| 💥 Escopeta | A distancia | 7 × 5 | 1 | 6 · 0,45 s por cartucho | Abanico de perdigones |
+| 🔫 MP5 | A distancia | 4 | 8 | 30 · 1,8 s | Ráfaga continua, algo imprecisa |
 
 Los golpes cuerpo a cuerpo también **destruyen los proyectiles enemigos**. Las mejoras (daño, velocidad de
 ataque, alcance) multiplican las estadísticas del arma que lleves.

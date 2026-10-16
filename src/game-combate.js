@@ -16,6 +16,7 @@ import { sfx } from './sfx.js';
 const CASH_CHANCE = 0.07;  // probabilidad de que un zombi suelte un billete de dólar 💵
 const HEART_CHANCE = 0.05; // ...o un corazón
 const HEART_HEAL = 15;
+const AMMO_CHANCE = 0.1;   // ...o una caja de munición (solo si llevas arma de fuego; provisional)
 const BULLET_LIFT = 22;    // pixel art: altura a la que se dibujan las balas de un arma dibujada (la del cuerpo de un zombi)
 
 export class GameCombat {
@@ -81,7 +82,8 @@ export class GameCombat {
       const d = Math.hypot(dx, dy) || 1;
       // Los billetes siempre vienen a ti; los corazones, solo si te falta vida
       // y los molotovs, si caben en la mochila
-      const wanted = pk.kind === 'cash' || (pk.kind === 'molotov' ? this.molotovs < MOLOTOV.max : needsHp);
+      const wanted = pk.kind === 'cash' || (pk.kind === 'molotov' ? this.molotovs < MOLOTOV.max
+        : pk.kind === 'ammo' ? p.wantsAmmo() : needsHp);
       if (!p.dead && wanted && pk.t > 0.4 && d < this.stats.magnet) {
         pk.vx += (dx / d) * 2200 * dt;
         pk.vy += (dy / d) * 2200 * dt;
@@ -109,6 +111,10 @@ export class GameCombat {
       this.wallet = updateSave((s) => { s.keys++; s.totalKeys++; }).keys;
       this.floatText(pk.x, pk.y - 20, '+$1', '#80ed99', 20);
       sfx.coin();
+    } else if (pk.kind === 'ammo') {
+      this.player.addAmmo(this);
+      this.floatText(pk.x, pk.y - 20, '+munición', '#ffd23f', 20);
+      sfx.reloaded();
     } else if (pk.kind === 'molotov') {
       this.molotovs = Math.min(MOLOTOV.max, this.molotovs + 1);
       this.floatText(pk.x, pk.y - 20, '+1 molotov', '#ff9f1c', 20);
@@ -227,6 +233,7 @@ export class GameCombat {
       if (Math.random() < CASH_CHANCE) this.dropPickup('cash', e.x, e.y);
       else if (Math.random() < HEART_CHANCE) this.dropPickup('heart', e.x, e.y);
       else if (Math.random() < MOLOTOV.drop) this.dropPickup('molotov', e.x, e.y);
+      else if (this.player.slots.ranged && Math.random() < AMMO_CHANCE) this.dropPickup('ammo', e.x, e.y);
     }
     if (this.stats.lifesteal && !this.player.dead) this.healPlayer(this.stats.lifesteal);
     if (e.isBoss) this.bossDefeated(e);
@@ -250,9 +257,11 @@ export class GameCombat {
     this.dropPickup('heart', boss.x, boss.y);
     this.dropPickup('heart', boss.x, boss.y);
     for (let i = 0; i < (boss.type === 'boss' ? 8 : 3); i++) this.dropPickup('cash', boss.x, boss.y);
+    for (let i = 0; i < 2; i++) this.dropPickup('ammo', boss.x, boss.y); // y munición
     // el mini jefe siempre suelta un arma (lejos de donde saldrán las escaleras)
     if (boss.type === 'miniboss') {
-      this.room.props.push(new WeaponProp(randomWeapon(this.player.weapon.id), this.rw / 2, this.rh / 2 + 130));
+      const { melee, ranged } = this.player.slots;
+      this.room.props.push(new WeaponProp(randomWeapon([melee.id, ranged?.id]), this.rw / 2, this.rh / 2 + 130));
     }
   }
 

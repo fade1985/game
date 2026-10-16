@@ -111,6 +111,7 @@ export class WeaponProp {
     this.solid = false;
     this.taken = false;
     this.armed = false; // hay que acercarse "de nuevas" para cogerla
+    this.ammo = null;   // arma de fuego que soltó el conserje: las balas que le quedaban
     this.seed = Math.random() * 6;
   }
 
@@ -171,7 +172,7 @@ export class WeaponStash {
     const { x, def: d, look } = this;
     const y = d.round ? this.y : WALL + d.dep / 2; // centro del cuerpo del mueble (sin contar el cajón)
     const open = !this.locked;
-    const here = open && game.player.weapon.id !== this.weapon.id; // el arma está en el mueble (no en tu mano)
+    const here = open && !game.player.has(this.weapon); // el arma está en el mueble (no la llevas)
     const L = d.len, D = d.dep, x0 = x - L / 2, y0 = y - D / 2;
     ctx.lineJoin = 'round';
 

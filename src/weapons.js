@@ -10,6 +10,9 @@
 //    arc      apertura del barrido en grados (melee)
 //    knock    fuerza del empuje (1 = normal)
 //    jitter   (a distancia, de una sola bala) cuánto se desvía cada bala al azar, en radianes; sin él, va recta
+//    mag      (a distancia) balas por cargador · reload: segundos que tarda en recargar
+//    shell    (a distancia) recarga de uno en uno: `reload` es lo que tarda cada cartucho, y se puede
+//             disparar a mitad de recarga (la escopeta)
 //    stash    mueble de la entrada donde espera el arma: cubo, paraguero, encimera, comoda o taquilla
 //             (si no se pone, sale en una caja). Los muebles se dibujan en props.js
 //    sprite   (solo versión pixel) hoja de sprites del conserje con esta arma en la mano, con sus animaciones
@@ -35,24 +38,31 @@ export const WEAPONS = {
   pistola: {
     id: 'pistola', stash: 'comoda', name: 'Pistola', icon: '🔫', type: 'ranged', sprite: 'conserje-48-pistola',
     damage: 10, rate: 2.5, range: 420, speed: 620, pellets: 1, spread: 0, knock: 0.8, muzzle: 24,
+    mag: 12, reload: 1.1,
   },
   escopeta: {
     id: 'escopeta', stash: 'taquilla', name: 'Escopeta', icon: '💥', type: 'ranged', sprite: 'conserje-48-escopeta',
     damage: 7, rate: 1, range: 260, speed: 540, pellets: 5, spread: 0.55, knock: 1.2, muzzle: 38,
+    mag: 6, reload: 0.45, shell: true,
   },
   // Sin mueble propio: espera en una caja. Ráfaga de balas flojas y algo imprecisas (números provisionales)
   mp5: {
     id: 'mp5', name: 'MP5', icon: '🔫', type: 'ranged', sprite: 'conserje-48-mp5',
     damage: 4, rate: 8, range: 340, speed: 640, pellets: 1, spread: 0, jitter: 0.14, knock: 0.3, muzzle: 30,
+    mag: 30, reload: 1.8,
   },
 };
 
 // Fusil del militar (no se puede recoger: solo lo lleva él)
 export const RIFLE = { id: 'rifle', name: 'Fusil', type: 'ranged', muzzle: 34 };
 
-// Arma al azar (para los botines), evitando la fregona y la que ya llevas
-export function randomWeapon(exclude) {
-  const pool = Object.values(WEAPONS).filter((w) => w.id !== 'fregona' && w.id !== exclude);
+// Munición (números provisionales): al coger un arma de fuego viene con el cargador lleno y `start`
+// cargadores más en la mochila; caben como mucho `max`. Cada caja de munición da `box` cargadores
+export const AMMO = { start: 2, max: 4, box: 1 };
+
+// Arma al azar (para los botines), evitando la fregona y las que ya llevas (una lista de ids)
+export function randomWeapon(exclude = []) {
+  const pool = Object.values(WEAPONS).filter((w) => w.id !== 'fregona' && !exclude.includes(w.id));
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
@@ -60,7 +70,8 @@ export function randomWeapon(exclude) {
 export function weaponSummary(w) {
   const kind = w.type === 'melee' ? 'Cuerpo a cuerpo' : 'A distancia';
   const dmg = w.pellets > 1 ? `${w.damage} × ${w.pellets}` : w.damage;
-  return `${kind} · Daño ${dmg} · ${w.rate} ataques/s`;
+  const mag = w.mag ? ` · Cargador ${w.mag}` : '';
+  return `${kind} · Daño ${dmg} · ${w.rate} ataques/s${mag}`;
 }
 
 // Dibuja el arma con la empuñadura en (0, 0) apuntando hacia +x.

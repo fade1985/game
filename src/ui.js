@@ -52,6 +52,7 @@ export function createUI(root) {
     if (cache[key] === value) return;
     cache[key] = value;
     if (prop === 'width') { el.style.width = value; el.style.setProperty('--hp', value); }
+    else if (prop.startsWith('class:')) el.classList.toggle(prop.slice(6), value); // 'class:on' pone o quita la clase "on"
     else el[prop] = value;
   }
 
@@ -72,8 +73,18 @@ export function createUI(root) {
       const p = g.player;
       set('hpw', $('.hpbar .fill'), `${Math.max(0, (p.hp / g.stats.maxHp) * 100)}%`, 'width');
       set('hpt', $('.hpbar span'), `${Math.ceil(p.hp)} / ${Math.round(g.stats.maxHp)}`);
-      const w = g.player.weapon;
-      set('weapon', $('#pill-weapon'), `<i class="ico ico-${w.id}"></i> <b>${w.name}</b>`, 'innerHTML');
+      // las dos armas: la de cuerpo a cuerpo y, si lleva, la de fuego con sus balas (cargador / reserva)
+      const { melee, ranged } = p.slots;
+      set('melee', $('#pill-melee'), `<i class="ico ico-${melee.id}"></i> <b>${melee.name}</b>`, 'innerHTML');
+      set('meleeOn', $('#pill-melee'), p.hand === 'melee', 'class:on');
+      set('rangedHide', $('#pill-ranged'), !ranged, 'hidden');
+      if (ranged) {
+        const ammo = `${p.mag}/${g.testMode ? '∞' : p.reserve}`; // mientras recarga, parpadea (style.css)
+        set('ranged', $('#pill-ranged'), `<i class="ico ico-${ranged.id}"></i> <b>${ranged.name}</b> <span class="ammo">${ammo}</span>`, 'innerHTML');
+        set('rangedOn', $('#pill-ranged'), p.hand === 'ranged', 'class:on');
+        set('rangedEmpty', $('#pill-ranged'), p.mag === 0 && !p.reloading, 'class:empty');
+        set('rangedReload', $('#pill-ranged'), p.reloading, 'class:reloading');
+      }
       set('team', $('#hud-team'), g.allies.map((al) => `<i class="ico ico-${al.def.id}"></i>`).join(''), 'innerHTML');
       set('teamShow', $('#pill-team'), g.allies.length === 0, 'hidden');
       set('keys', $('#hud-keys'), `$${g.wallet ?? 0}`);
@@ -95,8 +106,8 @@ export function createUI(root) {
             <button class="btn blue" data-act="workshop"><i class="ico ico-herramientas"></i> Taller <span class="keys-chip"><i class="ico ico-billete"></i> $${save.keys}</span>${upgrades ? ` <small>· ${upgrades} mejora${upgrades > 1 ? 's' : ''}</small>` : ''}</button>
           </div>
           <div class="hint panel small">
-            <b>Teclado:</b> WASD moverse · Espacio esquivar · clic derecho o E (mantén y suelta) molotov<br>
-            <b>Mando:</b> stick moverse · A esquivar · RT (mantén y apunta) molotov · Start pausa<br>
+            <b>Teclado:</b> WASD moverse · Espacio esquivar · Q o rueda cambiar de arma · R recargar · clic derecho o E (mantén y suelta) molotov<br>
+            <b>Mando:</b> stick moverse · A esquivar · Y cambiar de arma · X recargar · RT (mantén y apunta) molotov · Start pausa<br>
             Atacas solo al enemigo más cercano. ¡Limpia cada sala para abrir sus puertas!
           </div>
           ${save.bestFloor ? `<div class="record"><i class="ico ico-trofeo"></i> Mejor planta alcanzada: ${save.bestFloor}</div>` : ''}
@@ -200,7 +211,7 @@ export function createUI(root) {
               ${stat('<i class="ico ico-diana"></i>', 'Crítico', `${Math.round(s.crit * 100)}%`)}
             </div>
             <div>
-              ${list('<i class="ico ico-cuchillo"></i> Arma', [`<i class="ico ico-${g.player.weapon.id}"></i> <b>${g.player.weapon.name}</b> · ${weaponSummary(g.player.weapon)}`], '')}
+              ${list('<i class="ico ico-cuchillo"></i> Armas', Object.values(g.player.slots).filter(Boolean).map((w) => `<i class="ico ico-${w.id}"></i> <b>${w.name}</b> · ${weaponSummary(w)}`), '')}
               ${list('<i class="ico ico-mochila"></i> Objetos', g.items.map((it) => `<i class="ico ico-${it.id}"></i> <b>${it.name}</b> · ${it.desc}`), 'Ninguno todavía')}
               ${list('<i class="ico ico-policia"></i> Equipo', g.allies.map((al) => `<i class="ico ico-${al.def.id}"></i> <b>${al.def.name}</b> · ${al.def.desc}`), 'Nadie todavía: ¡rescata supervivientes!')}
             </div>

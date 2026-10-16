@@ -522,6 +522,9 @@ export function drawPickup(ctx, pk, time) {
     brillo(ctx, pk, y, time);
   } else if (pk.kind === 'molotov') {
     drawMolotov(ctx, pk.x, y + 4, 0, time);
+  } else if (pk.kind === 'ammo') {
+    drawAmmoBox(ctx, pk.x, y);
+    brillo(ctx, pk, y, time);
   } else if (pk.kind === 'heart') {
     heartPath(ctx, pk.x, y + 2, 11);
     ctx.fillStyle = '#ff5d73'; ctx.fill(); ctx.lineJoin = 'round'; ctx.stroke();
@@ -546,6 +549,22 @@ function drawBill(ctx, x, y, t) {
   ctx.fillStyle = '#472937';
   ctx.fillRect(x - 8 * u, y - 3 * u + wave, u, 6 * u);
   ctx.fillRect(x + 7 * u, y - 3 * u - wave, u, 6 * u);
+}
+
+// Caja de munición en el suelo (dibujada a mano, en píxeles del dibujo): una caja verde oliva con la tapa
+// abierta y la punta de cuatro balas asomando
+function drawAmmoBox(ctx, x, y) {
+  const u = PIXEL;
+  const px = (cx, cy, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x + cx * u, y + cy * u, w * u, h * u); };
+  px(-7, -4, 14, 9, '#472937');                  // contorno
+  px(-6, -1, 12, 5, '#6b7a3a');                  // caja
+  px(-6, -1, 12, 1, '#8e9e52');                  // borde claro de arriba
+  px(-6, 3, 12, 1, '#4a5428');                   // sombra de abajo
+  px(-2, 0, 4, 2, '#c9b458');                    // la etiqueta
+  for (let i = 0; i < 4; i++) {                  // las balas: punta dorada y casquillo
+    px(-5 + i * 3, -3, 2, 1, '#ffe066');
+    px(-5 + i * 3, -2, 2, 1, '#c98a2a');
+  }
 }
 
 // Bala del conserje y de los compañeros, en pixel art: una trazadora. Son cuadraditos encajados en la

@@ -25,7 +25,9 @@
     <div id="hud" hidden>
       <div class="hud-left">
         <div class="hpbar"><div class="fill"></div><span></span></div>
-        <div class="pill" id="pill-weapon" title="Arma"><i class="ico ico-fregona"></i> <b>Fregona</b></div>
+        <!-- las dos armas: la que está en la mano se resalta. Al tocar la otra se cambia; al tocar la de fuego en la mano, se recarga -->
+        <div class="pill weapon-pill on" id="pill-melee" title="Arma cuerpo a cuerpo (Q o rueda para cambiar)"><i class="ico ico-fregona"></i> <b>Fregona</b></div>
+        <div class="pill weapon-pill" id="pill-ranged" title="Arma de fuego (Q o rueda para cambiar · R para recargar)" hidden><i class="ico ico-pistola"></i> <b>Pistola</b> <span class="ammo"></span></div>
         <div class="pill" id="pill-keys" title="Dólares para el Taller"><i class="ico ico-billete"></i> <b id="hud-keys">$0</b></div>
         <div class="pill" id="pill-molotov" title="Cócteles molotov (clic derecho o E)"><i class="ico ico-molotov"></i> <b id="hud-molotov">0</b></div>
       </div>

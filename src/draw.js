@@ -112,7 +112,9 @@ const snap = (v) => Math.round(v / PIXEL) * PIXEL;
 
 // Barrita sobre la cabeza de un zombi: marco negro, fondo oscuro y sangre con
 // una fila de brillo arriba y otra de sombra abajo. anchoPx = ancho en píxeles del arte.
-export function pixelHpBar(ctx, cx, top, anchoPx, frac) {
+// `color`: relleno, brillo y sombra (por defecto, la sangre de las barras de vida)
+const SANGRE = ['#b02a22', '#e8604a', '#6a1512'];
+export function pixelHpBar(ctx, cx, top, anchoPx, frac, color = SANGRE) {
   const P = PIXEL, w = anchoPx * P, x = snap(cx - w / 2), y = snap(top);
   ctx.fillStyle = OUTLINE;
   ctx.fillRect(x - P, y - P, w + 2 * P, 5 * P);                    // marco de 1 píxel
@@ -120,9 +122,9 @@ export function pixelHpBar(ctx, cx, top, anchoPx, frac) {
   ctx.fillRect(x, y, w, 3 * P);                                     // hueco vacío
   const lleno = Math.round(anchoPx * Math.max(0, Math.min(1, frac))) * P;
   if (lleno <= 0) return;
-  ctx.fillStyle = '#b02a22'; ctx.fillRect(x, y, lleno, 3 * P);      // sangre
-  ctx.fillStyle = '#e8604a'; ctx.fillRect(x, y, lleno, P);          // brillo
-  ctx.fillStyle = '#6a1512'; ctx.fillRect(x, y + 2 * P, lleno, P);  // sombra
+  ctx.fillStyle = color[0]; ctx.fillRect(x, y, lleno, 3 * P);       // relleno
+  ctx.fillStyle = color[1]; ctx.fillRect(x, y, lleno, P);           // brillo
+  ctx.fillStyle = color[2]; ctx.fillRect(x, y + 2 * P, lleno, P);   // sombra
 }
 
 // Barra grande del jefe: el mismo marco de la barra de Johnny (assets/ui/barra-vida.png,

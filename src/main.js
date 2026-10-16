@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────
 import { Game } from './game.js';
 import { createUI } from './ui.js';
-import { initInput } from './input.js';
+import { initInput, pressReload, pressSwitch } from './input.js';
 import { updatePad } from './mando.js';
 import { unlockAudio, setMusicOn, toggleMute } from './sfx.js';
 import { loadSave } from './save.js';
@@ -45,6 +45,15 @@ window.addEventListener('keydown', (e) => {
     game.spawnEnemy(TEST_ZOMBIES[n - 1], pos.x, pos.y);
   }
 });
+// Carteles de las armas (sobre todo para el móvil): tocar la otra arma la saca; tocar la de fuego que
+// ya está en la mano, recarga
+for (const [id, slot] of [['pill-melee', 'melee'], ['pill-ranged', 'ranged']]) {
+  document.getElementById(id).addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (game.state !== 'playing' || game.paused) return;
+    if (game.player.hand === slot) { if (slot === 'ranged') pressReload(); } else pressSwitch();
+  });
+}
 document.getElementById('btn-pause').addEventListener('click', (e) => { e.currentTarget.blur(); game.openPause(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) game.openPause(); });
 

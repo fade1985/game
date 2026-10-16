@@ -154,6 +154,33 @@ async function pruebas() {
   paso(4);
   huella.molotov = { ...estado(), molotovs: game.molotovs };
 
+  // 6b. Munición de verdad (fuera del modo de pruebas, que la da infinita): la pistola se vacía, Johnny pasa
+  //     solo a la fregona, coge una caja y vuelve a la pistola; y la escopeta recarga de uno en uno
+  const fallo = (msg) => { throw new Error(`munición: ${msg}`); };
+  sala('pistola');
+  game.testMode = false; // (cada partida nueva lo vuelve a leer de la dirección)
+  const pj = game.player;
+  pj.mag = 3; pj.reserve = 0;
+  for (const tipo of ['normal', 'normal']) { const pt = game.findSpawnPoint(); game.spawnEnemy(tipo, pt.x, pt.y); }
+  for (let t = 0; t < 6 && pj.hand === 'ranged'; t++) { inmortal(); paso(1); }
+  if (pj.hand !== 'melee' || !pj.autoMelee) fallo('sin balas no ha cambiado a la fregona');
+  game.dropPickup('ammo', pj.x, pj.y);
+  paso(1);
+  if (pj.hand !== 'ranged' || pj.reserve + pj.mag !== 12) fallo('la caja no ha devuelto la pistola con un cargador');
+  await foto('06b-municion');
+  huella.municion = { ...estado(), mano: pj.hand, cargador: pj.mag, reserva: pj.reserve };
+  sala('escopeta');
+  game.testMode = false;
+  game.player.mag = 1;
+  game.dropPickup('ammo', game.player.x + 200, game.player.y - 60); // para ver la caja en el suelo
+  game.pickups.at(-1).vx = game.pickups.at(-1).vy = 0;
+  game.player.startReload(game);
+  paso(0.3);
+  await foto('06c-caja-y-recarga');
+  paso(0.7);
+  if (game.player.mag !== 3) fallo(`la escopeta debería llevar 3 cartuchos tras un segundo y lleva ${game.player.mag}`);
+  game.testMode = true;
+
   // 7. El bot juega partidas de verdad (sin rellenar la vida) y otras saltándose a los jefes
   const bot1 = await runBot(game, { runs: 2, refill: false, maxTime: 300 });
   huella.botPartidas = bot1.ends;

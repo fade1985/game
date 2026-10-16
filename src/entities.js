@@ -6,7 +6,7 @@ import { drawSprite, dirFromVector, hasSprite, pixelShadow, animFrames, animHit,
 import { rand } from './utils.js';
 import { drawHuman } from './draw.js';
 import { sfx } from './sfx.js';
-import { WEAPONS, RIFLE, drawHeld } from './weapons.js';
+import { WEAPONS, RIFLE, AMMO, drawHeld } from './weapons.js';
 import { autoAim } from './aim.js';
 
 const TAU = Math.PI * 2;
@@ -39,8 +39,15 @@ export class Player {
     this.blinkT = rand(2, 4);
     this.dead = false;
 
-    // Arma y apuntado
-    this.weapon = WEAPONS.fregona; // se empieza cada edificio con la fregona
+    // Armas: un hueco para la de cuerpo a cuerpo y otro para la de fuego (el molotov va aparte).
+    // `hand` dice cuál lleva en la mano; `weapon` es esa misma arma
+    this.slots = { melee: WEAPONS.fregona, ranged: null }; // se empieza cada edificio con la fregona
+    this.hand = 'melee';
+    this.mag = 0;                  // balas que quedan en el cargador del arma de fuego
+    this.reserve = 0;              // balas de reserva en la mochila
+    this.reloadT = 0;              // recargando: segundos que faltan (0 = no recarga)
+    this.reloadDur = 0;            //   y cuánto dura esta recarga (o este cartucho, en la escopeta)
+    this.autoMelee = false;        // se ha cambiado sola a la de cuerpo a cuerpo al quedarse sin balas
     this.aimer = autoAim;          // en el futuro: un controlador manual
     this.atkT = 0;                 // tiempo hasta el siguiente ataque
     this.aimAngle = -Math.PI / 2;  // hacia dónde apunta
@@ -50,6 +57,115 @@ export class Player {
     this.atkAnim = null;           // pixel art: animación de ataque en curso { t, dur, hit, at }
     this.recoil = 0;               // retroceso del arma a distancia
     this.muzzleT = 0;              // fogonazo
+  }
+
+  // El arma que lleva en la mano. Si se le da una (weapon = ...), va a su hueco y se la pone en la mano
+  get weapon() { return this.slots[this.hand] || this.slots.melee; }
+  set weapon(w) { this.equip(w); }
+
+  // ¿Lleva ya esta arma (en cualquiera de los dos huecos)?
+  has(w) { return this.slots[w.type]?.id === w.id; }
+
+  // Coge un arma: va a su hueco (cuerpo a cuerpo o de fuego) y se la pone en la mano. Una de fuego viene con
+  // la munición que traiga (`ammo`, si era la que soltó él) o, si no, con el cargador lleno y la reserva de
+  // partida. Devuelve la que había en ese hueco, con su munición, para dejarla en el suelo (o null)
+  equip(w, ammo = null) {
+    const old = this.slots[w.type];
+    const dropped = old ? { weapon: old, ammo: old.type === 'ranged' ? { mag: this.mag, reserve: this.reserve } : null } : null;
+    this.slots[w.type] = w;
+    if (w.type === 'ranged') {
+      this.mag = ammo ? ammo.mag : w.mag;
+      this.reserve = ammo ? ammo.reserve : w.mag * AMMO.start;
+    }
+    this.hold(w.type);
+    this.autoMelee = false;
+    return dropped;
+  }
+
+  // Se pone en la mano el arma de ese hueco: lo que estaba haciendo con la otra se corta
+  hold(slot) {
+    this.hand = slot;
+    this.reloadT = 0;
+    this.swing = null;
+    this.atkAnim = null;
+  }
+
+  // Cambia a la otra arma (Q, rueda del ratón, botón Y o el cartel). A la de fuego sin balas no se cambia
+  switchHand(game) {
+    const other = this.hand === 'melee' ? 'ranged' : 'melee';
+    if (!this.slots[other]) return;
+    if (other === 'ranged' && this.mag <= 0 && !this.hasReserve(game)) {
+      game.floatText(this.x, this.y - 70, '¡Sin balas!', '#ff9f1c', 18);
+      sfx.click();
+      return;
+    }
+    this.hold(other);
+    this.autoMelee = false;
+    this.atkT = Math.max(this.atkT, 0.15); // un instante para cambiar de arma
+    sfx.swap();
+  }
+
+  // ¿Le quedan balas en la mochila? (en el modo de pruebas, siempre)
+  hasReserve(game) { return game.testMode || this.reserve > 0; }
+
+  get reloading() { return this.reloadT > 0; }
+
+  // Empieza a recargar el arma de fuego, si hace falta y puede
+  startReload(game) {
+    const w = this.weapon;
+    if (w.type !== 'ranged' || this.reloading || this.mag >= w.mag || !this.hasReserve(game)) return;
+    this.reloadDur = w.reload;
+    this.reloadT = w.reload;
+    sfx.reload();
+  }
+
+  // Termina una recarga: mete el cargador entero o, en la escopeta, un cartucho (y sigue con el siguiente)
+  finishReload(game) {
+    const w = this.weapon;
+    const want = w.shell ? 1 : w.mag - this.mag;
+    const take = game.testMode ? want : Math.min(want, this.reserve);
+    this.mag += take;
+    if (!game.testMode) this.reserve -= take;
+    this.reloadT = 0;
+    if (w.shell) {
+      sfx.shell();
+      if (this.mag < w.mag && this.hasReserve(game)) { this.reloadT = this.reloadDur = w.reload; }
+    } else sfx.reloaded();
+  }
+
+  // Recoge una caja de munición: un cargador más para el arma de fuego que lleve. Si se había cambiado sola
+  // a la de cuerpo a cuerpo por quedarse sin balas, vuelve a sacar la de fuego
+  addAmmo(game) {
+    const w = this.slots.ranged;
+    if (!w) return false;
+    this.reserve = Math.min(w.mag * AMMO.max, this.reserve + w.mag * AMMO.box);
+    if (this.autoMelee) { this.hold('ranged'); this.autoMelee = false; }
+    if (this.hand === 'ranged' && this.mag <= 0) this.startReload(game);
+    return true;
+  }
+
+  // ¿Le cabe más munición? (para que la caja venga hacia él)
+  wantsAmmo() {
+    const w = this.slots.ranged;
+    return !!w && this.reserve < w.mag * AMMO.max;
+  }
+
+  // Antes de disparar: ¿hay bala en el cargador? Si no, recarga o, sin reserva, cambia a la de cuerpo a cuerpo.
+  // La escopeta puede disparar a mitad de recarga (con lo que lleve metido); las demás, no
+  readyToFire(game) {
+    const w = this.weapon;
+    if (this.reloading) {
+      if (!w.shell || this.mag <= 0) return false;
+      this.reloadT = 0; // dispara y deja de meter cartuchos
+    }
+    if (this.mag > 0) return true;
+    if (this.hasReserve(game)) { this.startReload(game); return false; }
+    // sin balas: a la fregona (o la que lleve)
+    game.floatText(this.x, this.y - 70, '¡Sin balas!', '#ff9f1c', 18);
+    sfx.click();
+    this.hold('melee');
+    this.autoMelee = true;
+    return false;
   }
 
   update(dt, game, move, dash) {
@@ -107,17 +223,18 @@ export class Player {
       if (an.hit && an.t >= an.dur * an.at) { an.hit(); an.hit = null; }
       if (an.t >= an.dur) this.atkAnim = null;
     }
+    if (this.reloading && (this.reloadT -= dt) <= 0) this.finishReload(game);
     if (game.state === 'playing') {
       const w = this.weapon;
       const aim = this.aimer.aim(game, this, w, s);
       if (aim) {
         this.aimAngle = aim.angle;
         this.lookX = Math.cos(aim.angle); this.lookY = Math.sin(aim.angle);
-        if (aim.attack && this.atkT <= 0) {
+        if (aim.attack && this.atkT <= 0 && (w.type === 'melee' || this.readyToFire(game))) {
           this.atkT = 1 / (w.rate * s.fireRate);
           this.attack(game, aim.angle);
         }
-      }
+      } else if (w.type === 'ranged') this.startReload(game); // sin nadie a tiro, aprovecha para recargar
     }
     this.animateArm(dt);
   }
@@ -143,7 +260,9 @@ export class Player {
       } else hit();
       sfx.swing();
     } else {
-      // Disparo desde la boca del arma
+      // Disparo desde la boca del arma (gasta una bala del cargador; al vaciarlo, recarga sola)
+      this.mag--;
+      if (this.mag <= 0) this.startReload(game);
       const h = this.handPos(angle);
       const n = w.pellets + s.shots;
       // pixel art: si el arma tiene hoja propia, la bala nace en la boca del arma del dibujo (los pies del

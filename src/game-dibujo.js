@@ -6,7 +6,7 @@
 import { H, WALL, OUTLINE, DIRS, PIXEL, SLIDE, FADE } from './config.js';
 import { rand, clamp } from './utils.js';
 import { drawRoom, sceneryOf, drawDoors, drawDoorLabels, drawFog, drawPickup, drawBullet, drawMinimap, drawEmoji as drawEmojiAt, minimapRect } from './render.js';
-import { outlinedText, roundBox, pixelBossBar, MARCO_VIDA_ANCHO } from './draw.js';
+import { outlinedText, roundBox, pixelBossBar, pixelHpBar, MARCO_VIDA_ANCHO } from './draw.js';
 import { setGridSnap, drawSprite } from './sprites.js';
 
 // Iconos pixel art de los objetos (los mismos del CSS); 'zapatillas' reutiliza el del dash
@@ -84,6 +84,7 @@ export class GameDrawing {
     setGridSnap(false);
     this.drawActors(out);
     setGridSnap(true);
+    this.drawReload(out);
     this.drawTexts(out);
 
     // 3) interfaz
@@ -244,6 +245,13 @@ export class GameDrawing {
   }
 
   // Números de daño y textos flotantes
+  // Mientras Johnny recarga, una barrita amarilla sobre su cabeza que se va llenando
+  drawReload(ctx) {
+    const p = this.player;
+    if (!p || p.dead || !p.reloading) return;
+    pixelHpBar(ctx, p.x, p.y - 104, 14, 1 - p.reloadT / p.reloadDur, ['#e0a020', '#ffe066', '#8a5a10']);
+  }
+
   drawTexts(ctx) {
     for (const t of this.texts) {
       const pop = Math.min(1, t.t / 0.08);

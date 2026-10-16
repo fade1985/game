@@ -135,38 +135,51 @@
   "arma-mp5": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 90,
+    "vida": 100,
     "x": 480,
     "y": 360,
-    "muertes": 1,
-    "zombis": 2,
-    "balas": 2
+    "muertes": 3,
+    "zombis": 0,
+    "balas": 0
   },
   "molotov": {
+    "planta": 1,
+    "sala": "Sala de mantenimiento",
+    "vida": 80,
+    "x": 480,
+    "y": 360,
+    "muertes": 0,
+    "zombis": 2,
+    "balas": 0,
+    "molotovs": 2
+  },
+  "municion": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
     "vida": 100,
     "x": 480,
     "y": 360,
-    "muertes": 2,
-    "zombis": 0,
+    "muertes": 0,
+    "zombis": 2,
     "balas": 0,
-    "molotovs": 2
+    "mano": "ranged",
+    "cargador": 0,
+    "reserva": 12
   },
   "botPartidas": [
     {
       "state": "over",
-      "floor": 2,
+      "floor": 1,
       "dead": true,
       "jammed": false,
-      "time": 238
+      "time": 170
     },
     {
       "state": "over",
       "floor": 1,
       "dead": true,
       "jammed": false,
-      "time": 143
+      "time": 161
     }
   ],
   "botPlantas": [
@@ -175,9 +188,9 @@
       "floor": 6,
       "dead": false,
       "jammed": false,
-      "time": 540
+      "time": 479
     }
   ],
-  "botMapas": 35,
+  "botMapas": 33,
   "fin": "over"
 }

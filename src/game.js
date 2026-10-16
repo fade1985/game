@@ -16,7 +16,7 @@ import { loadSave, updateSave, buildingSave } from './save.js';
 import { Camera, ZOOM, BOSS_ZOOM } from './camera.js';
 import { setTextFont } from './draw.js';
 import { isOpen, randomFloorPoint } from './shapes.js';
-import { getMoveVector, consumeDash, clearInput } from './input.js';
+import { getMoveVector, consumeDash, consumeReload, consumeSwitch, clearInput } from './input.js';
 import { MolotovMethods, MOLOTOV } from './molotov.js';
 import { sfx, music, setMusicOn } from './sfx.js';
 import { ZombieAttacks } from './game-ataques.js';
@@ -437,10 +437,10 @@ export class Game {
     for (const pr of this.room.props) {
       if (pr.taken) continue;
       if (pr.kind === 'stash') {
-        // Mueble con arma: basta con arrimarse. La que llevabas vuelve sola a su mueble.
-        if (!pr.locked && p.weapon.id !== pr.weapon.id && obstacleGap(pr, p) < p.r + 6) {
-          p.weapon = pr.weapon;
-          p.swing = null;
+        // Mueble con arma: basta con arrimarse. Va a su hueco (cuerpo a cuerpo o de fuego) y la que
+        // había en ese hueco vuelve sola a su mueble.
+        if (!pr.locked && !p.has(pr.weapon) && obstacleGap(pr, p) < p.r + 6) {
+          p.equip(pr.weapon);
           this.banner = { icon: p.weapon.id, title: p.weapon.name, sub: weaponSummary(p.weapon), t: 0 };
           this.burst(pr.x, pr.y, '#ffd23f', 10, 16);
           sfx.buy();
@@ -461,11 +461,10 @@ export class Game {
         this.burst(pr.x, pr.y, pr.def.color, 14, 16);
         sfx.clear();
       } else if (pr.kind === 'weapon' && pr.armed) {
-        // Cambiamos de arma: la que llevabas se queda en el suelo
-        const old = this.player.weapon;
-        this.player.weapon = pr.weapon;
-        this.player.swing = null;
-        pr.weapon = old;
+        // Cogemos el arma: va a su hueco, y la que hubiera en ese hueco se queda en el suelo (con sus balas).
+        // Si el hueco estaba vacío, el arma desaparece del suelo
+        const old = p.equip(pr.weapon, pr.ammo);
+        if (old) { pr.weapon = old.weapon; pr.ammo = old.ammo; } else pr.taken = true;
         pr.armed = false; // hay que alejarse antes de poder volver a cogerla
         // la primera vez que encuentras un arma queda desbloqueada para elegirla al empezar
         const isNew = this.unlockWeapon(this.player.weapon.id);
@@ -574,7 +573,11 @@ export class Game {
     if (this.state !== 'playing' || this.paused) return;
 
     this.runTime += dt;
-    if (!p.dead) p.update(dt, this, getMoveVector(), consumeDash());
+    if (!p.dead) {
+      if (consumeSwitch()) p.switchHand(this);
+      if (consumeReload()) p.startReload(this);
+      p.update(dt, this, getMoveVector(), consumeDash());
+    }
     this.camera.update(dt, p);
     this.updateToss();
     for (const a of this.allies) a.update(dt, this);

@@ -6,6 +6,8 @@ const keys = new Set();
 export const pad = { x: 0, y: 0 };
 const joy = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0 };
 let dashPressed = false;
+let reloadPressed = false;   // recargar: R, botón X del mando o tocar el cartel del arma
+let switchPressed = false;   // cambiar de arma: Q, rueda del ratón, botón Y del mando o tocar el otro cartel
 // Lanzar (molotov): se mantiene pulsado para apuntar y se suelta para lanzar
 //  - PC: clic derecho o E; se apunta con el ratón
 //  - móvil: se arrastra desde el botón de lanzar (como un segundo joystick) y se suelta
@@ -19,7 +21,17 @@ export function initInput(canvas, touchUI) {
     if (e.code === 'Space' || e.code === 'ShiftLeft') { dashPressed = true; e.preventDefault(); }
     if (e.code.startsWith('Arrow')) e.preventDefault();
     if (e.code === 'KeyE' && !e.repeat) startToss('mouse');
+    if (e.code === 'KeyR' && !e.repeat) reloadPressed = true;
+    if (e.code === 'KeyQ' && !e.repeat) switchPressed = true;
   });
+  // la rueda del ratón también cambia de arma (una vez por "golpe" de rueda, no por cada paso)
+  let wheelT = 0;
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const now = performance.now();
+    if (now - wheelT > 250) switchPressed = true;
+    wheelT = now;
+  }, { passive: false });
   window.addEventListener('keyup', (e) => {
     keys.delete(e.code);
     if (e.code === 'KeyE') endToss('mouse');
@@ -120,8 +132,10 @@ export function aimToss(dx, dy) {
   toss.dx = dx; toss.dy = dy;
 }
 
-// Esquivar con el mando
+// Esquivar, recargar y cambiar de arma desde fuera (el mando y los carteles del HUD)
 export function pressDash() { dashPressed = true; }
+export function pressReload() { reloadPressed = true; }
+export function pressSwitch() { switchPressed = true; }
 
 // Cómo va el lanzamiento: si se está apuntando, si se acaba de soltar (una sola vez por lanzamiento) y
 // hacia dónde: con el ratón, su posición en el lienzo; en el móvil o con el mando, el arrastre o el stick (de -1 a 1)
@@ -153,9 +167,15 @@ export function consumeDash() {
   return d;
 }
 
+// Devuelven true una sola vez por cada pulsación de "recargar" y de "cambiar de arma"
+export function consumeReload() { const r = reloadPressed; reloadPressed = false; return r; }
+export function consumeSwitch() { const r = switchPressed; switchPressed = false; return r; }
+
 export function clearInput() {
   keys.clear();
   dashPressed = false;
+  reloadPressed = false;
+  switchPressed = false;
   toss.aiming = false;
   toss.released = false;
 }

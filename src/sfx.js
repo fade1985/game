@@ -210,4 +210,10 @@ export const sfx = {
   glass: throttled('glass', 60, () => { tone(2200, 0.08, 'square', 0.025, -800); tone(1500, 0.12, 'triangle', 0.03, 600, 0.03); }),
   heartbeat: () => { tone(70, 0.12, 'sine', 0.18, -20); tone(60, 0.14, 'sine', 0.14, -15, 0.16); },
   enemyShot: throttled('eshot', 80, () => tone(330, 0.08, 'sine', 0.025, -150)),
+  // armas de fuego: sin balas, sacar el cargador, meterlo, meter un cartucho y cambiar de arma
+  click: throttled('click', 200, () => tone(1600, 0.03, 'square', 0.025)),
+  reload: () => { tone(520, 0.05, 'square', 0.025, -200); tone(260, 0.06, 'triangle', 0.04, -80, 0.06); },
+  reloaded: () => { tone(300, 0.05, 'square', 0.035, 200); tone(1400, 0.04, 'square', 0.025, 0, 0.07); },
+  shell: () => { tone(700, 0.04, 'square', 0.025, -300); tone(1200, 0.03, 'square', 0.02, 0, 0.05); },
+  swap: () => tone(420, 0.07, 'triangle', 0.035, 260),
 };

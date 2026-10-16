@@ -294,6 +294,13 @@ canvas {
   font-size: 1.05em;
 }
 .pill b { font-weight: 400; min-width: 1.2em; }
+/* Carteles de las armas: se pueden tocar. El del arma que está en la mano se ve encendido; el otro, apagado */
+.weapon-pill { pointer-events: auto; cursor: pointer; opacity: 0.55; }
+.weapon-pill.on { opacity: 1; }
+.weapon-pill .ammo { color: #ffd23f; }
+.weapon-pill.empty .ammo { color: #ff5d73; }
+.weapon-pill.reloading .ammo { animation: recarga 0.4s steps(2) infinite; }
+@keyframes recarga { 50% { opacity: 0.25; } }
 .icon-btn {
   pointer-events: auto;
   font-size: 1.1em;
