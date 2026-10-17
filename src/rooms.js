@@ -151,8 +151,8 @@ export function makePlainLayout(kind) {
   // en mantenimiento la pared de arriba es para los muebles de las armas
   const obstacles = kind === 'roof' ? [] : placeFurniture(style.name, rng, 2, 3, { skipSide: kind === 'maintenance' ? 'top' : null });
   let wallDecor = kind === 'roof' ? [] : makeWallDecor(rng, geo, [{ dir: 'up', at: RW / 2 }], kind !== 'maintenance');
-  // la pintada "NO ESCAPE" de la sala de mantenimiento, a la izquierda de la puerta (sin cuadros encima)
-  if (kind === 'maintenance') wallDecor = [{ kind: 'grafiti', x: 330, w: 107 }, ...wallDecor.filter((d) => Math.abs(d.x - 330) > 110)];
+  // la pared de mantenimiento ya trae su propia pintada y salpicones (tools/pared_mantenimiento.py): sin cuadros encima
+  if (kind === 'maintenance') wallDecor = [];
   let rug = null;
   if (style.rug && rng() < 0.7) {
     const w = 260 + rng() * 160, h = 160 + rng() * 100;
