@@ -616,7 +616,7 @@ function hazardTape(ctx, x, y, len) {
 }
 
 // Puerta vista desde arriba (muros de abajo y de los lados). Coordenadas locales: el hueco va de -w/2 a w/2 a lo
-// largo del muro y el muro, de -WALL/2 (fuera) a WALL/2 (la habitación). Abierta, la hoja gira hacia la habitación.
+// largo del muro y el muro, de -WALL/2 (fuera) a WALL/2 (la habitación). Abierta, la hoja gira hacia fuera.
 function topDoor(ctx, ex, w, gap, fr) {
   const h = WALL, x0 = -w / 2, y0 = -h / 2;
   // umbral: losas de piedra gastada, y la parte de fuera en penumbra
@@ -649,8 +649,9 @@ function topDoor(ctx, ex, w, gap, fr) {
     box(ctx, LATON, hx + len - 10, hy + t - 2, 4, 2); // el pomo asoma por el lado de la habitación
     return;
   }
-  // girada: se dibuja a escalones de píxel para que no salga borrosa
-  const a = gap * Math.PI / 2, ca = Math.cos(a), sa = Math.sin(a);
+  // girada hacia fuera: abierta del todo queda pegada a la jamba, dentro del grosor del muro (sin asomar a la
+  // habitación). Se dibuja a escalones de píxel para que no salga borrosa
+  const a = -gap * Math.PI / 2, ca = Math.cos(a), sa = Math.sin(a);
   for (const [color, pad] of [[mat.filo, 0], [mat.medio, 2]]) {
     ctx.fillStyle = color;
     for (let s = pad; s <= len - t + pad; s += PIXEL) {
