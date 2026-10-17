@@ -145,7 +145,7 @@ function shade(hex, k) {
 }
 
 // Color de la tapa de los muros: el del papel pintado, más oscuro
-const capColor = (style) => shade(style.wall, -0.38);
+const capColor = (style) => style.cap || shade(style.wall, -0.38); // `cap`: color propio de la tapa (mantenimiento, a juego con su moldura)
 
 // Las caras de un mapa: { x, w, y (borde de abajo), top (borde de arriba), outer, zone, style }
 export function wallFaces(layout) {

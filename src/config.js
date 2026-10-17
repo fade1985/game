@@ -72,7 +72,7 @@ export const APARTMENT_STYLES = [
 ];
 // Otros sitios del edificio
 const OTHER_STYLES = [
-  { name: 'Mantenimiento', floor: 'tiles',    floorA: '#c9ccd3', floorB: '#b6bac4', seam: '#9a9eaa', wall: '#9fb0c2', stripe: '#93a5b8', trim: '#4a5568', rug: null },
+  { name: 'Mantenimiento', floor: 'tiles',    floorA: '#c9ccd3', floorB: '#b6bac4', seam: '#9a9eaa', wall: '#9fb0c2', stripe: '#93a5b8', trim: '#4a5568', cap: '#5f5b46', rug: null },
   { name: 'Azotea',        floor: 'concrete', floorA: '#8f939c', floorB: '#858992', seam: '#6f737c', wall: '#5f6470', stripe: '#575c68', trim: '#3d414b', rug: null },
 ];
 // Todos los estilos, por su nombre: STYLES['Cocina']
