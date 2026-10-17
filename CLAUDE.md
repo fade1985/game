@@ -19,8 +19,18 @@ ni compilación. Se publica en **Vercel** como web estática: lo que se sube a `
 - **Varias sesiones trabajan a la vez en esta carpeta** (armas, zombis, mapa, escenarios): al hacer commit,
   añadir solo los archivos propios (nada de `git add -A`).
 - **Borrar en PixelLab no se puede deshacer:** solo con confirmación expresa del dueño.
-- **Ahorrar cuota:** una sesión nueva por tarea (un arma, un zombi), Sonnet para seguir una receta ya rodada y
-  Opus para lo nuevo; mirar pocas imágenes; lanzar las generaciones de golpe y comprobar una sola vez.
+- **Ahorrar cuota** (cada paso vuelve a leer toda la conversación: lo caro es lo largo y lo que se queda dentro):
+  - **Sesiones cortas:** una por tarea (un arma, un zombi). Al cerrar una fase con visto bueno, la siguiente va en
+    sesión nueva; si una pasa de ~80 pasos, proponer seguir en otra con un resumen.
+  - **Modelo:** Sonnet para seguir una receta ya rodada (skills `/arma-nueva`, `/zombi-nuevo`, ajustes pequeños);
+    Opus solo para lo nuevo o difícil. Si la tarea es de receta y la sesión va con Opus, avisar al dueño.
+  - **Capturas pequeñas:** en el navegador, `screenshot` con `scale: 0.5` (o `zoom` a la zona que interesa); para
+    comprobar texto o estado, `read_page`, `get_page_text` o `javascript_tool` en vez de captura. No abrir con
+    Read los PNG grandes de `tools/prueba-salida/` ni hojas enteras: recortar y reducir antes con `py` (Pillow).
+    Pocas imágenes, y no repetir la misma.
+  - **Salidas cortas:** filtrar lo que imprimen los comandos (`npm test`, logs, JSON de PixelLab) para ver solo
+    lo que importa; leer archivos por trozos cuando se sabe dónde mirar.
+  - **PixelLab:** lanzar las generaciones de golpe y comprobar una sola vez.
 - El juego es solo pixel art (la versión cartoon se retiró). Lo que aún no tiene sprite se dibuja a mano con el
   dibujo de antes: esos dibujos no se pueden borrar todavía.
 
