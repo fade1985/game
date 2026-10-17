@@ -526,7 +526,7 @@ export function drawDoors(ctx, room, open, up = false) {
   }
 }
 
-// Puerta vista de frente, en la cara del muro de arriba. Abierta, la hoja gira hacia dentro y se ve más estrecha.
+// Puerta vista de frente, en la cara del muro de arriba. Al abrirse, la hoja gira hacia dentro hasta desaparecer.
 function frontDoor(ctx, ex, w, gap, fr) {
   const yb = WALL - ex.y;   // pie de la puerta: el suelo
   const dh = 80;            // alto del hueco (2 casillas y media)
@@ -544,7 +544,8 @@ function frontDoor(ctx, ex, w, gap, fr) {
   if (ex.kind === 'elevator') { elevatorFront(ctx, x0, yt, w, dh); return; }
   const mat = ex.kind === 'door' ? MADERA : METAL;
   // la hoja, con la bisagra a la izquierda: al abrirse se ve de canto y más oscura
-  const lw = snap(w * (1 - gap * 0.84));
+  // (abierta del todo ya no se ve: así no queda una tira suelta en el hueco)
+  const lw = snap(w * (1 - gap));
   if (lw >= 2) {
     const k = gap * 0.55;
     const c = gap ? { luz: mix(mat.luz, OSCURO, k), medio: mix(mat.medio, OSCURO, k), sombra: mix(mat.sombra, OSCURO, k) } : mat;
@@ -616,7 +617,7 @@ function hazardTape(ctx, x, y, len) {
 }
 
 // Puerta vista desde arriba (muros de abajo y de los lados). Coordenadas locales: el hueco va de -w/2 a w/2 a lo
-// largo del muro y el muro, de -WALL/2 (fuera) a WALL/2 (la habitación). Abierta, la hoja gira hacia fuera.
+// largo del muro y el muro, de -WALL/2 (fuera) a WALL/2 (la habitación). Abierta, solo se ve el hueco.
 function topDoor(ctx, ex, w, gap, fr) {
   const h = WALL, x0 = -w / 2, y0 = -h / 2;
   // umbral: losas de piedra gastada, y la parte de fuera en penumbra
@@ -642,22 +643,12 @@ function topDoor(ctx, ex, w, gap, fr) {
   // la hoja: un tablón con la bisagra a la izquierda, pegado al lado de la habitación
   const t = 10, len = w;
   const hx = x0, hy = h / 2 - t;
-  if (!gap) {
-    box(ctx, mat.filo, hx, hy, len, t);
-    box(ctx, mat.medio, hx + 2, hy + 2, len - 4, t - 4);
-    box(ctx, mat.luz, hx + 2, hy + 2, len - 4, 2);
-    box(ctx, LATON, hx + len - 10, hy + t - 2, 4, 2); // el pomo asoma por el lado de la habitación
-    return;
-  }
-  // girada hacia fuera: abierta del todo queda pegada a la jamba, dentro del grosor del muro (sin asomar a la
-  // habitación). Se dibuja a escalones de píxel para que no salga borrosa
-  const a = -gap * Math.PI / 2, ca = Math.cos(a), sa = Math.sin(a);
-  for (const [color, pad] of [[mat.filo, 0], [mat.medio, 2]]) {
-    ctx.fillStyle = color;
-    for (let s = pad; s <= len - t + pad; s += PIXEL) {
-      ctx.fillRect(snap(hx + ca * s) + pad, snap(hy + sa * s) + pad, t - pad * 2, t - pad * 2);
-    }
-  }
+  // abierta no se dibuja: queda solo el hueco (la hoja girada se veía como una línea y no convencía)
+  if (gap) return;
+  box(ctx, mat.filo, hx, hy, len, t);
+  box(ctx, mat.medio, hx + 2, hy + 2, len - 4, t - 4);
+  box(ctx, mat.luz, hx + 2, hy + 2, len - 4, 2);
+  box(ctx, LATON, hx + len - 10, hy + t - 2, 4, 2); // el pomo asoma por el lado de la habitación
 }
 
 // Placa de metal atornillada a la pared con un icono (lo que hay detrás de la puerta)
