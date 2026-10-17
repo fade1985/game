@@ -7,6 +7,7 @@
 import { WALL } from './config.js';
 import { rand, clamp, dist, pushOut, obstacleGap } from './utils.js';
 import { WeaponProp } from './props.js';
+import { destello } from './luz.js';
 import { randomWeapon } from './weapons.js';
 import { updateSave } from './save.js';
 import { isWall, lineClear } from './shapes.js';
@@ -141,6 +142,8 @@ export class GameCombat {
   fireVolley(src, angle, o) {
     if (src === this.player) this.noise(src.x, src.y);
     const n = o.count || 1;
+    // el fogonazo alumbra un instante alrededor de la boca del arma (el de la escopeta, más)
+    destello(this, o.x ?? src.x, o.y ?? src.y, n > 1 ? 170 : 120, n > 1 ? 0.12 : 0.08);
     const spread = o.spread ?? 0.16;
     for (let i = 0; i < n; i++) {
       const off = n > 1 ? (i / (n - 1) - 0.5) * spread * (n > 2 ? 1 : 0.6) : 0;

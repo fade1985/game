@@ -10,6 +10,7 @@ import { BLEACH, drawBottle } from './jefe-portera.js';
 import { POISON, TENTACLE } from './zombies.js';
 import { drawSprite, hasSprite } from './sprites.js';
 import { sfx } from './sfx.js';
+import { destello } from './luz.js';
 import { MOLOTOV, drawMolotov } from './molotov.js';
 
 // Rastro de sangre del zombi lento: cada cuánto deja una mancha, cuánto dura y cuánto tarda en borrarse al final
@@ -27,6 +28,7 @@ export class ZombieAttacks {
   explode(x, y, radius, dmg, source) {
     sfx.boom();
     this.shake(14);
+    destello(this, x, y, Math.max(200, radius * 2.5), 0.4); // la explosión ilumina toda la zona
     const sprite = this.fx('objeto-fx-explosion', x, y);
     for (let i = 0; i < (sprite ? 10 : 26); i++) {
       const a = rand(0, Math.PI * 2), sp = rand(60, 320);

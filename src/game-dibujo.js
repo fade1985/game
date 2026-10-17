@@ -5,7 +5,7 @@
 // ─────────────────────────────────────────────
 import { H, WALL, OUTLINE, DIRS, PIXEL, BG_PIXEL, SLIDE, FADE } from './config.js';
 import { rand, clamp } from './utils.js';
-import { drawLuz, salaOscura } from './luz.js';
+import { drawLuz, oscuridadDe } from './luz.js';
 import { drawRoom, drawWallTops, sceneryOf, drawDoors, drawDoorLabels, drawFog, drawPickup, drawBullet, drawMinimap, drawEmoji as drawEmojiAt, minimapRect } from './render.js';
 import { outlinedText, roundBox, pixelBossBar, pixelHpBar, MARCO_VIDA_ANCHO } from './draw.js';
 import { setGridSnap, drawSprite } from './sprites.js';
@@ -89,7 +89,7 @@ export class GameDrawing {
     this.drawActors(out);
     setGridSnap(true);
     // penumbra y luces (al cambiar de sala entra o se va poco a poco)
-    const oscura = salaOscura(this.room) ? 1 : 0, antes = tr && salaOscura(tr.from) ? 1 : 0;
+    const oscura = oscuridadDe(this.room), antes = tr ? oscuridadDe(tr.from) : oscura;
     drawLuz(out, this, camX, camY, vw, vh, tr ? antes + (oscura - antes) * tr.e : oscura);
     this.drawReload(out);
     this.drawTexts(out);
