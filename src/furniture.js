@@ -9,6 +9,7 @@
 import { W, H, WALL, DOOR_W, OUTLINE, FACE_H } from './config.js';
 import { drawSprite, hasSprite, spriteMeta } from './sprites.js';
 import { CELL, rectIsFloor } from './shapes.js';
+import { drawCached } from './draw.js';
 
 const TAU = Math.PI * 2;
 
@@ -511,41 +512,51 @@ export function drawFurniture(ctx, f, alpha = 1) {
 }
 
 // Cuadros, ventanas y relojes de la pared de arriba
+// Lo fijo (marcos, cortinas, la esfera del reloj) se guarda como imagen; las nubes y las agujas se pintan encima
+// en cada fotograma
 export function drawWallDecor(ctx, d, time) {
   const cy = WALL - FACE_H / 2 + 6; // a media altura de la cara del muro de arriba
-  ctx.save();
-  ctx.lineJoin = 'round';
+  const fijo = (owner, pad, h, paint) => drawCached(ctx, owner, 0, d.x - d.w / 2 - pad, cy - h / 2 - pad, d.w + pad * 2, h + pad * 2, (g) => {
+    g.lineJoin = 'round';
+    paint(g);
+  });
   if (d.kind === 'window') {
     const w = d.w, h = 36;
-    box(ctx, d.x - w / 2, cy - h / 2, w, h, 4, '#9fdcf2');
+    fijo(d, 3, h, (g) => box(g, d.x - w / 2, cy - h / 2, w, h, 4, '#9fdcf2'));
     // nubes
+    ctx.save();
     ctx.fillStyle = 'rgba(255,255,255,0.85)';
     const cx = d.x - w / 2 + ((time * 6 + d.seed * 80) % (w + 30)) - 15;
-    ctx.save();
     ctx.beginPath(); ctx.rect(d.x - w / 2 + 2, cy - h / 2 + 2, w - 4, h - 4); ctx.clip();
     ctx.beginPath(); ctx.ellipse(cx, cy - 4, 12, 5, 0, 0, TAU); ctx.ellipse(cx + 8, cy - 7, 8, 5, 0, 0, TAU); ctx.fill();
     ctx.restore();
-    ctx.lineWidth = 3; ctx.strokeStyle = OUTLINE;
-    ctx.beginPath(); ctx.moveTo(d.x, cy - h / 2); ctx.lineTo(d.x, cy + h / 2); ctx.moveTo(d.x - w / 2, cy); ctx.lineTo(d.x + w / 2, cy); ctx.stroke();
-    // cortinas
-    for (const k of [-1, 1]) box(ctx, d.x + k * (w / 2 + 2) - 7, cy - h / 2 - 3, 14, h + 6, 5, ['#ff8fab', '#ffd166', '#95d5b2', '#b8c0ff'][d.hue], 2.5);
+    // cruz de la ventana y cortinas
+    d.frente = d.frente || {};
+    fijo(d.frente, 14, h + 6, (g) => {
+      g.lineWidth = 3; g.strokeStyle = OUTLINE;
+      g.beginPath(); g.moveTo(d.x, cy - h / 2); g.lineTo(d.x, cy + h / 2); g.moveTo(d.x - w / 2, cy); g.lineTo(d.x + w / 2, cy); g.stroke();
+      for (const k of [-1, 1]) box(g, d.x + k * (w / 2 + 2) - 7, cy - h / 2 - 3, 14, h + 6, 5, ['#ff8fab', '#ffd166', '#95d5b2', '#b8c0ff'][d.hue], 2.5);
+    });
   } else if (d.kind === 'picture') {
     const w = d.w, h = 34;
-    box(ctx, d.x - w / 2, cy - h / 2, w, h, 3, '#c08552');
-    ctx.fillStyle = ['#bde0fe', '#ffd6a5', '#caffbf', '#ffc6ff'][d.hue];
-    ctx.fillRect(d.x - w / 2 + 5, cy - h / 2 + 5, w - 10, h - 10);
-    // paisaje: monte y sol
-    ctx.save();
-    ctx.beginPath(); ctx.rect(d.x - w / 2 + 5, cy - h / 2 + 5, w - 10, h - 10); ctx.clip();
-    ctx.fillStyle = '#6a994e';
-    ctx.beginPath(); ctx.ellipse(d.x - 6, cy + 14, w * 0.45, 14, 0, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#ffd23f';
-    ctx.beginPath(); ctx.arc(d.x + w * 0.22, cy - 5, 5, 0, TAU); ctx.fill();
-    ctx.restore();
-    ctx.lineWidth = 2; ctx.strokeStyle = OUTLINE;
-    ctx.strokeRect(d.x - w / 2 + 5, cy - h / 2 + 5, w - 10, h - 10);
+    fijo(d, 3, h, (g) => {
+      box(g, d.x - w / 2, cy - h / 2, w, h, 3, '#c08552');
+      g.fillStyle = ['#bde0fe', '#ffd6a5', '#caffbf', '#ffc6ff'][d.hue];
+      g.fillRect(d.x - w / 2 + 5, cy - h / 2 + 5, w - 10, h - 10);
+      // paisaje: monte y sol
+      g.save();
+      g.beginPath(); g.rect(d.x - w / 2 + 5, cy - h / 2 + 5, w - 10, h - 10); g.clip();
+      g.fillStyle = '#6a994e';
+      g.beginPath(); g.ellipse(d.x - 6, cy + 14, w * 0.45, 14, 0, 0, TAU); g.fill();
+      g.fillStyle = '#ffd23f';
+      g.beginPath(); g.arc(d.x + w * 0.22, cy - 5, 5, 0, TAU); g.fill();
+      g.restore();
+      g.lineWidth = 2; g.strokeStyle = OUTLINE;
+      g.strokeRect(d.x - w / 2 + 5, cy - h / 2 + 5, w - 10, h - 10);
+    });
   } else {
-    circle(ctx, d.x, cy, 16, '#ffffff');
+    drawCached(ctx, d, 0, d.x - 19, cy - 19, 38, 38, (g) => circle(g, d.x, cy, 16, '#ffffff'));
+    ctx.save();
     ctx.lineCap = 'round';
     ctx.lineWidth = 3; ctx.strokeStyle = OUTLINE;
     const a1 = time * 0.5 + d.seed * 6, a2 = time * 0.05 + d.seed * 3;
@@ -554,8 +565,8 @@ export function drawWallDecor(ctx, d, time) {
     ctx.moveTo(d.x, cy); ctx.lineTo(d.x + Math.sin(a2) * 7, cy - Math.cos(a2) * 7);
     ctx.stroke();
     circle(ctx, d.x, cy, 2.5, '#ff5d73', 0);
+    ctx.restore();
   }
-  ctx.restore();
 }
 
 // Rayo de luz que entra por las ventanas y cae en el suelo

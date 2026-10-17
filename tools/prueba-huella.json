@@ -63,24 +63,24 @@
   "jefe-miniboss": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 74,
-    "x": 339,
-    "y": 474,
-    "muertes": 0,
-    "zombis": 3,
-    "balas": 0,
-    "vidaJefe": 173
+    "vida": 90,
+    "x": 362,
+    "y": 434,
+    "muertes": 1,
+    "zombis": 2,
+    "balas": 2,
+    "vidaJefe": 152
   },
   "jefe-boss": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 82,
-    "x": 439,
-    "y": 360,
+    "vida": 79,
+    "x": 398,
+    "y": 453,
     "muertes": 0,
     "zombis": 1,
     "balas": 0,
-    "vidaJefe": 710
+    "vidaJefe": 794
   },
   "arma-fregona": {
     "planta": 1,
@@ -88,8 +88,8 @@
     "vida": 100,
     "x": 480,
     "y": 360,
-    "muertes": 2,
-    "zombis": 1,
+    "muertes": 3,
+    "zombis": 0,
     "balas": 0
   },
   "arma-bate": {
@@ -115,11 +115,11 @@
   "arma-pistola": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 100,
+    "vida": 90,
     "x": 480,
     "y": 360,
-    "muertes": 3,
-    "zombis": 0,
+    "muertes": 2,
+    "zombis": 1,
     "balas": 0
   },
   "arma-escopeta": {
@@ -145,11 +145,11 @@
   "molotov": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 80,
+    "vida": 100,
     "x": 480,
     "y": 360,
-    "muertes": 0,
-    "zombis": 2,
+    "muertes": 2,
+    "zombis": 0,
     "balas": 0,
     "molotovs": 2
   },
@@ -172,25 +172,25 @@
       "floor": 1,
       "dead": true,
       "jammed": false,
-      "time": 124
+      "time": 156
     },
     {
       "state": "over",
       "floor": 1,
       "dead": true,
       "jammed": false,
-      "time": 145
+      "time": 105
     }
   ],
   "botPlantas": [
     {
-      "state": "playing",
-      "floor": 5,
+      "state": "over",
+      "floor": 6,
       "dead": false,
       "jammed": false,
-      "time": 557
+      "time": 541
     }
   ],
-  "botMapas": 33,
+  "botMapas": 35,
   "fin": "over"
 }

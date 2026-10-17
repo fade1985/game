@@ -3,7 +3,7 @@
 //  mini jefe, armas en el suelo y los muebles que guardan un arma
 // ─────────────────────────────────────────────
 import { W, H, WALL, OUTLINE } from './config.js';
-import { drawHuman, outlinedText, roundBox } from './draw.js';
+import { drawHuman, outlinedText, roundBox, glow } from './draw.js';
 import { drawWeapon } from './weapons.js';
 import { drawSprite, hasSprite, pixelShadow } from './sprites.js';
 
@@ -69,11 +69,7 @@ export class DoorKey {
   draw(ctx, game) {
     const { x } = this;
     const y = this.y - 8 + Math.sin(game.time * 3) * 4;
-    const glow = ctx.createRadialGradient(x, y, 4, x, y, 50);
-    glow.addColorStop(0, `rgba(190, 225, 255, ${0.6 + Math.sin(game.time * 4) * 0.15})`);
-    glow.addColorStop(1, 'rgba(190, 225, 255, 0)');
-    ctx.fillStyle = glow;
-    ctx.beginPath(); ctx.arc(x, y, 50, 0, TAU); ctx.fill();
+    glow(ctx, x, y, 4, 50, '190, 225, 255', 0.6 + Math.sin(game.time * 4) * 0.15);
     ctx.fillStyle = 'rgba(20,16,40,0.22)';
     ctx.beginPath(); ctx.ellipse(x, this.y + 14, 16, 5, 0, 0, TAU); ctx.fill();
     // llave plateada, grande, con una etiqueta roja colgando (sprite; si falta, el dibujo de siempre)
@@ -118,11 +114,7 @@ export class WeaponProp {
   draw(ctx, game) {
     const { x, y } = this;
     const bob = Math.sin(game.time * 3 + this.seed) * 3;
-    const glow = ctx.createRadialGradient(x, y, 4, x, y, 44);
-    glow.addColorStop(0, 'rgba(255, 230, 120, 0.55)');
-    glow.addColorStop(1, 'rgba(255, 230, 120, 0)');
-    ctx.fillStyle = glow;
-    ctx.beginPath(); ctx.arc(x, y, 44, 0, TAU); ctx.fill();
+    glow(ctx, x, y, 4, 44, '255, 230, 120', 0.55);
     ctx.fillStyle = 'rgba(20,16,40,0.2)';
     ctx.beginPath(); ctx.ellipse(x, y + 12, 24, 7, 0, 0, TAU); ctx.fill();
     ctx.save();
@@ -217,11 +209,7 @@ export class WeaponStash {
     // ── el arma, colocada a su manera en cada mueble ──
     const front = y + (d.round || D / 2) + (open ? d.front || 0 : 0); // borde del mueble que da a la sala
     if (here) {
-      const glow = ctx.createRadialGradient(x, y + 6, 4, x, y + 6, 48);
-      glow.addColorStop(0, `rgba(255, 230, 120, ${0.4 + Math.sin(game.time * 3) * 0.12})`);
-      glow.addColorStop(1, 'rgba(255, 230, 120, 0)');
-      ctx.fillStyle = glow;
-      ctx.beginPath(); ctx.arc(x, y + 6, 48, 0, TAU); ctx.fill();
+      glow(ctx, x, y + 6, 4, 48, '255, 230, 120', 0.4 + Math.sin(game.time * 3) * 0.12);
       // [x, y, giro] de la empuñadura
       const at = {
         cubo: [x + 29, y + 40, -2.2],            // el cabezal dentro del cubo y el palo hacia la sala

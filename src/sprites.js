@@ -157,6 +157,8 @@ function findFeet(img, meta) {
 }
 
 export const hasSprite = (id) => sheets.has(id);
+// Cuántas hojas hay cargadas (sirve para saber si hay que rehacer un dibujo guardado: puede haber llegado su textura)
+export const spriteCount = () => sheets.size;
 
 // Dibuja el fotograma que toca. `t` es el tiempo de la animación en segundos.
 // Opciones: flash (blanco), tint ({ color, alpha }: capa de color), alpha, scale (1 = tamaño natural), frame (forzar fotograma), cycle (ver abajo).
@@ -218,19 +220,28 @@ export function spriteMuzzle(id, dir) {
 
 // Unos cuantos puntos al azar que caen dentro del dibujo de un fotograma (para poner brasas encima de un
 // cadáver, por ejemplo). Devuelve [x, y] en unidades del juego respecto a los pies; [] si no hay hoja.
+// (Los píxeles del dibujo de cada fotograma se buscan una vez y se guardan en SOLIDOS: leer los píxeles de un
+// lienzo es lento, y con un molotov caen muchos zombis a la vez.)
+const SOLIDOS = new Map();
 export function spritePoints(id, anim, dir, frame, n) {
   const sh = sheets.get(id);
   const d = sh?.meta.anims[anim]?.dirs[dir];
   if (!d) return [];
   const [cw, ch] = sh.meta.cell;
   const [px, py] = sh.meta.pivot || [cw / 2, ch];
-  const c = document.createElement('canvas');
-  c.width = cw; c.height = ch;
-  const x = c.getContext('2d');
-  x.drawImage(sh.img, ((d.col || 0) + Math.min(frame, d.frames - 1)) * cw, d.row * ch, cw, ch, 0, 0, cw, ch);
-  const data = x.getImageData(0, 0, cw, ch).data;
-  const solid = [];
-  for (let i = 0; i < cw * ch; i++) if (data[i * 4 + 3] > 200) solid.push(i);
+  const col = (d.col || 0) + Math.min(frame, d.frames - 1);
+  const key = `${id}|${col}|${d.row}`;
+  let solid = SOLIDOS.get(key);
+  if (!solid) {
+    const c = document.createElement('canvas');
+    c.width = cw; c.height = ch;
+    const x = c.getContext('2d');
+    x.drawImage(sh.img, col * cw, d.row * ch, cw, ch, 0, 0, cw, ch);
+    const data = x.getImageData(0, 0, cw, ch).data;
+    solid = [];
+    for (let i = 0; i < cw * ch; i++) if (data[i * 4 + 3] > 200) solid.push(i);
+    SOLIDOS.set(key, solid);
+  }
   const out = [];
   for (let k = 0; k < n && solid.length; k++) {
     const i = solid[Math.floor(Math.random() * solid.length)];

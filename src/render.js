@@ -2,8 +2,8 @@
 //  Dibujo del escenario: habitaciones, puertas, objetos y minimapa
 // ─────────────────────────────────────────────
 import { W, H, WALL, DOOR_W, OUTLINE, PIXEL, FACE_H, TOP_EXTRA } from './config.js';
-import { drawSprite, hasSprite, spriteMeta } from './sprites.js';
-import { roundBox, outlinedText, heartPath } from './draw.js';
+import { drawSprite, hasSprite, spriteMeta, spriteCount } from './sprites.js';
+import { roundBox, outlinedText, heartPath, drawCached } from './draw.js';
 import { ROOM_TYPES } from './rooms.js';
 import { drawFurniture, drawFurnitureShadow, drawFurnitureLight, drawWallDecor, drawWindowLight } from './furniture.js';
 import { CELL } from './shapes.js';
@@ -254,7 +254,13 @@ export function sceneryOf(room) {
       draw(ctx, game) {
         // si tapa a alguien, se vuelve medio transparente
         if (someoneBehind(f, game)) ctx.globalAlpha = 0.45;
-        drawFace(ctx, f);
+        // la cara se pinta una vez y se guarda como imagen (se rehace si llega su textura). Debajo, un fondo
+        // oscuro: si no, en la fila de píxeles donde se juntan el techo y la pared se colaría lo de detrás
+        drawCached(ctx, f, spriteCount(), f.x, f.top - CAP, f.w, f.y - f.top + CAP, (g) => {
+          g.fillStyle = OUTLINE;
+          g.fillRect(f.x, f.top - CAP, f.w, f.y - f.top + CAP);
+          drawFace(g, f);
+        });
         ctx.globalAlpha = 1;
         if (f.zone && f.zone.fog > 0) {
           // la habitación aún está a oscuras
@@ -468,6 +474,7 @@ function drawObstacle(ctx, o) {
 // open: 0 = cerradas, 1 = abiertas (las que tienen cerrojo no se abren aunque el mapa esté limpio)
 // up: true = solo las del muro de arriba, false = las demás. Las de arriba van con la escena (sceneryOf),
 // después de la cara de su muro, que mide 3 casillas y si no las taparía.
+let huecoPuerta = null;
 export function drawDoors(ctx, room, open, up = false) {
   const trim = room.layout.style.trim;
   for (const ex of room.exits) {
@@ -501,17 +508,19 @@ export function drawDoors(ctx, room, open, up = false) {
     if (ex.frame) {
       // remaches decorativos
       ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.beginPath();
       for (const sx of [-w / 2 - 5, w / 2 + 5]) {
-        for (const sy of [-h / 2 + 8, 0, h / 2 - 8]) {
-          ctx.beginPath(); ctx.arc(sx, sy, 2.5, 0, TAU); ctx.fill();
-        }
+        for (const sy of [-h / 2 + 8, 0, h / 2 - 8]) { ctx.moveTo(sx + 2.5, sy); ctx.arc(sx, sy, 2.5, 0, TAU); }
       }
+      ctx.fill();
     }
-    // hueco oscuro
-    const g = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
-    g.addColorStop(0, '#120f1f');
-    g.addColorStop(1, '#2f2a48');
-    ctx.fillStyle = g;
+    // hueco oscuro (el degradado es igual en todas: se crea una vez)
+    if (!huecoPuerta) {
+      huecoPuerta = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
+      huecoPuerta.addColorStop(0, '#120f1f');
+      huecoPuerta.addColorStop(1, '#2f2a48');
+    }
+    ctx.fillStyle = huecoPuerta;
     ctx.fillRect(-w / 2, -h / 2 - 2, w, h + 2);
     // hoja de la puerta: se recoge hacia fuera al abrirse
     if (gap < 1) {
@@ -717,6 +726,10 @@ function drawFrame(ctx, x, y, w, h, s = 14) {
   ctx.restore();
 }
 
+// Rendimiento: el minimapa se pinta una vez y se guarda como imagen; solo se rehace cuando cambia algo de lo que
+// enseña (las casillas, sus colores e iconos, o porque ha terminado de cargar una imagen o la letra). El marco que
+// parpadea alrededor de donde estás se pinta encima en cada fotograma.
+const MINIMAPA = {};
 export function drawMinimap(ctx, floor, current, title, time, screenW = W) {
   const hall = floor.corridor;
   const pad = 14, head = 22;
@@ -724,50 +737,57 @@ export function drawMinimap(ctx, floor, current, title, time, screenW = W) {
   const px = screenW - pw - 12, py = 10;
   minimapRect = { x: px, y: py, w: pw, h: ph };
 
-  ctx.save();
-  drawFrame(ctx, px, py, pw, ph);
-  outlinedText(ctx, title, px + pw / 2, py + 19, 12, '#e6c34a', { lw: 4 });
-
-  const box = (x, y, w, h, fill, here, icon) => {
-    ctx.beginPath();
-    ctx.rect(x, y, w, h);
-    ctx.fillStyle = here ? '#e0b030' : fill;
-    ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = here ? '#f2e6c0' : OUTLINE;
-    ctx.stroke();
-    if (icon) drawEmoji(ctx, icon, x + w / 2, y + h / 2 + 1, 11);
-    if (here) {
-      ctx.globalAlpha = 0.5 + Math.sin(time * 6) * 0.3;
-      ctx.beginPath();
-      ctx.rect(x - 3, y - 3, w + 6, h + 6);
-      ctx.strokeStyle = '#e0b030';
-      ctx.stroke();
-      ctx.globalAlpha = 1;
-    }
-  };
+  // casillas: [x, y, ancho, alto, color, ¿estás aquí?, icono]
+  const boxes = [];
   const tint = (r) => (!r.visited ? '#4a4552' : r.cleared ? '#bdb59c' : '#b34030');
   const top = py + head + pad;
-
   if (!hall) {
     // la azotea: un solo sitio
-    box(px + pw / 2 - 30, top, 60, 22, tint(current), true, ROOM_TYPES[current.type].icon);
-    ctx.restore();
-    return;
-  }
-  const END = 18; // ancho de las casillas de los extremos
-  const x0 = px + pad + END + 4, len = pw - (pad + END + 4) * 2;
-  box(x0, top + 22, len, 12, '#bdb59c', current === hall);
-  for (const ex of hall.exits) {
-    if (ex.kind === 'elevator') continue;
-    if (ex.dir === 'left') box(x0 - END - 4, top + 19, END, 18, '#4a4552', false, ex.icon || '🚪');
-    else if (ex.dir === 'right') box(x0 + len + 4, top + 19, END, 18, ex.locked ? '#4a4552' : '#6f9a58', false, ex.locked ? '🔒' : ex.icon);
-    else {
-      const r = ex.to;
-      // la llave que aún no se ha recogido se marca en cuanto se ha entrado en su apartamento
-      const icon = ex.locked === 'key' ? '🔒' : floor.key.room === r && r.visited && !floor.hasKey && !floor.keyUsed ? '🗝️' : ROOM_TYPES[r.type].frame ? ROOM_TYPES[r.type].icon : null;
-      box(x0 + (ex.at / hall.layout.w) * len - 15, ex.dir === 'up' ? top : top + 38, 30, 18, tint(r), current === r, icon);
+    boxes.push([px + pw / 2 - 30, top, 60, 22, tint(current), true, ROOM_TYPES[current.type].icon]);
+  } else {
+    const END = 18; // ancho de las casillas de los extremos
+    const x0 = px + pad + END + 4, len = pw - (pad + END + 4) * 2;
+    boxes.push([x0, top + 22, len, 12, '#bdb59c', current === hall]);
+    for (const ex of hall.exits) {
+      if (ex.kind === 'elevator') continue;
+      if (ex.dir === 'left') boxes.push([x0 - END - 4, top + 19, END, 18, '#4a4552', false, ex.icon || '🚪']);
+      else if (ex.dir === 'right') boxes.push([x0 + len + 4, top + 19, END, 18, ex.locked ? '#4a4552' : '#6f9a58', false, ex.locked ? '🔒' : ex.icon]);
+      else {
+        const r = ex.to;
+        // la llave que aún no se ha recogido se marca en cuanto se ha entrado en su apartamento
+        const icon = ex.locked === 'key' ? '🔒' : floor.key.room === r && r.visited && !floor.hasKey && !floor.keyUsed ? '🗝️' : ROOM_TYPES[r.type].frame ? ROOM_TYPES[r.type].icon : null;
+        boxes.push([x0 + (ex.at / hall.layout.w) * len - 15, ex.dir === 'up' ? top : top + 38, 30, 18, tint(r), current === r, icon]);
+      }
     }
+  }
+
+  const cargado = `${FRAME.complete}|${Object.values(ICONOS).filter((im) => im.complete).length}|${document.fonts ? document.fonts.status : ''}`;
+  const key = `${title}|${px}|${ph}|${cargado}|${boxes.join(';')}`;
+  drawCached(ctx, MINIMAPA, key, px - 2, py - 2, pw + 4, ph + 4, (g) => {
+    drawFrame(g, px, py, pw, ph);
+    outlinedText(g, title, px + pw / 2, py + 19, 12, '#e6c34a', { lw: 4 });
+    for (const [x, y, w, h, fill, here, icon] of boxes) {
+      g.beginPath();
+      g.rect(x, y, w, h);
+      g.fillStyle = here ? '#e0b030' : fill;
+      g.fill();
+      g.lineWidth = 2;
+      g.strokeStyle = here ? '#f2e6c0' : OUTLINE;
+      g.stroke();
+      if (icon) drawEmoji(g, icon, x + w / 2, y + h / 2 + 1, 11);
+    }
+  });
+
+  // marco que parpadea alrededor de donde estás
+  ctx.save();
+  ctx.globalAlpha = 0.5 + Math.sin(time * 6) * 0.3;
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#e0b030';
+  for (const [x, y, w, h, , here] of boxes) {
+    if (!here) continue;
+    ctx.beginPath();
+    ctx.rect(x - 3, y - 3, w + 6, h + 6);
+    ctx.stroke();
   }
   ctx.restore();
 }

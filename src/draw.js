@@ -6,6 +6,60 @@ import { OUTLINE, PIXEL } from './config.js';
 
 const TAU = Math.PI * 2;
 
+// Rendimiento: dibujos que no cambian (un tramo de pared, un cuadro...) guardados como imagen. La primera vez se
+// pintan con `paint(ctx)` en un lienzo aparte, a la misma escala con la que se está dibujando, y luego se copian
+// de un golpe. `owner` es el objeto al que pertenece el dibujo; `key` cambia cuando el dibujo tiene que cambiar;
+// (x, y, w, h) es el rectángulo que ocupa, en unidades del juego. Solo se guardan los GUARDADOS_MAX últimos.
+const guardados = new Map(); // owner → { canvas, key, s }
+const GUARDADOS_MAX = 80;
+export function drawCached(ctx, owner, key, x, y, w, h, paint) {
+  const m = ctx.getTransform();
+  const s = Math.hypot(m.a, m.b); // píxeles de lienzo por unidad del juego
+  let c = guardados.get(owner);
+  if (c) guardados.delete(owner); // se vuelve a meter al final: los que no se usan van quedando los primeros
+  if (!c || c.key !== key || c.s !== s) {
+    if (!c && guardados.size >= GUARDADOS_MAX) guardados.delete(guardados.keys().next().value);
+    c = c || { canvas: document.createElement('canvas') };
+    c.canvas.width = Math.ceil(w * s);
+    c.canvas.height = Math.ceil(h * s);
+    const g = c.canvas.getContext('2d');
+    g.setTransform(s, 0, 0, s, -x * s, -y * s);
+    g.imageSmoothingEnabled = false;
+    paint(g);
+    c.key = key; c.s = s;
+  }
+  guardados.set(owner, c);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(c.canvas, x, y, c.canvas.width / s, c.canvas.height / s);
+}
+
+// Halo de luz redondo (el brillo de la llave o de un arma en el suelo): color `rgb` ("255, 230, 120") con
+// transparencia `alpha` en el centro (hasta el radio r0) que se apaga hacia el radio r. El degradado se pinta una
+// vez por color y tamaño y luego se copia: crear un degradado nuevo en cada fotograma cuesta más.
+const halos = new Map();
+export function glow(ctx, x, y, r0, r, rgb, alpha) {
+  const key = `${rgb}|${r0}|${r}`;
+  let c = halos.get(key);
+  if (!c) {
+    const S = 3; // píxeles del halo guardado por unidad del juego
+    c = document.createElement('canvas');
+    c.width = c.height = Math.ceil(r * 2 * S);
+    const g = c.getContext('2d'), m = c.width / 2;
+    const gr = g.createRadialGradient(m, m, r0 * S, m, m, r * S);
+    gr.addColorStop(0, `rgba(${rgb}, 1)`);
+    gr.addColorStop(1, `rgba(${rgb}, 0)`);
+    g.fillStyle = gr;
+    g.fillRect(0, 0, c.width, c.height);
+    halos.set(key, c);
+  }
+  const a = ctx.globalAlpha;
+  ctx.globalAlpha = a * alpha;
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(c, x - r, y - r, r * 2, r * 2);
+  ctx.imageSmoothingEnabled = false;
+  ctx.globalAlpha = a;
+}
+
 // Sombra ovalada bajo los personajes
 export function shadow(ctx, x, y, r, alpha = 0.22) {
   ctx.fillStyle = `rgba(20, 16, 40, ${alpha})`;

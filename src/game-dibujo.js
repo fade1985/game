@@ -238,10 +238,15 @@ export class GameDrawing {
     drawDoorLabels(ctx, this.room);
     // el superviviente rescatado y la llave recogida ya no están en el suelo
     // ...y lo que hay en una habitación a oscuras no se ve hasta entrar
-    const props = this.room.props.filter((pr) => !(pr.taken && (pr.kind === 'survivor' || pr.kind === 'doorkey')) && !this.hidden(pr));
     // Ordenamos por "y" para que lo de abajo se dibuje delante (falsa profundidad)
     // (entran también los muebles y las caras de los tabiques, que tienen altura)
-    const list = [...this.enemies.filter((e) => !this.hidden(e)), ...this.allies, ...props, ...sceneryOf(this.room)];
+    // La lista se reutiliza de un fotograma a otro, para no crear listas nuevas cada vez
+    const list = this.drawList || (this.drawList = []);
+    list.length = 0;
+    for (const e of this.enemies) if (!this.hidden(e)) list.push(e);
+    for (const a of this.allies) list.push(a);
+    for (const pr of this.room.props) if (!(pr.taken && (pr.kind === 'survivor' || pr.kind === 'doorkey')) && !this.hidden(pr)) list.push(pr);
+    for (const sc of sceneryOf(this.room)) list.push(sc);
     if (!this.player.dead) list.push(this.player);
     list.sort((a, b) => a.y - b.y);
     for (const e of list) e.draw(ctx, this);
