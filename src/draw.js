@@ -3,6 +3,7 @@
 //  que se sigue usando para lo que aún no tiene sprite; y sombras, textos y barras de vida
 // ─────────────────────────────────────────────
 import { OUTLINE, PIXEL } from './config.js';
+import { pixelShadow } from './sprites.js';
 
 const TAU = Math.PI * 2;
 
@@ -266,12 +267,7 @@ export function drawHuman(ctx, x, y, o) {
   ctx.lineJoin = 'round';
 
   // sombra (los jefes que saltan la dibujan ellos mismos en el suelo)
-  if (!o.noShadow) {
-    ctx.fillStyle = 'rgba(20, 16, 40, 0.22)';
-    ctx.beginPath();
-    ctx.ellipse(x, y + 15 * s, 15 * s, 5.5 * s, 0, 0, TAU);
-    ctx.fill();
-  }
+  if (!o.noShadow) pixelShadow(ctx, x, y + 15 * s, 30 * s);
 
   // pies (se adelantan y atrasan al andar)
   const fx = mx * step * 4 * s, fy = my * step * 3 * s;

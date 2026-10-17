@@ -194,12 +194,40 @@ export function drawSprite(ctx, id, anim, dir, t, x, y, o = {}) {
   return true;
 }
 
-// Sombra ovalada en el suelo, ajustada a píxeles (los sprites no la traen)
+// Óvalo en escalones de píxel: una franja por cada fila de píxeles, sin solaparse (para que no se oscurezcan
+// las juntas). w = ancho, h = alto, centrado en (x, y)
+function pixelOval(ctx, x, y, w, h) {
+  const rows = Math.max(2, Math.round(h / PIXEL));
+  const top = y - (rows * PIXEL) / 2;
+  for (let i = 0; i < rows; i++) {
+    const t = ((i + 0.5) / rows) * 2 - 1;
+    const half = Math.round(((w / 2) * Math.sqrt(1 - t * t)) / PIXEL) * PIXEL;
+    if (half > 0) ctx.fillRect(x - half, top + i * PIXEL, half * 2, PIXEL);
+  }
+}
+
+// Sombra en el suelo bajo los personajes, ajustada a píxeles (los sprites no la traen): un óvalo suave y, en el
+// centro, justo bajo los pies, otro más oscuro para que se vea que pisan el suelo. Es oscura y fría, como las
+// sombras de la penumbra (src/luz.js), y bajo una luz cálida sigue viéndose porque la luz no la borra.
 export function pixelShadow(ctx, x, y, w) {
+  const sx = snap(x), sy = snap(y), h = Math.max(PIXEL * 3, w * 0.38);
+  ctx.fillStyle = 'rgba(6, 4, 14, 0.4)';
+  pixelOval(ctx, sx, sy, w, h);
+  ctx.fillStyle = 'rgba(6, 4, 14, 0.3)';
+  pixelOval(ctx, sx, sy, w * 0.62, h * 0.6);
+}
+
+// Sombra de un mueble en el suelo (va en la imagen fija de la sala): una franja pegada a la base, más oscura
+// junto a ella y que se aclara hacia abajo, con las esquinas redondeadas en escalones de píxel.
+// x, y: centro de la base del mueble; w: su ancho
+export function furnitureShadow(ctx, x, y, w) {
   const sx = snap(x), sy = snap(y);
-  ctx.fillStyle = 'rgba(20, 16, 40, 0.28)';
-  ctx.fillRect(sx - w / 2 + PIXEL * 2, sy - PIXEL * 2, w - PIXEL * 4, PIXEL * 4);
-  ctx.fillRect(sx - w / 2, sy - PIXEL, w, PIXEL * 2);
+  const rows = [[0.42, -PIXEL], [0.34, 0], [0.26, PIXEL], [0.17, PIXEL * 2], [0.09, PIXEL * 4]]; // [opacidad, cuánto se encoge]
+  for (let i = 0; i < rows.length; i++) {
+    const [a, inset] = rows[i];
+    ctx.fillStyle = `rgba(10, 8, 22, ${a})`;
+    ctx.fillRect(sx - w / 2 - PIXEL + inset, sy - PIXEL * 2 + i * PIXEL * 2, w + PIXEL * 2 - inset * 2, PIXEL * 2);
+  }
 }
 
 // Cuántos fotogramas tiene una animación (0 si el sprite no la tiene)

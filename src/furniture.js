@@ -7,7 +7,7 @@
 //  Por eso cada uno solo puede ir en las paredes para las que tiene dibujo (ver goesOn).
 // ─────────────────────────────────────────────
 import { W, H, WALL, DOOR_W, OUTLINE, FACE_H } from './config.js';
-import { drawSprite, hasSprite, spriteMeta } from './sprites.js';
+import { drawSprite, hasSprite, spriteMeta, furnitureShadow } from './sprites.js';
 import { CELL, rectIsFloor } from './shapes.js';
 import { drawCached } from './draw.js';
 
@@ -278,10 +278,7 @@ export function drawFurnitureLight(ctx, f) {
 
 // Sombra del mueble en el suelo (va en la imagen fija de la sala)
 export function drawFurnitureShadow(ctx, f) {
-  ctx.fillStyle = 'rgba(20, 16, 40, 0.22)';
-  ctx.beginPath();
-  ctx.ellipse(f.x, f.y + f.h / 2 - 4, f.w / 2 + 2, 9, 0, 0, TAU);
-  ctx.fill();
+  furnitureShadow(ctx, f.x, f.y + f.h / 2, f.w);
 }
 
 // El sprite se apoya en el borde de abajo del hueco del mueble y sube lo que mida de alto.

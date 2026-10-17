@@ -604,7 +604,7 @@ export class Zombie {
     if (this.tent && this.tent.phase === 'warn') shake = rand(-1, 1);
     const sp = Math.hypot(this.vx, this.vy);
     // pixel art: un sprite por tipo de zombi ("zombi-normal", "zombi-rapido"...)
-    if (hasSprite(`zombi-${this.type}`)) pixelShadow(ctx, x, y + 14 * scale, this.def.shadow || 28 * scale);
+    if (hasSprite(`zombi-${this.type}`)) pixelShadow(ctx, x, y + 15 * scale, this.def.shadow || 36 * scale);
     // zarpazo o golpe recibido si hay uno en marcha; si no, andar (al ritmo de sus pasos) o reposo
     const an = this.anim;
     const opts = an ? { flash, frame: Math.floor((an.t / an.dur) * animFrames(this.sprite, an.name)) }

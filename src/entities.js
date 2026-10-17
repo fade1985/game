@@ -411,7 +411,7 @@ export class Player {
     const sp = Math.hypot(this.vx, this.vy);
     // pixel art: sprite del conserje (los pies van 16 unidades por debajo del centro)
     const sprite = armed || 'conserje-48';
-    if (hasSprite(sprite)) pixelShadow(ctx, x, y + 15, 28);
+    if (hasSprite(sprite)) pixelShadow(ctx, x, y + 16, 38);
     const walking = sp > 20 && (!armed || animFrames(armed, 'walk') > 0);
     const hitting = armed && this.atkAnim ? animFrames(armed, 'attack') : 0;
     const dir = dirFromVector(this.lookX, this.lookY), now = game ? game.time : 0;
