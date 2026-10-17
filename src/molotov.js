@@ -41,6 +41,58 @@ function inside(hz, x, y, extra = 0) {
   return Math.hypot(dx, dy) < hz.r + extra;
 }
 
+// Una llama de pixel art. (x, y) es la base; `w` y `h`, el ancho y el alto en píxeles del arte.
+// Por fuera es roja, por dentro naranja y en el corazón amarilla; se estrecha hacia arriba, se mece de lado
+// (más cuanto más arriba) y su altura tiembla con dos ondas a distinto ritmo para que no se note la repetición.
+// De vez en cuando la punta suelta una chispa. `seed` cambia el ritmo de cada llama; `k` (0–1) la encoge.
+export function drawFlame(ctx, x, y, w, h, t, seed, k = 1) {
+  const u = PIXEL;
+  const hh = Math.round(h * k * (0.72 + 0.18 * Math.sin(t * 11 + seed * 3.1) + 0.1 * Math.sin(t * 17.3 + seed)));
+  if (hh < 2) return;
+  const bx = Math.round(x / u), by = Math.round(y / u);
+  const half = (w * Math.max(0.5, k)) / 2;
+  let sway = 0;
+  for (let j = 0; j < hh; j++) {
+    const f = j / hh;                                   // 0 en la base, 1 en la punta
+    sway = Math.round(Math.sin(t * 7 + seed * 2 - j * 0.5) * f * f * 2.5);
+    const hw = Math.round(half * Math.pow(1 - f, 0.8));
+    const row = (by - j - 1) * u, left = bx + sway;
+    // capa de fuera (roja en la punta), la de en medio y el corazón
+    ctx.fillStyle = f > 0.7 ? FIRE[4] : FIRE[3];
+    ctx.fillRect((left - hw) * u, row, (2 * hw + 1) * u, u);
+    if (hw >= 1 && f < 0.75) {
+      ctx.fillStyle = FIRE[2];
+      ctx.fillRect((left - hw + 1) * u, row, (2 * hw - 1) * u, u);
+    }
+    if (hw >= 2 && f < 0.5) {
+      ctx.fillStyle = f < 0.25 ? FIRE[0] : FIRE[1];
+      ctx.fillRect((left - hw + 2) * u, row, (2 * hw - 3) * u, u);
+    }
+  }
+  // chispa que se suelta de la punta y sube
+  const spark = (t * 1.7 + seed * 0.37) % 1;
+  if (spark < 0.45) {
+    ctx.fillStyle = spark < 0.2 ? FIRE[1] : FIRE[3];
+    ctx.fillRect((bx + sway) * u, (by - hh - 2 - Math.floor(spark * 8)) * u, u, u);
+  }
+}
+
+// Las llamas de un charco: sitio (relativo al radio), tamaño y ritmo. Sin azar (se sacan de `seed`)
+// para no gastar números del dado de la partida. Las del centro, más altas; ordenadas de atrás adelante.
+function fireFlames(seed) {
+  const list = [];
+  for (let i = 0; i < 14; i++) {
+    const a = i * 2.4 + seed, d = 0.1 + ((i * 37) % 10) / 13;
+    const big = 1 - d * 0.7;
+    list.push({
+      x: Math.cos(a) * d * 0.85, y: Math.sin(a) * d * 0.85,
+      w: Math.round(4 + big * 5 + (i % 2)), h: Math.round(6 + big * 13 + (i % 3) * 2),
+      seed: seed + i * 1.73,
+    });
+  }
+  return list.sort((p, q) => p.y - q.y);
+}
+
 export class MolotovMethods {
   // Lee el botón de lanzar: mientras se mantiene, se apunta (this.aim); al soltar, se lanza
   updateToss() {
@@ -155,32 +207,44 @@ export class MolotovMethods {
 
   // El charco de fuego, en el suelo (en el lienzo pequeño, en píxeles enteros como el resto del suelo)
   drawFire(ctx, hz) {
-    const u = PIXEL;
+    const u = PIXEL, t = this.time;
     const fade = Math.min(1, hz.life / 0.8);
     const grow = Math.min(1, (MOLOTOV.life - hz.life) / 0.15 + 0.3);
     const r = hz.r * grow;
+    // las llamas se preparan una sola vez por charco (sitio, tamaño y ritmo de cada una), ya ordenadas
+    // de atrás adelante para que las de delante tapen a las de detrás
+    if (!hz.flames) hz.flames = fireFlames(hz.seed);
     ctx.save();
-    // suelo chamuscado
+    // suelo chamuscado, con el borde irregular: una mancha grande y unas cuantas más pequeñas alrededor
     ctx.globalAlpha = 0.55 * Math.min(1, hz.life / 0.4);
     ctx.fillStyle = SCORCH;
     ctx.beginPath(); ctx.ellipse(hz.x, hz.y, r, r * 0.6, 0, 0, Math.PI * 2); ctx.fill();
-    // brasas: manchas que parpadean
+    for (let i = 0; i < 5; i++) {
+      const a = i * 1.26 + hz.seed, rr = r * (0.18 + (i % 3) * 0.06);
+      ctx.beginPath();
+      ctx.ellipse(hz.x + Math.cos(a) * r * 0.85, hz.y + Math.sin(a) * r * 0.5, rr, rr * 0.6, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // lecho de brasas que respira (cada capa a su ritmo)
     ctx.globalAlpha = 0.85 * fade;
     for (let ring = 0; ring < 3; ring++) {
+      const k = (0.8 - ring * 0.24) * (1 + 0.05 * Math.sin(t * (5 + ring * 2) + hz.seed + ring * 2));
       ctx.fillStyle = FIRE[4 - ring];
-      ctx.beginPath(); ctx.ellipse(hz.x, hz.y, r * (0.85 - ring * 0.25), r * 0.6 * (0.85 - ring * 0.25), 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(hz.x, hz.y, r * k, r * 0.6 * k, 0, 0, Math.PI * 2); ctx.fill();
     }
-    // lenguas de fuego: columnitas de píxeles que suben y bajan
-    const n = 14;
-    for (let i = 0; i < n; i++) {
-      const a = i * 2.4 + hz.seed, rr = r * (0.2 + ((i * 37) % 10) / 13);
-      const fx = Math.round((hz.x + Math.cos(a) * rr) / u) * u;
-      const fy = Math.round((hz.y + Math.sin(a) * rr * 0.6) / u) * u;
-      const h = Math.max(1, Math.round((3 + 4 * Math.abs(Math.sin(this.time * 9 + i * 1.7))) * fade));
-      for (let j = 0; j < h; j++) {
-        ctx.fillStyle = FIRE[Math.min(4, Math.floor(((h - j) / h) * 3.5))];
-        ctx.fillRect(fx - (j < h - 1 ? u : 0), fy - j * u, j < h - 1 ? 2 * u : u, u);
-      }
+    // ascuas: píxeles sueltos que se encienden y se apagan
+    for (let i = 0; i < 22; i++) {
+      const glow = Math.sin(t * (6 + (i % 5)) + i * 2.3 + hz.seed);
+      if (glow < 0) continue;
+      const a = i * 2.39 + hz.seed, d = Math.sqrt(((i * 53) % 22) / 22) * r * 0.75;
+      ctx.fillStyle = glow > 0.6 ? FIRE[0] : FIRE[1];
+      ctx.fillRect(Math.round((hz.x + Math.cos(a) * d) / u) * u, Math.round((hz.y + Math.sin(a) * d * 0.6) / u) * u, u, u);
+    }
+    // las llamas: crecen al prender y se van encogiendo cuando el fuego se apaga
+    ctx.globalAlpha = 1;
+    const k = Math.min(1, hz.life / 1.2) * grow;
+    for (const f of hz.flames) {
+      drawFlame(ctx, hz.x + f.x * r, hz.y + f.y * r * 0.6, f.w, f.h, t, f.seed, k);
     }
     ctx.restore();
   }

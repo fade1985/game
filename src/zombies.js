@@ -11,7 +11,11 @@ import { rand } from './utils.js';
 import { drawHuman, pixelHpBar } from './draw.js';
 import { drawSpawnWarning } from './entities.js';
 import { sfx } from './sfx.js';
-import { FIRE, MOLOTOV } from './molotov.js';
+import { FIRE, MOLOTOV, drawFlame } from './molotov.js';
+
+// Llamas sobre un zombi que arde: [lado (unidades del juego), altura (parte del cuerpo, 0 pies – 1 cabeza),
+// ancho y alto en píxeles del arte]. Las de abajo, más grandes.
+const FLAMES_ON_BODY = [[-9, 0.02, 6, 12], [8, 0.05, 6, 11], [0, 0.0, 5, 9], [-6, 0.35, 5, 9], [7, 0.45, 5, 8], [-1, 0.62, 4, 8]];
 
 const TAU = Math.PI * 2;
 const CORPSES = 12;   // cuántos zombis tendidos se quedan como mucho en una sala
@@ -610,11 +614,11 @@ export class Zombie {
     const opts = an ? { flash, frame: Math.floor((an.t / an.dur) * animFrames(this.sprite, an.name)) }
       : sp > 10 ? { flash, cycle: this.walkT / 7 } : { flash };
     if (this.def.spriteScale) opts.scale = this.def.spriteScale;   // dibujo ampliado (ver ZOMBIE_TYPES)
-    // en llamas: capa naranja que parpadea (y se apaga poco a poco al final)
+    // en llamas: capa naranja que parpadea (y se apaga poco a poco al final); las llamas van encima, más abajo
     if (this.burnT > 0) {
       const fade = Math.min(1, this.burnT / 0.5);
       const flick = Math.floor(game.time * 12) % 2;
-      opts.tint = { color: flick ? FIRE[2] : FIRE[3], alpha: (0.6 + Math.sin(game.time * 23) * 0.1) * fade };
+      opts.tint = { color: flick ? FIRE[2] : FIRE[3], alpha: (0.4 + Math.sin(game.time * 23) * 0.1) * fade };
     } else if (fuseBlink) opts.tint = { color: '#ff3b2f', alpha: 0.25 + fuseK * 0.3 };
     const sprited = drawSprite(ctx, this.sprite, an ? an.name : sp > 10 ? 'walk' : 'idle',
       dirFromVector(this.lookX, this.lookY), game.time, x + shake, y + 15 * scale, opts);
@@ -631,6 +635,8 @@ export class Zombie {
       walk: this.walkT,
       flash,
     });
+
+    if (this.burnT > 0) this.drawFlames(ctx, x + shake, y, scale, sprited);
 
     // ── detalles de cada tipo ──
     if (this.type === 'explosivo' && !flash && !sprited) this.drawBombVest(ctx, x + shake, y, scale, game.time);
@@ -676,6 +682,19 @@ export class Zombie {
     ctx.closePath();
     ctx.fillStyle = '#ffd23f';
     ctx.fill();
+  }
+
+  // Llamas encima del zombi que arde: unas en los pies, otras por el cuerpo, cada una a su ritmo
+  // (con el reloj del propio zombi, para que dos zombis ardiendo no se muevan igual).
+  // Se encogen en el último medio segundo, cuando se le apaga el fuego.
+  drawFlames(ctx, x, y, scale, sprited) {
+    const k = Math.min(1, this.burnT / 0.5);
+    const feet = y + 15 * scale;
+    const tall = (this.def.top || (sprited ? 82 : 46) * scale) + 15 * scale;   // de los pies a la cabeza
+    for (let i = 0; i < FLAMES_ON_BODY.length; i++) {
+      const [fx, fy, w, h] = FLAMES_ON_BODY[i];
+      drawFlame(ctx, x + fx * scale, feet - fy * tall, w, h * Math.min(1.4, scale), this.t, i * 2.1, k);
+    }
   }
 
   drawSlime(ctx, x, y, s) {
