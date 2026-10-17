@@ -6,7 +6,7 @@
 //  Se ven "en tres cuartos": enseñan el frente y tienen altura, como los personajes.
 //  Por eso cada uno solo puede ir en las paredes para las que tiene dibujo (ver goesOn).
 // ─────────────────────────────────────────────
-import { W, H, WALL, DOOR_W, OUTLINE, FACE_H } from './config.js';
+import { W, H, WALL, DOOR_W, OUTLINE, FACE_H, PIXEL } from './config.js';
 import { drawSprite, hasSprite, spriteMeta } from './sprites.js';
 import { CELL, rectIsFloor } from './shapes.js';
 import { drawCached } from './draw.js';
@@ -516,6 +516,8 @@ export function drawFurniture(ctx, f, alpha = 1) {
 // en cada fotograma
 export function drawWallDecor(ctx, d, time) {
   const cy = WALL - FACE_H / 2 + 6; // a media altura de la cara del muro de arriba
+  // pintada sobre la pared (sprite con fondo transparente, a la escala de la pared: 0,25 unidades por píxel)
+  if (d.kind === 'grafiti') { drawSprite(ctx, 'grafiti-no-escape', 'idle', 'south', 0, d.x, cy - 8, { scale: 0.25 / PIXEL }); return; }
   const fijo = (owner, pad, h, paint) => drawCached(ctx, owner, 0, d.x - d.w / 2 - pad, cy - h / 2 - pad, d.w + pad * 2, h + pad * 2, (g) => {
     g.lineJoin = 'round';
     paint(g);

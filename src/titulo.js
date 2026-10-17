@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────
-//  Logo "ZOMBIE SCAPE" en pixel art, dibujado con código
+//  Logo "ZOMBIE ESCAPE" en pixel art, dibujado con código
 //  Cada letra es una cuadrícula de 5×7 que se amplía ×3 y se engorda un píxel;
 //  después se le añaden relieve, goteos de baba / sangre, un borde oscuro con
 //  volumen (como si la letra tuviera grosor) y un filo claro alrededor.
@@ -115,7 +115,7 @@ function drawWord(ctx, word, x0, y0, pal, dripSeed) {
 
 // Devuelve un <canvas> con el logo (se amplía con CSS sin suavizado)
 export function makeTitleCanvas() {
-  const first = 'ZOMBIE', second = 'SCAPE';
+  const first = 'ZOMBIE', second = 'ESCAPE';
   const a = wordSize(first), b = wordSize(second);
   const W = Math.max(a.w, b.w);
   const y2 = LH + PAD + 6;            // la segunda palabra tapa un poco los goteos de la primera
