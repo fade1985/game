@@ -7,7 +7,7 @@
 export const W = 960;
 export const H = 640;
 export const WALL = 64;         // grosor de los muros de cada sala (2 baldosas en pixel art)
-export const DOOR_W = 96;       // ancho de las puertas
+export const DOOR_W = 64;       // ancho de las puertas (2 casillas)
 // Alto de la cara de los muros (3 casillas). Sube por encima del muro: en los tabiques tapa el fondo de la
 // habitación de detrás y en el muro de arriba se sale del mapa, así que la cámara deja ver TOP_EXTRA más arriba.
 export const FACE_H = 96;
@@ -19,7 +19,7 @@ export const FADE = 0.6;        // duración de cada mitad del fundido al cambia
 // ── Pixel art ──
 // El mundo se dibuja a la mitad de resolución y se amplía sin suavizado:
 // 1 píxel del dibujo = PIXEL unidades lógicas. Las baldosas miden TILE píxeles.
-// Así los muros miden 2 baldosas de grueso y las puertas, 3 de ancho.
+// Así los muros miden 2 baldosas de grueso y las puertas, 2 de ancho.
 export const PIXEL = 2;
 export const TILE = 16;
 // El fondo (suelo, paredes, lo pintado a mano) se pinta al doble de detalle: 1 píxel = BG_PIXEL unidades.

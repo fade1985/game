@@ -22,7 +22,7 @@ import { mulberry32 } from './utils.js';
 export const CELL = 32;   // lado de una casilla (igual que en shapes.js)
 const EDGE = 2;           // grosor del muro exterior, en casillas (64 unidades)
 const MIN = 7;            // lado mínimo de un trozo de salón, en casillas
-const DOOR = 3;           // ancho de las puertas, en casillas (96 unidades)
+const DOOR = 2;           // ancho de las puertas, en casillas (64 unidades)
 const MAX_LONG = 2.2;     // cuántas veces más larga que ancha puede ser una habitación
 const HALL = 7;           // fondo mínimo del salón delante de una habitación, en casillas
 const GAP = 6;            // hueco mínimo de salón entre dos habitaciones del mismo lateral

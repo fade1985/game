@@ -468,99 +468,206 @@ function drawObstacle(ctx, o) {
 }
 
 // ═════════════ Puertas ═════════════
-// Las puertas de un mapa están en `room.exits` (ver makeExit en rooms.js). Se dibujan todas como si
-// estuvieran en el muro de arriba y se giran: el lado +y local siempre mira hacia el suelo.
+// Las puertas de un mapa están en `room.exits` (ver makeExit en rooms.js). Se dibujan en pixel art: todo con
+// rectángulos en múltiplos de PIXEL, sin contornos redondeados ni degradados.
+// - Las del muro de arriba se ven de frente, de pie sobre la cara del muro (marco, hoja con cuarterones y pomo).
+// - Las de los demás muros se ven desde arriba: el umbral, las jambas del marco y la hoja como un tablón.
+// Las de abajo y los lados se giran: el lado +y local siempre mira hacia el suelo de la habitación.
+
+// Colores de la madera y del metal (apagados, a juego con el tono oscuro del juego)
+const MADERA = { luz: '#7a5538', medio: '#5e3f2a', sombra: '#432c1e', filo: '#24170f' };
+const METAL = { luz: '#76807c', medio: '#566060', sombra: '#3d4545', filo: '#1e2324' };
+const LATON = '#a88a46';
+const OSCURO = '#0c0a0e'; // lo de dentro de una puerta abierta
+
+// Mezcla dos colores "#rrggbb" (k = 0, el primero; k = 1, el segundo)
+function mix(a, b, k) {
+  const na = parseInt(a.slice(1), 16), nb = parseInt(b.slice(1), 16);
+  const f = (s) => Math.round(((na >> s) & 255) * (1 - k) + ((nb >> s) & 255) * k);
+  return `#${((1 << 24) | (f(16) << 16) | (f(8) << 8) | f(0)).toString(16).slice(1)}`;
+}
+const snap = (v) => Math.round(v / PIXEL) * PIXEL;
+function box(ctx, color, x, y, w, h) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, w, h);
+}
+
+// Marco de la puerta: el color de la madera de la casa, o el de un sitio especial apagado (sin colores chillones)
+function frameColors(ex, trim) {
+  const base = ex.frame ? mix(ex.frame, '#3b3631', 0.6) : mix(trim, MADERA.medio, 0.5);
+  return { luz: shade(base, 0.18), medio: base, sombra: shade(base, -0.3), filo: shade(base, -0.62) };
+}
+
+// Una mancha de sangre seca en algunas puertas (siempre la misma en cada una)
+const manchada = (ex) => (Math.floor(ex.at / 32) * 7 + (ex.dir === 'up' ? 3 : 0)) % 5 === 0;
 
 // open: 0 = cerradas, 1 = abiertas (las que tienen cerrojo no se abren aunque el mapa esté limpio)
 // up: true = solo las del muro de arriba, false = las demás. Las de arriba van con la escena (sceneryOf),
 // después de la cara de su muro, que mide 3 casillas y si no las taparía.
-let huecoPuerta = null;
 export function drawDoors(ctx, room, open, up = false) {
   const trim = room.layout.style.trim;
   for (const ex of room.exits) {
     if ((ex.dir === 'up') !== up) continue;
-    const w = DOOR_W, h = WALL + 10;
     const gap = ex.locked ? 0 : open;
+    const w = ex.kind === 'elevator' ? DOOR_W + 16 : DOOR_W;
     ctx.save();
     ctx.translate(ex.x, ex.y);
     ctx.rotate(ex.a);
-    if (ex.kind === 'elevator') {
-      // ascensor: puertas metálicas cerradas y una cinta de "averiado" cruzada
-      roundBox(ctx, -w / 2 - 10, -h / 2 - 2, w + 20, h + 2, 6, '#8d99ae', 4);
-      ctx.fillStyle = '#5c677d';
-      ctx.fillRect(-w / 2, -h / 2 - 2, w, h + 2);
-      ctx.fillStyle = OUTLINE;
-      ctx.fillRect(-2, -h / 2 - 2, 4, h + 2);
-      ctx.rotate(-0.16);
-      ctx.fillStyle = '#ffd23f';
-      ctx.fillRect(-w / 2 - 6, -8, w + 12, 16);
-      ctx.fillStyle = OUTLINE;
-      for (let x = -w / 2 - 6; x < w / 2; x += 20) {
-        ctx.beginPath();
-        ctx.moveTo(x + 8, -8); ctx.lineTo(x + 16, -8); ctx.lineTo(x + 8, 8); ctx.lineTo(x, 8);
-        ctx.fill();
-      }
-      ctx.restore();
-      continue;
-    }
-    // marco: de madera, o de color si lleva a un sitio especial
-    roundBox(ctx, -w / 2 - 10, -h / 2 - 2, w + 20, h + 2, 6, ex.frame || trim, 4);
-    if (ex.frame) {
-      // remaches decorativos
-      ctx.fillStyle = 'rgba(255,255,255,0.6)';
-      ctx.beginPath();
-      for (const sx of [-w / 2 - 5, w / 2 + 5]) {
-        for (const sy of [-h / 2 + 8, 0, h / 2 - 8]) { ctx.moveTo(sx + 2.5, sy); ctx.arc(sx, sy, 2.5, 0, TAU); }
-      }
-      ctx.fill();
-    }
-    // hueco oscuro (el degradado es igual en todas: se crea una vez)
-    if (!huecoPuerta) {
-      huecoPuerta = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
-      huecoPuerta.addColorStop(0, '#120f1f');
-      huecoPuerta.addColorStop(1, '#2f2a48');
-    }
-    ctx.fillStyle = huecoPuerta;
-    ctx.fillRect(-w / 2, -h / 2 - 2, w, h + 2);
-    // hoja de la puerta: se recoge hacia fuera al abrirse
-    if (gap < 1) {
-      const ph = (h + 2) * (1 - gap);
-      ctx.beginPath();
-      ctx.roundRect(-w / 2 + 2, -h / 2 - 2, w - 4, ph, 3);
-      ctx.fillStyle = ex.kind === 'door' ? '#b9814f' : '#7d8a99'; // las de emergencia y el portal son metálicas
-      ctx.fill();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = OUTLINE;
-      ctx.stroke();
-      ctx.fillStyle = ex.kind === 'door' ? '#9c6a3e' : '#5c677d';
-      for (let i = 1; i < 4; i++) ctx.fillRect(-w / 2 + 2 + i * (w - 4) / 4 - 1, -h / 2, 2, Math.max(0, ph - 4));
-      if (gap < 0.3) {
-        ctx.beginPath();
-        ctx.arc(w / 2 - 14, h / 2 - 12, 4, 0, TAU);
-        ctx.fillStyle = '#ffd23f';
-        ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
-    }
+    if (up) frontDoor(ctx, ex, w, gap, frameColors(ex, trim));
+    else topDoor(ctx, ex, w, gap, frameColors(ex, trim));
     ctx.restore();
 
-    // insignia con el icono de lo que hay detrás, al lado de la puerta (siempre derecha);
-    // un candado si hace falta la llave
+    // placa con el icono de lo que hay detrás, al lado de la puerta (siempre derecha); un candado si hace falta la llave
     const icon = ex.locked === 'key' ? '🔒' : ex.icon;
     if (icon) {
-      const bx = ex.x + Math.cos(ex.a) * (w / 2 + 34);
-      const by = ex.y + Math.sin(ex.a) * (w / 2 + 34);
-      ctx.beginPath();
-      ctx.arc(bx, by, 17, 0, TAU);
-      ctx.fillStyle = ex.frame || '#fff8ea';
-      ctx.fill();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = OUTLINE;
-      ctx.stroke();
-      drawEmoji(ctx, icon, bx, by + 1, 18);
+      const d = w / 2 + 30;
+      plaque(ctx, snap(ex.x + Math.cos(ex.a) * d), snap(ex.y + Math.sin(ex.a) * d), icon, ex.frame);
     }
   }
+}
+
+// Puerta vista de frente, en la cara del muro de arriba. Abierta, la hoja gira hacia dentro y se ve más estrecha.
+function frontDoor(ctx, ex, w, gap, fr) {
+  const yb = WALL - ex.y;   // pie de la puerta: el suelo
+  const dh = 80;            // alto del hueco (2 casillas y media)
+  const yt = yb - dh, x0 = -w / 2;
+  // marco
+  box(ctx, fr.filo, x0 - 8, yt - 8, w + 16, dh + 8);
+  box(ctx, fr.medio, x0 - 6, yt - 6, w + 12, dh + 6);
+  box(ctx, fr.luz, x0 - 6, yt - 6, w + 12, 2);
+  box(ctx, fr.luz, x0 - 6, yt - 4, 2, dh + 4);
+  box(ctx, fr.sombra, x0 + w + 4, yt - 4, 2, dh + 4);
+  // hueco oscuro, con un poco de suelo al fondo
+  box(ctx, OSCURO, x0, yt, w, dh);
+  box(ctx, '#1a1614', x0, yb - 4, w, 4);
+
+  if (ex.kind === 'elevator') { elevatorFront(ctx, x0, yt, w, dh); return; }
+  const mat = ex.kind === 'door' ? MADERA : METAL;
+  // la hoja, con la bisagra a la izquierda: al abrirse se ve de canto y más oscura
+  const lw = snap(w * (1 - gap * 0.84));
+  if (lw >= 2) {
+    const k = gap * 0.55;
+    const c = gap ? { luz: mix(mat.luz, OSCURO, k), medio: mix(mat.medio, OSCURO, k), sombra: mix(mat.sombra, OSCURO, k) } : mat;
+    box(ctx, mat.filo, x0, yt, lw, dh);
+    box(ctx, c.medio, x0 + 2, yt + 2, lw - 4, dh - 4);
+    box(ctx, c.luz, x0 + 2, yt + 2, lw - 4, 2);
+    if (lw >= 28) {
+      if (ex.kind === 'door') {
+        // dos cuarterones hundidos: sombra arriba e izquierda, luz abajo y derecha
+        for (const [py, ph] of [[yt + 8, 26], [yt + 40, dh - 48]]) {
+          box(ctx, c.sombra, x0 + 8, py, lw - 16, ph);
+          box(ctx, c.medio, x0 + 10, py + 2, lw - 18, ph - 2);
+          box(ctx, c.luz, x0 + 10, py + ph - 2, lw - 18, 2);
+        }
+        if (!gap) box(ctx, mat.filo, snap(x0 + lw / 2) - 1, yt + 18, 2, 2); // mirilla
+      } else {
+        // puerta metálica: ventanuco con rejilla y barra antipánico
+        box(ctx, mat.filo, x0 + 12, yt + 10, lw - 24, 18);
+        box(ctx, '#27302f', x0 + 14, yt + 12, lw - 28, 14);
+        for (let gx = x0 + 18; gx < x0 + lw - 14; gx += 6) box(ctx, '#3a4544', gx, yt + 12, 2, 14);
+        box(ctx, c.sombra, x0 + 6, yt + 44, lw - 12, 6);
+        box(ctx, c.luz, x0 + 6, yt + 44, lw - 12, 2);
+      }
+      // pomo (o manilla) al otro lado de la bisagra
+      box(ctx, mat.filo, x0 + lw - 12, yt + 42, 6, 6);
+      box(ctx, LATON, x0 + lw - 12, yt + 42, 4, 4);
+      if (manchada(ex) && !gap) {
+        // sangre seca: un manchurrón cerca del pomo y unas gotas que bajan
+        box(ctx, '#4a1414', x0 + lw - 22, yt + 34, 10, 8);
+        box(ctx, '#4a1414', x0 + lw - 26, yt + 38, 6, 4);
+        box(ctx, '#3a1010', x0 + lw - 20, yt + 42, 2, 10);
+        box(ctx, '#3a1010', x0 + lw - 16, yt + 42, 2, 6);
+      }
+    }
+    // sombra en el canto que se aleja
+    if (gap) box(ctx, mat.filo, x0 + lw - 2, yt, 2, dh);
+  }
+  // una puerta de emergencia lleva encima su letrero verde de salida
+  if (ex.kind === 'stairs') {
+    box(ctx, '#0f1f16', -12, yt - 20, 24, 10);
+    box(ctx, '#2f7a4a', -10, yt - 18, 20, 6);
+    box(ctx, '#7fd19b', -6, yt - 16, 2, 2);
+    box(ctx, '#7fd19b', -2, yt - 16, 8, 2);
+  }
+}
+
+// Ascensor de frente: dos puertas de acero cerradas, su lucecita y una cinta de "averiado"
+function elevatorFront(ctx, x0, yt, w, dh) {
+  const m = METAL;
+  box(ctx, m.medio, x0, yt, w, dh);
+  box(ctx, m.luz, x0, yt, w, 2);
+  box(ctx, m.filo, -1, yt, 2, dh);
+  box(ctx, m.sombra, x0, yt + dh - 4, w, 4);
+  box(ctx, m.filo, -6, yt - 6, 12, 4); // la lucecita de encima, apagada en rojo
+  box(ctx, '#6a1c1c', -4, yt - 6, 8, 2);
+  hazardTape(ctx, x0 - 4, yt + dh / 2 - 6, w + 8);
+}
+
+// Cinta de peligro: franja amarilla con rayas negras en diagonal, hecha a escalones de píxel
+function hazardTape(ctx, x, y, len) {
+  box(ctx, '#c9a227', x, y, len, 10);
+  ctx.fillStyle = '#1a1712';
+  for (let sx = 0; sx < len; sx += 12) {
+    for (let j = 0; j < 5; j++) {
+      const px = sx + j * 2;
+      if (px + 4 <= len) ctx.fillRect(x + px, y + 8 - j * 2, 4, 2);
+    }
+  }
+}
+
+// Puerta vista desde arriba (muros de abajo y de los lados). Coordenadas locales: el hueco va de -w/2 a w/2 a lo
+// largo del muro y el muro, de -WALL/2 (fuera) a WALL/2 (la habitación). Abierta, la hoja gira hacia la habitación.
+function topDoor(ctx, ex, w, gap, fr) {
+  const h = WALL, x0 = -w / 2, y0 = -h / 2;
+  // umbral: losas de piedra gastada, y la parte de fuera en penumbra
+  box(ctx, '#57524b', x0, y0, w, h);
+  for (let ty = y0 + 12; ty < y0 + h; ty += 12) box(ctx, '#45403a', x0, ty, w, 2);
+  for (let tx = x0 + 20; tx < x0 + w; tx += 22) box(ctx, '#45403a', tx, y0, 2, h);
+  box(ctx, '#1a1614', x0, y0, w, 12);
+  box(ctx, '#2e2a26', x0, y0 + 12, w, 4);
+  // jambas del marco a los dos lados
+  for (const jx of [x0 - 6, x0 + w]) {
+    box(ctx, fr.filo, jx, y0, 6, h);
+    box(ctx, fr.medio, jx + 2, y0, 2, h);
+  }
+  if (ex.kind === 'elevator') {
+    // ascensor visto desde arriba: las dos hojas de acero cerradas y la cinta cruzada
+    box(ctx, METAL.filo, x0, -8, w, 16);
+    box(ctx, METAL.medio, x0 + 2, -6, w - 4, 12);
+    box(ctx, METAL.filo, -1, -6, 2, 12);
+    hazardTape(ctx, x0 - 4, -5, w + 8);
+    return;
+  }
+  const mat = ex.kind === 'door' ? MADERA : METAL;
+  // la hoja: un tablón con la bisagra a la izquierda, pegado al lado de la habitación
+  const t = 10, len = w;
+  const hx = x0, hy = h / 2 - t;
+  if (!gap) {
+    box(ctx, mat.filo, hx, hy, len, t);
+    box(ctx, mat.medio, hx + 2, hy + 2, len - 4, t - 4);
+    box(ctx, mat.luz, hx + 2, hy + 2, len - 4, 2);
+    box(ctx, LATON, hx + len - 10, hy + t - 2, 4, 2); // el pomo asoma por el lado de la habitación
+    return;
+  }
+  // girada: se dibuja a escalones de píxel para que no salga borrosa
+  const a = gap * Math.PI / 2, ca = Math.cos(a), sa = Math.sin(a);
+  for (const [color, pad] of [[mat.filo, 0], [mat.medio, 2]]) {
+    ctx.fillStyle = color;
+    for (let s = pad; s <= len - t + pad; s += PIXEL) {
+      ctx.fillRect(snap(hx + ca * s) + pad, snap(hy + sa * s) + pad, t - pad * 2, t - pad * 2);
+    }
+  }
+}
+
+// Placa de metal atornillada a la pared con un icono (lo que hay detrás de la puerta)
+function plaque(ctx, x, y, icon, tint) {
+  const s = 28, x0 = x - s / 2, y0 = y - s / 2;
+  box(ctx, '#151316', x0, y0, s, s);
+  box(ctx, tint ? mix(tint, '#2b2725', 0.55) : '#4a4540', x0 + 2, y0 + 2, s - 4, s - 4);
+  box(ctx, '#29262a', x0 + 4, y0 + 4, s - 8, s - 8);
+  ctx.fillStyle = '#8a8378'; // tornillos
+  for (const [sx, sy] of [[2, 2], [s - 4, 2], [2, s - 4], [s - 4, s - 4]]) ctx.fillRect(x0 + sx, y0 + sy, 2, 2);
+  drawEmoji(ctx, icon, x, y, 12);
 }
 
 // Letrero de cada puerta ("1ºA", "Escaleras"...), al otro lado de la insignia.
