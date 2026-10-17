@@ -7,7 +7,7 @@
 //  Por eso cada uno solo puede ir en las paredes para las que tiene dibujo (ver goesOn).
 // ─────────────────────────────────────────────
 import { W, H, WALL, DOOR_W, OUTLINE, FACE_H } from './config.js';
-import { drawSprite, hasSprite } from './sprites.js';
+import { drawSprite, hasSprite, spriteMeta } from './sprites.js';
 import { CELL, rectIsFloor } from './shapes.js';
 
 const TAU = Math.PI * 2;
@@ -290,6 +290,9 @@ export function drawFurniture(ctx, f, alpha = 1) {
   const id = `mueble-${f.kind}${lado ? '-lado' : ''}`;
   if (hasSprite(id)) {
     const o = alpha < 1 ? { alpha } : {};
+    // los que trae el dueño tienen más detalle: su .json dice a qué escala van ("scale": 0.5 → 1 unidad por píxel)
+    const scale = spriteMeta(id).scale;
+    if (scale) o.scale = scale;
     if (lado && f.side === 'right') {
       // el dibujo de lado está hecho para la pared izquierda: en la derecha, en espejo
       ctx.save();
