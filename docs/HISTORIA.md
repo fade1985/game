@@ -1,4 +1,4 @@
-# Zombie Scape · historia y decisiones cerradas
+# Zombie Escape · historia y decisiones cerradas
 
 Sacado de CLAUDE.md el 13 de octubre de 2026. Consulta, no hace falta leerlo al empezar.
 

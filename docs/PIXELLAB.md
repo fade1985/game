@@ -1,4 +1,4 @@
-# Zombie Scape · receta y detalles de PixelLab
+# Zombie Escape · receta y detalles de PixelLab
 
 Sacado de CLAUDE.md el 13 de octubre de 2026 para que ese archivo pese menos. Se lee solo al generar arte con PixelLab.
 

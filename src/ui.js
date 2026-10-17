@@ -118,7 +118,7 @@ export function createUI(root) {
       const upgrades = Object.values(save.workshop).reduce((a, b) => a + b, 0);
       open(`
         <div class="menu">
-          <h1 class="logo" aria-label="Zombie Scape"></h1>
+          <h1 class="logo" aria-label="Zombie Escape"></h1>
           <p class="tagline">Limpia el edificio de zombis, planta a planta</p>
           <div class="col">
             <button class="btn yellow big" data-act="play">JUGAR</button>

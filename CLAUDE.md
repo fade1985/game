@@ -1,4 +1,4 @@
-# Zombie Scape (antes Blob Quest) · notas para continuar
+# Zombie Escape (antes Blob Quest) · notas para continuar
 
 Claude Code lee este archivo en cada sesión: aquí va **solo lo que hace falta siempre**. El detalle de cada
 tema está en `docs/` y se lee cuando toca.

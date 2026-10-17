@@ -1,4 +1,4 @@
-# 🧹 Zombie Scape
+# 🧹 Zombie Escape
 
 Roguelike de zombis para navegador al estilo *The Binding of Isaac*: vista desde arriba, pixel art y un
 conserje con su fregona contra un edificio infestado.

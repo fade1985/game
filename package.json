@@ -1,5 +1,5 @@
 {
-  "name": "zombie-scape",
+  "name": "zombie-escape",
   "version": "0.8.0",
   "private": true,
   "description": "Roguelike de zombis por edificios en el navegador (HTML5 Canvas + JavaScript)",
