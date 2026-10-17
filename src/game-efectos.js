@@ -36,6 +36,18 @@ export class GameEffects {
     this.particles.push({ x, y, vx: rand(-30, 30), vy: rand(-30, 10), r: rand(3, 6), color, life: 0.3, max: 0.3 });
   }
 
+  // Polvo de los pies (la esquiva): cuadraditos grises que salen hacia (dx, dy), abiertos en abanico
+  dust(x, y, dx, dy, n) {
+    const base = Math.atan2(dy, dx);
+    for (let i = 0; i < n; i++) {
+      const a = base + rand(-0.7, 0.7), sp = rand(60, 170);
+      this.particles.push({
+        x: x + rand(-6, 6), y: y + rand(-3, 3), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 15, px: true,
+        size: i < 2 ? 3 : 2, color: i % 2 ? '#8d8a94' : '#b9b5bf', life: rand(0.22, 0.4), max: 0.4,
+      });
+    }
+  }
+
   burst(x, y, color, n, r) {
     for (let i = 0; i < n; i++) {
       const a = rand(0, Math.PI * 2), s = rand(80, 260);

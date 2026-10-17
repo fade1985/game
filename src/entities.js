@@ -23,6 +23,12 @@ const MUZZLE_LIFT = 50;
 // y en cuántos segundos vuelve a su sitio
 const KICK = 6, KICK_T = 0.12;
 
+// Esquiva: cada cuánto deja Johnny una copia suya detrás (la estela), cuánto tarda en desvanecerse y de qué
+// color se tiñe; cuánto se estira en la dirección de la esquiva y cuánto dura el "aplastón" al frenar
+const GHOST_EVERY = 0.03, GHOST_LIFE = 0.22;
+const GHOST_TINT = { color: '#3fa9ff', alpha: 0.8, mode: 'source-atop' };
+const DASH_STRETCH = 0.18, LAND_T = 0.09, LAND_SQUASH = 0.12;
+
 // ═════════════ JUGADOR ═════════════
 const wrapAngle = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 
@@ -38,6 +44,10 @@ export class Player {
     this.hurtT = 0;       // destello blanco al recibir daño
     this.dashT = 0;       // duración restante de la esquiva
     this.dashCd = 0;      // enfriamiento de la esquiva
+    this.dashX = 0; this.dashY = 0; // hacia dónde va la esquiva (para estirar el dibujo)
+    this.landT = 0;       // "aplastón" al terminar la esquiva
+    this.ghosts = [];     // estela de la esquiva: copias de Johnny que se desvanecen
+    this.ghostAt = -1;    // cuándo dejó la última copia
     this.lookX = 0; this.lookY = -1;
     this.walkT = 0;
     this.blinkT = rand(2, 4);
@@ -185,17 +195,31 @@ export class Player {
       let dx = move.x, dy = move.y;
       if (!dx && !dy) { dx = this.lookX; dy = this.lookY; }
       const l = Math.hypot(dx, dy) || 1;
-      this.vx = (dx / l) * s.speed * 3.3;
-      this.vy = (dy / l) * s.speed * 3.3;
+      this.dashX = dx / l; this.dashY = dy / l;
+      this.vx = this.dashX * s.speed * 3.3;
+      this.vy = this.dashY * s.speed * 3.3;
       this.dashT = 0.16;
       this.dashCd = s.dashCd;
       this.invuln = Math.max(this.invuln, 0.3);
+      this.ghostAt = -1;
+      // polvo al despegar: sale hacia atrás, como si empujara el suelo con los pies
+      game.dust(this.x, this.y + this.r * 0.8, -this.dashX, -this.dashY, 6);
       sfx.dash();
     }
 
+    // la estela se va apagando
+    for (let i = this.ghosts.length - 1; i >= 0; i--) {
+      if ((this.ghosts[i].life -= dt) <= 0) this.ghosts.splice(i, 1);
+    }
+    this.landT -= dt;
+
     if (this.dashT > 0) {
       this.dashT -= dt;
-      game.puff(this.x, this.y + this.r * 0.5, 'rgba(255,255,255,0.8)');
+      if (this.dashT <= 0) {
+        // frena: un poco de polvo hacia delante y un aplastón rápido
+        this.landT = LAND_T;
+        game.dust(this.x, this.y + this.r * 0.8, this.dashX, this.dashY, 3);
+      }
     } else {
       // Aceleración suave hacia la velocidad deseada
       const k = 1 - Math.exp(-dt * 14);
@@ -363,10 +387,16 @@ export class Player {
     // Indicador de recarga de la esquiva (arco bajo los pies)
     if (this.dashCd > 0) {
       ctx.beginPath();
-      ctx.ellipse(x, y + 15, 19, 7, 0, -Math.PI / 2, -Math.PI / 2 + TAU * (1 - this.dashCd / 0.9));
+      ctx.ellipse(x, y + 15, 19, 7, 0, -Math.PI / 2, -Math.PI / 2 + TAU * (1 - this.dashCd / this.stats.dashCd));
       ctx.strokeStyle = 'rgba(255,255,255,0.75)';
       ctx.lineWidth = 3;
       ctx.stroke();
+    }
+
+    // Estela de la esquiva: copias de Johnny tal y como estaba, teñidas de azul y cada vez más transparentes
+    for (const g of this.ghosts) {
+      drawSprite(ctx, g.sprite, g.anim, g.dir, g.t, g.x, g.y,
+        { frame: g.frame, cycle: g.cycle, alpha: 0.7 * (g.life / GHOST_LIFE), tint: GHOST_TINT });
     }
 
     ctx.save();
@@ -399,6 +429,21 @@ export class Player {
         kx = -this.lookX * k; ky = -this.lookY * k;
       }
       else { anim = 'attack'; cycle = undefined; }
+    }
+    // apunta cómo va Johnny para dejar una copia en la estela
+    if (this.dashT > 0 && (this.ghostAt < 0 || now - this.ghostAt >= GHOST_EVERY)) {
+      this.ghostAt = now;
+      this.ghosts.push({ sprite, anim, dir, t: now, frame, cycle, x: x + kx, y: y + 16 + ky, life: GHOST_LIFE });
+    }
+    // Estirón: mientras esquiva se alarga en la dirección en la que va; al frenar se aplasta un instante
+    const st = this.dashT > 0 ? DASH_STRETCH : this.landT > 0 ? -LAND_SQUASH * (this.landT / LAND_T) : 0;
+    if (st) {
+      const ang = Math.atan2(this.dashY, this.dashX);
+      ctx.translate(x, y);
+      ctx.rotate(ang);
+      ctx.scale(1 + st, 1 - st * 0.7);
+      ctx.rotate(-ang);
+      ctx.translate(-x, -y);
     }
     const sprited = drawSprite(ctx, sprite, anim, dir, now, x + kx, y + 16 + ky,
       { flash: this.hurtT > 0, frame, cycle });
