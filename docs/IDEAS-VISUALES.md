@@ -1,15 +1,15 @@
 # Ideas para mejorar el aspecto del juego (17 de octubre de 2026)
 
-Lista de opciones que se le propusieron al dueño. **Aún no se ha hecho ninguna**: se guardan por si acaso.
+Lista de opciones que se le propusieron al dueño. **Hechas: 1 y 2** (17 oct, `src/luz.js`, con visto bueno). Las demás se guardan por si acaso.
 Ya existían el temblor de pantalla, la viñeta, las habitaciones a oscuras, la niebla y el halo de las lámparas.
 
 Recomendación de Claude para empezar: **1 + 3 + 5** (solo código, sin gastar PixelLab y se notan enseguida).
 
 ## A. Luz y ambiente (solo código)
 
-1. **Luz de verdad:** oscurecer un poco todo y que la luz salga de fuentes concretas (lámparas, ventanas,
+1. ✅ **Luz de verdad:** oscurecer un poco todo y que la luz salga de fuentes concretas (lámparas, ventanas,
    fogonazo de cada disparo, fuego del molotov). La que más cambia la sensación.
-2. **Luces que parpadean:** lámparas o fluorescentes que fallan de vez en cuando.
+2. ✅ **Luces que parpadean:** lámparas o fluorescentes que fallan de vez en cuando.
 3. **Sombras bajo personajes y muebles:** para que pisen el suelo y no parezcan flotar.
 4. **Polvo en el aire o humo tras disparar:** motas flotando en los haces de luz.
 
