@@ -4,7 +4,7 @@
 // ─────────────────────────────────────────────
 import { W, H, WALL, OUTLINE } from './config.js';
 import { drawHuman, outlinedText, roundBox, glow } from './draw.js';
-import { drawWeapon } from './weapons.js';
+import { drawWeaponItem } from './weapons.js';
 import { drawSprite, hasSprite, pixelShadow } from './sprites.js';
 
 const TAU = Math.PI * 2;
@@ -122,7 +122,7 @@ export class WeaponProp {
     const len = this.weapon.type === 'melee' ? (this.weapon.reach > 55 ? 50 : 28) : (this.weapon.muzzle || 24);
     ctx.translate(x - Math.cos(-0.5) * len / 2, y - 4 + bob - Math.sin(-0.5) * len / 2);
     ctx.rotate(-0.5);
-    drawWeapon(ctx, this.weapon);
+    drawWeaponItem(ctx, this.weapon);
     ctx.restore();
     outlinedText(ctx, this.weapon.name, x, y + 30, 15, '#ffd23f', { lw: 4 });
   }
@@ -222,7 +222,7 @@ export class WeaponStash {
       ctx.save();
       ctx.translate(at[0], at[1]);
       ctx.rotate(at[2]);
-      drawWeapon(ctx, this.weapon);
+      drawWeaponItem(ctx, this.weapon);
       ctx.restore();
       outlinedText(ctx, this.weapon.name, x, front + 16, 15, '#ffd23f', { lw: 4 });
     } else if (this.locked) {

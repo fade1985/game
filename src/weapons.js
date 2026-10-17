@@ -19,6 +19,7 @@
 //             de reposo, andar y ataque. Si no se pone, se usa el conserje sin arma y el arma se dibuja encima
 // ─────────────────────────────────────────────
 import { OUTLINE } from './config.js';
+import { drawSprite } from './sprites.js';
 
 const TAU = Math.PI * 2;
 
@@ -76,6 +77,12 @@ export function weaponSummary(w) {
 
 // Dibuja el arma con la empuñadura en (0, 0) apuntando hacia +x.
 // Quien llama hace translate/rotate antes.
+// El arma como objeto (en su mueble o en el suelo): su sprite en pixel art (tools/arma_objeto.py), con el origen en
+// la empuñadura y apuntando a la derecha; si falta, el dibujo de siempre
+export function drawWeaponItem(ctx, w) {
+  if (!drawSprite(ctx, `arma-${w.id}`, 'idle', 'south', 0, 0, 0, { scale: 0.5 })) drawWeapon(ctx, w);
+}
+
 export function drawWeapon(ctx, w) {
   ctx.lineWidth = 3;
   ctx.strokeStyle = OUTLINE;
