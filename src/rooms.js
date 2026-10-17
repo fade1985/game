@@ -177,7 +177,7 @@ export function makeCorridorLayout(spots) {
   const apliques = [];
   for (let x = WALL + 130; x < RW - WALL - 60; x += 230) {
     if (isWall(geo, x, WALL + 8) || spots.some((s) => s.dir === 'up' && Math.abs(s.at - x) < DOOR_W / 2 + 50)) continue;
-    apliques.push({ kind: 'aplique', x, w: 22, seed: rng(), parpadea: rng() < 0.3 });
+    apliques.push({ kind: 'aplique', x, w: 16, seed: rng(), parpadea: rng() < 0.3 });
   }
   const wallDecor = [...makeWallDecor(rng, geo, spots, false).filter((d) => apliques.every((a) => Math.abs(a.x - d.x) > d.w / 2 + 40)), ...apliques];
   return { ...geo, style, seams: makeSeams(rng, RW, RH), obstacles, rug, decor: makeDecor(rng, RW, RH), wallDecor };

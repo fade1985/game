@@ -517,7 +517,7 @@ export function drawFurniture(ctx, f, alpha = 1) {
 export function drawWallDecor(ctx, d, time) {
   const cy = WALL - FACE_H / 2 + 6; // a media altura de la cara del muro de arriba
   // aplique de pared: solo su sprite (la luz que da la pinta el sistema de iluminación)
-  if (d.kind === 'aplique') { drawSprite(ctx, 'aplique-pared', 'idle', 'south', 0, d.x, cy - 6, { scale: 0.5 }); return; }
+  if (d.kind === 'aplique') { drawSprite(ctx, 'aplique-pared', 'idle', 'south', 0, d.x, cy - 16, { scale: 0.5 }); return; }
   const fijo = (owner, pad, h, paint) => drawCached(ctx, owner, 0, d.x - d.w / 2 - pad, cy - h / 2 - pad, d.w + pad * 2, h + pad * 2, (g) => {
     g.lineJoin = 'round';
     paint(g);
