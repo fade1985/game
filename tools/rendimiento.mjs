@@ -8,9 +8,10 @@
 // ─────────────────────────────────────────────
 import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png' };
 const server = http.createServer((req, res) => {
   let f = path.join(ROOT, decodeURIComponent(new URL(req.url, 'http://x').pathname));
@@ -24,7 +25,7 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 page.on('pageerror', (e) => console.log('ERROR', e.message));
 await page.addInitScript(() => { let s = 7; Math.random = () => ((s = (s * 16807) % 2147483647) / 2147483647); window.requestAnimationFrame = () => 0; });
 await page.goto(`http://localhost:${server.address().port}/?pruebas&mudo`);
-await page.waitForFunction(() => window.game?.spriteIds?.some?.((id) => id.startsWith('zombi-')), null, { polling: 200 });
+await page.waitForFunction(() => window.game?.spriteIds?.some?.((id) => id.startsWith('zombi-')), null, { polling: 200, timeout: 60000 });
 const out = await page.evaluate(() => {
   const g = window.game; g.newRun(); g.banner = null; g.player.aimer = { aim: () => null };
   for (let i = 0; i < 30; i++) g.update(1 / 60);
