@@ -5,7 +5,7 @@
 //  donde hay una luz, se borra un círculo con el borde suave. Ese lienzo se amplía con suavizado encima de
 //  suelo y personajes. Luego se añade un tinte cálido muy flojo en cada luz, para que sea de bombilla.
 //  Los círculos salen de `glow` (draw.js): el degradado se pinta una vez y luego solo se copia.
-//  Luces: los apliques del pasillo, el fuego del molotov, los zombis ardiendo y los destellos (fogonazos de los
+//  Luces: los apliques del pasillo, las lámparas y mesillas de los apartamentos, el fuego del molotov, los zombis ardiendo y los destellos (fogonazos de los
 //  disparos y explosiones). Cada clase de sala tiene su penumbra (OSCURIDAD_SALA).
 // ─────────────────────────────────────────────
 import { glow } from './draw.js';
@@ -54,8 +54,22 @@ function lucesDe(room, t) {
   return l._apliques;
 }
 
-// Lo oscura que está cada clase de sala (0 = nada): el pasillo, en penumbra; los apartamentos, un poco menos
-const OSCURIDAD_SALA = { corridor: OSCURIDAD, apartment: 0.36, miniboss: 0.36 };
+// Las lámparas de pie y las mesillas (con su lamparita) de una sala. Algunas fallan como los apliques.
+// alto: a qué altura sobre la base del mueble está la bombilla; r: hasta dónde llega su luz
+function lamparasDe(room) {
+  const l = room.layout;
+  if (!l._lamparas) {
+    l._lamparas = (l.obstacles || []).filter((o) => o.kind === 'lamp' || o.kind === 'nightstand').map((f) => ({
+      f, seed: f.seed, parpadea: f.seed < 0.2,
+      alto: f.kind === 'lamp' ? 72 : 56, r: f.kind === 'lamp' ? 210 : 150,
+    }));
+  }
+  return l._lamparas;
+}
+
+// Lo oscura que está cada clase de sala (0 = nada): el pasillo, en penumbra; los apartamentos, casi igual, y
+// las lámparas abren claros de luz cálida (las habitaciones sin lámpara quedan en penumbra)
+const OSCURIDAD_SALA = { corridor: OSCURIDAD, apartment: 0.55, miniboss: 0.36 };
 export function oscuridadDe(room) {
   return (room && OSCURIDAD_SALA[room.type]) || 0;
 }
@@ -96,6 +110,20 @@ function cadaLuz(game, camX, camY, vw, vh, hueco, pinta) {
     } else {
       pinta(d.x, WALL + 50, 0, 190, COLOR_CALIDO, 0.18 * b);
       pinta(d.x, WALL - 34, 0, 34, COLOR_CALIDO, 0.35 * b); // el resplandor de la propia bombilla
+    }
+  }
+  // lámparas y mesillas de los apartamentos (en las habitaciones aún sin descubrir, apagadas por la niebla)
+  for (const lp of lamparasDe(game.room)) {
+    const f = lp.f, base = f.y + f.h / 2;
+    if (!dentro(f.x, base)) continue;
+    const b = brilloAplique(lp, t) * (1 - (f.zone?.fog || 0));
+    if (b < 0.02) continue;
+    if (hueco) {
+      pinta(f.x, base - 8, 30, lp.r, BLANCO, b);              // el charco de luz alrededor
+      pinta(f.x, base - lp.alto, 4, 46, BLANCO, 0.8 * b);     // la pantalla de la lámpara
+    } else {
+      pinta(f.x, base - 10, 0, lp.r * 0.85, COLOR_CALIDO, 0.17 * b);
+      pinta(f.x, base - lp.alto, 0, 28, COLOR_CALIDO, 0.4 * b); // el resplandor de la bombilla
     }
   }
   // fuego del molotov en el suelo

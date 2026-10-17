@@ -67,7 +67,7 @@ ni compilación. Se publica en **Vercel** como web estática: lo que se sube a `
 | `entities.js` / `zombies.js` | Johnny, supervivientes y los 6 zombis |
 | `bosses.js` / `jefe-base.js` / `jefe-portera.js` | Jefes: `bosses.js` los reúne y los crea; la ficha de cada uno y lo común en `jefe-base.js`; cada jefe en su archivo (de momento, solo la portera) |
 | `weapons.js` / `aim.js` / `props.js` | Armas, apuntado automático, objetos del suelo y muebles con arma |
-| `luz.js` | Penumbra y luces: capa oscura encima de la partida con agujeros de luz cálida (apliques del pasillo con parpadeo; fogonazos, explosiones, fuego del molotov y zombis ardiendo; penumbra suave en los apartamentos), todo con visto bueno (17 oct). Cada clase de sala tiene su nivel en `OSCURIDAD_SALA` |
+| `luz.js` | Penumbra y luces: capa oscura encima de la partida con agujeros de luz cálida (apliques del pasillo con parpadeo; fogonazos, explosiones, fuego del molotov y zombis ardiendo; penumbra suave en los apartamentos), todo con visto bueno (17 oct). **17 oct, pendiente de visto bueno:** apartamentos más oscuros (0.55) y las lámparas y mesillas como luces de verdad (algunas parpadean) Cada clase de sala tiene su nivel en `OSCURIDAD_SALA` |
 | `molotov.js` | El cóctel molotov: apuntar y lanzar (clic derecho / E / botón táctil / RT del mando), el fuego y su dibujo |
 | `mando.js` | Jugar con mando: lo lee en cada fotograma; en la partida lo pasa a `input.js` y en los menús va de botón en botón |
 | `upgrades.js` / `ui.js` / `input.js` / `sfx.js` / `save.js` | Mejoras, menús y HUD, controles, sonido, guardado |

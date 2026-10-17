@@ -5,7 +5,7 @@ import { W, H, WALL, DOOR_W, OUTLINE, PIXEL, FACE_H, TOP_EXTRA } from './config.
 import { drawSprite, hasSprite, spriteMeta, spriteCount } from './sprites.js';
 import { roundBox, outlinedText, heartPath, drawCached } from './draw.js';
 import { ROOM_TYPES } from './rooms.js';
-import { drawFurniture, drawFurnitureShadow, drawFurnitureLight, drawWallDecor, drawWindowLight } from './furniture.js';
+import { drawFurniture, drawFurnitureShadow, drawWallDecor, drawWindowLight } from './furniture.js';
 import { CELL } from './shapes.js';
 import { drawMolotov } from './molotov.js';
 
@@ -94,9 +94,8 @@ export function drawRoom(ctx, room, time) {
     ctx.beginPath(); ctx.arc(d.x + 10 * d.s, d.y + 4 * d.s, 3 * d.s, 0, TAU); ctx.fill();
   }
 
-  // luz de las ventanas y de las lámparas
+  // luz de las ventanas (la de las lámparas va en src/luz.js)
   for (const d of wallDecor) drawWindowLight(ctx, d);
-  for (const o of obstacles) if (o.shape === 'rect') drawFurnitureLight(ctx, o);
 
   // sombra del muro sobre el suelo (da profundidad)
   const g = ctx.createLinearGradient(0, WALL, 0, WALL + 30);

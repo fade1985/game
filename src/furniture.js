@@ -266,16 +266,6 @@ function circle(ctx, x, y, r, fill, lw = 3) {
   if (lw) { ctx.lineWidth = lw; ctx.strokeStyle = OUTLINE; ctx.stroke(); }
 }
 
-// Luz cálida en el suelo (lámparas)
-export function drawFurnitureLight(ctx, f) {
-  if (f.kind !== 'lamp' && f.kind !== 'nightstand') return;
-  const g = ctx.createRadialGradient(f.x, f.y, 4, f.x, f.y, 120);
-  g.addColorStop(0, 'rgba(255, 230, 150, 0.35)');
-  g.addColorStop(1, 'rgba(255, 230, 150, 0)');
-  ctx.fillStyle = g;
-  ctx.fillRect(f.x - 120, f.y - 120, 240, 240);
-}
-
 // Sombra del mueble en el suelo (va en la imagen fija de la sala)
 export function drawFurnitureShadow(ctx, f) {
   furnitureShadow(ctx, f.x, f.y + f.h / 2, f.w);
