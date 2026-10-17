@@ -172,7 +172,15 @@ export function makeCorridorLayout(spots) {
   const obstacles = placeFurniture(style.name, rng, 5, 8, { layout: geo, clear, fits, maxDep: 46 });
   // una alfombra larga por el centro, de punta a punta
   const rug = { x: WALL + 56, y: RH / 2 - 34, w: RW - 2 * WALL - 112, h: 68, color: style.rug };
-  return { ...geo, style, seams: makeSeams(rng, RW, RH), obstacles, rug, decor: makeDecor(rng, RW, RH), wallDecor: makeWallDecor(rng, geo, spots, false) };
+  // apliques en la pared de arriba, cada ~230 unidades y sin tapar puertas; son las fuentes de luz del pasillo
+  // (`parpadea`: algunos fallan de vez en cuando). Los cuadros que caerían encima se quitan.
+  const apliques = [];
+  for (let x = WALL + 130; x < RW - WALL - 60; x += 230) {
+    if (isWall(geo, x, WALL + 8) || spots.some((s) => s.dir === 'up' && Math.abs(s.at - x) < DOOR_W / 2 + 50)) continue;
+    apliques.push({ kind: 'aplique', x, w: 22, seed: rng(), parpadea: rng() < 0.3 });
+  }
+  const wallDecor = [...makeWallDecor(rng, geo, spots, false).filter((d) => apliques.every((a) => Math.abs(a.x - d.x) > d.w / 2 + 40)), ...apliques];
+  return { ...geo, style, seams: makeSeams(rng, RW, RH), obstacles, rug, decor: makeDecor(rng, RW, RH), wallDecor };
 }
 
 // ═════════════ Apartamentos ═════════════
