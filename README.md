@@ -1,10 +1,10 @@
 # 🧹 Zombie Scape
 
-Roguelike de zombis para navegador al estilo *The Binding of Isaac*: vista desde arriba, estilo *cartoon*
-(formas redondas, contorno grueso, colores planos) y un conserje con su fregona contra un edificio infestado.
+Roguelike de zombis para navegador al estilo *The Binding of Isaac*: vista desde arriba, pixel art y un
+conserje con su fregona contra un edificio infestado.
 Hecho con **HTML5 Canvas + JavaScript puro**, sin librerías ni paso de compilación.
 
-> 🚧 En pleno rediseño por fases. El plan completo y su estado están en [`docs/PLAN.md`](docs/PLAN.md).
+> 🚧 En pleno desarrollo, por fases. El estado de cada tema está en [`CLAUDE.md`](CLAUDE.md) y en `docs/`.
 
 ## 🎮 Cómo se juega
 
@@ -183,7 +183,7 @@ oficial (producción) y las demás ramas generan una *preview* con su propia dir
 ```
 index.html        → página, HUD y capas de menús
 style.css         → estilo cartoon de botones, paneles y HUD
-docs/PLAN.md      → plan de desarrollo por fases y decisiones
+docs/             → notas de cada tema (lo ya cerrado, en docs/archivo/)
 src/
   main.js         → arranque y bucle principal (update + render)
   game.js         → flujo de la partida: plantas, mapas, puertas y oleadas

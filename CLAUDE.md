@@ -65,6 +65,10 @@ ni compilación. Se publica en **Vercel** como web estática: lo que se sube a `
 Arte a 480×320 (2 unidades del juego por píxel), casillas de 16 píxeles, personajes de 48. Cada sprite es
 `assets/sprites/<id>.png` + `.json` y su id va en `assets/sprites/manifest.json`.
 
+**Rendimiento:** lo que no cambia se dibuja una vez y se guarda como imagen (el mapa en `roomImage`; paredes,
+cuadros y minimapa con `drawCached` de `draw.js`; halos con `glow`). No crear degradados ni listas nuevas en cada
+fotograma. `node tools/rendimiento.mjs` mide el dibujo con muchos zombis ardiendo.
+
 ## Dónde está cada tema
 
 | Tema | Documento | Estado (14 de octubre de 2026) |
@@ -75,8 +79,9 @@ Arte a 480×320 (2 unidades del juego por píxel), casillas de 16 píxeles, pers
 | Mapa (pasillo y apartamentos) | [`docs/MAPA.md`](docs/MAPA.md) | Fases 1–3 hechas (la 3, pendiente de visto bueno). Siguiente: fase 4, sala de mantenimiento |
 | Escenarios (tono oscuro; vuelta a salas generadas con texturas y muebles del dueño) | [`docs/FONDOS.md`](docs/FONDOS.md) | 16 oct: suelo y pared del baño con texturas, y **paredes de 3 casillas** en todo el juego (tapan lo de detrás, con transparencia), con visto bueno. Baño completo (texturas a doble detalle y plantillas de la pared del fondo), **con visto bueno**. Siguiente: muebles del dueño (`assets/sources/muebles/`) y suelo y pared de cocina, dormitorio, salón y pasillo |
 | PixelLab (receta, costes, trucos) | [`docs/PIXELLAB.md`](docs/PIXELLAB.md) | Todo lo generado se apunta en `assets/pixellab.json`. Antes de tandas grandes, decir el coste |
-| Plan del juego y del pixel art | [`docs/PLAN.md`](docs/PLAN.md) · [`docs/PIXEL_ART.md`](docs/PIXEL_ART.md) | Juego: fases 1–8 hechas. Pixel art: quedan jefes, objetos e interfaz |
+| Pixel art (estilo y medidas) | [`docs/PIXEL_ART.md`](docs/PIXEL_ART.md) | Quedan jefes, objetos e interfaz |
 | Cómo se juega | [`README.md`](README.md) | |
+| Lo ya cerrado (plan por fases, fondos con ChatGPT, historia de las armas) | `docs/archivo/` | Solo consulta: no hace falta leerlo |
 
 ## Pendiente de decidir (preguntar al dueño cuando toque)
 
@@ -85,7 +90,7 @@ Arte a 480×320 (2 unidades del juego por píxel), casillas de 16 píxeles, pers
   fijos de habitación.
 - **Armas:** los números del MP5 y dónde se encuentra (provisionales, los puso Claude); y las **armas
   arrojadizas**: el cóctel molotov ya está (`src/molotov.js`), pendiente de que el dueño lo pruebe y de sus
-  números; luego, las demás (`docs/HISTORIA.md`).
+  números; luego, las demás (`docs/HISTORIA.md`, al principio).
 - **Limpieza en PixelLab** de lo descartado (listas en `docs/HISTORIA.md`, `docs/ZOMBIS.md` y `assets/pixellab.json`).
 - De antes: reposo de Johnny con PixMiniMax, equilibrado de salas grandes, y si el proyecto pasa a Godot
   (`docs/HISTORIA.md`).

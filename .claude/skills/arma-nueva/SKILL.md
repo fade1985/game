@@ -183,7 +183,7 @@ elegir el ciclo y quita el tinte amarillo del fogonazo.
   dibuja el arma cruzada de frente y asomando de lado de espaldas, casi como las diagonales, y al disparar el
   fogonazo sale de lado mientras las balas van rectas. El dueño lo rechazó. Se arregla rehaciendo solo esas dos
   posturas con una animación de 1 generación cada una (no con `edit_image`, que cuesta 10–25): receta y textos
-  en `docs/HISTORIA.md` ("Apuntar abajo y arriba") y en `conserje-48-mp5` → `posturas` de `assets/pixellab.json`.
+  en `docs/archivo/HISTORIA-12-OCT.md` ("Apuntar abajo y arriba") y en `conserje-48-mp5` → `posturas` de `assets/pixellab.json`.
   Hacerlo **antes** de animar, y contárselo al dueño en el paso 1 como una pega seria, no menor.
 - **Armas con retroceso fuerte (escopeta):** en `arma.json` poner `"margen_efectos": 10` (que no se cuelen las
   manos en `fx`) y `"sin_tinte": {}` (si la detección del tinte amarillo borra el humo).
