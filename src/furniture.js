@@ -160,8 +160,17 @@ const TEMPLATES = {
     ['sink?', 'toilet', 'washer?'],
     ['bathtub?', 'sink?', 'toilet'],
   ],
+  // el fogón es obligatorio; la encimera es larga (158), así que en las cocinas pequeñas se queda fuera
+  'Cocina': [
+    ['fridge', 'counter?', 'stove', 'plant?'],
+    ['counter?', 'stove', 'fridge?', 'plant?'],
+    ['fridge?', 'stove', 'counter?'],
+    ['plant?', 'fridge?', 'counter?', 'stove'],
+    ['counter?', 'stove', 'counter?', 'fridge?'],
+    ['fridge?', 'counter?', 'stove', 'counter?'],
+  ],
 };
-const DROP = ['bathtub', 'washer', 'sink']; // lo primero que se quita si no cabe
+const DROP = ['plant', 'bathtub', 'washer', 'sink', 'counter', 'fridge']; // lo primero que se quita si no cabe
 
 export const hasTemplates = (styleName) => !!TEMPLATES[styleName];
 

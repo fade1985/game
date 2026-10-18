@@ -63,24 +63,24 @@
   "jefe-miniboss": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 92,
-    "x": 635,
-    "y": 518,
+    "vida": 90,
+    "x": 309,
+    "y": 418,
     "muertes": 0,
     "zombis": 3,
-    "balas": 0,
-    "vidaJefe": 138
+    "balas": 30,
+    "vidaJefe": 117
   },
   "jefe-boss": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
     "vida": 82,
-    "x": 589,
-    "y": 418,
+    "x": 603,
+    "y": 370,
     "muertes": 0,
     "zombis": 1,
-    "balas": 7,
-    "vidaJefe": 682
+    "balas": 0,
+    "vidaJefe": 689
   },
   "arma-fregona": {
     "planta": 1,
@@ -115,14 +115,24 @@
   "arma-pistola": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 100,
+    "vida": 90,
     "x": 480,
     "y": 360,
-    "muertes": 3,
-    "zombis": 0,
-    "balas": 0
+    "muertes": 0,
+    "zombis": 3,
+    "balas": 1
   },
   "arma-escopeta": {
+    "planta": 1,
+    "sala": "Sala de mantenimiento",
+    "vida": 90,
+    "x": 480,
+    "y": 360,
+    "muertes": 0,
+    "zombis": 3,
+    "balas": 0
+  },
+  "arma-mp5": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
     "vida": 100,
@@ -132,24 +142,14 @@
     "zombis": 0,
     "balas": 0
   },
-  "arma-mp5": {
+  "molotov": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
     "vida": 90,
     "x": 480,
     "y": 360,
     "muertes": 1,
-    "zombis": 2,
-    "balas": 4
-  },
-  "molotov": {
-    "planta": 1,
-    "sala": "Sala de mantenimiento",
-    "vida": 100,
-    "x": 480,
-    "y": 360,
-    "muertes": 2,
-    "zombis": 0,
+    "zombis": 1,
     "balas": 0,
     "molotovs": 2
   },
@@ -172,25 +172,25 @@
       "floor": 1,
       "dead": true,
       "jammed": false,
-      "time": 154
+      "time": 128
     },
     {
       "state": "over",
       "floor": 1,
       "dead": true,
       "jammed": false,
-      "time": 112
+      "time": 87
     }
   ],
   "botPlantas": [
     {
-      "state": "over",
-      "floor": 6,
+      "state": "playing",
+      "floor": 5,
       "dead": false,
       "jammed": false,
-      "time": 450
+      "time": 561
     }
   ],
-  "botMapas": 35,
+  "botMapas": 33,
   "fin": "over"
 }

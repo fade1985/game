@@ -225,7 +225,7 @@ export function makeApartmentLayout(apt) {
     const [min, max] = FURNITURE[rm.use];
     // en las habitaciones grandes cabe algún mueble más
     const extra = Math.min(2, Math.floor(rm.cells / 220));
-    // las estancias con plantillas (de momento el baño) solo amueblan la pared del fondo; si en ella no cabe nada
+    // las estancias con plantillas (baño y cocina) solo amueblan la pared del fondo; si en ella no cabe nada
     // (una puerta en medio), como antes: muebles sueltos en las demás paredes
     const back = hasTemplates(st.name) ? placeBackWall(st.name, rng, { layout: geo, zone: rm.id, clear, fits }) : [];
     if (back.length) obstacles.push(...back);
