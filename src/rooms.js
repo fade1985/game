@@ -149,6 +149,7 @@ export function makePlainLayout(kind) {
   // en mantenimiento la pared de arriba es para los muebles de las armas
   const [min, max] = kind === 'maintenance' ? SALAS['Mantenimiento'].cuantos : SALAS['Pasillo'].cuantosMenu;
   const obstacles = kind === 'roof' ? [] : placeFurniture(style.name, rng, min, max, { skipSide: kind === 'maintenance' ? 'top' : null });
+  surtido(obstacles);
   let wallDecor = kind === 'roof' ? [] : makeWallDecor(rng, geo, [{ dir: 'up', at: RW / 2 }], kind !== 'maintenance');
   // la pared de mantenimiento ya trae su propia pintada y salpicones (tools/pared_mantenimiento.py): sin cuadros encima
   if (kind === 'maintenance') wallDecor = [];
@@ -158,6 +159,12 @@ export function makePlainLayout(kind) {
     rug = { x: RW / 2 - w / 2 + (rng() - 0.5) * 80, y: RH / 2 - h / 2 + (rng() - 0.5) * 50, w, h, color: style.rug };
   }
   return { ...geo, style, seams: makeSeams(rng, RW, RH), obstacles, rug, decor: makeDecor(rng, RW, RH), wallDecor };
+}
+
+// Qué variante de cada mueble sale (furniture.js): un número por sala, el mismo para todos sus muebles.
+// Sale de algo que ya está echado a suertes (el primer mueble), para no gastar el dado de la partida.
+function surtido(obstacles, n = Math.floor((obstacles[0]?.seed || 0) * 1e9)) {
+  for (const o of obstacles) o.surtido = n;
 }
 
 // El pasillo de una planta. `spots` son sus puertas ([{ dir, at }]): delante de ellas no se ponen muebles.
@@ -170,6 +177,7 @@ export function makeCorridorLayout(spots) {
   const fits = walkChecker(geo, [{ x: WALL + 40, y: RH / 2 }, { x: RW - WALL - 40, y: RH / 2 }]);
   const { cuantos: [min, max], fondoMax } = SALAS['Pasillo'];
   const obstacles = placeFurniture(style.name, rng, min, max, { layout: geo, clear, fits, maxDep: fondoMax });
+  surtido(obstacles);
   // una alfombra larga por el centro, de punta a punta
   const rug = { x: WALL + 56, y: RH / 2 - 34, w: RW - 2 * WALL - 112, h: 68, color: style.rug };
   // apliques en la pared de arriba, cada ~230 unidades y sin tapar puertas; son las fuentes de luz del pasillo
@@ -234,6 +242,7 @@ export function makeApartmentLayout(apt) {
     // seen y fog: las habitaciones que aún no se han pisado se ven a oscuras (fog va de 1, negro, a 0)
     return { id: rm.id, use: rm.use, name: rm.name, style: st, cells: rm.cells, x: rm.c0 * CELL, y: rm.r0 * CELL, w: rm.w * CELL, h: rm.h * CELL, cx: rm.x, cy: rm.y, seen: false, fog: 1 };
   });
+  surtido(obstacles, apt.seed); // en un apartamento, el número de la casa
 
   return {
     ...geo, style, zones, entry, inner: apt.doors,

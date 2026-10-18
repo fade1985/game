@@ -9,6 +9,8 @@
 //  Los originales (los dibujos grandes) están en assets/sources/salas/<carpeta>/<archivo>.png
 //  (y <archivo>-lado.png, el dibujo para las paredes laterales). El juego usa el sprite mueble-<tipo>
 //  de assets/sprites/; si no lo hay, el dibujo de antes (furniture.js).
+//  Variantes: nevera-b.png, nevera-c.png… (sprites mueble-fridge-b, -c…; de lado, nevera-b-lado.png). Cada
+//  apartamento elige una por tipo (furniture.js → variante). Todas miden lo mismo de ancho: el `len` de aquí.
 // ─────────────────────────────────────────────
 
 // Cada mueble, por su tipo (el nombre que usa el juego):

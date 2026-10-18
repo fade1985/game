@@ -79,6 +79,11 @@ obligatorios (fogón en la cocina) y grupos (cama + mesillas). **Los muebles, su
   (`cocina`, `bano`, `salon`, `dormitorio`, `pasillo` y `comun` para lámpara y planta): `nevera.png`,
   `sofa-lado.png`… Dentro del juego cada mueble sigue con su nombre en inglés (`fridge` → sprite `mueble-fridge`).
   Lo que ya no se usa (los muebles del 12 oct, las guías y descartes de PixelLab) está en `salas/descartes/`.
+- **Variantes de muebles (18 oct, fase 2):** `nevera-b.png`, `nevera-c.png`… dan los sprites `mueble-fridge-b`, `-c`…
+  (`mueble-fridge` es la de siempre; de lado, `nevera-b-lado.png` → `mueble-fridge-b-lado`, y si falta, el `-lado`
+  de la de siempre). Cada apartamento, pasillo o sala elige una por tipo con su número `surtido` (rooms.js), sin
+  gastar el dado de la partida: todas las neveras de una casa son iguales. Todas las variantes miden de ancho el
+  `len` del catálogo (los choques usan esa medida).
 - Textos para Gemini: pedir "perfectly flat orthographic view from directly above, NO perspective, exactly
   N x N square tiles aligned with the image edges, flat even lighting", y los detalles dentro de cada baldosa.
 

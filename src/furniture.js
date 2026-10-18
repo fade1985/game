@@ -11,6 +11,7 @@ import { drawSprite, hasSprite, spriteMeta, furnitureShadow } from './sprites.js
 import { CELL, rectIsFloor } from './shapes.js';
 import { drawCached } from './draw.js';
 import { MUEBLES, SALAS } from './catalogo.js';
+import { mulberry32 } from './utils.js';
 
 const TAU = Math.PI * 2;
 
@@ -222,11 +223,28 @@ export function drawFurnitureShadow(ctx, f) {
   furnitureShadow(ctx, f.x, f.y + f.h / 2, f.w);
 }
 
+// Variantes de un mueble: mueble-<tipo> es la de siempre y mueble-<tipo>-b, -c… las demás (si las hay).
+// Cada apartamento (y cada pasillo o sala) elige una por tipo con su número `surtido`: así todas las neveras
+// de una casa son iguales, pero la casa de al lado puede tener otra. No gasta el dado de la partida.
+const LETRAS = 'bcdefghijklmnopqrstuvwxyz';
+function variante(kind, surtido = 0) {
+  let n = 1;
+  while (n <= LETRAS.length && hasSprite(`mueble-${kind}-${LETRAS[n - 1]}`)) n++;
+  if (n === 1) return '';
+  let h = surtido | 0;
+  for (const c of kind) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+  const i = Math.floor(mulberry32(h)() * n);
+  return i ? `-${LETRAS[i - 1]}` : '';
+}
+
 // El sprite se apoya en el borde de abajo del hueco del mueble y sube lo que mida de alto.
 // `alpha` lo apaga en las habitaciones a oscuras.
 export function drawFurniture(ctx, f, alpha = 1) {
-  const lado = (f.side === 'left' || f.side === 'right') && hasSprite(`mueble-${f.kind}-lado`);
-  const id = `mueble-${f.kind}${lado ? '-lado' : ''}`;
+  const v = variante(f.kind, f.surtido);
+  // en las paredes laterales, el dibujo de lado de su variante o, si no lo tiene, el de la de siempre
+  const ladoId = [`mueble-${f.kind}${v}-lado`, `mueble-${f.kind}-lado`].find(hasSprite);
+  const lado = (f.side === 'left' || f.side === 'right') && !!ladoId;
+  const id = lado ? ladoId : `mueble-${f.kind}${v}`;
   if (hasSprite(id)) {
     const o = alpha < 1 ? { alpha } : {};
     // los que trae el dueño tienen más detalle: su .json dice a qué escala van ("scale": 0.5 → 1 unidad por píxel)
