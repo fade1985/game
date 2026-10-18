@@ -28,6 +28,10 @@ OUT = 'assets/sprites'
 REGISTRO = f'{SALAS}/importados.json'
 OUTLINE = (29, 27, 44, 255)
 IMAGENES = ('.png', '.webp', '.jpg', '.jpeg')
+# Muebles dibujados "a tamaño de personaje": cada píxel del juego son N píxeles del original. Se encogen justo
+# N veces (no al ancho del catálogo) y salen con "scale": 1, el mismo tamaño de píxel que Johnny y los zombis.
+# Para añadir otro mueble así: su tipo (el del catálogo) y el N.
+BLOQUE = {'lamp': 8}
 
 
 def catalogo():
@@ -65,7 +69,7 @@ def entiende(nombre, cat):
     return *cat[base], variante, lado
 
 
-def convierte(src, w):
+def convierte(src, w, bloque=None):
     """La receta de siempre: sin fondo, recortado, a `w` píxeles de ancho (contorno incluido) y con contorno"""
     im = Image.open(src).convert('RGBA')
     if im.getchannel('A').getextrema()[0] >= 128:
@@ -78,8 +82,11 @@ def convierte(src, w):
             if a < 128 or (min(r, g, b) > 200 and max(r, g, b) - min(r, g, b) < 30): px[x, y] = (0, 0, 0, 0)
             else: px[x, y] = (r, g, b, 255)
     im = im.crop(im.getbbox())
-    w -= 2  # el contorno ocupa un píxel a cada lado
-    h = max(1, round(w * im.size[1] / im.size[0]))
+    if bloque:
+        w, h = max(1, round(im.size[0] / bloque)), max(1, round(im.size[1] / bloque))
+    else:
+        w -= 2  # el contorno ocupa un píxel a cada lado
+        h = max(1, round(w * im.size[1] / im.size[0]))
     # color medio de cada píxel nuevo, contando solo lo que no es fondo
     color = im.convert('RGBa').resize((w, h), Image.BOX).convert('RGBA')
     lleno = im.getchannel('A').resize((w, h), Image.BOX)
@@ -110,10 +117,11 @@ def main(forzar):
         if isinstance(que, str): avisos.append(f'{rel}: {que}'); continue
         tipo, largo, fondo, variante, lado = que
         sid = f'mueble-{tipo}' + (f'-{variante}' if variante else '') + ('-lado' if lado else '')
-        im = convierte(ruta, fondo if lado else largo)
+        bloque = BLOQUE.get(tipo)
+        im = convierte(ruta, fondo if lado else largo, bloque)
         if im is None: avisos.append(f'{rel}: no tiene fondo transparente (¿un damero pintado?); no se convierte'); continue
         im.save(f'{OUT}/{sid}.png')
-        meta = {'cell': [im.width, im.height], 'pivot': [im.width // 2, im.height], 'scale': 0.5,
+        meta = {'cell': [im.width, im.height], 'pivot': [im.width // 2, im.height], 'scale': 1 if bloque else 0.5,
                 'anims': {'idle': {'fps': 1, 'dirs': {'south': {'row': 0, 'frames': 1}}}}}
         with open(f'{OUT}/{sid}.json', 'w', encoding='utf-8', newline='\n') as f:
             json.dump(meta, f, indent=2); f.write('\n')

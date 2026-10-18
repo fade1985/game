@@ -35,8 +35,12 @@
     "huella": "4fbbc836f523f4e1",
     "sprite": "mueble-fridge"
   },
+  "comun/lampara-b.png": {
+    "huella": "6d006070ac0fef0b",
+    "sprite": "mueble-lamp-b"
+  },
   "comun/lampara.png": {
-    "huella": "f8aae8273a0a1f96",
+    "huella": "600bbdc981c42099",
     "sprite": "mueble-lamp"
   },
   "comun/planta.webp": {
