@@ -284,8 +284,9 @@ export class GameDrawing {
       const k = pt.life / pt.max;
       ctx.globalAlpha = Math.min(1, k * 1.5);
       if (pt.fx) {
+        if (k > 1) continue; // todavía esperando a salir
         ctx.globalAlpha = 1;
-        drawSprite(ctx, pt.fx, 'idle', 'south', 0, pt.x, pt.y, { frame: Math.floor((1 - k) * (pt.fx === 'objeto-fx-explosion' ? 12 : pt.fx === 'objeto-fx-chispa' ? 7 : 10)) });
+        drawSprite(ctx, pt.fx, 'idle', 'south', 0, pt.x, pt.y, { frame: Math.floor((1 - k) * (pt.fx === 'objeto-fx-explosion' ? 12 : pt.fx === 'objeto-fx-chispa' ? 7 : 10)), scale: pt.scale });
         continue;
       }
       if (pt.px) {

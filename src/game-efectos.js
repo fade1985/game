@@ -87,11 +87,12 @@ export class GameEffects {
     }
   }
 
-  // Efecto animado de pixel art (explosión, chispa, humo): se reproduce una vez en su sitio
-  fx(id, x, y) {
+  // Efecto animado de pixel art (explosión, chispa, humo): se reproduce una vez en su sitio.
+  // Opciones: scale (tamaño), wait (segundos que espera antes de salir) y vy (si sube o baja, como el humo)
+  fx(id, x, y, o = {}) {
     const dur = { 'objeto-fx-explosion': 12 / 14, 'objeto-fx-chispa': 7 / 16, 'objeto-fx-humo': 10 / 12 }[id];
     if (!hasSprite(id)) return false;
-    this.particles.push({ fx: id, x, y, vx: 0, vy: 0, life: dur, max: dur });
+    this.particles.push({ fx: id, x, y, vx: 0, vy: o.vy || 0, life: dur + (o.wait || 0), max: dur, scale: o.scale });
     return true;
   }
 

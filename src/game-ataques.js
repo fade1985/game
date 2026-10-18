@@ -83,7 +83,9 @@ export class ZombieAttacks {
     sfx.boom();
     this.shake(14);
     destello(this, x, y, Math.max(200, radius * 2.5), 0.4); // la explosión ilumina toda la zona
-    const sprite = this.fx('objeto-fx-explosion', x, y);
+    destello(this, x, y, Math.max(160, radius * 1.8), 1.2, 0.5); // y el resplandor del fuego tarda en apagarse
+    // la bola de fuego, a 1,5x: así llega justo hasta donde hace daño (cada píxel = 3 unidades, sigue en cuadrícula)
+    const sprite = this.fx('objeto-fx-explosion', x, y, { scale: radius / 60 > 1.6 ? 2 : 1.5 });
     // Ojo: aquí se tira rand() siempre las mismas veces (4 por vuelta), para que la huella del test no
     // cambie; lo que es solo de adorno usa su propio dado (azar), que no toca la partida.
     for (let i = 0; i < (sprite ? 10 : 26); i++) {
@@ -104,8 +106,24 @@ export class ZombieAttacks {
         const a = azar(0, Math.PI * 2), sp = azar(90, 220), d = azar(14, 24);
         this.particles.push({ x: x + Math.cos(a) * d, y: y + Math.sin(a) * d, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, px: true, size: 2, color: i % 2 ? '#2b2633' : '#5d5873', life: azar(0.45, 0.8), max: 0.8 });
       }
-      for (let i = 0; i < 5; i++) {
-        this.particles.push({ x: x + azar(-24, 24), y: y + azar(-16, 16), vx: azar(-20, 20), vy: azar(-70, -35), px: true, size: 1, color: i % 2 ? '#ffb020' : '#ff5d3c', life: azar(0.6, 1.1), max: 1.1 });
+      for (let i = 0; i < 10; i++) {
+        this.particles.push({ x: x + azar(-36, 36), y: y + azar(-24, 24), vx: azar(-25, 25), vy: azar(-80, -35), px: true, size: i < 4 ? 2 : 1, color: i % 2 ? '#ffb020' : '#ff5d3c', life: azar(0.7, 1.5), max: 1.5 });
+      }
+      // más chispas, largas y rápidas, que llegan lejos
+      for (let i = 0; i < 16; i++) {
+        const a = azar(0, Math.PI * 2), sp = azar(380, 720);
+        this.particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, px: true, size: i % 3 ? 2 : 3, color: ['#ffffff', '#fffbe0', '#ffe066', '#ffb020'][i % 4], life: azar(0.3, 0.6), max: 0.6 });
+      }
+      // dos estallidos más pequeños alrededor, un pelín después (la explosión "retumba")
+      const a0 = azar(0, Math.PI * 2);
+      for (let i = 0; i < 2; i++) {
+        const a = a0 + i * Math.PI + azar(-0.6, 0.6), d = radius * azar(0.45, 0.6);
+        this.fx('objeto-fx-explosion', x + Math.cos(a) * d, y + Math.sin(a) * d * 0.75, { wait: 0.1 + i * 0.09 });
+      }
+      // y humo: cuadraditos grises que suben despacio y encogen
+      for (let i = 0; i < 14; i++) {
+        const a = azar(0, Math.PI * 2), d = radius * azar(0.1, 0.7);
+        this.particles.push({ x: x + Math.cos(a) * d, y: y + Math.sin(a) * d * 0.75, vx: azar(-15, 15), vy: azar(-55, -25), px: true, size: Math.round(azar(3, 6)), color: ['#3a3542', '#4d4857', '#5d5873'][i % 3], life: azar(0.9, 1.6), max: 1.6 });
       }
     } else this.particles.push({ x, y, vx: 0, vy: 0, r: radius * 0.6, ring: true, color: '#ffd23f', life: 0.35, max: 0.35 });
     marcaQuemado(this, x, y, radius);
