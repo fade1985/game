@@ -57,7 +57,7 @@ juego y luego una skill `/zombi-nuevo` para los otros cinco. Ids, textos y coste
   - **Escupitajo verde:** PixelLab pintaba un chorro rojo saliendo de la boca. Se repitió dos veces: cinco
     direcciones se tiñen de verde al montar (`"moco": true` en `zombi.json`) y tres se pidieron ya con baba verde.
     Captura: `assets/pruebas/venenoso-escupiendo.jpg`.
-  - **Charcos y estados (18 oct, pendiente de visto bueno):** el moco pone el estado **veneno** (8 al caer; 4/s
+  - **Charcos y estados (18 oct, con visto bueno):** el moco pone el estado **veneno** (8 al caer; 4/s
     pisándolo y 3 s más al salir, Johnny verde y la barra de vida verde); la lejía de la portera, **resbaladizo**
     (0,8; patina 0,4 s al salir; también a los zombis) + **tóxico** flojo (3/s); el fuego del molotov, **fuego**
     (12/s y Johnny sigue ardiendo 2 s). Fichas y números en `src/estados.js`; cada charco elige los suyos en
