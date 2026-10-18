@@ -113,7 +113,14 @@ export function createUI(root) {
       set('keys', $('#hud-keys'), `$${g.wallet ?? 0}`);
       const molotovs = g.testMode ? '∞' : String(g.molotovs);
       set('molotov', $('#hud-molotov'), molotovs);
-      set('molotovBtn', document.querySelector('.toss-btn b'), molotovs);
+      const granadas = g.testMode ? '∞' : String(g.granadas);
+      set('granada', $('#hud-granada'), granadas);
+      // el botón de lanzar enseña lo que se lanza ahora (molotov o granada) y las que quedan; en el HUD, la elegida resalta
+      const gr = g.tossKind === 'granada';
+      set('tossIco', document.querySelector('.toss-btn .ico'), gr ? 'ico ico-granada' : 'ico ico-molotov', 'className');
+      set('molotovBtn', document.querySelector('.toss-btn b'), gr ? granadas : molotovs);
+      set('tossOnM', $('#pill-molotov'), !gr, 'class:on-toss');
+      set('tossOnG', $('#pill-granada'), gr, 'class:on-toss');
     },
 
     // ═════════════ Pantallas ═════════════
@@ -129,8 +136,8 @@ export function createUI(root) {
             <button class="btn blue" data-act="workshop"><i class="ico ico-herramientas"></i> Taller <span class="keys-chip"><i class="ico ico-billete"></i> $${save.keys}</span>${upgrades ? ` <small>· ${upgrades} mejora${upgrades > 1 ? 's' : ''}</small>` : ''}</button>
           </div>
           <div class="hint panel small">
-            <b>Teclado:</b> WASD moverse · Espacio esquivar · Q o rueda cambiar de arma · R recargar · clic derecho o E (mantén y suelta) molotov<br>
-            <b>Mando:</b> stick moverse · A esquivar · Y cambiar de arma · X recargar · RT (mantén y apunta) molotov · Start pausa<br>
+            <b>Teclado:</b> WASD moverse · Espacio esquivar · Q o rueda cambiar de arma · R recargar · clic derecho o E (mantén y suelta) lanzar · F cambiar molotov/granada<br>
+            <b>Mando:</b> stick moverse · A esquivar · Y cambiar de arma · X recargar · RT (mantén y apunta) lanzar · LB cambiar molotov/granada · Start pausa<br>
             Atacas solo al enemigo más cercano. ¡Limpia cada sala para abrir sus puertas!
           </div>
           ${save.bestFloor ? `<div class="record"><i class="ico ico-trofeo"></i> Mejor planta alcanzada: ${save.bestFloor}</div>` : ''}

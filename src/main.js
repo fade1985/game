@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────
 import { Game } from './game.js';
 import { createUI } from './ui.js';
-import { initInput, pressReload, pressSwitch } from './input.js';
+import { initInput, pressReload, pressSwitch, pressTossSwitch } from './input.js';
 import { updatePad } from './mando.js';
 import { unlockAudio, setMusicOn, toggleMute } from './sfx.js';
 import { loadSave } from './save.js';
@@ -60,6 +60,7 @@ for (const [el, slot] of slotButtons) {
     if (game.player.hand === slot) { if (slot === 'ranged') pressReload(); } else pressSwitch();
   });
 }
+document.querySelector('.toss-swap').addEventListener('pointerdown', (e) => { e.preventDefault(); pressTossSwitch(); });
 document.getElementById('btn-pause').addEventListener('click', (e) => { e.currentTarget.blur(); game.openPause(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) game.openPause(); });
 

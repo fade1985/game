@@ -12,6 +12,7 @@ import { randomWeapon } from './weapons.js';
 import { updateSave } from './save.js';
 import { isWall, lineClear } from './shapes.js';
 import { MOLOTOV } from './molotov.js';
+import { GRANADA } from './granada.js';
 import { sfx } from './sfx.js';
 
 const CASH_CHANCE = 0.07;  // probabilidad de que un zombi suelte un billete de dólar 💵
@@ -84,6 +85,7 @@ export class GameCombat {
       // Los billetes siempre vienen a ti; los corazones, solo si te falta vida
       // y los molotovs, si caben en la mochila
       const wanted = pk.kind === 'cash' || (pk.kind === 'molotov' ? this.molotovs < MOLOTOV.max
+        : pk.kind === 'granada' ? this.granadas < GRANADA.max
         : pk.kind === 'ammo' ? p.wantsAmmo() : needsHp);
       if (!p.dead && wanted && pk.t > 0.4 && d < this.stats.magnet) {
         pk.vx += (dx / d) * 2200 * dt;
@@ -116,6 +118,10 @@ export class GameCombat {
       this.player.addAmmo(this);
       this.floatText(pk.x, pk.y - 20, '+munición', '#ffd23f', 20);
       sfx.reloaded();
+    } else if (pk.kind === 'granada') {
+      this.granadas = Math.min(GRANADA.max, this.granadas + 1);
+      this.floatText(pk.x, pk.y - 20, '+1 granada', '#9bbd5a', 20);
+      sfx.buy();
     } else if (pk.kind === 'molotov') {
       this.molotovs = Math.min(MOLOTOV.max, this.molotovs + 1);
       this.floatText(pk.x, pk.y - 20, '+1 molotov', '#ff9f1c', 20);
@@ -236,6 +242,7 @@ export class GameCombat {
       if (Math.random() < CASH_CHANCE) this.dropPickup('cash', e.x, e.y);
       else if (Math.random() < HEART_CHANCE) this.dropPickup('heart', e.x, e.y);
       else if (Math.random() < MOLOTOV.drop) this.dropPickup('molotov', e.x, e.y);
+      else if (Math.random() < GRANADA.drop) this.dropPickup('granada', e.x, e.y);
       else if (this.player.slots.ranged && Math.random() < AMMO_CHANCE) this.dropPickup('ammo', e.x, e.y);
     }
     if (this.stats.lifesteal && !this.player.dead) this.healPlayer(this.stats.lifesteal);
@@ -251,6 +258,7 @@ export class GameCombat {
     this.hazards = [];
     this.trail = [];
     this.lobs = [];
+    this.grenades = [];
     this.burst(boss.x, boss.y, '#ffd23f', 30, boss.r);
     this.burst(boss.x, boss.y - 40, boss.color, 20, boss.r);
     this.fx('objeto-fx-chispa', boss.x, boss.y - 20);

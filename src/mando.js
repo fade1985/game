@@ -10,12 +10,12 @@
 //  el molotov con el stick derecho (se lanza al soltar), X para recargar, Y para cambiar de arma y Start para la pausa.
 //  En los menús: cruceta o stick para ir de botón en botón, A para pulsarlo y B para volver.
 // ─────────────────────────────────────────────
-import { pad, pressDash, pressReload, pressSwitch, startToss, endToss, aimToss } from './input.js';
+import { pad, pressDash, pressReload, pressSwitch, pressTossSwitch, startToss, endToss, aimToss } from './input.js';
 
 const DEAD = 0.25;       // zona muerta de los sticks: por debajo de esto, como si no se tocaran
 const REPEAT = [0.4, 0.16]; // en los menús, al mantener una dirección: espera antes de repetir y cada cuánto
 
-const BTN = { A: 0, B: 1, X: 2, Y: 3, RB: 5, RT: 7, START: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
+const BTN = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, RT: 7, START: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
 
 let before = [];          // botones pulsados en el fotograma anterior (para saber cuándo se acaba de pulsar)
 let menuDir = null, menuT = 0;
@@ -68,6 +68,7 @@ export function updatePad(game, overlay, dt) {
   if (hit(BTN.A)) pressDash();
   if (hit(BTN.X)) pressReload();
   if (hit(BTN.Y)) pressSwitch();
+  if (hit(BTN.LB)) pressTossSwitch();
   if (hit(BTN.START)) game.openPause();
 
   // molotov: mientras se mantiene el gatillo se apunta con el stick derecho; al soltarlo, se lanza

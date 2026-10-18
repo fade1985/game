@@ -31,6 +31,7 @@
         <div class="pill weapon-pill" id="pill-ranged" title="Arma de fuego (Q o rueda para cambiar · R para recargar)" hidden><i class="ico ico-pistola"></i> <b>Pistola</b></div>
         <div class="pill" id="pill-keys" title="Dólares para el Taller"><i class="ico ico-billete"></i> <b id="hud-keys">$0</b></div>
         <div class="pill" id="pill-molotov" title="Cócteles molotov (clic derecho o E)"><i class="ico ico-molotov"></i> <b id="hud-molotov">0</b></div>
+        <div class="pill" id="pill-granada" title="Granadas (F cambia entre molotov y granada)"><i class="ico ico-granada"></i> <b id="hud-granada">0</b></div>
       </div>
       <div class="hud-right">
         <div class="pill" id="pill-team" title="Equipo" hidden><b id="hud-team"></b></div>
@@ -45,6 +46,8 @@
       <button class="dash-btn"><i class="ico ico-dash"></i></button>
       <!-- molotov: se arrastra desde aquí para apuntar y se suelta para lanzar -->
       <button class="toss-btn"><i class="ico ico-molotov"></i><b>0</b></button>
+      <!-- cambia lo que se lanza: molotov ↔ granada -->
+      <button class="toss-swap" title="Cambiar molotov / granada">⇄</button>
       <!-- las dos armas, en arco alrededor del botón de esquivar: tocar la otra la saca; tocar la de fuego
            que ya está en la mano, recarga (un aro blanco se va llenando mientras recarga) -->
       <button class="slot-btn slot-ranged" data-slot="ranged" hidden><i class="ico ico-pistola"></i></button>

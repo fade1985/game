@@ -7,6 +7,7 @@ export const pad = { x: 0, y: 0 };
 const joy = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0 };
 let dashPressed = false;
 let reloadPressed = false;   // recargar: R, botón X del mando o tocar el cartel del arma
+let tossSwitchPressed = false; // cambiar lo que se lanza (molotov ↔ granada): F, LB del mando o el botoncito del móvil
 let switchPressed = false;   // cambiar de arma: Q, rueda del ratón, botón Y del mando o tocar el otro cartel
 // Lanzar (molotov): se mantiene pulsado para apuntar y se suelta para lanzar
 //  - PC: clic derecho o E; se apunta con el ratón
@@ -23,6 +24,7 @@ export function initInput(canvas, touchUI) {
     if (e.code === 'KeyE' && !e.repeat) startToss('mouse');
     if (e.code === 'KeyR' && !e.repeat) reloadPressed = true;
     if (e.code === 'KeyQ' && !e.repeat) switchPressed = true;
+    if (e.code === 'KeyF' && !e.repeat) tossSwitchPressed = true;
   });
   // la rueda del ratón también cambia de arma (una vez por "golpe" de rueda, no por cada paso)
   let wheelT = 0;
@@ -136,6 +138,7 @@ export function aimToss(dx, dy) {
 export function pressDash() { dashPressed = true; }
 export function pressReload() { reloadPressed = true; }
 export function pressSwitch() { switchPressed = true; }
+export function pressTossSwitch() { tossSwitchPressed = true; }
 
 // Cómo va el lanzamiento: si se está apuntando, si se acaba de soltar (una sola vez por lanzamiento) y
 // hacia dónde: con el ratón, su posición en el lienzo; en el móvil o con el mando, el arrastre o el stick (de -1 a 1)
@@ -169,6 +172,7 @@ export function consumeDash() {
 
 // Devuelven true una sola vez por cada pulsación de "recargar" y de "cambiar de arma"
 export function consumeReload() { const r = reloadPressed; reloadPressed = false; return r; }
+export function consumeTossSwitch() { const r = tossSwitchPressed; tossSwitchPressed = false; return r; }
 export function consumeSwitch() { const r = switchPressed; switchPressed = false; return r; }
 
 export function clearInput() {
@@ -176,6 +180,7 @@ export function clearInput() {
   dashPressed = false;
   reloadPressed = false;
   switchPressed = false;
+  tossSwitchPressed = false;
   toss.aiming = false;
   toss.released = false;
 }

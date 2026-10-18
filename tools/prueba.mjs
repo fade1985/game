@@ -154,6 +154,28 @@ async function pruebas() {
   paso(4);
   huella.molotov = { ...estado(), molotovs: game.molotovs };
 
+  // 6a. La granada: F cambia el botón de lanzar a granada, se apunta, se lanza, parpadea y explota
+  sala();
+  for (const tipo of ['normal', 'normal']) { const pt = game.findSpawnPoint(); game.spawnEnemy(tipo, pt.x, pt.y); }
+  paso(1);
+  tecla('KeyF', true); tecla('KeyF', false); paso(0.1);
+  if (game.tossKind !== 'granada') throw new Error('granada: F no cambia a granada');
+  const zg = game.enemies[0], sg = game.camera.toScreen(zg.x, zg.y);
+  window.dispatchEvent(new PointerEvent('pointermove', { pointerType: 'mouse',
+    clientX: lienzo.left + (sg.x * lienzo.width) / c.width, clientY: lienzo.top + (sg.y * lienzo.height) / c.height }));
+  tecla('KeyE', true); paso(0.3);
+  await foto('06-granada-apuntar');
+  tecla('KeyE', false); paso(0.1);
+  if (game.grenades.length !== 1) throw new Error('granada: no se ha lanzado');
+  paso(1.6);
+  await foto('06-granada-parpadeo');
+  const vivos = game.enemies.length;
+  paso(0.7);
+  if (game.grenades.length !== 0) throw new Error('granada: no ha explotado');
+  await foto('06-granada-explosion');
+  huella.granada = { ...estado(), granadas: game.granadas, zombisAntes: vivos };
+  tecla('KeyF', true); tecla('KeyF', false); paso(0.1);
+
   // 6b. Munición de verdad (fuera del modo de pruebas, que la da infinita): la pistola se vacía, Johnny pasa
   //     solo a la fregona, coge una caja y vuelve a la pistola; y la escopeta recarga de uno en uno
   const fallo = (msg) => { throw new Error(`munición: ${msg}`); };

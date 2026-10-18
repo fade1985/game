@@ -8,6 +8,7 @@ import { ROOM_TYPES } from './rooms.js';
 import { drawFurniture, drawFurnitureShadow, drawWallDecor, drawWindowLight } from './furniture.js';
 import { CELL } from './shapes.js';
 import { drawMolotov } from './molotov.js';
+import { drawGranada } from './granada.js';
 
 const TAU = Math.PI * 2;
 const PLETINA = ['#2a221c', '#b8a37a', '#8a7552', '#4a3c2c']; // la pletina del paso entre habitaciones, en franjas de 1 píxel
@@ -759,6 +760,8 @@ export function drawPickup(ctx, pk, time) {
   } else if (pk.kind === 'cash') {
     drawBill(ctx, pk.x, y, time + pk.seed);
     brillo(ctx, pk, y, time);
+  } else if (pk.kind === 'granada') {
+    drawGranada(ctx, pk.x, y + 4);
   } else if (pk.kind === 'molotov') {
     drawMolotov(ctx, pk.x, y + 4, 0, time);
   } else if (pk.kind === 'ammo') {

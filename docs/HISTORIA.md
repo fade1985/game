@@ -38,7 +38,13 @@ manteniendo clic derecho o E (el círculo sigue al ratón) y en el móvil arrast
 del de esquivar (un toque sin arrastrar lo tira al zombi más cercano); al soltar, se lanza. Mientras se apunta se
 ven el alcance, la parábola y la zona que arderá. El fuego quema también a Johnny (la esquiva lo cruza).
 Todo está en `src/molotov.js` (los números, provisionales, en `MOLOTOV`); dibujos a mano, sin pixel art aún.
-Con `?pruebas` las botellas no se gastan. Lo de abajo es la propuesta original:
+Con `?pruebas` las botellas no se gastan.
+**Granada (18 de octubre de 2026), pendiente de que la pruebe:** comparte botón con el molotov y se cambia con **F**
+(LB en el mando, botoncito ⇄ en el móvil); el HUD resalta cuál está elegida. Vuela, bota una vez, rueda,
+parpadea en rojo cada vez más deprisa y a los 2 s explota con `explode` (radio 110, daño 80 también a Johnny, temblor,
+destello y mancha chamuscada). Empieza con 2, caben 4, la suelta un zombi el 5 %. Todo en `src/granada.js` (números
+en `GRANADA`, provisionales). Sprite `objeto-granada` e icono del HUD salen de la captura del dueño con
+`py tools/granada_sprite.py`. Lo de abajo es la propuesta original:
 
 - En el juego no existe nada de arrojadizas. Solo hay armas cuerpo a cuerpo y a distancia, y Johnny ataca solo:
   no hay botón de atacar, solo moverse y esquivar.

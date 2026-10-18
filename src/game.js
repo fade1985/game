@@ -17,8 +17,9 @@ import { loadSave, updateSave, buildingSave } from './save.js';
 import { Camera, ZOOM, BOSS_ZOOM } from './camera.js';
 import { setTextFont } from './draw.js';
 import { isOpen, randomFloorPoint } from './shapes.js';
-import { getMoveVector, consumeDash, consumeReload, consumeSwitch, clearInput } from './input.js';
+import { getMoveVector, consumeDash, consumeReload, consumeSwitch, consumeTossSwitch, clearInput } from './input.js';
 import { MolotovMethods, MOLOTOV } from './molotov.js';
+import { GranadaMethods, GRANADA } from './granada.js';
 import { sfx, music, setMusicOn } from './sfx.js';
 import { ZombieAttacks } from './game-ataques.js';
 import { GameDrawing } from './game-dibujo.js';
@@ -88,6 +89,7 @@ export class Game {
     this.hazards = [];   // charcos de veneno en el suelo
     this.trail = [];     // rastro de sangre del zombi lento
     this.lobs = [];      // mocos volando
+    this.grenades = [];  // granadas en el suelo o en el aire (granada.js)
     this.aim = null;     // dónde caería el molotov mientras se apunta
     this.enemies = [];
     this.bullets = [];
@@ -160,6 +162,8 @@ export class Game {
     this.kills = 0;
     this.runKeys = 0;          // dólares recogidos en esta partida
     this.molotovs = MOLOTOV.start; // cócteles molotov en la mochila
+    this.granadas = GRANADA.start; // granadas en la mochila
+    this.tossKind = 'molotov';     // lo que se lanza con el botón de lanzar: 'molotov' o 'granada'
     this.wallet = save.keys;   // dólares ahorrados (para el HUD; en el guardado se siguen llamando "keys")
     this.runTime = 0;
     this.floorNum = 1;
@@ -580,6 +584,7 @@ export class Game {
       p.update(dt, this, getMoveVector(), consumeDash());
     }
     this.camera.update(dt, p);
+    if (consumeTossSwitch()) this.switchToss();
     this.updateToss();
     for (const a of this.allies) a.update(dt, this);
 
@@ -595,6 +600,7 @@ export class Game {
 
     this.updateBullets(dt);
     this.updateHazards(dt);
+    this.updateGrenades(dt);
     this.updatePickups(dt);
     this.updateParticles(dt);
     this.updateDoors(dt);
@@ -691,4 +697,5 @@ addMethods(Game, GameEffects);   // partículas, manchas, textos y temblor (game
 addMethods(Game, GameMap);       // choques, niebla y lo que ven y oyen los zombis (game-mapa.js)
 addMethods(Game, ZombieAttacks); // ataques especiales de los zombis (game-ataques.js)
 addMethods(Game, GameDrawing);   // dibujo (game-dibujo.js)
+addMethods(Game, GranadaMethods); // la granada de Johnny (granada.js)
 addMethods(Game, MolotovMethods); // el cóctel molotov de Johnny (molotov.js)

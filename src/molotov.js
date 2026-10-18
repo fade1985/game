@@ -100,7 +100,7 @@ export class MolotovMethods {
     if (p.dead || (!t.aiming && !t.released)) return;
     const target = this.tossTarget(t);
     if (t.aiming) { this.aim = target; return; }
-    if (target) this.throwMolotov(target.x, target.y);
+    if (target) { if (this.tossKind === 'granada') this.throwGrenade(target.x, target.y); else this.throwMolotov(target.x, target.y); }
   }
 
   // Dónde caería: con el ratón, donde está el puntero (sin pasarse del alcance); en el móvil, hacia donde
@@ -235,6 +235,7 @@ export class MolotovMethods {
     const a = this.aim, p = this.player;
     if (!a || p.dead) return;
     const ok = this.hasMolotov;
+    const granada = this.tossKind === 'granada';
     const col = ok ? '255, 159, 28' : '170, 170, 170';
     ctx.save();
     ctx.lineWidth = PIXEL;
@@ -243,6 +244,7 @@ export class MolotovMethods {
     ctx.setLineDash([2 * PIXEL, 4 * PIXEL]);
     ctx.strokeStyle = 'rgba(29, 27, 44, 0.45)';
     ctx.beginPath(); ctx.ellipse(p.x, p.y, MOLOTOV.range, MOLOTOV.range * 0.6, 0, 0, Math.PI * 2); ctx.stroke();
+    if (granada) { ctx.setLineDash([]); ctx.restore(); this.drawGrenadeAim(ctx, a); return; }
     // zona de fuego
     const pulse = 0.85 + 0.15 * Math.sin(this.time * 8);
     ctx.fillStyle = `rgba(${col}, ${0.35 * pulse})`;
@@ -275,7 +277,7 @@ export class MolotovMethods {
       const x = x0 + (a.x - x0) * k, y = y0 + (a.y - y0) * k - Math.sin(k * Math.PI) * MOLOTOV.height;
       ctx.fillStyle = 'rgba(29, 27, 44, 0.7)';
       ctx.fillRect(x - s / 2 - PIXEL / 2, y - s / 2 - PIXEL / 2, s + PIXEL, s + PIXEL);
-      ctx.fillStyle = this.hasMolotov ? '#ffd23f' : '#c8c8c8';
+      ctx.fillStyle = this.hasToss ? (this.tossKind === 'granada' ? '#9bbd5a' : '#ffd23f') : '#c8c8c8';
       ctx.fillRect(x - s / 2, y - s / 2, s, s);
     }
   }

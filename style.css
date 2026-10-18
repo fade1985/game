@@ -405,6 +405,23 @@ body.touch #touch-ui:not([hidden]) { display: block; }
   touch-action: none;
 }
 .toss-btn:active { transform: translateY(0.15em); }
+/* botoncito para cambiar lo que se lanza (molotov / granada), junto al de lanzar */
+.toss-swap {
+  pointer-events: auto;
+  position: absolute;
+  right: calc(var(--cx) + 1.9em);
+  bottom: calc(var(--cy) + var(--r) + 1.1em);
+  width: 1.9em;
+  height: 1.9em;
+  font-size: clamp(14px, 2.4cqw, 24px);
+  border-radius: 50%;
+  background: var(--metal);
+  border: 0.15em solid var(--line);
+  color: #fff;
+  padding: 0;
+  line-height: 1;
+  touch-action: none;
+}
 .toss-btn .ico { width: 1.9em; height: 1.9em; }
 /* Botones redondos de las armas. El del arma que está en la mano, con el aro amarillo y encendido;
    el otro, apagado. En el de fuego, al recargar, un aro blanco que se va llenando (las balas van sobre la vida) */
@@ -482,6 +499,8 @@ body.touch .weapon-pill { display: none; }
 .ico-llave { background-image: url('assets/ui/iconos/llave.png'); }
 .ico-billete { background-image: url('assets/ui/iconos/billete.png'); }
 .ico-molotov { background-image: url('assets/ui/iconos/molotov.png'); }
+.ico-granada { background-image: url('assets/ui/iconos/granada.png'); }
+.pill.on-toss { box-shadow: 0 0 0 2px #ffd23f; }
 .ico-sonido { background-image: url('assets/ui/iconos/sonido.png'); }
 .ico-mudo { background-image: url('assets/ui/iconos/mudo.png'); }
 .ico-pausa { background-image: url('assets/ui/iconos/pausa.png'); }
