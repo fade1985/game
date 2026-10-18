@@ -20,6 +20,12 @@ obligatorios (fogón en la cocina) y grupos (cama + mesillas). **Los muebles, su
   Los de antes (`suelo-bano`, `pared-bano`, `techo-bano`) se retiraron. Hechos con
   `py tools/textura_suelo.py <img> bano-a 12` y `py tools/textura_pared.py <img> bano-a 24 1114 498 748 475 498`.
   `SKIN=-a,-b node tools/foto-sala.mjs sala.png 1 0 bano` fotografía un baño con esa pareja.
+- Cocina, salón y dormitorio (18 oct, **pendiente de visto bueno**): tres suelos del dueño por habitación (`suelo-<estancia>-a|b|c`).
+  Cocina: damero crema y naranja, gres rojo (8 baldosas, el resto 10) y baldosa blanca con sangre. Salón: tablones oscuros,
+  tablones claros y parquet en damero. Dormitorio: moqueta gris azulada, granate y beige con flores. Originales en
+  `assets/sources/suelos/<estancia>-suelo-<a|b|c>` (y `-recorte.png`, sin el margen). Todos a 10 baldosas por lado
+  (`py tools/textura_suelo.py <recorte> cocina-a 10`) para que la baldosa mida lo mismo (16 unidades) en todas. Cada sala elige
+  el suyo con `h % 3` sobre su posición (`rooms.js`, `style.skin.suelo`). Las paredes de estas estancias siguen con el papel de rayas.
 - Pasillo (17 oct, con visto bueno): **moqueta** burdeos y mostaza con octógonos y una **alfombra** roja de borde
   mostaza en medio. El dueño las genera realistas y las pixela con tezumie.github.io (tamaño de píxel 4, con su
   paleta). Originales en `assets/sources/suelos/pasillo-moqueta.png` y `pasillo-alfombra.png`.
