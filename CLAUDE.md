@@ -76,6 +76,7 @@ ni compilación. Se publica en **Vercel** como web estática: lo que se sube a `
 | `estados.js` | Estados genéricos de los charcos (tóxico, veneno, fuego, resbaladizo): misma ficha para todos (daño dentro, lo que dura al salir, si resbala, si afecta a zombis); cada charco elige los suyos en `HAZARDS` de `game-ataques.js` |
 | `molotov.js` | El cóctel molotov: apuntar y lanzar (clic derecho / E / botón táctil / RT del mando), el fuego y su dibujo |
 | `granada.js` | La granada (18 oct, con visto bueno): comparte botón con el molotov (F / LB / ⇄ cambia), bota, parpadea en rojo y explota a los 2 s con `explode`; números en `GRANADA` |
+| `ordenador.js` | El ordenador de mantenimiento ("ConserjeOS", 18 oct, fase 1, **pendiente de visto bueno**): al arrimarse a la mesa (`Ordenador` en `props.js`) se pausa y sale un escritorio de los 90 en HTML; "Armas" elige el arma (sustituye a los muebles de armas, cuya clase `WeaponStash` sigue en `props.js` hasta el visto bueno); "Habilidades", en obras (fase 2). Arte provisional: el escritorio del catálogo y los iconos del HUD |
 | `mando.js` | Jugar con mando: lo lee en cada fotograma; en la partida lo pasa a `input.js` y en los menús va de botón en botón |
 | `upgrades.js` / `ui.js` / `input.js` / `sfx.js` / `save.js` | Mejoras, menús y HUD, controles, sonido, guardado |
 | `musica.js` | Música de fondo siniestra que se inventa sobre la marcha (tramos de tensión, acordes y sucesos al azar con su propio dado); `node tools/grabar-musica.mjs` la graba a un .wav. Con visto bueno (16 oct) |

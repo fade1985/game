@@ -65,6 +65,8 @@ export function createUI(root) {
 
   return {
     hide,
+    // Pantalla hecha fuera de aquí (el ordenador, ordenador.js): su HTML, sus acciones, sus teclas y su clase
+    showScreen: open,
 
     showHud(show) {
       hud.hidden = !show;

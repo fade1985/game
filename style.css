@@ -544,3 +544,107 @@ body.touch .weapon-pill { display: none; }
 .ico-zombi { background-image: url('assets/ui/iconos/zombi.png'); }
 .ico-jefe { background-image: url('assets/ui/iconos/jefe.png'); }
 .ico-corona { background-image: url('assets/ui/iconos/corona.png'); }
+
+/* ═════════════ El ordenador de mantenimiento (ordenador.js) ═════════════
+   Un monitor de tubo viejo con un escritorio de los 90 ("ConserjeOS"), algo sucio y con rayas de pantalla */
+.overlay.pc-overlay { background: rgba(6, 5, 10, 0.86); padding: 0.6em; }
+.pc { width: min(100%, 64em); max-height: 100%; display: flex; }
+.pc-monitor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1.6em 1.8em 0.6em;
+  background: linear-gradient(#cfc6ad, #a99f86);
+  border: 0.25em solid #1b1712;
+  border-radius: 1.2em;
+  box-shadow: inset 0 0 0 0.3em #e2dbc4, inset 0 -0.6em 0 #8e8570, 0 0.6em 2em rgba(0, 0, 0, 0.7);
+}
+.pc-screen {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  max-height: 74vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #1f5e5b;                      /* verde azulado de escritorio viejo */
+  border: 0.3em solid #2b261d;
+  border-radius: 0.8em;
+  box-shadow: inset 0 0 3em rgba(0, 0, 0, 0.65);
+  animation: pc-encender 0.35s ease-out;
+}
+@keyframes pc-encender { from { filter: brightness(3) contrast(0.3); transform: scaleY(0.02); } 60% { transform: scaleY(1); } to { filter: none; } }
+/* rayas del tubo, viñeta y un leve parpadeo */
+.pc-scan {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    repeating-linear-gradient(rgba(0, 0, 0, 0.16) 0 2px, transparent 2px 4px),
+    radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.55));
+  animation: pc-parpadeo 3.2s steps(2) infinite;
+}
+@keyframes pc-parpadeo { 0%, 93% { opacity: 1; } 95% { opacity: 0.7; } }
+.pc-marca { display: flex; align-items: center; justify-content: center; gap: 0.6em; padding-top: 0.4em; color: #5c5442; font-size: 0.8em; letter-spacing: 0.15em; }
+.pc-led { width: 0.6em; height: 0.6em; background: #7dff6a; box-shadow: 0 0 0.5em #7dff6a; border-radius: 50%; }
+
+.pc-desktop { position: relative; flex: 1; min-height: 0; display: flex; padding: 0.8em; gap: 0.8em; }
+.pc-iconos { display: flex; flex-direction: column; gap: 0.5em; }
+.pc-icono {
+  display: flex; flex-direction: column; align-items: center; gap: 0.15em;
+  width: 6em; padding: 0.4em 0.2em;
+  background: none; border: 0.12em dashed transparent; color: #f1ecdc; cursor: pointer;
+  font-size: 0.95em; text-shadow: 0.1em 0.1em 0 #000;
+}
+.pc-icono .ico { width: 2.8em; height: 2.8em; filter: drop-shadow(0.1em 0.1em 0 #000); }
+.pc-icono:hover, .pc-icono:focus-visible, .pc-icono.pad-focus { background: rgba(0, 0, 128, 0.55); border-color: #f1ecdc; outline: none; }
+
+/* ventana con relieve, como las de entonces */
+.pc-win {
+  flex: 1; min-width: 0; display: flex; flex-direction: column;
+  background: #c3bba5;
+  border: 0.15em solid; border-color: #f4efe0 #3a352b #3a352b #f4efe0;
+  box-shadow: 0.25em 0.25em 0 rgba(0, 0, 0, 0.45);
+  color: #1b1712;
+}
+.pc-win-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.5em;
+  padding: 0.2em 0.25em 0.2em 0.5em;
+  background: linear-gradient(90deg, #1d2a6b, #5a6ea8);
+  color: #fff; font-size: 0.95em;
+}
+.pc-x {
+  width: 1.6em; height: 1.4em; line-height: 1; padding: 0;
+  background: #c3bba5; color: #1b1712; cursor: pointer; font-weight: bold;
+  border: 0.12em solid; border-color: #f4efe0 #3a352b #3a352b #f4efe0;
+}
+.pc-x:active { border-color: #3a352b #f4efe0 #f4efe0 #3a352b; }
+.pc-win-body { flex: 1; min-height: 0; overflow-y: auto; padding: 0.6em; }
+.pc-nota { margin: 0 0 0.5em; font-size: 0.85em; color: #4a4336; }
+.pc-armas { display: grid; grid-template-columns: repeat(auto-fill, minmax(17em, 1fr)); gap: 0.4em; }
+.pc-arma {
+  display: flex; align-items: center; gap: 0.5em; text-align: left;
+  padding: 0.35em 0.5em; cursor: pointer; color: inherit;
+  background: #d8d1bb;
+  border: 0.12em solid; border-color: #f4efe0 #3a352b #3a352b #f4efe0;
+}
+.pc-arma .ico { width: 2.4em; height: 2.4em; flex: none; }
+.pc-arma-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pc-arma-txt small { font-size: 0.72em; color: #4a4336; }
+.pc-arma-tag { font-size: 0.75em; padding: 0.1em 0.4em; background: #1d2a6b; color: #fff; }
+.pc-arma:hover, .pc-arma:focus-visible, .pc-arma.pad-focus { background: #ebe4cd; outline: 0.15em dotted #1b1712; outline-offset: -0.35em; }
+.pc-arma.puesta { background: #a9c79a; border-color: #3a352b #f4efe0 #f4efe0 #3a352b; }
+.pc-arma.puesta .pc-arma-tag { background: #2f6b2a; }
+.pc-arma.bloqueada { cursor: not-allowed; opacity: 0.55; }
+.pc-arma.bloqueada .ico { filter: grayscale(1); }
+.pc-obras { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 0.3em; height: 100%; }
+.pc-obras .ico { width: 3em; height: 3em; }
+.pc-obras p { margin: 0; }
+
+.pc-taskbar {
+  display: flex; align-items: center; gap: 0.5em;
+  padding: 0.2em 0.3em;
+  background: #c3bba5; border-top: 0.12em solid #f4efe0; color: #1b1712; font-size: 0.85em;
+}
+.pc-start, .pc-task, .pc-clock { padding: 0.1em 0.5em; border: 0.12em solid; }
+.pc-start { font-weight: bold; border-color: #f4efe0 #3a352b #3a352b #f4efe0; }
+.pc-task { min-width: 8em; border-color: #3a352b #f4efe0 #f4efe0 #3a352b; }
+.pc-task:empty { visibility: hidden; }
+.pc-clock { margin-left: auto; border-color: #3a352b #f4efe0 #f4efe0 #3a352b; }

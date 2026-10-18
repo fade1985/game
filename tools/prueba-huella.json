@@ -118,9 +118,9 @@
     "vida": 90,
     "x": 480,
     "y": 360,
-    "muertes": 1,
-    "zombis": 2,
-    "balas": 1
+    "muertes": 0,
+    "zombis": 3,
+    "balas": 0
   },
   "arma-escopeta": {
     "planta": 1,
@@ -128,19 +128,19 @@
     "vida": 90,
     "x": 480,
     "y": 360,
-    "muertes": 0,
-    "zombis": 3,
-    "balas": 5
+    "muertes": 1,
+    "zombis": 2,
+    "balas": 0
   },
   "arma-mp5": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 90,
+    "vida": 100,
     "x": 480,
     "y": 360,
-    "muertes": 1,
-    "zombis": 2,
-    "balas": 3
+    "muertes": 3,
+    "zombis": 0,
+    "balas": 0
   },
   "molotov": {
     "planta": 1,
@@ -159,8 +159,8 @@
     "vida": 100,
     "x": 480,
     "y": 360,
-    "muertes": 0,
-    "zombis": 2,
+    "muertes": 1,
+    "zombis": 1,
     "balas": 0,
     "granadas": 2,
     "zombisAntes": 2
@@ -171,8 +171,8 @@
     "vida": 100,
     "x": 480,
     "y": 360,
-    "muertes": 1,
-    "zombis": 1,
+    "muertes": 0,
+    "zombis": 2,
     "balas": 0,
     "mano": "ranged",
     "cargador": 0,
@@ -184,25 +184,25 @@
       "floor": 1,
       "dead": true,
       "jammed": false,
-      "time": 137
+      "time": 172
     },
     {
-      "state": "playing",
-      "floor": 2,
-      "dead": false,
+      "state": "over",
+      "floor": 1,
+      "dead": true,
       "jammed": false,
-      "time": 281
+      "time": 47
     }
   ],
   "botPlantas": [
     {
-      "state": "over",
-      "floor": 2,
-      "dead": true,
+      "state": "playing",
+      "floor": 5,
+      "dead": false,
       "jammed": false,
-      "time": 217
+      "time": 556
     }
   ],
-  "botMapas": 12,
+  "botMapas": 32,
   "fin": "over"
 }

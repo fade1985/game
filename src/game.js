@@ -10,9 +10,10 @@ import { Zombie } from './zombies.js';
 import { generateFloor, floorName } from './building.js';
 import { makePlainLayout } from './rooms.js';
 import { baseStats, rollItem, applyWorkshop, WORKSHOP } from './upgrades.js';
-import { SurvivorNPC, DoorKey, WeaponStash } from './props.js';
+import { SurvivorNPC, DoorKey, Ordenador } from './props.js';
+import { OrdenadorMethods } from './ordenador.js';
 import { ExposicionMuebles, expoZombis } from './exposicion.js';
-import { WEAPONS, weaponSummary } from './weapons.js';
+import { weaponSummary } from './weapons.js';
 import { loadSave, updateSave, buildingSave } from './save.js';
 import { Camera, ZOOM, BOSS_ZOOM } from './camera.js';
 import { setTextFont } from './draw.js';
@@ -27,9 +28,8 @@ import { GameCombat } from './game-combate.js';
 import { GameEffects } from './game-efectos.js';
 import { GameMap } from './game-mapa.js';
 
-// Dónde va el mueble de cada arma en la pared de arriba de la sala de mantenimiento, en el orden de
-// WEAPONS. Hay sitio para seis; si algún día hay más armas, harán falta más huecos.
-const STASH_X = [140, 240, 342, 640, 760, 850];
+// Dónde va la mesa del ordenador en la pared de arriba de la sala de mantenimiento (la puerta está en el centro)
+const ORDENADOR_X = 240;
 
 // Vida de los jefes según la planta (la portera solo sale en la azotea)
 const bossHpMul = (type, floorNum) => (type === 'boss' ? 1 : 1 + (floorNum - 1) * 0.25);
@@ -208,15 +208,10 @@ export class Game {
       survivor.room.props.push(npc);
     }
 
-    // Sala de mantenimiento: cada arma espera en su mueble (taquilla, cajón...) para elegir con cuál
-    // empezar. Solo se abren las que ya has encontrado en alguna partida; en el modo pruebas, todas.
+    // Sala de mantenimiento: la mesa con el ordenador, donde se elige con qué arma empezar (ordenador.js).
+    // Solo se pueden elegir las que ya has encontrado en alguna partida; en el modo pruebas, todas.
     const unlocked = loadSave().weapons;
-    if (this.floorNum === 1) {
-      Object.values(WEAPONS).slice(0, STASH_X.length).forEach((w, i) => {
-        const locked = !this.testMode && w.id !== 'fregona' && !unlocked.includes(w.id);
-        this.floor.start.props.push(new WeaponStash(w, STASH_X[i], locked));
-      });
-    }
+    if (this.floorNum === 1) this.floor.start.props.push(new Ordenador(ORDENADOR_X));
     // Salas de exposición del modo pruebas: todos los muebles a la izquierda y todos los zombis a la derecha
     const { expo } = this.floor;
     if (expo) {
@@ -232,7 +227,7 @@ export class Game {
       title: this.building.name,
       sub: this.testMode ? 'Modo pruebas · teclas 1-6: zombis · 7-8: jefes · a los lados: exposiciones'
         : firstTime ? 'Muévete con WASD o flechas · Espacio para esquivar'
-        : unlocked.length ? 'Elige tu arma antes de salir' : this.floorLabel,
+        : unlocked.length ? 'Elige tu arma en el ordenador antes de salir' : this.floorLabel,
       t: 0,
     };
   }
@@ -441,15 +436,12 @@ export class Game {
     if (p.dead) return;
     for (const pr of this.room.props) {
       if (pr.taken) continue;
-      if (pr.kind === 'stash') {
-        // Mueble con arma: basta con arrimarse. Va a su hueco (cuerpo a cuerpo o de fuego) y la que
-        // había en ese hueco vuelve sola a su mueble.
-        if (!pr.locked && !p.has(pr.weapon) && obstacleGap(pr, p) < p.r + 6) {
-          p.equip(pr.weapon);
-          this.banner = { icon: p.weapon.id, title: p.weapon.name, sub: weaponSummary(p.weapon), t: 0 };
-          this.burst(pr.x, pr.y, '#ffd23f', 10, 16);
-          sfx.buy();
-        }
+      if (pr.kind === 'ordenador') {
+        // Mesa del ordenador: basta con arrimarse para encenderlo. Al cerrarlo hay que apartarse un poco
+        // antes de que vuelva a abrirse (si no, se abriría otra vez nada más cerrarlo).
+        const gap = obstacleGap(pr, p);
+        if (gap > p.r + 30) pr.armed = true;
+        else if (pr.armed && gap < p.r + 6) { pr.armed = false; this.openOrdenador(); }
         continue;
       }
       if (dist(pr, p) > pr.r + p.r + 4) { pr.armed = true; continue; } // hay que salir y volver a pisarlo
@@ -699,3 +691,4 @@ addMethods(Game, ZombieAttacks); // ataques especiales de los zombis (game-ataqu
 addMethods(Game, GameDrawing);   // dibujo (game-dibujo.js)
 addMethods(Game, GranadaMethods); // la granada de Johnny (granada.js)
 addMethods(Game, MolotovMethods); // el cóctel molotov de Johnny (molotov.js)
+addMethods(Game, OrdenadorMethods); // el ordenador de mantenimiento, donde se elige el arma (ordenador.js)
