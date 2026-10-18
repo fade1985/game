@@ -30,6 +30,9 @@ obligatorios (fogón en la cocina) y grupos (cama + mesillas). **Los muebles, su
   oliva con friso y beige con friso de madera; dormitorio: lila a rayas, beige con rombos y azul con friso blanco. Originales en
   `assets/sources/suelos/<estancia>-pared-<a|b|c>.png`; se recortan con `py tools/textura_pared.py <img> cocina-a 24 1114 492 748 475 492`
   (los 17 píxeles de arriba son la moldura). `SKIN=-a,-b node tools/foto-sala.mjs sala.png 0 0 cocina` fotografía una sala con esa pareja.
+- Mantenimiento (18 oct, **pendiente de visto bueno**): el damero se cambió por hormigón agrietado con sangre (Gemini), 8 × 8
+  baldosas. Original en `assets/sources/suelos/mantenimiento-suelo.png` (y `-recorte.png`, sin el margen transparente);
+  `py tools/textura_suelo.py <recorte> mantenimiento 8`. Lo usan también las salas de exposición de `?pruebas`.
 - Pasillo (17 oct, con visto bueno): **moqueta** burdeos y mostaza con octógonos y una **alfombra** roja de borde
   mostaza en medio. El dueño las genera realistas y las pixela con tezumie.github.io (tamaño de píxel 4, con su
   paleta). Originales en `assets/sources/suelos/pasillo-moqueta.png` y `pasillo-alfombra.png`.
