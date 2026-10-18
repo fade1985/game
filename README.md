@@ -111,7 +111,7 @@ mete los cartuchos **de uno en uno** y puede disparar a mitad de recarga. En el 
 la fregona en su cubo, el bate en el paragüero, el cuchillo en la encimera, la pistola en el cajón de la cómoda
 y la escopeta en la taquilla. Arrímate a un mueble abierto para coger su arma (la que llevabas vuelve a su sitio).
 Los muebles con candado guardan armas que aún no has encontrado: **la primera vez que coges un arma en una
-partida queda desbloqueada para siempre**. Con `?armas` en la dirección se ven todas abiertas, sin tocar el guardado.
+partida queda desbloqueada para siempre**. Con `?pruebas` en la dirección se ven todas abiertas, sin tocar el guardado.
 
 | Arma | Tipo | Daño | Ataques/s | Cargador · recarga | Detalle |
 |---|---|---|---|---|---|

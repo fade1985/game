@@ -139,18 +139,21 @@ function walkChecker(geo, points, pad = 20) {
 // ═════════════ Mapas rectangulares ═════════════
 
 // Sala rectangular sin tabiques: 'menu' (el fondo del menú), 'maintenance' (la sala de mantenimiento,
-// donde empieza el conserje) o 'roof' (la azotea, más grande y sin muebles).
+// donde empieza el conserje), 'expo' (las salas de exposición del modo pruebas: como mantenimiento,
+// pero vacías) o 'roof' (la azotea, más grande y sin muebles).
 export function makePlainLayout(kind) {
-  const rng = mulberry32(Math.floor(Math.random() * 1e9));
-  const style = STYLES[kind === 'roof' ? 'Azotea' : kind === 'maintenance' ? 'Mantenimiento' : 'Pasillo'];
+  // las de exposición, con semilla fija: así no gastan el dado de la partida (y npm test sigue igual)
+  const rng = mulberry32(kind === 'expo' ? 1 : Math.floor(Math.random() * 1e9));
+  const vacia = kind === 'roof' || kind === 'expo';
+  const style = STYLES[kind === 'roof' ? 'Azotea' : kind === 'maintenance' || kind === 'expo' ? 'Mantenimiento' : 'Pasillo'];
   const [cols, rows] = kind === 'roof' ? [ROOF_COLS, ROOF_ROWS] : [BASE_COLS, BASE_ROWS];
   const RW = cols * CELL, RH = rows * CELL;
   const geo = { grid: plainGrid(cols, rows), blocks: [], cols, rows, w: RW, h: RH };
   // en mantenimiento la pared de arriba es para los muebles de las armas
   const [min, max] = kind === 'maintenance' ? SALAS['Mantenimiento'].cuantos : SALAS['Pasillo'].cuantosMenu;
-  const obstacles = kind === 'roof' ? [] : placeFurniture(style.name, rng, min, max, { skipSide: kind === 'maintenance' ? 'top' : null });
+  const obstacles = vacia ? [] : placeFurniture(style.name, rng, min, max, { skipSide: kind === 'maintenance' ? 'top' : null });
   surtido(obstacles);
-  let wallDecor = kind === 'roof' ? [] : makeWallDecor(rng, geo, [{ dir: 'up', at: RW / 2 }], kind !== 'maintenance');
+  let wallDecor = vacia ? [] : makeWallDecor(rng, geo, [{ dir: 'up', at: RW / 2 }], kind !== 'maintenance');
   // la pared de mantenimiento ya trae su propia pintada y salpicones (tools/pared_mantenimiento.py): sin cuadros encima
   if (kind === 'maintenance') wallDecor = [];
   let rug = null;

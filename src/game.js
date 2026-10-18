@@ -10,8 +10,8 @@ import { Zombie } from './zombies.js';
 import { generateFloor, floorName } from './building.js';
 import { makePlainLayout } from './rooms.js';
 import { baseStats, rollItem, applyWorkshop, WORKSHOP } from './upgrades.js';
-import { SurvivorNPC, DoorKey, WeaponStash, Maniqui } from './props.js';
-import { ExposicionMuebles } from './exposicion.js';
+import { SurvivorNPC, DoorKey, WeaponStash } from './props.js';
+import { ExposicionMuebles, expoZombis } from './exposicion.js';
 import { WEAPONS, weaponSummary } from './weapons.js';
 import { loadSave, updateSave, buildingSave } from './save.js';
 import { Camera, ZOOM, BOSS_ZOOM } from './camera.js';
@@ -188,7 +188,10 @@ export class Game {
   // Genera una planta nueva y coloca al conserje donde empieza: en la sala de mantenimiento en la
   // planta baja y, en las demás, al principio del pasillo (o de la azotea)
   startFloor() {
-    this.floor = generateFloor(this.floorNum, this.building.floors);
+    // Modo de pruebas (añade ?pruebas a la dirección): las teclas 1-6 invocan zombis (ver main.js), todas
+    // las armas están abiertas y a los lados de mantenimiento hay dos salas de exposición (muebles y zombis)
+    this.testMode = new URLSearchParams(location.search).has('pruebas');
+    this.floor = generateFloor(this.floorNum, this.building.floors, { pruebas: this.testMode });
     this.transition = null;
     this.room = null;
 
@@ -201,26 +204,21 @@ export class Game {
       survivor.room.props.push(npc);
     }
 
-    // Modo de pruebas (añade ?pruebas a la dirección): las teclas 1-6 invocan zombis (ver main.js)
-    const params = new URLSearchParams(location.search);
-    this.testMode = params.has('pruebas');
     // Sala de mantenimiento: cada arma espera en su mueble (taquilla, cajón...) para elegir con cuál
-    // empezar. Solo se abren las que ya has encontrado en alguna partida; con ?armas (o ?pruebas)
-    // se ven todas abiertas, sin tocar el guardado.
+    // empezar. Solo se abren las que ya has encontrado en alguna partida; en el modo pruebas, todas.
     const unlocked = loadSave().weapons;
-    const showAll = this.testMode || params.has('armas');
-    if (this.floorNum === 1 && !params.has('muebles')) { // con ?muebles la sala queda libre para la exposición
+    if (this.floorNum === 1) {
       Object.values(WEAPONS).slice(0, STASH_X.length).forEach((w, i) => {
-        const locked = !showAll && w.id !== 'fregona' && !unlocked.includes(w.id);
+        const locked = !this.testMode && w.id !== 'fregona' && !unlocked.includes(w.id);
         this.floor.start.props.push(new WeaponStash(w, STASH_X[i], locked));
       });
     }
-    // Sala de exposición (añade ?sala=venenoso): ese zombi posa quieto en la sala de mantenimiento,
-    // al lado del conserje, para ver cómo queda su sprite
-    const pose = params.get('sala');
-    if (this.floorNum === 1 && pose) this.floor.start.props.push(new Maniqui(`zombi-${pose}`, W / 2 + 80, H / 2 + 40));
-    // Sala de exposición de muebles (añade ?muebles): todos los muebles con sus variantes (exposicion.js)
-    if (this.floorNum === 1 && params.has('muebles')) this.floor.start.props.push(new ExposicionMuebles());
+    // Salas de exposición del modo pruebas: todos los muebles a la izquierda y todos los zombis a la derecha
+    const { expo } = this.floor;
+    if (expo) {
+      expo.muebles.props.push(new ExposicionMuebles());
+      expo.zombis.props.push(...expoZombis(this.spriteIds || []));
+    }
     this.enterRoom(this.floor.start, this.floor.startExit);
     if (this.floorNum > 1) return; // en las demás plantas el cartel lo pone el propio mapa al entrar
     // primera partida: recordatorio de los controles
@@ -228,9 +226,9 @@ export class Game {
     this.banner = {
       icon: this.building.id,
       title: this.building.name,
-      sub: this.testMode ? 'Modo pruebas · teclas 1-6: zombis · 7-8: jefes'
+      sub: this.testMode ? 'Modo pruebas · teclas 1-6: zombis · 7-8: jefes · a los lados: exposiciones'
         : firstTime ? 'Muévete con WASD o flechas · Espacio para esquivar'
-        : showAll || unlocked.length ? 'Elige tu arma antes de salir' : this.floorLabel,
+        : unlocked.length ? 'Elige tu arma antes de salir' : this.floorLabel,
       t: 0,
     };
   }

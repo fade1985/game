@@ -1,13 +1,16 @@
 // ─────────────────────────────────────────────
-//  Sala de exposición de muebles (añade ?muebles a la dirección): en la sala de mantenimiento se
-//  ponen todos los muebles del catálogo con todas sus variantes y su dibujo de lado, a su tamaño
-//  real, para ver rápido cómo quedan. Teclas 1-6: una carpeta de muebles cada vez.
-//  Cada mueble lleva debajo su nombre; el rectángulo claro es el hueco que ocupa en el mapa.
+//  Salas de exposición del modo pruebas (?pruebas), a los lados de la sala de mantenimiento:
+//  - Muebles (a la izquierda): todos los del catálogo con todas sus variantes y su dibujo de lado, a su
+//    tamaño real, para ver rápido cómo quedan. Teclas 1-6: una carpeta de muebles cada vez.
+//    Cada mueble lleva debajo su nombre; el rectángulo claro es el hueco que ocupa en el mapa.
+//  - Zombis (a la derecha): cada zombi y jefe con sprite, quieto y girando por sus 8 direcciones.
+//    Arriba un ejemplar de cada tipo; abajo, las variantes de color.
 // ─────────────────────────────────────────────
 import { W } from './config.js';
 import { outlinedText } from './draw.js';
 import { MUEBLES } from './catalogo.js';
 import { drawSprite, hasSprite, spriteMeta, furnitureShadow } from './sprites.js';
+import { Maniqui } from './props.js';
 
 const CARPETAS = [
   ['salon', 'Salón'], ['cocina', 'Cocina'], ['dormitorio', 'Dormitorio'],
@@ -101,4 +104,15 @@ export class ExposicionMuebles {
     }
     ctx.restore();
   }
+}
+
+// Los maniquíes de la sala de zombis, a partir de los sprites cargados (`ids`): arriba los zombis de cada
+// tipo y los jefes; abajo las variantes (un sprite cuyo nombre empieza por el de otro: zombi-normal-bata).
+export function expoZombis(ids) {
+  const todos = ids.filter((id) => id.startsWith('zombi-') || id.startsWith('jefe-'));
+  const variantes = todos.filter((id) => todos.some((o) => id.startsWith(`${o}-`)));
+  const tipos = todos.filter((id) => !variantes.includes(id));
+  const fila = (lista, y, x0, x1) => lista.map((id, i) =>
+    new Maniqui(id, x0 + ((i + 0.5) * (x1 - x0)) / lista.length, y, id.replace(/^(zombi|jefe)-/, '')));
+  return [...fila(tipos, 290, 150, W - 150), ...fila(variantes, 560, 90, W - 90)];
 }

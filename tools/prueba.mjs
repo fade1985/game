@@ -8,7 +8,7 @@
 //    npm test -- --comparar        → juega y compara con la huella guardada
 //
 //  Qué hace:
-//   1. Sirve la carpeta y abre `?pruebas&mudo` en Chromium (con Playwright).
+//   1. Sirve la carpeta y abre `?pruebas` en Chromium (con Playwright).
 //   2. Fija el azar (siempre la misma semilla) y para el bucle normal del juego: lo adelanta el
 //      script fotograma a fotograma. Así cada vez pasa exactamente lo mismo.
 //   3. Pasa por el menú, la pausa, cada zombi, cada jefe, cada arma, el molotov y unas partidas
@@ -56,7 +56,7 @@ const server = http.createServer((req, res) => {
   fs.createReadStream(file).pipe(res);
 });
 await new Promise((ok) => server.listen(0, ok));
-const URL_JUEGO = `http://localhost:${server.address().port}/?pruebas&mudo`;
+const URL_JUEGO = `http://localhost:${server.address().port}/?pruebas`;
 
 // ── Antes de que arranque el juego: azar fijo, sin bucle propio, guardado limpio ──
 function preparar() {

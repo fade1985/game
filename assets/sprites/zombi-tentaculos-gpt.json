@@ -1,0 +1,60 @@
+{
+  "cell": [
+    128,
+    128
+  ],
+  "pivot": [
+    64,
+    116
+  ],
+  "scale": 0.5,
+  "nota": "Prueba de detalle doble (2026-10-18): se dibuja a media escala, así sus píxeles son la mitad de grandes que los de los demás",
+  "anims": {
+    "idle": {
+      "fps": 1,
+      "loop": true,
+      "dirs": {
+        "south": {
+          "row": 0,
+          "col": 0,
+          "frames": 1
+        },
+        "south-east": {
+          "row": 0,
+          "col": 1,
+          "frames": 1
+        },
+        "east": {
+          "row": 0,
+          "col": 2,
+          "frames": 1
+        },
+        "north-east": {
+          "row": 0,
+          "col": 3,
+          "frames": 1
+        },
+        "north": {
+          "row": 0,
+          "col": 4,
+          "frames": 1
+        },
+        "north-west": {
+          "row": 0,
+          "col": 5,
+          "frames": 1
+        },
+        "west": {
+          "row": 0,
+          "col": 6,
+          "frames": 1
+        },
+        "south-west": {
+          "row": 0,
+          "col": 7,
+          "frames": 1
+        }
+      }
+    }
+  }
+}

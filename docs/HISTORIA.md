@@ -12,7 +12,7 @@ dio con pocas posturas). Ahora es el de la izquierda dado la vuelta: `"espejo": 
 También con visto bueno: al disparar andando (pistola, escopeta, MP5) Johnny se echa entero un poco hacia atrás,
 porque andando no se ve el retroceso de los brazos (`KICK` y `KICK_T` en `src/entities.js`).
 
-**1. Lo que el dueño tiene que probar jugando** (`http://localhost:3000/?pruebas&armas&mudo`; la tecla 1 saca un
+**1. Lo que el dueño tiene que probar jugando** (`http://localhost:3000/?pruebas`; la tecla 1 saca un
 zombi). No ha dado todavía el visto bueno final a nada de esto:
 
 - **El MP5**, arma nueva (la caja de la derecha del todo en la sala de mantenimiento). Qué mirar: si el traqueteo

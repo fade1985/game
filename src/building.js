@@ -42,6 +42,22 @@ function join(roomA, exitA, roomB, exitB) {
   roomB.exits.push(exitB);
 }
 
+// Modo pruebas: una sala de exposición a cada lado de la de mantenimiento, unidas por puertas en las
+// paredes de los lados (muebles a la izquierda, zombis a la derecha). Lo que se expone lo pone game.js.
+function addExpoRooms(maint) {
+  const salas = {};
+  for (const [id, dir, label] of [['muebles', 'left', 'Muebles'], ['zombis', 'right', 'Zombis']]) {
+    const layout = makePlainLayout('expo');
+    const room = newRoom('maintenance', `Exposición de ${label.toLowerCase()}`, layout);
+    room.expo = id;
+    const look = { frame: ROOM_TYPES.maintenance.frame, icon: ROOM_TYPES.maintenance.icon };
+    join(maint, makeExit(maint.layout, dir, maint.layout.h / 2, { ...look, label }),
+      room, makeExit(layout, OPPOSITE[dir], layout.h / 2, { ...look, label: 'Mantenimiento' }));
+    salas[id] = room;
+  }
+  return salas;
+}
+
 // Genera la planta número `num` de un edificio de `floors` plantas. Devuelve:
 //   rooms       todos sus mapas          corridor   el pasillo (null en la azotea)
 //   apartments  lo que hay tras las cuatro puertas
@@ -50,9 +66,10 @@ function join(roomA, exitA, roomB, exitB) {
 //   key         { room, x, y, name } dónde está la llave del mini jefe
 //   survivor    { room, x, y } dónde espera el superviviente de la planta
 //   hasKey, keyUsed   si el conserje lleva la llave y si ya la ha gastado
-export function generateFloor(num, floors) {
+//   expo        en el modo pruebas, las salas de exposición a los lados de mantenimiento ({ muebles, zombis })
+export function generateFloor(num, floors, { pruebas = false } = {}) {
   const name = floorName(num, floors);
-  const floor = { num, name, rooms: [], apartments: [], corridor: null, boss: null, stairs: null, key: null, survivor: null, hasKey: false, keyUsed: false };
+  const floor = { num, name, rooms: [], apartments: [], corridor: null, boss: null, stairs: null, key: null, survivor: null, hasKey: false, keyUsed: false, expo: null };
 
   // La azotea: se llega por la escalera y ya no se puede volver
   if (num === floors) {
@@ -87,6 +104,7 @@ export function generateFloor(num, floors) {
       room = newRoom('maintenance', ROOM_TYPES.maintenance.name, layout);
       back = makeExit(layout, OPPOSITE[s.dir], layout.w / 2);
       look = { frame: ROOM_TYPES.maintenance.frame, icon: ROOM_TYPES.maintenance.icon, label: 'Mantenimiento' };
+      if (pruebas) floor.expo = addExpoRooms(room);
     } else {
       const boss = s === bossSlot;
       // la puerta del apartamento está en el lado que da al pasillo
@@ -127,7 +145,7 @@ export function generateFloor(num, floors) {
   floor.survivor = { room: survRoom, ...zoneSpot(survRoom.layout, survZone) };
 
   return Object.assign(floor, {
-    rooms: [corridor, ...floor.apartments], corridor, boss, stairs,
+    rooms: [corridor, ...floor.apartments, ...Object.values(floor.expo || {})], corridor, boss, stairs,
     start: ground ? floor.apartments[0] : corridor,
     startExit: ground ? null : arrival,
   });

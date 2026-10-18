@@ -21,7 +21,7 @@ const server = http.createServer((req, res) => {
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 page.on('pageerror', (e) => console.log('error:', e.message));
-await page.goto(`http://localhost:${server.address().port}/?pruebas&mudo`);
+await page.goto(`http://localhost:${server.address().port}/?pruebas`);
 await page.waitForFunction(() => window.game?.spriteIds?.some?.((id) => id.startsWith('zombi-')), null, { timeout: 30000, polling: 200 });
 const process_skin_arg = process.env.SKIN ? { suelo: process.env.SKIN.split(",")[0], pared: process.env.SKIN.split(",")[1] } : null;
 await page.evaluate(([x, y, donde, process_skin]) => {

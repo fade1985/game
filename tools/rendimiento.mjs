@@ -24,7 +24,7 @@ const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 page.on('pageerror', (e) => console.log('ERROR', e.message));
 await page.addInitScript(() => { let s = 7; Math.random = () => ((s = (s * 16807) % 2147483647) / 2147483647); window.requestAnimationFrame = () => 0; });
-await page.goto(`http://localhost:${server.address().port}/?pruebas&mudo`);
+await page.goto(`http://localhost:${server.address().port}/?pruebas`);
 await page.waitForFunction(() => window.game?.spriteIds?.some?.((id) => id.startsWith('zombi-')), null, { polling: 200, timeout: 60000 });
 const out = await page.evaluate(() => {
   const g = window.game; g.newRun(); g.banner = null; g.player.aimer = { aim: () => null };

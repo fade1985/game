@@ -38,11 +38,14 @@ ni compilación. Se publica en **Vercel** como web estática: lo que se sube a `
 
 `npm run dev` sirve la carpeta en `http://localhost:3000` (el servidor quita el `.html` de las direcciones).
 
-- **Abrir siempre con `?mudo`** (sin sonido; lo pidió el dueño) y cerrar la pestaña al terminar.
-- `?pruebas` → teclas **1–6** sacan cada zombi, **7** la portera (mini jefa), **8** la jefa final; abre también las armas.
-- `?armas` → todas las armas en la sala de mantenimiento. `?sala=<zombi>` → sala de exposición de un zombi.
-- `?muebles` → sala de exposición de muebles (`src/exposicion.js`): todos los del catálogo con variantes y dibujo de lado, a su tamaño real; teclas **1–6** cambian de carpeta (salón, cocina, dormitorio, baño, pasillo, común).
-- Se combinan: `?pruebas&mudo`.
+- **Solo hay una opción: `?pruebas`** (las de antes, `?mudo`, `?armas`, `?sala=` y `?muebles`, se quitaron el 18 oct).
+  Arranca sin sonido (lo pidió el dueño), abre todas las armas y las teclas **1–6** sacan cada zombi, **7** la
+  portera (mini jefa) y **8** la jefa final. Cerrar la pestaña al terminar.
+- En `?pruebas`, la sala de mantenimiento tiene una puerta a cada lado (`src/exposicion.js`):
+  - **izquierda, muebles:** todos los del catálogo con variantes y dibujo de lado, a su tamaño real; teclas
+    **1–6** cambian de carpeta (salón, cocina, dormitorio, baño, pasillo, común);
+  - **derecha, zombis:** cada zombi y jefe con sprite (`zombi-*`, `jefe-*`) girando sus 8 direcciones; arriba los
+    tipos, abajo las variantes de color. Un sprite nuevo sale ahí solo con añadirlo al manifest.
 - En la consola el juego es `window.game` (`game.update(1/60)` lo adelanta). `tools/bot.js` juega solo para medir
   el equilibrado (uso en su cabecera).
 - **`npm test`** abre el juego sin pantalla, pasa por menú, zombis, jefes, armas, molotov y partidas del bot, y

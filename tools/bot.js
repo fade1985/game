@@ -130,7 +130,7 @@ function think(game, memo) {
     if (!floor.stairs.locked) ex = floor.stairs;
     else if (floor.hasKey || floor.keyUsed) ex = door(floor.boss);
     else ex = door(floor.apartments.find((r) => r.type === 'apartment' && !r.cleared));
-  } else ex = room.exits.find((x) => x.to);
+  } else ex = room.exits.find((x) => x.to && !x.to.expo); // las salas de exposición (modo pruebas) no son camino
   if (!ex) return { x: 0, y: 0 };
   const pt = exitPoint(game, ex);
   // delante de la puerta primero y luego contra ella, para no quedarse rozando el marco

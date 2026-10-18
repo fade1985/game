@@ -1238,5 +1238,34 @@
     "sin_usar_en_pixellab": "Borrados (2026-10-15, con confirmación del dueño): la muerte north con charco (grupo dfb143b4) y los andares west y south-west del grupo 54aade3c. Queda el modelo d190c9d8 (piel sin corregir), no incluido en la limpieza.",
     "cost": "Unas 35 generaciones: 6 del modelo + 0,25 de importar + unas 29 de animaciones.",
     "updated": "2026-10-15"
+  },
+  "zombi-tentaculos-gemini": {
+    "kind": "character",
+    "character_id": "64348dd8-44e2-4281-bd88-b40fc065d508",
+    "name": "Zombi tentáculos (Gemini, pro)",
+    "nota": "Prueba del dueño (2026-10-18): copiar un diseño hecho en Gemini (gabardina negra, calvo verde, tentáculos granates). create_character mode pro con concept_image (la imagen de Gemini recortada) y style_character_id = conserje-48. Rotaciones y comparación en assets/sources/zombi-tentaculos-gemini/. PENDIENTE de que el dueño elija entre este y zombi-tentaculos-56.",
+    "request": {
+      "description": "adult male zombie, bald head with sickly pale green rotting skin, sunken dark red eyes, torn bloody mouth, long black trench coat with high collar and ragged torn hem, dark grey shirt, black belt, black trousers, worn brown boots, long thin green arms hanging at his sides with grey-brown rotten hands, five thick dark crimson and purple tentacles bursting out of his upper back and curling above his shoulders and head, slightly hunched, menacing",
+      "mode": "pro",
+      "size": 56,
+      "view": "low top-down",
+      "style_character_id": "4e6c78c6-d6c6-46d3-99c1-40a2d86f0e6c"
+    },
+    "cost": "10 generaciones.",
+    "updated": "2026-10-18"
+  },
+  "zombi-tentaculos-gpt": {
+    "kind": "character",
+    "character_id": "b710038d-a44d-44e0-bda3-c15632d4b768",
+    "name": "Zombi tentáculos (GPT, v3 128)",
+    "nota": "Diseño del dueño hecho con GPT (2026-10-18): 4 vistas (sur, sureste, este, norte) reducidas a sus píxeles reales (unos 6 px por píxel; ~57x97), sin fondo y con los pies en y=116, en lienzo de 128x128 (assets/sources/zombi-tentaculos-gpt/rotations-128/). Oeste y suroeste = espejo de este y sureste. create_character v3 con referencia sur + direction_images: PixelLab solo generó noreste y noroeste. Resultado en assets/sources/zombi-tentaculos-gpt/pixellab/. PENDIENTE del visto bueno del dueño.",
+    "request": {
+      "description": "tall gaunt zombie with pale grey-green skin, bald head, glowing pale yellow eyes, skeletal grinning face, open dark grey vest over an exposed bloody ribcage, torn grey trousers, bare feet, long thin arms with clawed red hands, many thick dark crimson tentacles bursting out of his back and curling over his shoulders and head",
+      "mode": "v3",
+      "size": "128x128 (el de la referencia)",
+      "view": "low top-down"
+    },
+    "cost": "2 generaciones (+0,1 del unzoom de prueba).",
+    "updated": "2026-10-18"
   }
 }

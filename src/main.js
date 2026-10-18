@@ -17,8 +17,9 @@ const overlay = document.getElementById('overlay');
 if (window.matchMedia('(pointer: coarse)').matches) document.body.classList.add('touch');
 
 setMusicOn(loadSave().settings.music);
-// Con ?mudo en la dirección el juego arranca sin sonido ni música (para probar sin molestar)
-if (new URLSearchParams(location.search).has('mudo')) {
+// En el modo pruebas (?pruebas) el juego arranca sin sonido ni música, para probar sin molestar
+// (se puede volver a activar con el botón del altavoz)
+if (new URLSearchParams(location.search).has('pruebas')) {
   toggleMute();
   document.getElementById('btn-mute').innerHTML = '<i class="ico ico-mudo"></i>';
 }
@@ -39,6 +40,7 @@ window.addEventListener('keydown', (e) => {
 const TEST_ZOMBIES = ['lento', 'normal', 'rapido', 'explosivo', 'tentaculos', 'venenoso', 'miniboss', 'boss'];
 window.addEventListener('keydown', (e) => {
   if (!game.testMode || game.state !== 'playing' || game.paused || e.uiHandled) return;
+  if (game.room?.expo) return; // en las salas de exposición los números son de la exposición
   const n = Number(e.key);
   if (n >= 1 && n <= TEST_ZOMBIES.length) {
     const pos = game.findSpawnPoint();
@@ -88,8 +90,6 @@ function drawLoading() {
 game.goMenu();
 requestAnimationFrame(frame);
 // Sprites de pixel art (lo que aún no tiene sprite se dibuja a mano, como antes)
-// Con ?sala=<zombi> (o ?muebles) se salta el menú y se entra directamente a la sala de exposición
-const sala = ['sala', 'muebles'].some((p) => new URLSearchParams(location.search).has(p));
 // Primero se cargan los del menú (Johnny con la fregona, el suelo del pasillo y los muebles) para que
 // aparezca enseguida, y el resto (zombis, armas, objetos...) mientras tanto.
 const MENU_SPRITES = ['conserje-48-guardia', 'suelo-pasillo', 'mueble-'];
@@ -98,7 +98,6 @@ sprites.primero.then((ids) => { game.spriteIds = ids; menuReady = true; });
 sprites.todos.then((ids) => {
   game.spriteIds = ids;
   allReady = true;
-  if (sala) game.newRun();
 });
 
 // Para depurar desde la consola del navegador: window.game

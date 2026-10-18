@@ -138,8 +138,8 @@ Si el script avisa de que el ciclo de andar cierra mal en todas las direcciones 
 el último fotograma con el 0: en el lento el 12 volvía a la postura del 0 y el ciclo bueno eran los 12
 fotogramas enteros (`"andar": {"<dirección>": [0, 12], ...}`).
 
-Añadir `zombi-<tipo>` a `assets/sprites/manifest.json`. Probar con `http://localhost:3000/?sala=<tipo>&mudo`
-(sala de exposición) y `?pruebas&mudo` (teclas 1–6). **Cerrar la pestaña al terminar.**
+Añadir `zombi-<tipo>` a `assets/sprites/manifest.json`. Probar con `http://localhost:3000/?pruebas`:
+la puerta de la derecha de mantenimiento lleva a la sala de exposición de zombis, y las teclas 1–6 los sacan. **Cerrar la pestaña al terminar.**
 Si el tipo tiene ataque especial (explosión, látigo, escupitajo), comprobar que el dibujo no tapa el aviso en el suelo.
 
 ### 5. Cierre · PARAR

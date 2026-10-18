@@ -5,7 +5,7 @@
 import { W, H, WALL, OUTLINE } from './config.js';
 import { drawHuman, outlinedText, roundBox, glow } from './draw.js';
 import { drawWeaponItem } from './weapons.js';
-import { drawSprite, hasSprite, pixelShadow } from './sprites.js';
+import { drawSprite, hasSprite, pixelShadow, spriteMeta } from './sprites.js';
 
 const TAU = Math.PI * 2;
 
@@ -252,13 +252,14 @@ function shade(hex) {
   return `#${c(n >> 16)}${c((n >> 8) & 255)}${c(n & 255)}`;
 }
 
-// Maniquí de la sala de exposición (?sala=venenoso): un sprite que posa quieto y va
-// girando por sus 8 direcciones, para compararlo con el conserje. Ni ataca ni se le puede pegar.
+// Maniquí de la sala de exposición de zombis (modo pruebas, exposicion.js): un sprite que posa quieto y
+// va girando por sus 8 direcciones, con su nombre debajo. Ni ataca ni se le puede pegar.
 const POSES = ['south', 'south-east', 'east', 'north-east', 'north', 'north-west', 'west', 'south-west'];
 export class Maniqui {
-  constructor(sprite, x, y) {
+  constructor(sprite, x, y, label = '') {
     this.kind = 'maniqui';
     this.sprite = sprite;
+    this.label = label;
     this.x = x; this.y = y;
     this.r = 16;
     this.solid = false;
@@ -273,6 +274,7 @@ export class Maniqui {
     }
     const dir = POSES[Math.floor(game.time / 1.2) % POSES.length]; // cambia de dirección cada 1,2 s
     pixelShadow(ctx, x, y + 14, 36);
-    drawSprite(ctx, this.sprite, 'idle', dir, game.time, x, y + 15);
+    drawSprite(ctx, this.sprite, 'idle', dir, game.time, x, y + 15, { scale: spriteMeta(this.sprite).scale });
+    if (this.label) outlinedText(ctx, this.label, x, y + 34, 12, '#ffffff', { lw: 3 });
   }
 }

@@ -92,7 +92,7 @@ Mirar la hoja montada antes de seguir.
   sin Johnny) y, si dispara andando, el juego pinta el andar entero y los efectos encima. Así no se le paran
   las piernas. **Nunca partir el cuerpo en dos mitades** (piernas de una animación y torso de otra): se probó y
   el dueño lo rechazó, la cadera se ve desacompasada. Probarlo en el juego andando y disparando a la vez.
-- Probar en el navegador con `?pruebas` (tecla 1 saca un zombi) y `?armas` para coger el arma: reposo, andar en
+- Probar en el navegador con `?pruebas` (tecla 1 saca un zombi; todas las armas están abiertas): reposo, andar en
   varias direcciones y ataque (la versión cartoon ya no existe). **Cerrar la pestaña al terminar**: si no,
   la música del juego sigue sonando.
 
