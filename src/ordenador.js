@@ -32,7 +32,7 @@ const VENTANAS = {
   armas(g) {
     const p = g.player;
     let foco = 'yellow'; // el mando empieza en la primera que se puede elegir (mando.js busca button.yellow)
-    const filas = Object.values(WEAPONS).map((w) => {
+    const fila = (w) => {
       if (!abierta(g, w)) {
         return `
           <button class="pc-arma bloqueada" disabled>
@@ -48,10 +48,17 @@ const VENTANAS = {
           <span class="pc-arma-txt"><b>${w.name}</b><small>${weaponSummary(w)}</small></span>
           <span class="pc-arma-tag">${lleva ? 'EQUIPADA' : 'Elegir'}</span>
         </button>`;
-    }).join('');
+    };
+    // dos grupos, uno por hueco: cuerpo a cuerpo y de fuego
+    const grupo = (tipo, titulo) => `
+      <div class="pc-grupo">
+        <div class="pc-grupo-titulo">${titulo}</div>
+        <div class="pc-armas">${Object.values(WEAPONS).filter((w) => w.type === tipo).map(fila).join('')}</div>
+      </div>`;
     return ['C:\\MANTENIMIENTO\\ARMAS', `
-      <p class="pc-nota">Llevas una de cuerpo a cuerpo y una de fuego. Elige cuál quieres en cada hueco.</p>
-      <div class="pc-armas">${filas}</div>`];
+      <p class="pc-nota">Llevas una de cada grupo: elige cuál quieres en cada hueco.</p>
+      ${grupo('melee', 'Cuerpo a cuerpo')}
+      ${grupo('ranged', 'De fuego')}`];
   },
   habilidades() {
     return ['C:\\MANTENIMIENTO\\HABILIDADES', `

@@ -548,7 +548,9 @@ body.touch .weapon-pill { display: none; }
 /* ═════════════ El ordenador de mantenimiento (ordenador.js) ═════════════
    Un monitor de tubo viejo con un escritorio de los 90 ("ConserjeOS"), algo sucio y con rayas de pantalla */
 .overlay.pc-overlay { background: rgba(6, 5, 10, 0.86); padding: 0.6em; }
-.pc { width: min(100%, 64em); max-height: 100%; display: flex; }
+/* en PC, letra más grande (en el móvil ya se ve bien con la de los menús) */
+body:not(.touch) .overlay.pc-overlay { font-size: clamp(12px, 2.2cqw, 30px); padding: 1em; }
+.pc { width: min(100%, 64em); height: min(100%, 40em); display: flex; }
 .pc-monitor {
   flex: 1;
   display: flex;
@@ -561,8 +563,8 @@ body.touch .weapon-pill { display: none; }
 }
 .pc-screen {
   position: relative;
-  aspect-ratio: 16 / 10;
-  max-height: 74vh;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -627,13 +629,15 @@ body.touch .weapon-pill { display: none; }
 }
 .pc-arma .ico { width: 2.4em; height: 2.4em; flex: none; }
 .pc-arma-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.pc-arma-txt small { font-size: 0.72em; color: #4a4336; }
+.pc-arma-txt small { font-size: 0.8em; color: #4a4336; }
 .pc-arma-tag { font-size: 0.75em; padding: 0.1em 0.4em; background: #1d2a6b; color: #fff; }
 .pc-arma:hover, .pc-arma:focus-visible, .pc-arma.pad-focus { background: #ebe4cd; outline: 0.15em dotted #1b1712; outline-offset: -0.35em; }
 .pc-arma.puesta { background: #a9c79a; border-color: #3a352b #f4efe0 #f4efe0 #3a352b; }
 .pc-arma.puesta .pc-arma-tag { background: #2f6b2a; }
 .pc-arma.bloqueada { cursor: not-allowed; opacity: 0.55; }
 .pc-arma.bloqueada .ico { filter: grayscale(1); }
+.pc-grupo + .pc-grupo { margin-top: 0.7em; }
+.pc-grupo-titulo { margin-bottom: 0.3em; padding-bottom: 0.15em; border-bottom: 0.1em solid #8e8570; font-weight: bold; font-size: 0.9em; }
 .pc-obras { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 0.3em; height: 100%; }
 .pc-obras .ico { width: 3em; height: 3em; }
 .pc-obras p { margin: 0; }
