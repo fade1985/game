@@ -95,6 +95,10 @@
     "huella": "1408585f6f615022",
     "sprite": "mueble-sofa-b"
   },
+  "salon/sofa-c-lado.png": {
+    "huella": "6b7e833f1e971f28",
+    "sprite": "mueble-sofa-c-lado"
+  },
   "salon/sofa-c.png": {
     "huella": "1b08284a70567646",
     "sprite": "mueble-sofa-c"
@@ -104,7 +108,7 @@
     "sprite": "mueble-sofa-d"
   },
   "salon/sofa-lado.png": {
-    "huella": "afefa718514a47bf",
+    "huella": "88b3c62ac96c033b",
     "sprite": "mueble-sofa-lado"
   },
   "salon/sofa.png": {
