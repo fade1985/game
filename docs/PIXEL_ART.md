@@ -171,7 +171,7 @@ a su tamaño de verdad:
 - Saca `entrada-pixel.png` (el bueno, con fondo transparente) y `entrada-ver.png` (ampliado x10 sobre gris, para
   mirarlo). Imprime el tamaño final.
 - Opciones: `--salida X.png`, `--fondo auto|#ff00ff` (auto = el color liso o los cuadros de los bordes),
-  `--colores 16` (máximo de colores), `--paso N` (tamaño del bloque, solo si la detección falla),
+  `--colores 24` (máximo de colores), `--paso N` (tamaño del bloque, solo si la detección falla),
   `--sin-contorno`.
 - Cómo lo hace: busca dónde cambia el color fuerte en cada columna y fila, deduce el paso (puede ser decimal, p. ej.
   17,95) y el desfase de la rejilla; coge un color por bloque (mediana del centro); quita el fondo; junta colores

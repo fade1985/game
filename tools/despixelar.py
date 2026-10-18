@@ -134,7 +134,34 @@ def detectar_rejilla(perfil, tam, paso_fijo=None):
             break
         paso = sum((k - mk) * (p - mp) for k, p in zip(ks, ps)) / var
         fase = mp - paso * mk
-    return paso, fase % paso
+    fase %= paso
+    ok = sum(1 for pos, _ in bordes if abs(((pos - fase + paso / 2) % paso) - paso / 2) <= max(1.5, 0.15 * paso))
+    if ok >= 0.8 * len(bordes) or paso_fijo:
+        n = int(tam / paso) + 3
+        return [fase + k * paso for k in range(-1, n)], paso
+    return _lineas_irregulares(bordes, tam)
+
+
+def _lineas_irregulares(bordes, tam):
+    """Rejilla de bloques que no son todos iguales: las líneas son los propios bordes detectados;
+    si entre dos hay hueco de varios bloques (vecinos del mismo color), se reparte a partes iguales."""
+    pos = [b[0] for b in bordes]
+    huecos = sorted(b - a for a, b in zip(pos, pos[1:]) if b - a > 2)
+    paso = huecos[len(huecos) // 2]
+    lineas = [pos[0]]
+    for q in pos[1:]:
+        g = q - lineas[-1]
+        if g < 0.6 * paso:
+            continue  # borde doble (por el borroso)
+        n = max(1, round(g / paso))
+        base = lineas[-1]
+        for i in range(1, n + 1):
+            lineas.append(base + g * i / n)
+    while lineas[0] - paso > -paso / 2:
+        lineas.insert(0, lineas[0] - paso)
+    while lineas[-1] + paso < tam + paso / 2:
+        lineas.append(lineas[-1] + paso)
+    return lineas, paso
 
 
 # ---------------------------------------------------------------- celdas
@@ -144,39 +171,43 @@ def _mediana(valores):
     return valores[len(valores) // 2]
 
 
-def muestrear(img, sx, ox, sy, oy, alfa=None):
-    """Un color por bloque: mediana de su zona central (sin los bordes, que son borrosos)."""
+def muestrear(img, lx, ly, alfa=None):
+    """Un color por bloque: mediana de su zona central (sin los bordes, que son borrosos).
+    lx, ly: líneas de la rejilla; el bloque i va de l[i] a l[i+1]."""
     w, h = img.size
-    # columnas/filas de bloques que cubren al menos la mitad dentro de la imagen
-    kx0 = math.floor((0 - ox) / sx)
-    kx1 = math.ceil((w - ox) / sx)
-    ky0 = math.floor((0 - oy) / sy)
-    ky1 = math.ceil((h - oy) / sy)
-    xs = [k for k in range(kx0, kx1) if min(w, ox + (k + 1) * sx) - max(0, ox + k * sx) >= 0.5 * sx]
-    ys = [k for k in range(ky0, ky1) if min(h, oy + (k + 1) * sy) - max(0, oy + k * sy) >= 0.5 * sy]
+
+    def tramos(l, tam):
+        # bloques que caen al menos a la mitad dentro de la imagen
+        res = []
+        for a, b in zip(l, l[1:]):
+            if min(tam, b) - max(0, a) >= 0.5 * (b - a):
+                res.append((max(0, a), min(tam, b)))
+        return res
+
     px = img.load()
     celdas = []
-    for ky in ys:
+    tx = tramos(lx, w)
+    for y0, y1 in tramos(ly, h):
         fila = []
-        y0, y1 = max(0, oy + ky * sy), min(h, oy + (ky + 1) * sy)
         my = (y1 - y0) * 0.25
         ya, yb = int(round(y0 + my)), int(round(y1 - my))
         yb = max(yb, ya + 1)
-        for kx in xs:
-            x0, x1 = max(0, ox + kx * sx), min(w, ox + (kx + 1) * sx)
+        for x0, x1 in tx:
             mx = (x1 - x0) * 0.25
             xa, xb = int(round(x0 + mx)), int(round(x1 - mx))
             xb = max(xb, xa + 1)
             rs, gs, bs, As = [], [], [], []
             for y in range(ya, min(yb, h)):
                 for x in range(xa, min(xb, w)):
+                    if alfa is not None:
+                        As.append(alfa[x, y])
+                        if alfa[x, y] < 128:
+                            continue  # los píxeles transparentes (o medio) no cuentan para el color
                     r, g, b = px[x, y][:3]
                     rs.append(r)
                     gs.append(g)
                     bs.append(b)
-                    if alfa is not None:
-                        As.append(alfa[x, y])
-            if As and _mediana(As) < 128:
+            if alfa is not None and (not rs or len(rs) * 2 < len(As)):
                 fila.append(None)  # hueco transparente de la imagen original (p. ej. dentro de la anilla)
             else:
                 fila.append((_mediana(rs), _mediana(gs), _mediana(bs)))
@@ -285,6 +316,19 @@ def juntar_colores(mat, maximo):
     cuenta = Counter(c for fila in mat for c in fila if c is not None)
     if not cuenta:
         return mat
+    # con muchos colores distintos (ruido de JPEG) se agrupan antes en una cuadrícula de colores,
+    # para que la fusión de abajo no tarde una eternidad
+    q = 4
+    while len(cuenta) > 150:
+        q *= 1.5
+        previo = {c: tuple(int(round(v / q) * q) for v in c) for c in cuenta}
+        nuevo = Counter()
+        for c, n in cuenta.items():
+            nuevo[previo[c]] += n
+        if len(nuevo) <= 150:
+            mat = [[None if c is None else previo[c] for c in fila] for fila in mat]
+            cuenta = nuevo
+            break
     grupos = [[list(c), n, {c}] for c, n in cuenta.most_common()]  # [color medio, peso, originales]
     while len(grupos) > 1:
         mejor, par = None, None
@@ -369,22 +413,23 @@ def a_imagen(mat):
 
 # ---------------------------------------------------------------- principal
 
-def despixelar(ruta, fondo="auto", colores=16, paso=None, con_contorno=True):
+def despixelar(ruta, fondo="auto", colores=24, paso=None, con_contorno=True):
     img = Image.open(ruta)
-    alfa = None
+    alfa = orig_rgba = None
     if img.mode in ("RGBA", "LA", "P"):
         img = img.convert("RGBA")
         if img.getchannel("A").getextrema()[0] < 255:
             alfa = img.getchannel("A").load()
+            orig_rgba = img.copy()
         base = Image.new("RGBA", img.size, (255, 0, 255, 255)) if fondo == "auto" else Image.new(
             "RGBA", img.size, _hex(fondo) + (255,))
         base.alpha_composite(img)
         img = base
     img = img.convert("RGB")
     w, h = img.size
-    sx, ox = detectar_rejilla(_perfil(img, 0), w, paso)
-    sy, oy = detectar_rejilla(_perfil(img, 1), h, paso)
-    celdas = muestrear(img, sx, ox, sy, oy, alfa)
+    lx, sx = detectar_rejilla(_perfil(img, 0), w, paso)
+    ly, sy = detectar_rejilla(_perfil(img, 1), h, paso)
+    celdas = muestrear(orig_rgba if alfa else img, lx, ly, alfa)
     mat = quitar_fondo(celdas, fondo)
     mat = juntar_colores(mat, colores)
     mat = recortar(mat, 0)
@@ -399,7 +444,7 @@ def main():
     ap.add_argument("entrada")
     ap.add_argument("--salida", help="PNG de salida (por defecto <entrada>-pixel.png)")
     ap.add_argument("--fondo", default="auto", help="auto, o un color como #ff00ff")
-    ap.add_argument("--colores", type=int, default=16, help="máximo de colores (16)")
+    ap.add_argument("--colores", type=int, default=24, help="máximo de colores (24)")
     ap.add_argument("--paso", type=float, help="tamaño del bloque, si la detección falla")
     ap.add_argument("--sin-contorno", action="store_true", help="no añadir contorno")
     a = ap.parse_args()
