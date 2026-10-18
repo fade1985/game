@@ -23,14 +23,16 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 page.on('pageerror', (e) => console.log('error:', e.message));
 await page.goto(`http://localhost:${server.address().port}/?pruebas&mudo`);
 await page.waitForFunction(() => window.game?.spriteIds?.some?.((id) => id.startsWith('zombi-')), null, { timeout: 30000, polling: 200 });
-await page.evaluate(([x, y, donde]) => {
+const process_skin_arg = process.env.SKIN ? { suelo: process.env.SKIN.split(",")[0], pared: process.env.SKIN.split(",")[1] } : null;
+await page.evaluate(([x, y, donde, process_skin]) => {
   const g = window.game;
   g.newRun(); g.banner = null;
   if (donde === "pasillo") g.enterRoom(g.floor.corridor);
-  if (x !== undefined) { g.player.x = +x; g.player.y = +y; }
+  if (donde === "bano") { const ap = g.floor.apartments.filter((a) => a.layout.zones?.some((z) => z.use === "bano")); const a = ap[+x || 0]; g.enterRoom(a); const z = a.layout.zones.find((z) => z.use === "bano"); g.player.x = z.x + z.w / 2; g.player.y = z.y + z.h / 2; if (process_skin) z.style.skin = process_skin; g.render(); } else
+  if (donde !== "bano" && x !== undefined) { g.player.x = +x; g.player.y = +y; }
   for (let i = 0; i < 40; i++) g.update(1 / 60);
   g.render();
-}, [px, py, donde]);
+}, [px, py, donde, process_skin_arg]);
 console.log(JSON.stringify(await page.evaluate(() => window.game.room.layout.wallDecor.map((d) => [d.kind, Math.round(d.x)]))));
 await page.screenshot({ path: salida });
 await browser.close();

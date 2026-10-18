@@ -12,7 +12,14 @@ obligatorios (fogón en la cocina) y grupos (cama + mesillas). **Los muebles, su
   quedaba peor** (se veían las juntas pintadas): `tools/extraer_baldosas.py` se queda solo para probar.
   El fondo se pinta al **doble de detalle** que los sprites (`BG_PIXEL = 1` en `config.js`, elegido por el dueño):
   las texturas salen a 32 píxeles por casilla y se dibujan a media escala (`"scale": 0.5` en su `.json`).
-- Baño: `assets/sources/suelos/bano-suelo-gemini.webp` (Gemini, 12 × 12). Va mejor si los detalles son gruesos.
+- Baño (18 oct, **pendiente de visto bueno**): dos suelos y dos paredes del dueño (Gemini + tezumie), que se combinan
+  al azar: `suelo-bano-a` (damero blanco y negro con cascotes) y `-b` (verde menta con sangre), `pared-bano-a`
+  (azulejo blanco y verde, salpicones) y `-b` (bloque azul aguado). Originales en `assets/sources/suelos/bano-suelo-a|b`
+  y `bano-pared-a|b` (el `-a` va recortado a `bano-suelo-a-recorte.png`). Cada baño elige su pareja con una cuenta
+  sobre su posición (`rooms.js`, sin gastar el dado) y se pasa en `style.skin` (`render.js` añade `-a`/`-b` al nombre).
+  Los de antes (`suelo-bano`, `pared-bano`, `techo-bano`) se retiraron. Hechos con
+  `py tools/textura_suelo.py <img> bano-a 12` y `py tools/textura_pared.py <img> bano-a 24 1114 498 748 475 498`.
+  `SKIN=-a,-b node tools/foto-sala.mjs sala.png 1 0 bano` fotografía un baño con esa pareja.
 - Pasillo (17 oct, con visto bueno): **moqueta** burdeos y mostaza con octógonos y una **alfombra** roja de borde
   mostaza en medio. El dueño las genera realistas y las pixela con tezumie.github.io (tamaño de píxel 4, con su
   paleta). Originales en `assets/sources/suelos/pasillo-moqueta.png` y `pasillo-alfombra.png`.

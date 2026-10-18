@@ -216,7 +216,13 @@ export function makeApartmentLayout(apt) {
 
   const obstacles = [];
   const zones = apt.rooms.map((rm) => {
-    const st = STYLES[rm.style];
+    let st = STYLES[rm.style];
+    // los baños alternan entre dos suelos y dos paredes (sprites suelo-bano-a/-b, pared-bano-a/-b). Se elige con una
+    // cuenta sobre la posición, sin gastar el dado de la partida
+    if (st.name === 'Baño') {
+      const h = rm.c0 * 7 + rm.r0 * 13 + rm.cells;
+      st = { ...st, skin: { suelo: h % 2 ? '-a' : '-b', pared: (h >> 1) % 2 ? '-a' : '-b' } };
+    }
     const [min, max] = FURNITURE[rm.use];
     // en las habitaciones grandes cabe algún mueble más
     const extra = Math.min(2, Math.floor(rm.cells / 220));

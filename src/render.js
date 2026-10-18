@@ -174,7 +174,7 @@ export function wallFaces(layout) {
 
 export function drawFace(ctx, f) {
   const { x, w, y, top, style } = f;
-  const tex = `pared-${slug(style.name)}`, roof = `techo-${slug(style.name)}`;
+  const tex = `pared-${slug(style.name)}${style.skin?.pared ?? ''}`, roof = `techo-${slug(style.name)}${style.skin?.pared ?? ''}`;
   if (hasSprite(roof)) strip(ctx, roof, x, top - CAP, w, CAP);
   else {
     ctx.fillStyle = f.cap;
@@ -365,7 +365,7 @@ const slug = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCa
 // Pinta el suelo de un estilo en el rectángulo (x0, y0, w, h). Quien llama recorta antes la forma exacta.
 function drawFloor(ctx, style, seams, x0, y0, w, h) {
   // baldosa del estilo repetida por todo el suelo
-  const tile = `suelo-${slug(style.name)}`;
+  const tile = `suelo-${slug(style.name)}${style.skin?.suelo ?? ''}`;
   if (hasSprite(tile)) {
     // las baldosas de PixelLab miden 32×32 píxeles de dibujo; las texturas enteras son más grandes y se dibujan a
     // media escala ("scale" en su .json), con el doble de detalle
