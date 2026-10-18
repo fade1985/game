@@ -76,6 +76,30 @@ async function loadSheet(id) {
   registerSheet(id, img, meta);
 }
 
+// Hoja mini con una sola pose: el primer fotograma de `anim` en cada dirección, en una fila. Devuelve su id
+// (`<id>@pose`), que se dibuja con drawSprite como cualquier otra. Para lo que posa quieto (los maniquíes de la
+// sala de exposición): las hojas de los zombis llevan todas sus animaciones y son enormes (la de la portera,
+// 2304×8064); con muchas a la vez en pantalla la tarjeta gráfica no da abasto, y con la mini no las toca.
+export function poseSheet(id, anim = 'idle') {
+  const pid = `${id}@pose`;
+  if (sheets.has(pid)) return pid;
+  const sh = sheets.get(id);
+  const a = sh?.meta.anims[anim];
+  if (!a) return id;
+  const [cw, ch] = sh.meta.cell;
+  const dirs = Object.entries(a.dirs);
+  const c = document.createElement('canvas');
+  c.width = cw * dirs.length; c.height = ch;
+  const g = c.getContext('2d');
+  const pose = { fps: 1, loop: true, dirs: {} };
+  dirs.forEach(([dir, d], i) => {
+    g.drawImage(sh.img, (d.col || 0) * cw, d.row * ch, cw, ch, i * cw, 0, cw, ch);
+    pose.dirs[dir] = { row: 0, col: i, frames: 1 };
+  });
+  sheets.set(pid, { img: c, meta: { ...sh.meta, anims: { [anim]: pose } } });
+  return pid;
+}
+
 // Registra una hoja ya cargada (también lo usan las pruebas)
 export function registerSheet(id, img, meta) {
   if (!Array.isArray(meta.pivot)) meta.pivot = findFeet(img, meta);

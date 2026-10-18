@@ -7,7 +7,7 @@
 //    Arriba un ejemplar de cada tipo; abajo, las variantes de color.
 // ─────────────────────────────────────────────
 import { W } from './config.js';
-import { outlinedText } from './draw.js';
+import { outlinedText, drawCached } from './draw.js';
 import { MUEBLES } from './catalogo.js';
 import { drawSprite, hasSprite, spriteMeta, furnitureShadow } from './sprites.js';
 import { Maniqui } from './props.js';
@@ -97,7 +97,7 @@ export class ExposicionMuebles {
         ctx.strokeRect(cx - p.fw / 2, base - p.fh, p.fw, p.fh);
         furnitureShadow(ctx, cx, base, p.w);
         drawSprite(ctx, p.id, 'idle', 'south', 0, cx, base, { scale: spriteMeta(p.id).scale });
-        outlinedText(ctx, p.nombre, cx, base + 16, 12, '#ffffff', { lw: 3 });
+        drawCached(ctx, p, p.nombre, cx - 90, base + 6, 180, 20, (g) => outlinedText(g, p.nombre, cx, base + 16, 12, '#ffffff', { lw: 3 }));
         x += p.slot;
       }
       y += altoFila(f);
@@ -114,5 +114,7 @@ export function expoZombis(ids) {
   const tipos = todos.filter((id) => !variantes.includes(id));
   const fila = (lista, y, x0, x1) => lista.map((id, i) =>
     new Maniqui(id, x0 + ((i + 0.5) * (x1 - x0)) / lista.length, y, id.replace(/^(zombi|jefe)-/, '')));
-  return [...fila(tipos, 290, 150, W - 150), ...fila(variantes, 560, 90, W - 90)];
+  const abajo = fila(variantes, 545, 90, W - 90);
+  abajo.forEach((m, i) => { m.labelDy = (i % 2) * 14; }); // nombres en dos alturas, para que no se pisen
+  return [...fila(tipos, 290, 150, W - 150), ...abajo];
 }
