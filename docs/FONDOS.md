@@ -47,6 +47,12 @@ obligatorios (fogón en la cocina) y grupos (cama + mesillas). **Los muebles, su
     moldura a `techo-pasillo` (402 × 12). **Pendiente:** el dueño hará variantes de la misma pared para alternarlas
     (cortarlas por las juntas entre rollos), y una versión generada a 1536 × 384 tendría más detalle.
     Los destrozos grandes (agujeros, salpicones) irían como adornos sueltos encima, no en la tira.
+- **Tapa de los muros** (18 oct, **pendiente de visto bueno**): la parte de arriba de los muros (y de los tabiques) ya no es un
+  color liso. Cuatro texturas del dueño (yeso o hormigón, vista cenital): `tapa-salon` (beige), `tapa-bano` (verde grisáceo),
+  `tapa-pasillo` (hormigón gris) y `tapa-generica` (gris cálido), hechas con `py tools/textura_tapa.py <img> <nombre>` (256 píxeles,
+  a media escala). `render.js` (`TAPA_DE`, `tapaOf`, `capFill`): el apartamento entero usa la del salón (su estilo base), el
+  pasillo la suya, y cocina/dormitorio/mantenimiento/azotea reutilizan otra; lleva un velo oscuro (0,32) para que quede por detrás del
+  suelo. La franja de encima del mapa se guarda como imagen (`drawCached`). `tapa-bano` aún no se usa: la tapa es una sola por mapa.
 - **Pared:** `py tools/textura_pared.py <imagen> <estancia> x0 x1 y0 y1` recorta la pared de frente de junta a
   junta y crea `assets/sprites/pared-<estancia>` (48 píxeles de alto, con rodapié). La del baño sale de
   `assets/sources/suelos/bano-vacio.webp`. Las estancias sin textura siguen con el papel pintado a rayas.

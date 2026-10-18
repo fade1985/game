@@ -21,9 +21,8 @@ export function drawRoom(ctx, room, time) {
 
   // Los muros, vistos desde arriba: una "tapa" oscura con un filo de luz por fuera.
   // (Los que tienen suelo justo debajo enseñan además su cara, con el papel pintado: más abajo.)
-  ctx.fillStyle = capColor(style);
-  ctx.fillRect(0, 0, RW, RH);
-  ctx.fillStyle = shade(capColor(style), 0.18);
+  capFill(ctx, style, 0, 0, RW, RH);
+  ctx.fillStyle = tapaOf(style) ? 'rgba(255,255,255,0.14)' : shade(capColor(style), 0.18);
   ctx.fillRect(4, 4, RW - 8, 4);
   ctx.fillRect(4, 4, 4, RH - 8);
 
@@ -156,6 +155,38 @@ function shade(hex, k) {
 // Color de la tapa de los muros: el del papel pintado, más oscuro
 const capColor = (style) => style.cap || shade(style.wall, -0.38); // `cap`: color propio de la tapa (mantenimiento, a juego con su moldura)
 
+// Textura de la tapa de los muros (`tapa-<nombre>`, ver tools/textura_tapa.py). Las estancias sin textura propia
+// usan la de otra; si no hay ninguna, el color liso de arriba. El apartamento entero usa la del salón.
+const TAPA_DE = { cocina: 'generica', dormitorio: 'salon', mantenimiento: 'generica', azotea: 'pasillo' };
+const tapaOf = (style) => {
+  const s = slug(style.name), id = `tapa-${TAPA_DE[s] ?? s}`;
+  return hasSprite(id) ? id : null;
+};
+
+// Rellena un rectángulo con la tapa: la textura repetida (alineada con el mapa) o el color liso
+function capFill(ctx, style, x, y, w, h) {
+  const id = tapaOf(style);
+  if (!id) {
+    ctx.fillStyle = capColor(style);
+    ctx.fillRect(x, y, w, h);
+    return;
+  }
+  const meta = spriteMeta(id);
+  const scale = meta.scale || 1;
+  const step = meta.cell[0] * PIXEL * scale;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+  for (let sy = Math.floor(y / step) * step; sy < y + h; sy += step) {
+    for (let sx = Math.floor(x / step) * step; sx < x + w; sx += step) drawSprite(ctx, id, 'idle', 'south', 0, sx, sy, { scale });
+  }
+  // un velo oscuro: la tapa tiene que quedar por detrás del suelo y de las caras de las paredes
+  ctx.fillStyle = 'rgba(18,14,28,0.32)';
+  ctx.fillRect(x, y, w, h);
+  ctx.restore();
+}
+
 // Las caras de un mapa: { x, w, y (borde de abajo), top (borde de arriba), outer, zone, style }
 export function wallFaces(layout) {
   if (layout.faces) return layout.faces;
@@ -240,8 +271,9 @@ function strip(ctx, id, x, y, w, h) {
 // pinta del color de la tapa en cada fotograma (las caras del muro y sus cuadros van encima, con la escena)
 export function drawWallTops(ctx, room) {
   const { layout } = room;
-  ctx.fillStyle = capColor(layout.style);
-  ctx.fillRect(0, -TOP_EXTRA, layout.w || W, TOP_EXTRA);
+  // se guarda como imagen (se rehace si llega alguna textura nueva)
+  drawCached(ctx, layout.tapaTop || (layout.tapaTop = {}), spriteCount(), 0, -TOP_EXTRA, layout.w || W, TOP_EXTRA,
+    (g) => capFill(g, layout.style, 0, -TOP_EXTRA, layout.w || W, TOP_EXTRA));
 }
 
 // ¿Hay alguien en la franja de la habitación de detrás que tapa esta cara?
