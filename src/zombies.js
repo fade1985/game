@@ -281,7 +281,7 @@ export const ZOMBIE_TYPES = {
 // Ataques especiales (ajustables)
 export const EXPLOSION = { radius: 90, dmg: 30, fuse: 0.8, trigger: 70 };
 export const TENTACLE = { range: 220, warn: 0.7, strike: 0.25, cd: 2.5, dmg: 15, width: 16 };
-export const POISON = { hit: 8, dps: 5, life: 4, radius: 46, flight: 0.8, cd: 2.6 };
+export const POISON = { hit: 8, dps: 5, life: 4, radius: 64, flight: 0.8, cd: 2.6 };
 
 const SPAWN = 0.8;
 
