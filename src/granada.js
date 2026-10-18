@@ -141,6 +141,6 @@ export class GranadaMethods {
 
 // La granada (para el suelo y el vuelo): el sprite; en rojo cuando le toca parpadear
 export function drawGranada(ctx, x, y, rojo = false) {
-  // el dibujo del dueño (19x27) a 0.75: ocupa lo mismo que la de antes
-  drawSprite(ctx, 'objeto-granada', 'idle', 'south', 0, x, y, rojo ? { scale: 0.75, tint: { color: '#ff1a10', alpha: 0.65 } } : { scale: 0.75 });
+  // el dibujo del dueño (19x27) a 0.4: unas 15x22 unidades, algo más baja que el molotov (12x22 con la llama)
+  drawSprite(ctx, 'objeto-granada', 'idle', 'south', 0, x, y, rojo ? { scale: 0.4, tint: { color: '#ff1a10', alpha: 0.65 } } : { scale: 0.4 });
 }
