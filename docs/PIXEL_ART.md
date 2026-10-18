@@ -161,3 +161,26 @@ de cada uno **está por decidir** (la dirá el dueño; no inventarla).
   para poder estirarlas.
 - **Gymbro** (`gymbro-referencia.webp`): mazado y calvo, con barba larga, sin camiseta, pantalón de chándal gris
   con rayas y zapatillas, la piel desgarrada y unos brazos y manos enormes.
+
+## Pixel art de Gemini (18 de octubre de 2026)
+
+Gemini no da píxeles de verdad: cada píxel del dibujo sale como un bloque de ~10-20 píxeles reales (a veces no
+todos iguales, con bordes algo borrosos). **`py tools/despixelar.py entrada.png`** lo convierte en pixel art real
+a su tamaño de verdad:
+
+- Saca `entrada-pixel.png` (el bueno, con fondo transparente) y `entrada-ver.png` (ampliado x10 sobre gris, para
+  mirarlo). Imprime el tamaño final.
+- Opciones: `--salida X.png`, `--fondo auto|#ff00ff` (auto = el color liso o los cuadros de los bordes),
+  `--colores 12` (máximo de colores), `--paso N` (tamaño del bloque, solo si la detección falla),
+  `--sin-contorno`.
+- Cómo lo hace: busca dónde cambia el color fuerte en cada columna y fila, deduce el paso (puede ser decimal, p. ej.
+  17,95) y el desfase de la rejilla; coge un color por bloque (mediana del centro); quita el fondo; junta colores
+  casi iguales; pone contorno de 1 píxel `#1d1b2c` si el dibujo no lo trae.
+- Probado: la granada de Gemini (1126×1222) sale exacta a 19×27; un dibujo de prueba agrandado a paso 13,37, con
+  desenfoque y JPEG, vuelve idéntico.
+- Si el fondo es de cuadros oscuros se confunde con el contorno: se quita todo lo muy oscuro conectado al borde y
+  se vuelve a poner el contorno. Un fondo liso magenta es lo más fácil.
+
+Frase para el prompt de Gemini: *"pixel art sprite on an exact WxH pixel grid, each pixel a perfectly square solid
+block, no anti-aliasing, no gradients, no blur, flat colors, max 8 colors, 1-pixel dark outline, plain solid
+magenta background (#FF00FF)"* (cambiando WxH por el tamaño que se quiera, p. ej. 16x22).

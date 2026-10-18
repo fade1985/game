@@ -98,6 +98,7 @@ fotograma. `node tools/rendimiento.mjs` mide el dibujo con muchos zombis ardiend
 | Escenarios (tono oscuro; vuelta a salas generadas con texturas y muebles del dueño) | [`docs/FONDOS.md`](docs/FONDOS.md) | 16 oct: suelo y pared del baño con texturas y **paredes de 3 casillas** (con visto bueno); 17 oct: **puertas** a 2 casillas en pixel art (con visto bueno). **18 oct, con visto bueno:** baño con 2 suelos y 2 paredes; cocina, salón y dormitorio con 3 suelos y 3 paredes cada uno (se eligen al azar por sala); **tapa de los muros** con textura; y **plantillas de muebles** en la pared del fondo de baño, cocina, salón y dormitorio (en `src/catalogo.js`). **Falta:** moqueta cuadrada sin costura y variantes de pared del pasillo (las trae el dueño), muebles en las paredes laterales y de abajo, y lootear/destruir muebles |
 | PixelLab (receta, costes, trucos) | [`docs/PIXELLAB.md`](docs/PIXELLAB.md) | Todo lo generado se apunta en `assets/pixellab.json`. Antes de tandas grandes, decir el coste |
 | Pixel art (estilo y medidas) | [`docs/PIXEL_ART.md`](docs/PIXEL_ART.md) | Quedan jefes, objetos e interfaz |
+| Pixel art de Gemini (falso pixel art → real) | `py tools/despixelar.py entrada.png` · [`docs/PIXEL_ART.md`](docs/PIXEL_ART.md) (al final) | Hecho el 18 oct; saca `-pixel.png` y `-ver.png` |
 | Cómo se juega | [`README.md`](README.md) | |
 | Lo ya cerrado (plan por fases, fondos con ChatGPT, historia de las armas) | `docs/archivo/` | Solo consulta: no hace falta leerlo |
 
