@@ -41,6 +41,7 @@ ni compilación. Se publica en **Vercel** como web estática: lo que se sube a `
 - **Abrir siempre con `?mudo`** (sin sonido; lo pidió el dueño) y cerrar la pestaña al terminar.
 - `?pruebas` → teclas **1–6** sacan cada zombi, **7** la portera (mini jefa), **8** la jefa final; abre también las armas.
 - `?armas` → todas las armas en la sala de mantenimiento. `?sala=<zombi>` → sala de exposición de un zombi.
+- `?muebles` → sala de exposición de muebles (`src/exposicion.js`): todos los del catálogo con variantes y dibujo de lado, a su tamaño real; teclas **1–6** cambian de carpeta (salón, cocina, dormitorio, baño, pasillo, común).
 - Se combinan: `?pruebas&mudo`.
 - En la consola el juego es `window.game` (`game.update(1/60)` lo adelanta). `tools/bot.js` juega solo para medir
   el equilibrado (uso en su cabecera).

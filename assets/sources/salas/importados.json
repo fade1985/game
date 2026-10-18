@@ -91,12 +91,24 @@
     "huella": "77cb9016920e9067",
     "sprite": "mueble-armchair"
   },
+  "salon/sofa-b.png": {
+    "huella": "1408585f6f615022",
+    "sprite": "mueble-sofa-b"
+  },
+  "salon/sofa-c.png": {
+    "huella": "1b08284a70567646",
+    "sprite": "mueble-sofa-c"
+  },
+  "salon/sofa-d.png": {
+    "huella": "8973e340da3eba97",
+    "sprite": "mueble-sofa-d"
+  },
   "salon/sofa-lado.png": {
     "huella": "afefa718514a47bf",
     "sprite": "mueble-sofa-lado"
   },
   "salon/sofa.png": {
-    "huella": "886218eefb929484",
+    "huella": "606ee1ed4b524319",
     "sprite": "mueble-sofa"
   },
   "salon/tele.png": {

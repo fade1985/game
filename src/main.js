@@ -88,8 +88,8 @@ function drawLoading() {
 game.goMenu();
 requestAnimationFrame(frame);
 // Sprites de pixel art (lo que aún no tiene sprite se dibuja a mano, como antes)
-// Con ?sala=<zombi> se salta el menú y se entra directamente a la sala de exposición
-const sala = new URLSearchParams(location.search).has('sala');
+// Con ?sala=<zombi> (o ?muebles) se salta el menú y se entra directamente a la sala de exposición
+const sala = ['sala', 'muebles'].some((p) => new URLSearchParams(location.search).has(p));
 // Primero se cargan los del menú (Johnny con la fregona, el suelo del pasillo y los muebles) para que
 // aparezca enseguida, y el resto (zombis, armas, objetos...) mientras tanto.
 const MENU_SPRITES = ['conserje-48-guardia', 'suelo-pasillo', 'mueble-'];

@@ -11,6 +11,7 @@ import { generateFloor, floorName } from './building.js';
 import { makePlainLayout } from './rooms.js';
 import { baseStats, rollItem, applyWorkshop, WORKSHOP } from './upgrades.js';
 import { SurvivorNPC, DoorKey, WeaponStash, Maniqui } from './props.js';
+import { ExposicionMuebles } from './exposicion.js';
 import { WEAPONS, weaponSummary } from './weapons.js';
 import { loadSave, updateSave, buildingSave } from './save.js';
 import { Camera, ZOOM, BOSS_ZOOM } from './camera.js';
@@ -208,7 +209,7 @@ export class Game {
     // se ven todas abiertas, sin tocar el guardado.
     const unlocked = loadSave().weapons;
     const showAll = this.testMode || params.has('armas');
-    if (this.floorNum === 1) {
+    if (this.floorNum === 1 && !params.has('muebles')) { // con ?muebles la sala queda libre para la exposición
       Object.values(WEAPONS).slice(0, STASH_X.length).forEach((w, i) => {
         const locked = !showAll && w.id !== 'fregona' && !unlocked.includes(w.id);
         this.floor.start.props.push(new WeaponStash(w, STASH_X[i], locked));
@@ -218,6 +219,8 @@ export class Game {
     // al lado del conserje, para ver cómo queda su sprite
     const pose = params.get('sala');
     if (this.floorNum === 1 && pose) this.floor.start.props.push(new Maniqui(`zombi-${pose}`, W / 2 + 80, H / 2 + 40));
+    // Sala de exposición de muebles (añade ?muebles): todos los muebles con sus variantes (exposicion.js)
+    if (this.floorNum === 1 && params.has('muebles')) this.floor.start.props.push(new ExposicionMuebles());
     this.enterRoom(this.floor.start, this.floor.startExit);
     if (this.floorNum > 1) return; // en las demás plantas el cartel lo pone el propio mapa al entrar
     // primera partida: recordatorio de los controles

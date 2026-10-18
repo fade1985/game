@@ -29,9 +29,9 @@ REGISTRO = f'{SALAS}/importados.json'
 OUTLINE = (29, 27, 44, 255)
 IMAGENES = ('.png', '.webp', '.jpg', '.jpeg')
 # Muebles dibujados "a tamaño de personaje": cada píxel del juego son N píxeles del original. Se encogen justo
-# N veces (no al ancho del catálogo) y salen con "scale": 1, el mismo tamaño de píxel que Johnny y los zombis.
-# Para añadir otro mueble así: su tipo (el del catálogo) y el N.
-BLOQUE = {'lamp': 8}
+# N veces (no al ancho del catálogo) y salen con la escala indicada ("scale": 1 = el mismo tamaño de píxel que Johnny).
+# Para añadir otro mueble así: su tipo (el del catálogo), el N y la escala.
+BLOQUE = {'lamp': (8, 1), 'sofa': (6.35, 0.5)}  # tipo: (N, scale del .json: 1 = 2 unidades por píxel, 0.5 = 1)
 
 
 def catalogo():
@@ -117,11 +117,11 @@ def main(forzar):
         if isinstance(que, str): avisos.append(f'{rel}: {que}'); continue
         tipo, largo, fondo, variante, lado = que
         sid = f'mueble-{tipo}' + (f'-{variante}' if variante else '') + ('-lado' if lado else '')
-        bloque = BLOQUE.get(tipo)
+        bloque, escala = BLOQUE.get(tipo, (None, 0.5))
         im = convierte(ruta, fondo if lado else largo, bloque)
         if im is None: avisos.append(f'{rel}: no tiene fondo transparente (¿un damero pintado?); no se convierte'); continue
         im.save(f'{OUT}/{sid}.png')
-        meta = {'cell': [im.width, im.height], 'pivot': [im.width // 2, im.height], 'scale': 1 if bloque else 0.5,
+        meta = {'cell': [im.width, im.height], 'pivot': [im.width // 2, im.height], 'scale': escala,
                 'anims': {'idle': {'fps': 1, 'dirs': {'south': {'row': 0, 'frames': 1}}}}}
         with open(f'{OUT}/{sid}.json', 'w', encoding='utf-8', newline='\n') as f:
             json.dump(meta, f, indent=2); f.write('\n')
