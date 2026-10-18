@@ -235,7 +235,8 @@ export class GameCombat {
     if (e.onDeath) e.onDeath(this);
     if (!e.isBoss) sfx.splat();
     this.addDecal(e);
-    this.burst(e.x, e.y, e.color, 12, e.r);
+    // el explosivo ya tiene su explosión: sus trozos salen color fuego y sin anillo
+    this.burst(e.x, e.y, e.type === 'explosivo' ? '#ff9f1c' : e.color, 12, e.r, e.type !== 'explosivo');
     this.shake(3);
     sfx.kill();
     if (!e.isBoss) {

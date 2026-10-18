@@ -48,7 +48,7 @@ export class GameEffects {
     }
   }
 
-  burst(x, y, color, n, r) {
+  burst(x, y, color, n, r, ring = true) {
     for (let i = 0; i < n; i++) {
       const a = rand(0, Math.PI * 2), s = rand(80, 260);
       this.particles.push({
@@ -57,7 +57,7 @@ export class GameEffects {
         r: rand(4, 9), color, life: rand(0.35, 0.7), max: 0.7, outline: true,
       });
     }
-    this.particles.push({ x, y, vx: 0, vy: 0, r, ring: true, color: '#ffffff', life: 0.3, max: 0.3 });
+    if (ring) this.particles.push({ x, y, vx: 0, vy: 0, r, ring: true, color: '#ffffff', life: 0.3, max: 0.3 });
   }
 
   // Impacto de una bala del conserje o de un compañero, en pixel art: un destello cuadrado y unas chispas

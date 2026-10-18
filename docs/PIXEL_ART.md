@@ -132,6 +132,14 @@ mismo). Si el suelo no encaja bien al repetirse, se retoca a mano o se dibuja co
   la cuenta): `objeto-fx-explosion` (96x96, 12 fotogramas, zombi explosivo), `objeto-fx-chispa` (64x64, 7; al caer
   un jefe) y `objeto-fx-humo` (64x64, 10; pisotón de la portera). Se lanzan con `game.fx(id, x, y)`. Fuentes
   en `assets/sources/efectos/`. Si el sprite falta, `explode` usa el dibujo de siempre.
+- **Explosión retocada (18 oct, pendiente de visto bueno):** al dueño no le gustaban los círculos del principio
+  (bola redonda y aro de onda expansiva dibujados en el sprite, más un anillo de puntitos blancos al morir el
+  explosivo). `py tools/retocar-explosion.py` rehace la tira desde el original: destello blanco con puntas,
+  bola de fuego irregular y sin aro (del fotograma 7 en adelante, el de PixelLab tal cual). En `explode`
+  (`game-ataques.js`): chispas de pixel art que salen disparadas, trozos oscuros, ascuas que suben y una
+  **marca negra de quemado** en el suelo (pixel art, 3 variantes guardadas como imagen, va a `room.decals`).
+  Lo de adorno usa su propio dado (`azar`), no `rand()`, para no cambiar la huella del test. El explosivo
+  ya no suelta el anillo blanco de `burst` y sus trozos salen color fuego.
 - **Pendiente:** sangre al golpear y al morir (`burst`), polvo al andar, el rastro del zombi lento y
   las manchas del suelo siguen siendo círculos o dibujo de código; la botella de lejía (`drawBottle`).
 

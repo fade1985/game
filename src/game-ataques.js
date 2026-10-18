@@ -26,6 +26,57 @@ const HAZARDS = {
   bleach: { ...BLEACH, estados: { resbaladizo: {}, toxico: { dps: 3 } }, estilo: ESTILO_LEJIA, fill: '#e9f8ff', stroke: '#2f86c4', bubble: '#ffffff', drop: '#4cb4f0' },
 };
 
+// Dado propio para lo que es solo de adorno (chispas, mancha): no gasta tiradas de rand(), así que no
+// cambia cómo juega la partida ni la huella del test
+let semilla = 12345;
+function azar(a, b) {
+  semilla = (semilla * 16807) % 2147483647;
+  return a + (b - a) * (semilla / 2147483647);
+}
+
+// Marca negra de quemado que deja la explosión en el suelo, en pixel art (cuadraditos de PIXEL).
+// Se dibujan unas pocas una sola vez y se guardan; cada explosión coge una al azar.
+const QUEMADOS = {};
+function dibujarQuemado(n, seed) {
+  semilla = seed;
+  const ondas = [3, 5, 8].map((k) => [k, azar(0, 6.28), azar(0.06, 0.14)]);
+  const c = document.createElement('canvas');
+  c.width = c.height = n;
+  const x = c.getContext('2d');
+  const mid = n / 2;
+  for (let py = 0; py < n; py++) {
+    for (let px = 0; px < n; px++) {
+      const dx = px + 0.5 - mid, dy = (py + 0.5 - mid) / 0.75; // un poco aplastada: el suelo se ve de lado
+      const ang = Math.atan2(dy, dx);
+      let r = 1;
+      for (const [k, f, m] of ondas) r += m * Math.sin(k * ang + f);
+      const d = Math.hypot(dx, dy) / (mid * 0.92 * r);
+      if (d > 1) continue;
+      // centro casi negro, borde salpicado (cada vez menos cuadraditos hacia fuera)
+      if (d > 0.8 && azar(0, 1) < (d - 0.8) * 4) continue;
+      x.fillStyle = d < 0.45 ? 'rgba(14,10,16,0.8)' : d < 0.8 ? 'rgba(24,19,26,0.6)' : 'rgba(34,28,34,0.35)';
+      if (d < 0.6 && azar(0, 1) < 0.05) x.fillStyle = 'rgba(90,82,88,0.55)'; // motas de ceniza
+      x.fillRect(px, py, 1, 1);
+    }
+  }
+  return c;
+}
+function marcaQuemado(game, x, y, radius) {
+  const decals = game.room && game.room.decals;
+  if (!decals || typeof document === 'undefined') return;
+  const n = Math.round((radius * 1.1) / PIXEL);
+  const v = Math.floor(azar(0, 3));
+  const key = n + ':' + v;
+  if (!QUEMADOS[key]) {
+    const guardada = semilla;
+    QUEMADOS[key] = dibujarQuemado(n, 777 + v * 1000);
+    semilla = guardada;
+  }
+  decals.push({ x, y, img: QUEMADOS[key], w: n * PIXEL, h: n * PIXEL });
+  game.room.decalCount = (game.room.decalCount || 0) + 1;
+  if (decals.length > 60) decals.shift();
+}
+
 export class ZombieAttacks {
   // Explosión: daña al jugador y TAMBIÉN a los demás zombis (¡reacciones en cadena!)
   explode(x, y, radius, dmg, source) {
@@ -33,12 +84,31 @@ export class ZombieAttacks {
     this.shake(14);
     destello(this, x, y, Math.max(200, radius * 2.5), 0.4); // la explosión ilumina toda la zona
     const sprite = this.fx('objeto-fx-explosion', x, y);
+    // Ojo: aquí se tira rand() siempre las mismas veces (4 por vuelta), para que la huella del test no
+    // cambie; lo que es solo de adorno usa su propio dado (azar), que no toca la partida.
     for (let i = 0; i < (sprite ? 10 : 26); i++) {
       const a = rand(0, Math.PI * 2), sp = rand(60, 320);
-      const c = ['#ffd23f', '#ff9f1c', '#ff5d3c', '#5d5873'][i % 4];
-      this.particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: sprite ? rand(3, 6) : rand(6, 14), color: c, life: rand(0.35, 0.7), max: 0.7, outline: true });
+      const r = sprite ? rand(3, 6) : rand(6, 14), life = rand(0.35, 0.7);
+      if (sprite) {
+        // chispas: cuadraditos de pixel art que salen disparados
+        const c = ['#fffbe0', '#ffe066', '#ffb020', '#f0701a'][i % 4];
+        this.particles.push({ x, y, vx: Math.cos(a) * sp * 1.7, vy: Math.sin(a) * sp * 1.7, px: true, size: r > 4.5 ? 3 : 2, color: c, life: life * 0.7, max: 0.5 });
+      } else {
+        const c = ['#ffd23f', '#ff9f1c', '#ff5d3c', '#5d5873'][i % 4];
+        this.particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r, color: c, life, max: 0.7, outline: true });
+      }
     }
-    if (!sprite) this.particles.push({ x, y, vx: 0, vy: 0, r: radius * 0.6, ring: true, color: '#ffd23f', life: 0.35, max: 0.35 });
+    if (sprite) {
+      // trozos oscuros que vuelan más despacio y ascuas que suben
+      for (let i = 0; i < 6; i++) {
+        const a = azar(0, Math.PI * 2), sp = azar(90, 220), d = azar(14, 24);
+        this.particles.push({ x: x + Math.cos(a) * d, y: y + Math.sin(a) * d, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, px: true, size: 2, color: i % 2 ? '#2b2633' : '#5d5873', life: azar(0.45, 0.8), max: 0.8 });
+      }
+      for (let i = 0; i < 5; i++) {
+        this.particles.push({ x: x + azar(-24, 24), y: y + azar(-16, 16), vx: azar(-20, 20), vy: azar(-70, -35), px: true, size: 1, color: i % 2 ? '#ffb020' : '#ff5d3c', life: azar(0.6, 1.1), max: 1.1 });
+      }
+    } else this.particles.push({ x, y, vx: 0, vy: 0, r: radius * 0.6, ring: true, color: '#ffd23f', life: 0.35, max: 0.35 });
+    marcaQuemado(this, x, y, radius);
     const p = this.player;
     if (!p.dead && dist(p, { x, y }) <= radius + p.r) p.hurt(dmg, this);
     for (const e of this.enemies) {
