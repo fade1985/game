@@ -183,10 +183,9 @@ export class MolotovMethods {
     }
   }
 
-  // Cada fotograma con el fuego encendido: quema a quien esté dentro y suelta chispas
+  // Cada fotograma con el fuego encendido: prende a los zombis que estén dentro y suelta chispas
+  // (a Johnny lo quema su estado "fuego": game-ataques.js y estados.js)
   burnFire(hz, dt) {
-    const p = this.player;
-    if (!p.dead && p.dashT <= 0 && dentro(hz, p.x, p.y, p.r * 0.3)) p.poison(MOLOTOV.dps * dt, this, '#ff9f1c');
     hz.tick += dt;
     if (hz.tick >= MOLOTOV.tick) {
       hz.tick -= MOLOTOV.tick;

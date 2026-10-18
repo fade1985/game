@@ -8,6 +8,7 @@ import { drawHuman } from './draw.js';
 import { sfx } from './sfx.js';
 import { WEAPONS, RIFLE, AMMO, drawHeld } from './weapons.js';
 import { autoAim } from './aim.js';
+import { agarre, tinteEstado } from './estados.js';
 
 const TAU = Math.PI * 2;
 // Unidades que avanza el conserje en un ciclo de andar (dos pasos): a su velocidad normal (210) son
@@ -221,8 +222,8 @@ export class Player {
         game.dust(this.x, this.y + this.r * 0.8, this.dashX, this.dashY, 3);
       }
     } else {
-      // Aceleración suave hacia la velocidad deseada
-      const k = 1 - Math.exp(-dt * 14);
+      // Aceleración suave hacia la velocidad deseada (en suelo resbaladizo, mucho más suave: patina)
+      const k = 1 - Math.exp(-dt * 14 * agarre(this));
       this.vx += (move.x * s.speed - this.vx) * k;
       this.vy += (move.y * s.speed - this.vy) * k;
     }
@@ -446,7 +447,7 @@ export class Player {
       ctx.translate(-x, -y);
     }
     const sprited = drawSprite(ctx, sprite, anim, dir, now, x + kx, y + 16 + ky,
-      { flash: this.hurtT > 0, frame, cycle });
+      { flash: this.hurtT > 0, tint: tinteEstado(this, now), frame, cycle });
     if (sprited && fx !== undefined) drawSprite(ctx, sprite, 'fx', dir, now, x + kx, y + 16 + ky, { frame: fx });
     if (!sprited) drawHuman(ctx, x, y, {
       ...PLAYER_LOOK,

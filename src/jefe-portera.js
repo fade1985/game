@@ -29,7 +29,8 @@ const STRIDE = 96;
 const FEET_DY = { south: 5, 'south-east': 9, east: 3, 'north-east': 5, north: 5, 'north-west': 5, west: 3, 'south-west': 4 };
 const feetDy = (dir) => (FEET_DY[dir] || 0) * PIXEL;
 
-export const BLEACH = { hit: 10, dps: 8, life: 5, radius: 54, flight: 0.9 };
+// lo que hace pisarla (resbalar y algo de daño) está en sus estados: HAZARDS de game-ataques.js
+export const BLEACH = { hit: 10, life: 5, radius: 54, flight: 0.9 };
 
 // ═════════════ LA PORTERA ═════════════
 export class Portera extends BossBase {

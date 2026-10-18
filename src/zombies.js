@@ -12,6 +12,7 @@ import { drawHuman, pixelHpBar } from './draw.js';
 import { drawSpawnWarning } from './entities.js';
 import { sfx } from './sfx.js';
 import { FIRE, MOLOTOV, drawFlame } from './molotov.js';
+import { agarre } from './estados.js';
 
 // Llamas sobre un zombi que arde: [lado (unidades del juego), altura (parte del cuerpo, 0 pies – 1 cabeza),
 // ancho y alto en píxeles del arte]. Las de abajo, más grandes.
@@ -281,7 +282,8 @@ export const ZOMBIE_TYPES = {
 // Ataques especiales (ajustables)
 export const EXPLOSION = { radius: 90, dmg: 30, fuse: 0.8, trigger: 70 };
 export const TENTACLE = { range: 220, warn: 0.7, strike: 0.25, cd: 2.5, dmg: 15, width: 16 };
-export const POISON = { hit: 8, dps: 5, life: 4, radius: 64, flight: 0.8, cd: 2.6 };
+// el daño de pisarlo es el del estado "veneno" (estados.js)
+export const POISON = { hit: 8, life: 4, radius: 64, flight: 0.8, cd: 2.6 };
 
 const SPAWN = 0.8;
 
@@ -508,7 +510,7 @@ export class Zombie {
   // Anda hacia donde quiere (m), sin girar de golpe, más el empuje de los golpes; y no atraviesa paredes
   walk(dt, game, m) {
     const l = Math.hypot(m.x, m.y) || 1;
-    const k = 1 - Math.exp(-dt * m.steer);
+    const k = 1 - Math.exp(-dt * m.steer * agarre(this));   // en suelo resbaladizo le cuesta frenar y girar
     this.vx += ((m.x / l) * m.spd - this.vx) * k;
     this.vy += ((m.y / l) * m.spd - this.vy) * k;
     this.x += (this.vx + this.kx) * dt;

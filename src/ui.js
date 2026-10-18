@@ -75,6 +75,9 @@ export function createUI(root) {
       const p = g.player;
       set('hpw', $('.hpbar .fill'), `${Math.max(0, (p.hp / g.stats.maxHp) * 100)}%`, 'width');
       set('hpt', $('.hpbar span'), `${Math.ceil(p.hp)} / ${Math.round(g.stats.maxHp)}`);
+      // envenenado o ardiendo (estados.js): la sangre de la barra se pone verde o naranja mientras dura
+      set('hpVeneno', $('.hpbar'), !!p.estados?.veneno && !p.estados?.fuego, 'class:envenenado');
+      set('hpFuego', $('.hpbar'), !!p.estados?.fuego, 'class:ardiendo');
       // las dos armas: la de cuerpo a cuerpo y, si lleva, la de fuego con sus balas (cargador / reserva)
       const { melee, ranged } = p.slots;
       set('melee', $('#pill-melee'), `<i class="ico ico-${melee.id}"></i> <b>${melee.name}</b>`, 'innerHTML');

@@ -13,15 +13,17 @@ import { sfx } from './sfx.js';
 import { destello } from './luz.js';
 import { MOLOTOV, drawMolotov } from './molotov.js';
 import { ESTILO_VENENO, ESTILO_LEJIA, crearCharco, drawCharco, dentro, leaveStain } from './charcos.js';
+import { pisar, actualizarEstados, herirZombi, efectosEstados } from './estados.js';
 
 // Rastro de sangre del zombi lento: cada cuánto deja una mancha, cuánto dura y cuánto tarda en borrarse al final
 const TRAIL = { step: 9, life: 8, fade: 2.5, max: 400, color: '#680c06', dark: '#4a0804' };
 
-// Charcos que dejan los proyectiles en parábola: moco venenoso, lejía y el fuego del molotov de Johnny
+// Charcos que dejan los proyectiles en parábola: moco venenoso, lejía y el fuego del molotov de Johnny.
+// `estados`: lo que te hace pisarlo (estados.js), con los números propios de este charco si los cambia
 const HAZARDS = {
-  fire: { ...MOLOTOV, fill: 'rgba(255, 159, 28, 0.3)' },
-  poison: { ...POISON, estilo: ESTILO_VENENO, fill: '#8fd13f', stroke: '#4f772d', bubble: '#c7f27a', drop: '#9be33b' },
-  bleach: { ...BLEACH, estilo: ESTILO_LEJIA, fill: '#e9f8ff', stroke: '#2f86c4', bubble: '#ffffff', drop: '#4cb4f0' },
+  fire: { ...MOLOTOV, estados: { fuego: { dps: MOLOTOV.dps } }, fill: 'rgba(255, 159, 28, 0.3)' },
+  poison: { ...POISON, estados: { veneno: {} }, estilo: ESTILO_VENENO, fill: '#8fd13f', stroke: '#4f772d', bubble: '#c7f27a', drop: '#9be33b' },
+  bleach: { ...BLEACH, estados: { resbaladizo: {}, toxico: { dps: 3 } }, estilo: ESTILO_LEJIA, fill: '#e9f8ff', stroke: '#2f86c4', bubble: '#ffffff', drop: '#4cb4f0' },
 };
 
 export class ZombieAttacks {
@@ -96,16 +98,34 @@ export class ZombieAttacks {
       }
     }
     this.lobs = this.lobs.filter((lb) => !lb.done);
+    // Lo que pisa cada uno este fotograma (Johnny y los zombis): solo cuenta donde se ve el charco
+    // (no antes de que llegue ni donde ya se secó), y la esquiva lo cruza sin que te pase nada
+    const pisaJohnny = {}, pisaZombis = new Map();
     for (const hz of this.hazards) {
       hz.life -= dt;
-      // pisar el charco quema poco a poco (la esquiva te deja cruzarlo)
       const hd = HAZARDS[hz.kind];
-      if (hz.kind === 'fire') { this.burnFire(hz, dt); continue; }
-      // solo daña donde se ve el charco (no antes de que llegue ni donde ya se secó)
-      if (!p.dead && p.dashT <= 0 && dentro(hz, p.x, p.y, p.r * 0.3)) p.poison(hd.dps * dt, this, hd.drop);
-      if (hz.life <= 0) leaveStain(this, hz);
+      if (!p.dead && p.dashT <= 0 && dentro(hz, p.x, p.y, p.r * 0.3)) pisar(pisaJohnny, hd.estados);
+      for (const e of this.enemies) {
+        if (!e.active || e.isBoss || !dentro(hz, e.x, e.y, e.r * 0.3)) continue;
+        if (!pisaZombis.has(e)) pisaZombis.set(e, {});
+        pisar(pisaZombis.get(e), hd.estados, true);
+      }
+      // el fuego, además, prende a los zombis y suelta chispas (y deja su ceniza él mismo)
+      if (hz.kind === 'fire') this.burnFire(hz, dt);
+      else if (hz.life <= 0) leaveStain(this, hz);
     }
     this.hazards = this.hazards.filter((hz) => hz.life > 0);
+    // los estados: se renuevan pisando y duran un rato al salir (estados.js)
+    if (!p.dead) {
+      const d = actualizarEstados(p, pisaJohnny, dt);
+      if (d > 0) p.poison(d, this, p.colorEstado);
+      efectosEstados(this, p, dt);
+    }
+    for (const e of this.enemies) {
+      if (!e.active || e.isBoss || (!e.estados && !pisaZombis.has(e))) continue;
+      herirZombi(e, actualizarEstados(e, pisaZombis.get(e) || {}, dt), dt, this);
+      efectosEstados(this, e, dt);
+    }
     for (const t of this.trail) t.life -= dt;
     if (this.trail.length && this.trail[0].life <= 0) this.trail = this.trail.filter((t) => t.life > 0);
   }
