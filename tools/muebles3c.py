@@ -3,22 +3,27 @@
 El juego dibuja cada mueble apoyado en su pared: de frente en la pared de arriba y, los que tienen dibujo
 `<tipo>-lado`, de lado en las laterales (hecho para la izquierda; en la derecha se pone en espejo).
 
-Los dibujos, tal cual los da PixelLab, están en assets/sources/muebles3c/<tipo>.png y <tipo>-lado.png
+Los dibujos, tal cual los da PixelLab, están en assets/sources/salas/<carpeta>/<archivo>.png y <archivo>-lado.png
+(la carpeta y el nombre en español de cada tipo, en src/catalogo.js → MUEBLES)
 (los textos y los ids, en assets/pixellab.json → "muebles-3c"). Se piden con create_image_pixflux, 1 generación:
   - sin guía y sin fondo, con un lienzo de (largo) × (fondo + alto): es como mejor salen;
   - si sale girado en diagonal (nevera, váter, lavabo), con la guía de `py tools/muebles3c.py guias` como
     imagen de partida (fuerza 50–60) y con fondo: un bloque del tamaño del mueble sobre azul.
 
   py tools/muebles3c.py monta [ids]   quita el fondo, recorta y deja los sprites en assets/sprites/
-  py tools/muebles3c.py guias         pinta las guías en assets/sources/muebles3c/guias/
+  py tools/muebles3c.py guias         pinta las guías en assets/sources/salas/descartes/guias-pixellab/
 
-`monta` dice el ancho de cada dibujo: el largo de cada mueble en PIECES (src/furniture.js) es ese ancho × 2,
+`monta` dice el ancho de cada dibujo: el largo de cada mueble en MUEBLES (src/catalogo.js) es ese ancho × 2,
 para que se choque justo con lo que se ve.
 """
-import json, os, sys
+import json, os, subprocess, sys
 from PIL import Image, ImageDraw
 
-SRC = 'assets/sources/muebles3c'
+SRC = 'assets/sources/salas'
+GUIAS = f'{SRC}/descartes/guias-pixellab'
+# dónde está el original de cada tipo (catalogo.js, el mismo que usa el juego)
+ARCHIVO = {k: v['archivo'] for k, v in json.loads(subprocess.check_output(
+    ['node', '--no-warnings', '-e', "import('./src/catalogo.js').then((m) => console.log(JSON.stringify(m.MUEBLES)))"])).items()}
 OUT = 'assets/sprites'
 FONDO = (96, 112, 150)
 TOL = 46
@@ -79,7 +84,7 @@ def sombra(c, f):
 
 
 def guias():
-    os.makedirs(f'{SRC}/guias', exist_ok=True)
+    os.makedirs(GUIAS, exist_ok=True)
     pedidos = []
     for pid, k, vista, w, d, alto, texto in piezas():
         color = T[k][3]
@@ -96,9 +101,9 @@ def guias():
             # el respaldo: una franja más oscura por el lado de la pared
             if vista == 'frente': dr.rectangle((x0 + 1, y0 + 1, x0 + w - 2, y0 + max(2, d // 5)), fill=sombra(color, 0.88))
             else: dr.rectangle((x0 + 1, y0 + 1, x0 + max(2, w // 5), y0 + d - 2), fill=sombra(color, 0.88))
-        im.save(f'{SRC}/guias/{pid}.png')
+        im.save(f'{GUIAS}/{pid}.png')
         pedidos.append({'id': pid, 'width': W, 'height': H, 'guia': bool(color), 'description': texto + COLA})
-    with open(f'{SRC}/pedidos.json', 'w', encoding='utf-8', newline='\n') as f:
+    with open(f'{GUIAS}/pedidos.json', 'w', encoding='utf-8', newline='\n') as f:
         json.dump(pedidos, f, indent=2); f.write('\n')
     print(len(pedidos), 'guías y pedidos')
 
@@ -125,7 +130,7 @@ def monta(solo):
     hechos = []
     for pid, k, vista, w, d, alto, texto in piezas():
         if solo and pid not in solo: continue
-        ruta = f'{SRC}/{pid}.png'
+        ruta = f"{SRC}/{ARCHIVO[k]}{'-lado' if vista == 'lado' else ''}.png"  # la planta es del dueño (.webp): no la toca
         if not os.path.exists(ruta): print('  falta', pid); continue
         im = recorta(Image.open(ruta))
         # fuera las motas sueltas de fondo: solo cuentan las columnas y filas con algo de dibujo

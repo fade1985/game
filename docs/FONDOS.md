@@ -64,15 +64,21 @@ obligatorios (fogón en la cocina) y grupos (cama + mesillas). **Los muebles, su
   de detrás (se vuelve medio transparente si hay alguien ahí) y en el muro de arriba se sale del mapa (la cámara
   deja ver `TOP_EXTRA` más arriba y `drawWallTops` pinta ese trozo en cada fotograma). Pega: en los baños
   pequeños (6 de fondo) se ven pocas filas de suelo libres.
-- **Plantillas de la pared del fondo** (`TEMPLATES` en `furniture.js`: baño y, desde el 18 oct, cocina; pendiente de visto bueno): lista de muebles
-  de izquierda a derecha, con `?` los opcionales (se quitan en el orden de `DROP` si no cabe). Se reparten por los
+- **Plantillas de la pared del fondo** (`plantillas` de cada sala en `src/catalogo.js`: baño y, desde el 18 oct, cocina; pendiente de visto bueno): lista de muebles
+  de izquierda a derecha, con `?` los opcionales (se quitan en el orden de `quitar` de la sala si no cabe). Se reparten por los
   trozos libres de la pared (sin puertas ni lo que hay que dejar despejado delante de ellas). Si no cabe nada
   (puerta en medio de la pared del fondo, ~13 % de los baños), muebles sueltos como antes. Los laterales y la
   pared de abajo de los baños quedan vacíos, por decisión del dueño ("de momento solo la pared").
   Muchos baños pequeños con puerta lateral solo tienen sitio para el váter (~35 %).
   Cocina: el fogón es obligatorio y se reparte con nevera, encimera (158 de largo, la primera que se cae en cocinas pequeñas) y
-  planta; `DROP` dice el orden en que se quitan los opcionales (planta, bañera, lavadora, lavabo, encimera, nevera).
-- **Ningún mueble repetido** en una habitación (`MAX_SAME`: solo encimera y mesilla pueden salir dos veces).
+  planta; `quitar` dice el orden en que se quitan los opcionales (en la cocina, planta, encimera y nevera).
+- **Ningún mueble repetido** en una habitación (`iguales` de cada sala en `src/catalogo.js`: solo encimera y mesilla pueden salir dos veces).
+- **Catálogo de muebles (18 oct, fase 1 de la reorganización):** todo lo que decide qué muebles salen está en
+  `src/catalogo.js`: `MUEBLES` (medidas, en qué paredes va cada uno y su archivo original) y `SALAS` (qué muebles,
+  cuántos, cuántos iguales y plantillas). Los originales, por sala y en español, en `assets/sources/salas/<sala>/`
+  (`cocina`, `bano`, `salon`, `dormitorio`, `pasillo` y `comun` para lámpara y planta): `nevera.png`,
+  `sofa-lado.png`… Dentro del juego cada mueble sigue con su nombre en inglés (`fridge` → sprite `mueble-fridge`).
+  Lo que ya no se usa (los muebles del 12 oct, las guías y descartes de PixelLab) está en `salas/descartes/`.
 - Textos para Gemini: pedir "perfectly flat orthographic view from directly above, NO perspective, exactly
   N x N square tiles aligned with the image edges, flat even lighting", y los detalles dentro de cada baldosa.
 

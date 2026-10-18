@@ -6,6 +6,7 @@
 import { W, H, WALL, DOOR_W, STYLES } from './config.js';
 import { mulberry32, pick, clamp, obstacleGap } from './utils.js';
 import { placeFurniture, placeWallDecor, placeBackWall, hasTemplates } from './furniture.js';
+import { SALAS } from './catalogo.js';
 import { CELL, BASE_COLS, BASE_ROWS, plainGrid, toBlocks, isWall, isOpen } from './shapes.js';
 
 // Tipos de mapa. `frame` es el color del marco de las puertas que llevan a él.
@@ -22,9 +23,6 @@ export const ROOM_TYPES = {
 export const CORRIDOR_COLS = 56;
 export const CORRIDOR_ROWS = 12;
 const ROOF_COLS = 44, ROOF_ROWS = 30;
-
-// Cuántos muebles lleva cada habitación de un apartamento: [mínimo, máximo]
-const FURNITURE = { salon: [4, 7], cocina: [2, 4], dormitorio: [2, 4], bano: [1, 3], jefe: [2, 3] };
 
 // Coste de cada zombi para "comprar" los de un apartamento con un presupuesto.
 // Los lentos son baratos: aparecen en grupo.
@@ -149,7 +147,8 @@ export function makePlainLayout(kind) {
   const RW = cols * CELL, RH = rows * CELL;
   const geo = { grid: plainGrid(cols, rows), blocks: [], cols, rows, w: RW, h: RH };
   // en mantenimiento la pared de arriba es para los muebles de las armas
-  const obstacles = kind === 'roof' ? [] : placeFurniture(style.name, rng, 2, 3, { skipSide: kind === 'maintenance' ? 'top' : null });
+  const [min, max] = kind === 'maintenance' ? SALAS['Mantenimiento'].cuantos : SALAS['Pasillo'].cuantosMenu;
+  const obstacles = kind === 'roof' ? [] : placeFurniture(style.name, rng, min, max, { skipSide: kind === 'maintenance' ? 'top' : null });
   let wallDecor = kind === 'roof' ? [] : makeWallDecor(rng, geo, [{ dir: 'up', at: RW / 2 }], kind !== 'maintenance');
   // la pared de mantenimiento ya trae su propia pintada y salpicones (tools/pared_mantenimiento.py): sin cuadros encima
   if (kind === 'maintenance') wallDecor = [];
@@ -169,7 +168,8 @@ export function makeCorridorLayout(spots) {
   const geo = { grid: plainGrid(cols, rows), blocks: [], cols, rows, w: RW, h: RH };
   const clear = spots.map((s) => exitClear(geo, s.dir, s.at));
   const fits = walkChecker(geo, [{ x: WALL + 40, y: RH / 2 }, { x: RW - WALL - 40, y: RH / 2 }]);
-  const obstacles = placeFurniture(style.name, rng, 5, 8, { layout: geo, clear, fits, maxDep: 46 });
+  const { cuantos: [min, max], fondoMax } = SALAS['Pasillo'];
+  const obstacles = placeFurniture(style.name, rng, min, max, { layout: geo, clear, fits, maxDep: fondoMax });
   // una alfombra larga por el centro, de punta a punta
   const rug = { x: WALL + 56, y: RH / 2 - 34, w: RW - 2 * WALL - 112, h: 68, color: style.rug };
   // apliques en la pared de arriba, cada ~230 unidades y sin tapar puertas; son las fuentes de luz del pasillo
@@ -222,7 +222,8 @@ export function makeApartmentLayout(apt) {
     const h = rm.c0 * 7 + rm.r0 * 13 + rm.cells;
     if (st.name === 'Baño') st = { ...st, skin: { suelo: h % 2 ? '-a' : '-b', pared: (h >> 1) % 2 ? '-a' : '-b' } };
     else if (['Cocina', 'Salón', 'Dormitorio'].includes(st.name)) st = { ...st, skin: { suelo: ['-a', '-b', '-c'][h % 3], pared: ['-a', '-b', '-c'][Math.floor(h / 3) % 3] } };
-    const [min, max] = FURNITURE[rm.use];
+    // cuántos muebles lleva (catalogo.js)
+    const [min, max] = rm.use === 'jefe' ? SALAS[st.name].cuantosJefe : SALAS[st.name].cuantos;
     // en las habitaciones grandes cabe algún mueble más
     const extra = Math.min(2, Math.floor(rm.cells / 220));
     // las estancias con plantillas (baño y cocina) solo amueblan la pared del fondo; si en ella no cabe nada

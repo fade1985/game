@@ -7,7 +7,7 @@ contorno oscuro de los demás muebles. Deja `assets/sprites/mueble-<tipo>.png` y
 cada píxel mide 1 unidad del juego (el doble de detalle que el pixel art de los personajes), así que el mueble
 ocupa en pantalla `ancho` unidades de ancho.
 
-Ejemplo: py tools/mueble_dueno.py assets/sources/muebles/maceta-pasillo.webp plant
+Ejemplo: py tools/mueble_dueno.py assets/sources/salas/comun/planta.webp plant
 """
 import json, sys
 from PIL import Image

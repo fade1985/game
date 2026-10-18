@@ -27,7 +27,7 @@ Los sprites se generan con PixelLab. Desde el 12 de octubre de 2026 está conect
   - Receta: sin guía y sin fondo, con un lienzo de largo × (fondo + alto) y el texto "..., front view facing
     the viewer, 3/4 top-down RPG perspective, game furniture sprite". Si sale girado en diagonal, con la guía
     de `py tools/muebles3c.py guias` (un bloque del tamaño del mueble) y con fondo. Montaje:
-    `py tools/muebles3c.py monta`. El largo de cada mueble en `PIECES` es el ancho de su dibujo × 2.
+    `py tools/muebles3c.py monta`. El largo de cada mueble en `MUEBLES` (`src/catalogo.js`) es el ancho de su dibujo × 2.
   - Pendiente: dibujos de lado de cama, estantería, armario, encimera, nevera y demás (los tres primeros se
     pidieron y salieron mal), para que las paredes laterales no se queden tan vacías.
   - PixelLab solo deja 8 generaciones a la vez. **La clave `PIXELLAB_API_KEY` de este ordenador es de otra

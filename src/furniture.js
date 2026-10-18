@@ -10,53 +10,17 @@ import { W, H, WALL, DOOR_W, OUTLINE, FACE_H } from './config.js';
 import { drawSprite, hasSprite, spriteMeta, furnitureShadow } from './sprites.js';
 import { CELL, rectIsFloor } from './shapes.js';
 import { drawCached } from './draw.js';
+import { MUEBLES, SALAS } from './catalogo.js';
 
 const TAU = Math.PI * 2;
 
-// Catálogo: largo a lo largo de la pared (len) y fondo hacia la sala (dep)
-const PIECES = {
-  // (el largo es el ancho del dibujo de cada mueble: así se choca justo con lo que se ve)
-  sofa:      { len: 136, dep: 60 },
-  tv:        { len: 84,  dep: 40 },
-  armchair:  { len: 76,  dep: 60 },
-  bookshelf: { len: 86,  dep: 34 },
-  lamp:      { len: 30,  dep: 30 },
-  counter:   { len: 158, dep: 50 },
-  fridge:    { len: 62,  dep: 58 },
-  stove:     { len: 56,  dep: 50 },
-  bed:       { len: 84,  dep: 140 },
-  wardrobe:  { len: 96,  dep: 44 },
-  nightstand:{ len: 40,  dep: 36 },
-  desk:      { len: 92,  dep: 50 },
-  shoerack:  { len: 74,  dep: 34 },
-  coatstand: { len: 36,  dep: 30 },
-  console:   { len: 68,  dep: 34 },
-  bathtub:   { len: 116, dep: 60 },
-  toilet:    { len: 52,  dep: 58 },
-  sink:      { len: 64,  dep: 46 },
-  washer:    { len: 46,  dep: 50 },
-  plant:     { len: 40,  dep: 36 },
-};
+// Medidas de cada mueble, qué muebles lleva cada sala y en qué paredes va cada uno: en catalogo.js
+const PIECES = MUEBLES;
+const styleOf = (styleName) => SALAS[styleName] || SALAS['Pasillo'];
 
-// Qué muebles puede tener cada estilo de habitación
-const BY_STYLE = {
-  'Salón':      ['sofa', 'tv', 'armchair', 'bookshelf', 'lamp', 'plant'],
-  'Cocina':     ['counter', 'fridge', 'stove', 'counter', 'plant'],
-  'Dormitorio': ['bed', 'wardrobe', 'nightstand', 'desk', 'lamp'],
-  'Pasillo':    ['shoerack', 'coatstand', 'console', 'plant', 'bookshelf'],
-  'Baño':       ['bathtub', 'toilet', 'sink', 'washer'],
-  'Mantenimiento': ['washer', 'bookshelf', 'desk', 'wardrobe', 'shoerack'],
-};
-
-// En qué paredes puede ir cada mueble. En la de arriba, todos: se les ve de frente.
-// En las laterales, los que tienen un dibujo de lado (`mueble-<tipo>-lado`; en la derecha se pone en espejo)
-// o se ven igual desde cualquier sitio. En la de abajo solo estos últimos: se verían de espaldas.
-const ANY_WALL = ['lamp', 'plant', 'coatstand'];
-const SIDE_WALL = ['sofa', 'armchair', 'bathtub', 'toilet', 'nightstand'];
-// Cuántos de cada mueble puede haber en una misma habitación (los que no salen aquí, uno)
-const MAX_SAME = { counter: 2, nightstand: 2 };
-
-const goesOn = (kind, side) => side === 'top' || ANY_WALL.includes(kind) || (side !== 'bottom' && SIDE_WALL.includes(kind));
+// En la pared de arriba van todos: se les ve de frente. En las laterales, los que tienen un dibujo de lado
+// (`mueble-<tipo>-lado`) o se ven igual desde cualquier sitio. En la de abajo solo estos últimos.
+const goesOn = (kind, side) => side === 'top' || PIECES[kind].paredes === 'todas' || (side !== 'bottom' && PIECES[kind].paredes === 'lados');
 
 // Tramos de pared libres (sin puerta) donde se pueden poner muebles en la sala de siempre (960×640)
 const GAP = DOOR_W / 2 + 44;
@@ -110,7 +74,8 @@ function wallSegments(layout, zone) {
 //   fits      función que dice si, con ese mueble puesto, se sigue pudiendo pasar (rooms.js)
 //   maxDep    fondo máximo de los muebles (para sitios estrechos, como el pasillo)
 export function placeFurniture(styleName, rng, min, max, { skipSide = null, layout = null, zone, clear = [], fits = null, maxDep = Infinity } = {}) {
-  const pool = (BY_STYLE[styleName] || BY_STYLE['Pasillo']).filter((k) => PIECES[k].dep <= maxDep);
+  const { muebles, iguales = {} } = styleOf(styleName);
+  const pool = muebles.filter((k) => PIECES[k].dep <= maxDep);
   const want = min + Math.floor(rng() * (max - min + 1));
   const segments = layout ? wallSegments(layout, zone) : SEGMENTS;
   const tops = segments.filter((s) => s.side === 'top' && s.side !== skipSide);
@@ -122,7 +87,7 @@ export function placeFurniture(styleName, rng, min, max, { skipSide = null, layo
     if (seg.side === skipSide) continue;
     const fit = pool.filter((k) => goesOn(k, seg.side) && PIECES[k].len <= seg.b - seg.a
       // nada repetido de más (ni dos lavadoras en la cocina ni dos váteres en el baño)
-      && placed.filter((p) => p.kind === k).length < (MAX_SAME[k] || 1));
+      && placed.filter((p) => p.kind === k).length < (iguales[k] || 1));
     if (!fit.length) continue;
     const kind = fit[Math.floor(rng() * fit.length)];
     const pc = PIECES[kind];
@@ -147,32 +112,8 @@ export function placeFurniture(styleName, rng, min, max, { skipSide = null, layo
 }
 
 // ═════════════ Plantillas de la pared del fondo ═════════════
-// La pared del fondo es la que más se ve (es alta y de frente), así que no se llena al azar: cada estancia tiene
-// varias plantillas que dicen qué va en ella de izquierda a derecha. El juego elige una que quepa y reparte los
-// muebles a lo largo. Los marcados con '?' son opcionales: si no cabe todo, se quitan (en el orden de DROP).
-// Cada mueble sale una vez por plantilla, así nunca hay dos lavadoras en el mismo baño.
-const TEMPLATES = {
-  'Baño': [
-    ['bathtub?', 'toilet', 'sink?'],
-    ['sink?', 'toilet', 'bathtub?'],
-    ['toilet', 'sink?', 'washer?'],
-    ['washer?', 'sink?', 'toilet'],
-    ['sink?', 'toilet', 'washer?'],
-    ['bathtub?', 'sink?', 'toilet'],
-  ],
-  // el fogón es obligatorio; la encimera es larga (158), así que en las cocinas pequeñas se queda fuera
-  'Cocina': [
-    ['fridge', 'counter?', 'stove', 'plant?'],
-    ['counter?', 'stove', 'fridge?', 'plant?'],
-    ['fridge?', 'stove', 'counter?'],
-    ['plant?', 'fridge?', 'counter?', 'stove'],
-    ['counter?', 'stove', 'counter?', 'fridge?'],
-    ['fridge?', 'counter?', 'stove', 'counter?'],
-  ],
-};
-const DROP = ['plant', 'bathtub', 'washer', 'sink', 'counter', 'fridge']; // lo primero que se quita si no cabe
-
-export const hasTemplates = (styleName) => !!TEMPLATES[styleName];
+// (las plantillas de cada sala y cómo funcionan, en catalogo.js)
+export const hasTemplates = (styleName) => !!SALAS[styleName]?.plantillas;
 
 // Amuebla la pared del fondo de una habitación (sus tramos de pared de arriba) con una de sus plantillas.
 // Si la pared tiene una puerta, o delante de una puerta lateral hay que dejar sitio, los muebles se reparten
@@ -205,11 +146,12 @@ export function placeBackWall(styleName, rng, { layout, zone, clear = [], fits =
     return groups;
   };
 
-  for (const tpl of [...TEMPLATES[styleName]].sort(() => rng() - 0.5)) {
+  const { plantillas, quitar } = SALAS[styleName];
+  for (const tpl of [...plantillas].sort(() => rng() - 0.5)) {
     // primero entera; si no cabe, quitando opcionales uno a uno
     let kinds = tpl.map((k) => k.replace('?', ''));
     const optional = tpl.filter((k) => k.endsWith('?')).map((k) => k.slice(0, -1))
-      .sort((p, q) => DROP.indexOf(q) - DROP.indexOf(p)); // pop() saca el primero de DROP
+      .sort((p, q) => quitar.indexOf(q) - quitar.indexOf(p)); // pop() saca el primero de `quitar`
     let groups = flow(kinds);
     while (!groups && optional.length) { kinds = kinds.filter((k) => k !== optional.pop()); groups = flow(kinds); }
     if (!groups) continue;
