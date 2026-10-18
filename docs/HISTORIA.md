@@ -43,8 +43,9 @@ Con `?pruebas` las botellas no se gastan.
 (LB en el mando, botoncito ⇄ en el móvil); el HUD resalta cuál está elegida. Vuela, bota una vez, rueda,
 parpadea en rojo cada vez más deprisa y a los 2 s explota con `explode` (radio 110, daño 80 también a Johnny, temblor,
 destello y mancha chamuscada). Empieza con 2, caben 4, la suelta un zombi el 5 %. Todo en `src/granada.js` (números
-en `GRANADA`, provisionales). Sprite `objeto-granada` e icono del HUD salen de la captura del dueño con
-`py tools/granada_sprite.py`. Lo de abajo es la propuesta original:
+en `GRANADA`, provisionales). Sprite `objeto-granada` (16x22) e icono del HUD: desde el 18 oct, dibujados píxel a
+píxel por `py tools/granada_sprite.py` siguiendo el diseño nuevo del dueño (`assets/sources/efectos/granada.png`;
+pendiente de visto bueno). Lo de abajo es la propuesta original:
 
 - En el juego no existe nada de arrojadizas. Solo hay armas cuerpo a cuerpo y a distancia, y Johnny ataca solo:
   no hay botón de atacar, solo moverse y esquivar.
