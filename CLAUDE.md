@@ -63,7 +63,7 @@ ni compilación. Se publica en **Vercel** como web estática: lo que se sube a `
 | `building.js` / `apartment.js` / `rooms.js` | Generan la planta, cada apartamento y montan cada mapa (puertas, muebles, oleadas) |
 | `shapes.js` | Cuadrícula de cada mapa (casillas de 32), choques y camino de los zombis |
 | `render.js` / `furniture.js` / `camera.js` | Suelo, paredes con cara, muebles, minimapa; cámara |
-| `catalogo.js` | Catálogo de muebles: medidas y paredes de cada uno, y qué muebles lleva cada sala, cuántos y sus plantillas. Originales en `assets/sources/salas/<sala>/` (nombres en español) |
+| `catalogo.js` | Catálogo de muebles: medidas y paredes de cada uno, y qué muebles lleva cada sala, cuántos y sus plantillas. Originales en `assets/sources/salas/<sala>/` (nombres en español; `nevera-b.png` = variante). **`py tools/importar.py`** convierte lo nuevo o cambiado en sprites; un mueble de tipo nuevo hay que añadirlo antes aquí |
 | `sprites.js` | Carga y dibuja las hojas de sprites; si falta una, usa el dibujo de siempre |
 | `entities.js` / `zombies.js` | Johnny, supervivientes y los 6 zombis |
 | `bosses.js` / `jefe-base.js` / `jefe-portera.js` | Jefes: `bosses.js` los reúne y los crea; la ficha de cada uno y lo común en `jefe-base.js`; cada jefe en su archivo (de momento, solo la portera) |

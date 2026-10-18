@@ -11,6 +11,7 @@
 //  de assets/sprites/; si no lo hay, el dibujo de antes (furniture.js).
 //  Variantes: nevera-b.png, nevera-c.png… (sprites mueble-fridge-b, -c…; de lado, nevera-b-lado.png). Cada
 //  apartamento elige una por tipo (furniture.js → variante). Todas miden lo mismo de ancho: el `len` de aquí.
+//  `py tools/importar.py` convierte las imágenes nuevas o cambiadas en sprites (y los deja a ese ancho).
 // ─────────────────────────────────────────────
 
 // Cada mueble, por su tipo (el nombre que usa el juego):

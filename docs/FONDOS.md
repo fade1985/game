@@ -84,6 +84,16 @@ obligatorios (fogón en la cocina) y grupos (cama + mesillas). **Los muebles, su
   de la de siempre). Cada apartamento, pasillo o sala elige una por tipo con su número `surtido` (rooms.js), sin
   gastar el dado de la partida: todas las neveras de una casa son iguales. Todas las variantes miden de ancho el
   `len` del catálogo (los choques usan esa medida).
+- **Meter muebles nuevos (18 oct, fase 3): `py tools/importar.py`.** Flujo del dueño: dejar la imagen (PNG o WEBP
+  con fondo transparente) en `assets/sources/salas/<sala>/` con su nombre (`nevera-b.png`, `sofa-c-lado.png`) →
+  ejecutar el comando → sale en el juego. Convierte solo lo nuevo o cambiado (apunta la huella de cada original en
+  `salas/importados.json`; `py tools/importar.py nevera-b` lo rehace aunque no haya cambiado): quita el fondo y el
+  halo blanco, recorta, reduce al ancho del catálogo (de frente, `len`; de lado, `dep`), pone el contorno, deja el
+  `.json` con `scale` 0.5 y lo apunta en `manifest.json`. Avisa (y no convierte) si la imagen no tiene nada
+  transparente (un damero pintado) o si el mueble es de tipo nuevo: ese hay que añadirlo antes a `src/catalogo.js`
+  (medidas, paredes y salas; decidido por el dueño: a mano, no adivinado). Sustituye a `tools/mueble_dueno.py`.
+  Los muebles de PixelLab (fondo azul, otra receta) siguen con `tools/muebles3c.py`. Más adelante, lo mismo para
+  `objetos/` y `armas/`.
 - Textos para Gemini: pedir "perfectly flat orthographic view from directly above, NO perspective, exactly
   N x N square tiles aligned with the image edges, flat even lighting", y los detalles dentro de cada baldosa.
 

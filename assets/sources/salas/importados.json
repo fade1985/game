@@ -1,0 +1,102 @@
+{
+  "bano/banera-lado.png": {
+    "huella": "c9c541125bebe3e1",
+    "sprite": "mueble-bathtub-lado"
+  },
+  "bano/banera.png": {
+    "huella": "39e271c3464eda5b",
+    "sprite": "mueble-bathtub"
+  },
+  "bano/lavabo.png": {
+    "huella": "56a1dfead52984a2",
+    "sprite": "mueble-sink"
+  },
+  "bano/lavadora.png": {
+    "huella": "60b91907f955b7b5",
+    "sprite": "mueble-washer"
+  },
+  "bano/vater-lado.png": {
+    "huella": "7e2baf3774515fd9",
+    "sprite": "mueble-toilet-lado"
+  },
+  "bano/vater.png": {
+    "huella": "7b7209555c754217",
+    "sprite": "mueble-toilet"
+  },
+  "cocina/encimera.png": {
+    "huella": "5d9751d7bb869abc",
+    "sprite": "mueble-counter"
+  },
+  "cocina/fogon.png": {
+    "huella": "c308523680f5280a",
+    "sprite": "mueble-stove"
+  },
+  "cocina/nevera.png": {
+    "huella": "4fbbc836f523f4e1",
+    "sprite": "mueble-fridge"
+  },
+  "comun/lampara.png": {
+    "huella": "f8aae8273a0a1f96",
+    "sprite": "mueble-lamp"
+  },
+  "comun/planta.webp": {
+    "huella": "c57bf3d63b56b949",
+    "sprite": "mueble-plant"
+  },
+  "dormitorio/armario.png": {
+    "huella": "b9de9a8c54f20770",
+    "sprite": "mueble-wardrobe"
+  },
+  "dormitorio/cama.png": {
+    "huella": "a186f369144aa5af",
+    "sprite": "mueble-bed"
+  },
+  "dormitorio/escritorio.png": {
+    "huella": "6570f3a18e7daeae",
+    "sprite": "mueble-desk"
+  },
+  "dormitorio/mesilla.png": {
+    "huella": "31a58da0fa2e0317",
+    "sprite": "mueble-nightstand"
+  },
+  "pasillo/aplique.png": {
+    "huella": "88d5170172b2319e",
+    "sprite": "aplique-pared"
+  },
+  "pasillo/consola.png": {
+    "huella": "01b5e0d324ea5c4a",
+    "sprite": "mueble-console"
+  },
+  "pasillo/perchero.png": {
+    "huella": "0894eb442bc8fa9a",
+    "sprite": "mueble-coatstand"
+  },
+  "pasillo/zapatero.png": {
+    "huella": "32cab786708a36f9",
+    "sprite": "mueble-shoerack"
+  },
+  "salon/estanteria.png": {
+    "huella": "9d82069a8c300f57",
+    "sprite": "mueble-bookshelf"
+  },
+  "salon/sillon-lado.png": {
+    "huella": "2104287fcfd92ffa",
+    "sprite": "mueble-armchair-lado"
+  },
+  "salon/sillon.png": {
+    "huella": "77cb9016920e9067",
+    "sprite": "mueble-armchair"
+  },
+  "salon/sofa-lado.png": {
+    "huella": "afefa718514a47bf",
+    "sprite": "mueble-sofa-lado"
+  },
+  "salon/sofa.png": {
+    "huella": "886218eefb929484",
+    "sprite": "mueble-sofa"
+  },
+  "salon/tele.png": {
+    "huella": "636949129a7c1608",
+    "sprite": "mueble-tv"
+  }
+}
