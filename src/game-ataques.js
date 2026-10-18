@@ -84,8 +84,8 @@ export class ZombieAttacks {
     this.shake(14);
     destello(this, x, y, Math.max(200, radius * 2.5), 0.4); // la explosión ilumina toda la zona
     destello(this, x, y, Math.max(160, radius * 1.8), 1.2, 0.5); // y el resplandor del fuego tarda en apagarse
-    // la bola de fuego, a 1,5x: así llega justo hasta donde hace daño (cada píxel = 3 unidades, sigue en cuadrícula)
-    const sprite = this.fx('objeto-fx-explosion', x, y, { scale: radius / 60 > 1.6 ? 2 : 1.5 });
+    // la bola de fuego, un poco más grande que el sprite (1,25x; la granada, que llega más lejos, 1,5x)
+    const sprite = this.fx('objeto-fx-explosion', x, y, { scale: radius > 96 ? 1.5 : 1.25 });
     // Ojo: aquí se tira rand() siempre las mismas veces (4 por vuelta), para que la huella del test no
     // cambie; lo que es solo de adorno usa su propio dado (azar), que no toca la partida.
     for (let i = 0; i < (sprite ? 10 : 26); i++) {
@@ -117,8 +117,8 @@ export class ZombieAttacks {
       // dos estallidos más pequeños alrededor, un pelín después (la explosión "retumba")
       const a0 = azar(0, Math.PI * 2);
       for (let i = 0; i < 2; i++) {
-        const a = a0 + i * Math.PI + azar(-0.6, 0.6), d = radius * azar(0.45, 0.6);
-        this.fx('objeto-fx-explosion', x + Math.cos(a) * d, y + Math.sin(a) * d * 0.75, { wait: 0.1 + i * 0.09 });
+        const a = a0 + i * Math.PI + azar(-0.6, 0.6), d = radius * azar(0.35, 0.5);
+        this.fx('objeto-fx-explosion', x + Math.cos(a) * d, y + Math.sin(a) * d * 0.75, { wait: 0.1 + i * 0.09, scale: 0.75 });
       }
       // y humo: cuadraditos grises que suben despacio y encogen
       for (let i = 0; i < 14; i++) {

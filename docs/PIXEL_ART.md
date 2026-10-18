@@ -140,9 +140,9 @@ mismo). Si el suelo no encaja bien al repetirse, se retoca a mano o se dibuja co
   **marca negra de quemado** en el suelo (pixel art, 3 variantes guardadas como imagen, va a `room.decals`).
   Lo de adorno usa su propio dado (`azar`), no `rand()`, para no cambiar la huella del test. El explosivo
   ya no suelta el anillo blanco de `burst` y sus trozos salen color fuego.
-  **Más espectacular (18 oct, después; pendiente de visto bueno):** la bola de fuego se dibuja a 1,5x (a 2x
-  si el radio pasa de 96, como la granada) para que llegue justo hasta donde hace daño; dos estallidos más
-  pequeños alrededor, un poco después (`game.fx` acepta ahora `scale`, `wait` y `vy`); más chispas largas,
+  **Más espectacular (18 oct, diseño con visto bueno; tamaño rebajado después, pendiente de probar):** la bola
+  de fuego se dibuja a 1,25x (1,5x si el radio pasa de 96, como la granada; a 1,5x/2x le pareció grande al
+  dueño); dos estallidos más pequeños (0,75x) alrededor, un poco después (`game.fx` acepta ahora `scale`, `wait` y `vy`); más chispas largas,
   más ascuas, humo de cuadraditos grises que sube y un segundo resplandor de luz más largo. El humo de
   PixelLab (`objeto-fx-humo`) se probó y salía en bolas blancas redondas: descartado aquí.
   `node tools/captura-explosion.mjs` deja una tira de 8 fotogramas en `tools/prueba-salida/explosion-tira.png`.
