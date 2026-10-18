@@ -161,7 +161,19 @@ export function makePlainLayout(kind) {
     const w = 260 + rng() * 160, h = 160 + rng() * 100;
     rug = { x: RW / 2 - w / 2 + (rng() - 0.5) * 80, y: RH / 2 - h / 2 + (rng() - 0.5) * 50, w, h, color: style.rug };
   }
-  return { ...geo, style, seams: makeSeams(rng, RW, RH), obstacles, rug, decor: makeDecor(rng, RW, RH), wallDecor };
+  // manchas de sangre sueltas por el suelo de mantenimiento (10 dibujos en assets/sprites/manchas-suelo.png);
+  // se echan al final con el dado de la sala, así no mueven nada de lo demás. Lejos de la pared de arriba (muebles de armas).
+  const manchas = [];
+  if (kind === 'maintenance') {
+    const n = 6 + Math.floor(rng() * 5);
+    for (let i = 0; i < n; i++) {
+      manchas.push({
+        x: WALL + 60 + rng() * (RW - 2 * WALL - 120), y: WALL + 130 + rng() * (RH - 2 * WALL - 190),
+        f: Math.floor(rng() * 10), giro: Math.floor(rng() * 4), volteo: rng() < 0.5,
+      });
+    }
+  }
+  return { ...geo, style, seams: makeSeams(rng, RW, RH), obstacles, rug, decor: makeDecor(rng, RW, RH), wallDecor, manchas };
 }
 
 // Qué variante de cada mueble sale (furniture.js): un número por sala, el mismo para todos sus muebles.

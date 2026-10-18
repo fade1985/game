@@ -15,7 +15,7 @@ const PLETINA = ['#2a221c', '#b8a37a', '#8a7552', '#4a3c2c']; // la pletina del 
 
 // ═════════════ Habitación ═════════════
 export function drawRoom(ctx, room, time) {
-  const { style, seams, obstacles, rug, decor, wallDecor = [], blocks = [], zones = null, w: RW = W, h: RH = H } = room.layout;
+  const { style, seams, obstacles, rug, decor, wallDecor = [], manchas = [], blocks = [], zones = null, w: RW = W, h: RH = H } = room.layout;
   const iw = RW - WALL * 2, ih = RH - WALL * 2; // RW × RH es el tamaño de este mapa
   // con tabiques (un apartamento): contorno del suelo sacado de su cuadrícula (si es rectangular, se dibuja como siempre)
   const shape = blocks.length ? floorOutline(room.layout) : null;
@@ -97,6 +97,16 @@ export function drawRoom(ctx, room, time) {
       ctx.beginPath(); ctx.arc(d.x + Math.cos(a) * d.r * 1.3, d.y + Math.sin(a) * d.r * 0.8, d.r * 0.18, 0, TAU); ctx.fill();
     }
     ctx.globalAlpha = 1;
+  }
+
+  // manchas de sangre sueltas (mantenimiento): cada una gira de 90 en 90 grados y se voltea al azar
+  for (const m of manchas) {
+    ctx.save();
+    ctx.translate(m.x, m.y);
+    ctx.rotate(m.giro * Math.PI / 2);
+    if (m.volteo) ctx.scale(-1, 1);
+    drawSprite(ctx, 'manchas-suelo', 'idle', 'south', 0, 0, 0, { scale: 0.5, frame: m.f });
+    ctx.restore();
   }
 
   // motas de polvo / desgaste
