@@ -111,7 +111,14 @@ export class GranadaMethods {
       const s = 1 - Math.min(0.5, g.z / 200);
       ctx.fillStyle = 'rgba(20,16,40,0.3)';
       ctx.beginPath(); ctx.ellipse(g.x, g.y, 7 * s, 3 * s, 0, 0, Math.PI * 2); ctx.fill();
-      drawGranada(ctx, g.x, g.y - g.z, g.rojo);
+      // en el aire gira; al caer al suelo se queda derecha
+      if (g.z > 0) {
+        ctx.save();
+        ctx.translate(g.x, g.y - g.z);
+        ctx.rotate(g.spin);
+        drawGranada(ctx, 0, 0, g.rojo);
+        ctx.restore();
+      } else drawGranada(ctx, g.x, g.y, g.rojo);
     }
   }
 
