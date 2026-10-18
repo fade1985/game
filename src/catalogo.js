@@ -24,7 +24,7 @@
 //   archivo nombre del original en assets/sources/salas/<carpeta>/
 export const MUEBLES = {
   sofa:       { len: 132, dep: 60,  paredes: 'lados', archivo: 'salon/sofa' },
-  tv:         { len: 84,  dep: 40,                    archivo: 'salon/tele' },
+  tv:         { len: 80,  dep: 40,                    archivo: 'salon/tele' },
   armchair:   { len: 76,  dep: 60,  paredes: 'lados', archivo: 'salon/sillon' },
   bookshelf:  { len: 86,  dep: 34,                    archivo: 'salon/estanteria' },
   lamp:       { len: 30,  dep: 30,  paredes: 'todas', archivo: 'comun/lampara' },
