@@ -35,13 +35,13 @@ export function drawRoom(ctx, room, time) {
     ctx.clip();
   }
   if (zones) {
-    // apartamento: cada habitación con su suelo; en los huecos de las puertas queda un umbral de madera
+    // apartamento: cada habitación con su suelo, que llega hasta la mitad del paso de sus puertas
     ctx.fillStyle = style.trim;
     ctx.fillRect(WALL, WALL, iw, ih);
     for (const z of zones) {
       ctx.save();
       ctx.clip(zonePath(room.layout, z));
-      drawFloor(ctx, z.style, seams, z.x, z.y, z.w, z.h);
+      drawFloor(ctx, z.style, seams, z.x - CELL, z.y - CELL, z.w + CELL * 2, z.h + CELL * 2); // una casilla más por lado: el paso de las puertas
       ctx.restore();
     }
   } else drawFloor(ctx, style, seams, WALL, WALL, iw, ih);
@@ -302,6 +302,18 @@ function zonePath(layout, z) {
       const c0 = c;
       while (c < c1 && owner[r * cols + c] === z.id) c++;
       path.rect(c0 * CELL, r * CELL, (c - c0) * CELL, CELL);
+    }
+  }
+  // en el paso de cada puerta de dentro, la mitad que da a esta habitación lleva su suelo (de corrido)
+  for (const d of layout.inner || []) {
+    if (d.a !== z.id && d.b !== z.id) continue;
+    const x = d.c * CELL, y = d.r * CELL, half = CELL / 2;
+    if (d.h === 1) { // tabique horizontal: la mitad de arriba o la de abajo
+      const top = owner[(d.r - 1) * cols + d.c] === z.id;
+      path.rect(x, top ? y : y + half, d.w * CELL, half);
+    } else { // tabique vertical: la mitad de la izquierda o la de la derecha
+      const left = owner[d.r * cols + d.c - 1] === z.id;
+      path.rect(left ? x : x + half, y, half, d.h * CELL);
     }
   }
   return (z.path = path);
