@@ -25,8 +25,8 @@
 export const MUEBLES = {
   sofa:       { len: 132, dep: 60,  paredes: 'lados', archivo: 'salon/sofa' },
   tv:         { len: 80,  dep: 40,                    archivo: 'salon/tele' },
-  armchair:   { len: 76,  dep: 60,  paredes: 'lados', archivo: 'salon/sillon' },
-  bookshelf:  { len: 86,  dep: 34,                    archivo: 'salon/estanteria' },
+  armchair:   { len: 90,  dep: 60,  paredes: 'lados', archivo: 'salon/sillon' },
+  bookshelf:  { len: 46,  dep: 34,                    archivo: 'salon/estanteria' },
   lamp:       { len: 30,  dep: 30,  paredes: 'todas', archivo: 'comun/lampara' },
   counter:    { len: 158, dep: 50,                    archivo: 'cocina/encimera' },
   fridge:     { len: 62,  dep: 58,                    archivo: 'cocina/nevera' },

@@ -1,0 +1,22 @@
+{
+  "cell": [
+    45,
+    43
+  ],
+  "pivot": [
+    22,
+    43
+  ],
+  "scale": 1,
+  "anims": {
+    "idle": {
+      "fps": 1,
+      "dirs": {
+        "south": {
+          "row": 0,
+          "frames": 1
+        }
+      }
+    }
+  }
+}

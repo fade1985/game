@@ -80,15 +80,27 @@
     "sprite": "mueble-shoerack"
   },
   "salon/estanteria.png": {
-    "huella": "9d82069a8c300f57",
+    "huella": "d47adad4c98f2f88",
     "sprite": "mueble-bookshelf"
   },
+  "salon/sillon-b.png": {
+    "huella": "202f400ee6535d56",
+    "sprite": "mueble-armchair-b"
+  },
+  "salon/sillon-c-lado.png": {
+    "huella": "2a2fd00345cf5003",
+    "sprite": "mueble-armchair-c-lado"
+  },
+  "salon/sillon-c.png": {
+    "huella": "24175239b0428664",
+    "sprite": "mueble-armchair-c"
+  },
   "salon/sillon-lado.png": {
-    "huella": "2104287fcfd92ffa",
+    "huella": "22649ac1f63f0d6c",
     "sprite": "mueble-armchair-lado"
   },
   "salon/sillon.png": {
-    "huella": "77cb9016920e9067",
+    "huella": "00a720b09e31232a",
     "sprite": "mueble-armchair"
   },
   "salon/sofa-b.png": {
