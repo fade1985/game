@@ -63,24 +63,24 @@
   "jefe-miniboss": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 80,
-    "x": 259,
-    "y": 558,
-    "muertes": 0,
-    "zombis": 3,
-    "balas": 4,
-    "vidaJefe": 131
+    "vida": 97,
+    "x": 796,
+    "y": 231,
+    "muertes": 2,
+    "zombis": 1,
+    "balas": 0,
+    "vidaJefe": 215
   },
   "jefe-boss": {
     "planta": 1,
-    "sala": "Sala de mantenimiento",
+    "sala": "Exposición de muebles",
     "vida": 100,
-    "x": 780,
-    "y": 442,
+    "x": 844,
+    "y": 320,
     "muertes": 0,
-    "zombis": 1,
+    "zombis": 0,
     "balas": 0,
-    "vidaJefe": 724
+    "vidaJefe": 0
   },
   "arma-fregona": {
     "planta": 1,
@@ -108,18 +108,18 @@
     "vida": 100,
     "x": 480,
     "y": 360,
-    "muertes": 2,
-    "zombis": 1,
+    "muertes": 3,
+    "zombis": 0,
     "balas": 0
   },
   "arma-pistola": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 90,
+    "vida": 100,
     "x": 480,
     "y": 360,
-    "muertes": 0,
-    "zombis": 3,
+    "muertes": 3,
+    "zombis": 0,
     "balas": 0
   },
   "arma-escopeta": {
@@ -130,7 +130,7 @@
     "y": 360,
     "muertes": 1,
     "zombis": 2,
-    "balas": 0
+    "balas": 5
   },
   "arma-mp5": {
     "planta": 1,
@@ -145,11 +145,11 @@
   "molotov": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 90,
+    "vida": 100,
     "x": 480,
     "y": 360,
-    "muertes": 0,
-    "zombis": 2,
+    "muertes": 2,
+    "zombis": 0,
     "balas": 0,
     "molotovs": 2
   },
@@ -171,8 +171,8 @@
     "vida": 100,
     "x": 480,
     "y": 360,
-    "muertes": 0,
-    "zombis": 2,
+    "muertes": 1,
+    "zombis": 1,
     "balas": 0,
     "mano": "ranged",
     "cargador": 0,
@@ -184,14 +184,14 @@
       "floor": 1,
       "dead": true,
       "jammed": false,
-      "time": 172
+      "time": 180
     },
     {
       "state": "over",
       "floor": 1,
       "dead": true,
       "jammed": false,
-      "time": 47
+      "time": 103
     }
   ],
   "botPlantas": [
@@ -200,9 +200,9 @@
       "floor": 5,
       "dead": false,
       "jammed": false,
-      "time": 556
+      "time": 560
     }
   ],
-  "botMapas": 32,
+  "botMapas": 34,
   "fin": "over"
 }

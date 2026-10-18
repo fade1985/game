@@ -238,13 +238,13 @@ export class WeaponStash {
 }
 
 // Mesa con el ordenador de la sala de mantenimiento, pegada a la pared de arriba: al arrimarse se enciende y
-// sale su pantalla (ordenador.js), donde se elige el arma. De momento usa el escritorio del catálogo, que ya
-// trae un monitor encima; si falta su sprite, una mesa dibujada a mano.
+// sale su pantalla (ordenador.js), donde se elige el arma. Dibujo del dueño (mesa-ordenador, 18 oct, original en
+// assets/sources/ordenador/); si falta su sprite, una mesa dibujada a mano.
 export class Ordenador {
   constructor(x) {
     this.kind = 'ordenador';
     this.x = x;
-    this.shape = 'rect'; this.w = 92; this.h = 50;
+    this.shape = 'rect'; this.w = 136; this.h = 56; // lo que ocupa en el suelo: de la pared a las patas de delante
     this.r = this.h / 2; this.y = WALL + this.h / 2;
     this.solid = true;
     this.taken = false;
@@ -253,10 +253,12 @@ export class Ordenador {
 
   draw(ctx, game) {
     const { x, y, w, h } = this;
-    // la pantalla brilla un poco, para que se vea que se puede usar
-    glow(ctx, x, y - 6, 4, 60, '120, 220, 255', 0.35 + Math.sin(game.time * 2.5) * 0.1);
-    const meta = spriteMeta('mueble-desk');
-    if (!drawSprite(ctx, 'mueble-desk', 'idle', 'south', 0, x, y + h / 2, meta?.scale ? { scale: meta.scale } : {})) {
+    const meta = spriteMeta('mesa-ordenador');
+    if (meta) {
+      // la pantalla del monitor brilla un poco, para que se vea que se puede usar
+      glow(ctx, x - 2, y + h / 2 - 98, 4, 50, '120, 220, 255', 0.35 + Math.sin(game.time * 2.5) * 0.1);
+      drawSprite(ctx, 'mesa-ordenador', 'idle', 'south', 0, x, y + h / 2, { scale: meta.scale });
+    } else {
       roundBox(ctx, x - w / 2, y - h / 2, w, h, 6, '#8d6346', 3);
       roundBox(ctx, x - 20, y - h / 2 + 4, 40, 26, 4, '#2b2d42', 3);
       roundBox(ctx, x - 16, y - h / 2 + 8, 32, 18, 2, '#4cc9f0', 0);
