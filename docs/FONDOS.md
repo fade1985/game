@@ -73,18 +73,18 @@ obligatorios (fogón en la cocina) y grupos (cama + mesillas). **Los muebles, su
   Cocina: el fogón es obligatorio y se reparte con nevera, encimera (158 de largo, la primera que se cae en cocinas pequeñas) y
   planta; `quitar` dice el orden en que se quitan los opcionales (en la cocina, planta, encimera y nevera).
 - **Ningún mueble repetido** en una habitación (`iguales` de cada sala en `src/catalogo.js`: solo encimera y mesilla pueden salir dos veces).
-- **Catálogo de muebles (18 oct, fase 1 de la reorganización):** todo lo que decide qué muebles salen está en
+- **Catálogo de muebles (18 oct, fase 1 de la reorganización, con visto bueno):** todo lo que decide qué muebles salen está en
   `src/catalogo.js`: `MUEBLES` (medidas, en qué paredes va cada uno y su archivo original) y `SALAS` (qué muebles,
   cuántos, cuántos iguales y plantillas). Los originales, por sala y en español, en `assets/sources/salas/<sala>/`
   (`cocina`, `bano`, `salon`, `dormitorio`, `pasillo` y `comun` para lámpara y planta): `nevera.png`,
   `sofa-lado.png`… Dentro del juego cada mueble sigue con su nombre en inglés (`fridge` → sprite `mueble-fridge`).
   Lo que ya no se usa (los muebles del 12 oct, las guías y descartes de PixelLab) está en `salas/descartes/`.
-- **Variantes de muebles (18 oct, fase 2):** `nevera-b.png`, `nevera-c.png`… dan los sprites `mueble-fridge-b`, `-c`…
+- **Variantes de muebles (18 oct, fase 2, con visto bueno):** `nevera-b.png`, `nevera-c.png`… dan los sprites `mueble-fridge-b`, `-c`…
   (`mueble-fridge` es la de siempre; de lado, `nevera-b-lado.png` → `mueble-fridge-b-lado`, y si falta, el `-lado`
   de la de siempre). Cada apartamento, pasillo o sala elige una por tipo con su número `surtido` (rooms.js), sin
   gastar el dado de la partida: todas las neveras de una casa son iguales. Todas las variantes miden de ancho el
   `len` del catálogo (los choques usan esa medida).
-- **Meter muebles nuevos (18 oct, fase 3): `py tools/importar.py`.** Flujo del dueño: dejar la imagen (PNG o WEBP
+- **Meter muebles nuevos (18 oct, fase 3, con visto bueno): `py tools/importar.py`.** Flujo del dueño: dejar la imagen (PNG o WEBP
   con fondo transparente) en `assets/sources/salas/<sala>/` con su nombre (`nevera-b.png`, `sofa-c-lado.png`) →
   ejecutar el comando → sale en el juego. Convierte solo lo nuevo o cambiado (apunta la huella de cada original en
   `salas/importados.json`; `py tools/importar.py nevera-b` lo rehace aunque no haya cambiado): quita el fondo y el
