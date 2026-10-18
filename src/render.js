@@ -10,6 +10,7 @@ import { CELL } from './shapes.js';
 import { drawMolotov } from './molotov.js';
 
 const TAU = Math.PI * 2;
+const PLETINA = ['#2a221c', '#b8a37a', '#8a7552', '#4a3c2c']; // la pletina del paso entre habitaciones, en franjas de 1 píxel
 
 // ═════════════ Habitación ═════════════
 export function drawRoom(ctx, room, time) {
@@ -43,6 +44,15 @@ export function drawRoom(ctx, room, time) {
       ctx.clip(zonePath(room.layout, z));
       drawFloor(ctx, z.style, seams, z.x - CELL, z.y - CELL, z.w + CELL * 2, z.h + CELL * 2); // una casilla más por lado: el paso de las puertas
       ctx.restore();
+    }
+    // donde se juntan los dos suelos, una pletina de latón gastado (sombra, brillo, latón y sombra)
+    for (const d of room.layout.inner || []) {
+      const x = d.c * CELL, y = d.r * CELL, along = (d.h === 1 ? d.w : d.h) * CELL;
+      PLETINA.forEach((color, i) => {
+        ctx.fillStyle = color;
+        if (d.h === 1) ctx.fillRect(x, y + CELL / 2 - 4 + i * 2, along, 2);
+        else ctx.fillRect(x + CELL / 2 - 4 + i * 2, y, 2, along);
+      });
     }
   } else drawFloor(ctx, style, seams, WALL, WALL, iw, ih);
 
