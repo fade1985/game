@@ -25,7 +25,11 @@ obligatorios (fogón en la cocina) y grupos (cama + mesillas). **Los muebles, su
   tablones claros y parquet en damero. Dormitorio: moqueta gris azulada, granate y beige con flores. Originales en
   `assets/sources/suelos/<estancia>-suelo-<a|b|c>` (y `-recorte.png`, sin el margen). Todos a 10 baldosas por lado
   (`py tools/textura_suelo.py <recorte> cocina-a 10`) para que la baldosa mida lo mismo (16 unidades) en todas. Cada sala elige
-  el suyo con `h % 3` sobre su posición (`rooms.js`, `style.skin.suelo`). Las paredes de estas estancias siguen con el papel de rayas.
+  el suyo con `h % 3` sobre su posición (`rooms.js`, `style.skin.suelo`). Su pared también (`pared-<estancia>-a|b|c` y `techo-…`, 18 oct, pendiente de visto bueno): cada sala elige la suya con
+  `floor(h / 3) % 3`, independiente del suelo. Cocina: azulejo de ladrillo verde, blanco con greca y beige con salpicadero; salón: burdeos con flores,
+  oliva con friso y beige con friso de madera; dormitorio: lila a rayas, beige con rombos y azul con friso blanco. Originales en
+  `assets/sources/suelos/<estancia>-pared-<a|b|c>.png`; se recortan con `py tools/textura_pared.py <img> cocina-a 24 1114 492 748 475 492`
+  (los 17 píxeles de arriba son la moldura). `SKIN=-a,-b node tools/foto-sala.mjs sala.png 0 0 cocina` fotografía una sala con esa pareja.
 - Pasillo (17 oct, con visto bueno): **moqueta** burdeos y mostaza con octógonos y una **alfombra** roja de borde
   mostaza en medio. El dueño las genera realistas y las pixela con tezumie.github.io (tamaño de píxel 4, con su
   paleta). Originales en `assets/sources/suelos/pasillo-moqueta.png` y `pasillo-alfombra.png`.

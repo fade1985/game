@@ -28,7 +28,7 @@ await page.evaluate(([x, y, donde, process_skin]) => {
   const g = window.game;
   g.newRun(); g.banner = null;
   if (donde === "pasillo") g.enterRoom(g.floor.corridor);
-  if (["bano", "cocina", "salon", "dormitorio"].includes(donde)) { const ap = g.floor.apartments.filter((a) => a.layout.zones?.some((z) => z.use === donde)); const a = ap[+x || 0]; g.enterRoom(a); const z = a.layout.zones.find((z) => z.use === donde); g.player.x = z.x + z.w / 2; g.player.y = z.y + z.h / 2; if (process_skin) z.style.skin = process_skin; g.render(); } else
+  if (["bano", "cocina", "salon", "dormitorio"].includes(donde)) { const ap = g.floor.apartments.filter((a) => a.layout.zones?.some((z) => z.use === donde)); const a = ap[+x || 0]; g.enterRoom(a); const z = a.layout.zones.find((z) => z.use === donde); g.player.x = z.x + z.w / 2; g.player.y = z.y + 110; if (process_skin) z.style.skin = process_skin; g.render(); } else
   if (!["bano", "cocina", "salon", "dormitorio"].includes(donde) && x !== undefined) { g.player.x = +x; g.player.y = +y; }
   for (let i = 0; i < 40; i++) g.update(1 / 60);
   g.render();
