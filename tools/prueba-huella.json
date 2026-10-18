@@ -63,24 +63,24 @@
   "jefe-miniboss": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 80,
-    "x": 323,
-    "y": 271,
-    "muertes": 1,
-    "zombis": 2,
-    "balas": 18,
-    "vidaJefe": 103
+    "vida": 92,
+    "x": 346,
+    "y": 320,
+    "muertes": 0,
+    "zombis": 3,
+    "balas": 15,
+    "vidaJefe": 180
   },
   "jefe-boss": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
     "vida": 90,
-    "x": 602,
-    "y": 339,
+    "x": 353,
+    "y": 457,
     "muertes": 0,
     "zombis": 1,
     "balas": 0,
-    "vidaJefe": 731
+    "vidaJefe": 668
   },
   "arma-fregona": {
     "planta": 1,
@@ -115,21 +115,21 @@
   "arma-pistola": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 100,
+    "vida": 90,
     "x": 480,
     "y": 360,
-    "muertes": 3,
-    "zombis": 0,
+    "muertes": 2,
+    "zombis": 1,
     "balas": 0
   },
   "arma-escopeta": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 100,
+    "vida": 90,
     "x": 480,
     "y": 360,
-    "muertes": 3,
-    "zombis": 0,
+    "muertes": 1,
+    "zombis": 2,
     "balas": 0
   },
   "arma-mp5": {
@@ -145,13 +145,13 @@
   "molotov": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 100,
+    "vida": 90,
     "x": 480,
     "y": 360,
-    "muertes": 2,
-    "zombis": 0,
+    "muertes": 1,
+    "zombis": 1,
     "balas": 0,
-    "molotovs": 3
+    "molotovs": 2
   },
   "municion": {
     "planta": 1,
@@ -159,8 +159,8 @@
     "vida": 100,
     "x": 480,
     "y": 360,
-    "muertes": 0,
-    "zombis": 2,
+    "muertes": 1,
+    "zombis": 1,
     "balas": 0,
     "mano": "ranged",
     "cargador": 0,
@@ -169,17 +169,17 @@
   "botPartidas": [
     {
       "state": "over",
-      "floor": 2,
+      "floor": 1,
       "dead": true,
       "jammed": false,
-      "time": 227
+      "time": 155
     },
     {
       "state": "over",
       "floor": 1,
       "dead": true,
       "jammed": false,
-      "time": 152
+      "time": 130
     }
   ],
   "botPlantas": [
@@ -188,9 +188,9 @@
       "floor": 5,
       "dead": false,
       "jammed": false,
-      "time": 559
+      "time": 556
     }
   ],
-  "botMapas": 33,
+  "botMapas": 35,
   "fin": "over"
 }
