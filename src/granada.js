@@ -141,5 +141,6 @@ export class GranadaMethods {
 
 // La granada (para el suelo y el vuelo): el sprite; en rojo cuando le toca parpadear
 export function drawGranada(ctx, x, y, rojo = false) {
-  drawSprite(ctx, 'objeto-granada', 'idle', 'south', 0, x, y, rojo ? { tint: { color: '#ff1a10', alpha: 0.65 } } : {});
+  // el dibujo del dueño (19x27) a 0.75: ocupa lo mismo que la de antes
+  drawSprite(ctx, 'objeto-granada', 'idle', 'south', 0, x, y, rojo ? { scale: 0.75, tint: { color: '#ff1a10', alpha: 0.65 } } : { scale: 0.75 });
 }
