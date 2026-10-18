@@ -70,7 +70,8 @@ const VENTANAS = {
   },
 };
 
-function pantalla(g, ventana) {
+// `encender`: solo al abrirlo hace el efecto de encendido del monitor (al cambiar de ventana o elegir arma, no)
+function pantalla(g, ventana, encender) {
   const iconos = ICONOS.map(([id, ico, nombre]) => `
     <button class="pc-icono ${!ventana && id === 'armas' ? 'yellow' : ''}" data-act="${id === 'apagar' ? 'apagar' : 'abrir'}" data-arg="${id}">
       <i class="ico ico-${ico}"></i><span>${nombre}</span>
@@ -87,7 +88,7 @@ function pantalla(g, ventana) {
   return `
     <div class="pc">
       <div class="pc-monitor">
-        <div class="pc-screen">
+        <div class="pc-screen ${encender ? 'encender' : ''}">
           <div class="pc-desktop">
             <div class="pc-iconos">${iconos}</div>
             ${win}
@@ -112,13 +113,13 @@ export class OrdenadorMethods {
     this.pcOpen = true;
     clearInput();
     sfx.click();
-    this.drawOrdenador(null);
+    this.drawOrdenador(null, true);
   }
 
   // Vuelve a pintar la pantalla con esa ventana abierta (null = solo el escritorio)
-  drawOrdenador(ventana) {
+  drawOrdenador(ventana, encender = false) {
     this.pcVentana = ventana;
-    this.ui.showScreen(pantalla(this, ventana), {
+    this.ui.showScreen(pantalla(this, ventana, encender), {
       abrir: (id) => { sfx.click(); this.drawOrdenador(id); },
       cerrar: () => { sfx.click(); this.drawOrdenador(null); },
       apagar: () => this.closeOrdenador(),
