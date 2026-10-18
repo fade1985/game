@@ -31,7 +31,7 @@ IMAGENES = ('.png', '.webp', '.jpg', '.jpeg')
 # Muebles dibujados "a tamaño de personaje": cada píxel del juego son N píxeles del original. Se encogen justo
 # N veces (no al ancho del catálogo) y salen con la escala indicada ("scale": 1 = el mismo tamaño de píxel que Johnny).
 # Para añadir otro mueble así: su tipo (el del catálogo), el N y la escala.
-BLOQUE = {'lamp': (8, 1), 'sofa': (6.35, 0.5)}  # tipo: (N, scale del .json: 1 = 2 unidades por píxel, 0.5 = 1)
+BLOQUE = {'lamp': (8, 1), 'sofa': (12.7, 1)}  # tipo: (N, scale del .json: 1 = 2 unidades por píxel, 0.5 = 1)
 
 
 def catalogo():

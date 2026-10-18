@@ -23,7 +23,7 @@
 //           (sin nada, solo en la del fondo: en las demás se vería de lado o de espaldas)
 //   archivo nombre del original en assets/sources/salas/<carpeta>/
 export const MUEBLES = {
-  sofa:       { len: 146, dep: 60,  paredes: 'lados', archivo: 'salon/sofa' },
+  sofa:       { len: 132, dep: 60,  paredes: 'lados', archivo: 'salon/sofa' },
   tv:         { len: 84,  dep: 40,                    archivo: 'salon/tele' },
   armchair:   { len: 76,  dep: 60,  paredes: 'lados', archivo: 'salon/sillon' },
   bookshelf:  { len: 86,  dep: 34,                    archivo: 'salon/estanteria' },
