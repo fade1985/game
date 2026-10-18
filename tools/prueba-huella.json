@@ -43,7 +43,7 @@
   "zombi-tentaculos": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 100,
+    "vida": 85,
     "x": 480,
     "y": 360,
     "muertes": 0,
@@ -53,7 +53,7 @@
   "zombi-venenoso": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 95,
+    "vida": 94,
     "x": 480,
     "y": 360,
     "muertes": 0,
@@ -64,23 +64,23 @@
     "planta": 1,
     "sala": "Sala de mantenimiento",
     "vida": 90,
-    "x": 309,
-    "y": 418,
-    "muertes": 0,
-    "zombis": 3,
+    "x": 622,
+    "y": 472,
+    "muertes": 1,
+    "zombis": 2,
     "balas": 30,
-    "vidaJefe": 117
+    "vidaJefe": 96
   },
   "jefe-boss": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 82,
-    "x": 603,
-    "y": 370,
+    "vida": 89,
+    "x": 598,
+    "y": 468,
     "muertes": 0,
     "zombis": 1,
     "balas": 0,
-    "vidaJefe": 689
+    "vidaJefe": 682
   },
   "arma-fregona": {
     "planta": 1,
@@ -108,28 +108,28 @@
     "vida": 100,
     "x": 480,
     "y": 360,
-    "muertes": 3,
-    "zombis": 0,
+    "muertes": 2,
+    "zombis": 1,
     "balas": 0
   },
   "arma-pistola": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 90,
+    "vida": 100,
     "x": 480,
     "y": 360,
-    "muertes": 0,
-    "zombis": 3,
-    "balas": 1
+    "muertes": 3,
+    "zombis": 0,
+    "balas": 0
   },
   "arma-escopeta": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 90,
+    "vida": 100,
     "x": 480,
     "y": 360,
-    "muertes": 0,
-    "zombis": 3,
+    "muertes": 3,
+    "zombis": 0,
     "balas": 0
   },
   "arma-mp5": {
@@ -148,8 +148,8 @@
     "vida": 90,
     "x": 480,
     "y": 360,
-    "muertes": 1,
-    "zombis": 1,
+    "muertes": 2,
+    "zombis": 0,
     "balas": 0,
     "molotovs": 2
   },
@@ -172,25 +172,25 @@
       "floor": 1,
       "dead": true,
       "jammed": false,
-      "time": 128
+      "time": 184
     },
     {
       "state": "over",
       "floor": 1,
       "dead": true,
       "jammed": false,
-      "time": 87
+      "time": 127
     }
   ],
   "botPlantas": [
     {
-      "state": "playing",
-      "floor": 5,
+      "state": "over",
+      "floor": 6,
       "dead": false,
       "jammed": false,
-      "time": 561
+      "time": 550
     }
   ],
-  "botMapas": 33,
+  "botMapas": 37,
   "fin": "over"
 }

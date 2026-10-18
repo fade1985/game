@@ -33,12 +33,121 @@ export const MOLOTOV = {
 
 // Colores del fuego: del centro (blanco amarillento) al borde (rojo) y el suelo chamuscado
 export const FIRE = ['#fff3b0', '#ffd23f', '#ff9f1c', '#f0541e', '#b8261c'];
-const SCORCH = '#2a1a14';
 
-// ¿Está este punto dentro del charco? (elipse, igual que se dibuja)
+// ── El charco: una salpicadura de gasolina ardiendo, hecha de píxeles ──
+// Al romperse la botella se calcula una vez la forma del charco, píxel a píxel (casillas de un píxel del arte):
+// una mancha de borde irregular, algo estirada hacia donde iba la botella, con gotas salpicadas por delante.
+// Cada píxel apunta cuándo se enciende (el fuego se extiende desde el centro) y cuándo se apaga (se apaga por
+// trozos al final). Al apagarse del todo queda en el suelo una mancha de quemado.
+const SPREAD = 0.35;  // segundos que tarda el fuego en cubrir todo el charco
+const DIE = 1.4;      // segundos que dura el apagado por trozos, al final
+const FRONT = 0.07;   // segundos que un píxel recién prendido brilla en blanco (el frente del fuego)
+const EMBER = 0.3;    // segundos que un píxel recién apagado queda de brasa roja antes de ser ceniza
+
+// Ruido suave sin azar (no gasta números del dado de la partida): mismo `s`, misma forma
+function hash(x, y, s) {
+  const h = Math.sin(x * 127.1 + y * 311.7 + s * 74.7) * 43758.5453;
+  return h - Math.floor(h);
+}
+function noise(x, y, s) {
+  const ix = Math.floor(x), iy = Math.floor(y), fx = x - ix, fy = y - iy;
+  const sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+  const a = hash(ix, iy, s), b = hash(ix + 1, iy, s), c = hash(ix, iy + 1, s), d = hash(ix + 1, iy + 1, s);
+  return a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy;
+}
+
+// Calcula la forma del charco. `ang` es hacia dónde volaba la botella.
+function makeSplash(hz, ang) {
+  const u = PIXEL, R = hz.r, s = hz.seed;
+  const W = 2 * Math.ceil((R * 1.3) / u), H = 2 * Math.ceil((R * 0.85) / u), n = W * H;   // pares: el centro cae entre píxeles
+  const on = new Float32Array(n).fill(-1), off = new Float32Array(n), tone = new Uint8Array(n);
+  // gotas salpicadas: casi todas por delante, alguna hacia los lados
+  const drops = [];
+  for (let i = 0; i < 8; i++) {
+    const a = ang + (hash(i, 1, s) - 0.5) * (i < 5 ? 1.3 : 4);
+    const d = R * (0.78 + hash(i, 2, s) * 0.45);
+    drops.push({ x: Math.cos(a) * d, y: Math.sin(a) * d * 0.6, r: 3 + hash(i, 3, s) * 5 });
+  }
+  const cells = [];
+  for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+    const dx = (i + 0.5 - W / 2) * u, dy = (j + 0.5 - H / 2) * u;
+    const d = Math.hypot(dx / R, dy / (R * 0.6));
+    const a = Math.atan2(dy / 0.6, dx);
+    // el borde: irregular (ruido) y estirado hacia delante
+    const lim = 0.74 + 0.5 * (noise(dx / 18, dy / 11, s) - 0.5) + 0.14 * Math.max(0, Math.cos(a - ang));
+    let edge = lim - d;                                     // > 0: dentro del charco
+    if (edge <= 0) for (const p of drops) edge = Math.max(edge, (p.r - Math.hypot(dx - p.x, dy - p.y)) / R);
+    if (edge <= 0) continue;
+    const k = j * W + i;
+    on[k] = (Math.min(d, 1.2) / 1.2) * SPREAD + noise(dx / 10, dy / 6, s + 3) * 0.08;
+    off[k] = MOLOTOV.life - DIE + clamp((noise(dx / 26, dy / 16, s + 7) - 0.2) / 0.6, 0, 1) * (DIE - 0.1);
+    const depth = (edge * R) / u;                           // píxeles hasta el borde
+    tone[k] = depth < 1.5 ? 1 : depth < 4 ? 2 : 3;
+    if (tone[k] >= 2) cells.push(k);
+  }
+  // sitios de las llamas y de las ascuas (elegidos sin azar entre los píxeles de dentro), de atrás adelante
+  const pick = (count, salt) => {
+    const list = [];
+    for (let i = 0; i < count && cells.length; i++) {
+      const k = cells[Math.floor(hash(i, salt, s) * cells.length)];
+      const dx = ((k % W) + 0.5 - W / 2) * u, dy = (Math.floor(k / W) + 0.5 - H / 2) * u;
+      const big = 1 - Math.min(1, Math.hypot(dx / R, dy / (R * 0.6)));
+      list.push({ x: dx, y: dy, on: on[k], off: off[k], seed: s + i * 1.73,
+        w: Math.round(4 + big * 5 + (i % 2)), h: Math.round(6 + big * 13 + (i % 3) * 2) });
+    }
+    return list.sort((p, q) => p.y - q.y);
+  };
+  return { W, H, on, off, tone, flames: pick(14, 5), embers: pick(24, 9), key: null, canvas: null };
+}
+
+// ¿Está ardiendo este punto del charco en este momento? (dx, dy: respecto al centro)
+function burning(f, dx, dy, e) {
+  const i = Math.floor(dx / PIXEL + f.W / 2), j = Math.floor(dy / PIXEL + f.H / 2);
+  if (i < 0 || j < 0 || i >= f.W || j >= f.H) return false;
+  const k = j * f.W + i;
+  return f.on[k] >= 0 && e >= f.on[k] && e < f.off[k];
+}
+
+// ¿Está este punto dentro del fuego? Solo quema donde se ve fuego (no antes de que llegue ni donde ya se apagó).
+// `extra` es el radio de quien lo pisa: basta con que le llegue el fuego a un lado.
 function inside(hz, x, y, extra = 0) {
-  const dx = x - hz.x, dy = (y - hz.y) / 0.6;
-  return Math.hypot(dx, dy) < hz.r + extra;
+  const f = hz.splash, e = MOLOTOV.life - hz.life, dx = x - hz.x, dy = y - hz.y;
+  if (burning(f, dx, dy, e)) return true;
+  if (extra <= 0) return false;
+  const q = extra * 0.7;
+  return burning(f, dx - q, dy, e) || burning(f, dx + q, dy, e) || burning(f, dx, dy - q * 0.6, e) || burning(f, dx, dy + q * 0.6, e);
+}
+
+// Colores ya preparados para escribirlos píxel a píxel (formato de ImageData: rojo en el byte bajo)
+function pixelColor(hex, alpha = 1) {
+  const v = parseInt(hex.slice(1), 16);
+  return ((Math.round(alpha * 255) << 24) | ((v & 255) << 16) | (v & 0xff00) | (v >> 16)) >>> 0;
+}
+const BED = {
+  front: pixelColor(FIRE[0]), core: pixelColor(FIRE[1]), core2: pixelColor(FIRE[2]), mid: pixelColor(FIRE[3]),
+  edge: pixelColor(FIRE[4]), ember: pixelColor('#6e1d12'), ash: pixelColor('#1c120e', 0.7), ash2: pixelColor('#2a1a14', 0.6),
+};
+
+// Pinta el charco tal como está en el segundo `e` en su imagen (una imagen pequeña, un píxel por casilla)
+function bakeSplash(f, e, seed) {
+  if (!f.canvas) {
+    f.canvas = document.createElement('canvas');
+    f.canvas.width = f.W; f.canvas.height = f.H;
+    f.img = f.canvas.getContext('2d').createImageData(f.W, f.H);
+  }
+  const px = new Uint32Array(f.img.data.buffer);
+  for (let k = 0; k < px.length; k++) {
+    const on = f.on[k];
+    if (on < 0 || e < on) { px[k] = 0; continue; }
+    const off = f.off[k];
+    if (e < on + FRONT) px[k] = BED.front;
+    else if (e < off) {
+      const t = f.tone[k];
+      px[k] = t === 1 ? BED.edge : t === 2 ? BED.mid : hash(k, 0, seed) < 0.3 ? BED.core : BED.core2;
+    } else if (e < off + EMBER) px[k] = BED.ember;
+    else px[k] = hash(k, 1, seed) < 0.5 ? BED.ash : BED.ash2;
+  }
+  f.canvas.getContext('2d').putImageData(f.img, 0, 0);
 }
 
 // Una llama de pixel art. (x, y) es la base; `w` y `h`, el ancho y el alto en píxeles del arte.
@@ -75,22 +184,6 @@ export function drawFlame(ctx, x, y, w, h, t, seed, k = 1) {
     ctx.fillStyle = spark < 0.2 ? FIRE[1] : FIRE[3];
     ctx.fillRect((bx + sway) * u, (by - hh - 2 - Math.floor(spark * 8)) * u, u, u);
   }
-}
-
-// Las llamas de un charco: sitio (relativo al radio), tamaño y ritmo. Sin azar (se sacan de `seed`)
-// para no gastar números del dado de la partida. Las del centro, más altas; ordenadas de atrás adelante.
-function fireFlames(seed) {
-  const list = [];
-  for (let i = 0; i < 14; i++) {
-    const a = i * 2.4 + seed, d = 0.1 + ((i * 37) % 10) / 13;
-    const big = 1 - d * 0.7;
-    list.push({
-      x: Math.cos(a) * d * 0.85, y: Math.sin(a) * d * 0.85,
-      w: Math.round(4 + big * 5 + (i % 2)), h: Math.round(6 + big * 13 + (i % 3) * 2),
-      seed: seed + i * 1.73,
-    });
-  }
-  return list.sort((p, q) => p.y - q.y);
 }
 
 export class MolotovMethods {
@@ -161,7 +254,10 @@ export class MolotovMethods {
 
   // La botella se rompe: llamarada, daño a los que pilla de lleno y queda el fuego en el suelo
   molotovLand(lb) {
-    const hz = { x: lb.tx, y: lb.ty, r: MOLOTOV.radius, life: MOLOTOV.life, seed: rand(0, 6), kind: 'fire', tick: 0 };
+    // el centro, en píxel entero del arte, para que el charco cuadre con el resto del suelo
+    const x = Math.round(lb.tx / PIXEL) * PIXEL, y = Math.round(lb.ty / PIXEL) * PIXEL;
+    const hz = { x, y, r: MOLOTOV.radius, life: MOLOTOV.life, seed: rand(0, 6), kind: 'fire', tick: 0 };
+    hz.splash = makeSplash(hz, Math.atan2((lb.ty - lb.y0) / 0.6, lb.tx - lb.x0) || 0);
     this.hazards.push(hz);
     sfx.glass();
     sfx.fire();
@@ -175,7 +271,8 @@ export class MolotovMethods {
       this.particles.push({ x: hz.x, y: hz.y, vx: Math.cos(a) * 120, vy: Math.sin(a) * 70, px: true, size: 1, color: '#b9e3d0', life: 0.3, max: 0.3 }); // cristales
     }
     for (const e of this.enemies) {
-      if (!e.active || !inside(hz, e.x, e.y, e.r)) continue;
+      // la llamarada del golpe aún no tiene forma: pilla a los que están cerca, dentro de la elipse
+      if (!e.active || Math.hypot(e.x - hz.x, (e.y - hz.y) / 0.6) > hz.r * 0.8 + e.r) continue;
       e.burnT = MOLOTOV.afterburn;   // la llamarada ya lo prende (si muere del golpe, queda quemado)
       e.hurt(MOLOTOV.hit, false, 0, 0, this, 0);
     }
@@ -197,54 +294,50 @@ export class MolotovMethods {
         else e.hurt(MOLOTOV.burn * MOLOTOV.tick, false, 0, 0, this, 0);
       }
     }
-    // chispas y lenguas de fuego que suben (menos cuando se va apagando)
-    const strength = Math.min(1, hz.life / 1);
-    if (Math.random() < 30 * dt * strength) {
+    // chispas y lenguas de fuego que suben, solo de donde aún arde
+    if (Math.random() < 30 * dt) {
       const a = rand(0, Math.PI * 2), r = Math.sqrt(Math.random()) * hz.r * 0.85;
-      this.particles.push({ x: hz.x + Math.cos(a) * r, y: hz.y + Math.sin(a) * r * 0.6, vx: rand(-10, 10), vy: rand(-140, -70), px: true, size: rand(1, 3), color: FIRE[Math.floor(rand(0, 4))], life: rand(0.25, 0.55), max: 0.55 });
+      const x = hz.x + Math.cos(a) * r, y = hz.y + Math.sin(a) * r * 0.6;
+      if (inside(hz, x, y)) this.particles.push({ x, y, vx: rand(-10, 10), vy: rand(-140, -70), px: true, size: rand(1, 3), color: FIRE[Math.floor(rand(0, 4))], life: rand(0.25, 0.55), max: 0.55 });
     }
+    // al apagarse del todo, el charco de ceniza se queda en el suelo como una mancha más
+    if (hz.life <= 0) this.leaveScorch(hz);
+  }
+
+  leaveScorch(hz) {
+    const decals = this.room && this.room.decals;
+    if (!decals) return;
+    const f = hz.splash;
+    bakeSplash(f, 1e9, hz.seed);   // todo ceniza
+    decals.push({ x: hz.x, y: hz.y, img: f.canvas, w: f.W * PIXEL, h: f.H * PIXEL });
+    this.room.decalCount = (this.room.decalCount || 0) + 1;
+    if (decals.length > 60) decals.shift();
   }
 
   // El charco de fuego, en el suelo (en el lienzo pequeño, en píxeles enteros como el resto del suelo)
   drawFire(ctx, hz) {
-    const u = PIXEL, t = this.time;
-    const fade = Math.min(1, hz.life / 0.8);
-    const grow = Math.min(1, (MOLOTOV.life - hz.life) / 0.15 + 0.3);
-    const r = hz.r * grow;
-    // las llamas se preparan una sola vez por charco (sitio, tamaño y ritmo de cada una), ya ordenadas
-    // de atrás adelante para que las de delante tapen a las de detrás
-    if (!hz.flames) hz.flames = fireFlames(hz.seed);
+    const u = PIXEL, t = this.time, f = hz.splash, e = MOLOTOV.life - hz.life;
+    // la imagen del charco solo se repinta cuando cambia: mientras se extiende (30 veces por segundo) y
+    // mientras se apaga (12 veces por segundo); en medio, ni una vez
+    const key = e < SPREAD + FRONT + 0.05 ? 's' + Math.floor(e * 30)
+      : e > MOLOTOV.life - DIE - 0.05 ? 'd' + Math.floor(e * 12) : 'm';
+    if (f.key !== key) { bakeSplash(f, e, hz.seed); f.key = key; }
     ctx.save();
-    // suelo chamuscado, con el borde irregular: una mancha grande y unas cuantas más pequeñas alrededor
-    ctx.globalAlpha = 0.55 * Math.min(1, hz.life / 0.4);
-    ctx.fillStyle = SCORCH;
-    ctx.beginPath(); ctx.ellipse(hz.x, hz.y, r, r * 0.6, 0, 0, Math.PI * 2); ctx.fill();
-    for (let i = 0; i < 5; i++) {
-      const a = i * 1.26 + hz.seed, rr = r * (0.18 + (i % 3) * 0.06);
-      ctx.beginPath();
-      ctx.ellipse(hz.x + Math.cos(a) * r * 0.85, hz.y + Math.sin(a) * r * 0.5, rr, rr * 0.6, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    // lecho de brasas que respira (cada capa a su ritmo)
-    ctx.globalAlpha = 0.85 * fade;
-    for (let ring = 0; ring < 3; ring++) {
-      const k = (0.8 - ring * 0.24) * (1 + 0.05 * Math.sin(t * (5 + ring * 2) + hz.seed + ring * 2));
-      ctx.fillStyle = FIRE[4 - ring];
-      ctx.beginPath(); ctx.ellipse(hz.x, hz.y, r * k, r * 0.6 * k, 0, 0, Math.PI * 2); ctx.fill();
-    }
-    // ascuas: píxeles sueltos que se encienden y se apagan
-    for (let i = 0; i < 22; i++) {
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(f.canvas, hz.x - (f.W * u) / 2, hz.y - (f.H * u) / 2, f.W * u, f.H * u);
+    // ascuas: píxeles sueltos que se encienden y se apagan (solo donde arde)
+    for (let i = 0; i < f.embers.length; i++) {
+      const m = f.embers[i];
+      if (e < m.on || e >= m.off) continue;
       const glow = Math.sin(t * (6 + (i % 5)) + i * 2.3 + hz.seed);
-      if (glow < 0) continue;
-      const a = i * 2.39 + hz.seed, d = Math.sqrt(((i * 53) % 22) / 22) * r * 0.75;
-      ctx.fillStyle = glow > 0.6 ? FIRE[0] : FIRE[1];
-      ctx.fillRect(Math.round((hz.x + Math.cos(a) * d) / u) * u, Math.round((hz.y + Math.sin(a) * d * 0.6) / u) * u, u, u);
+      if (glow < 0.2) continue;
+      ctx.fillStyle = glow > 0.7 ? FIRE[0] : FIRE[1];
+      ctx.fillRect(hz.x + Math.floor(m.x / u) * u, hz.y + Math.floor(m.y / u) * u, u, u);
     }
-    // las llamas: crecen al prender y se van encogiendo cuando el fuego se apaga
-    ctx.globalAlpha = 1;
-    const k = Math.min(1, hz.life / 1.2) * grow;
-    for (const f of hz.flames) {
-      drawFlame(ctx, hz.x + f.x * r, hz.y + f.y * r * 0.6, f.w, f.h, t, f.seed, k);
+    // las llamas: cada una crece cuando le llega el fuego y se encoge antes de que se apague su trozo
+    for (const m of f.flames) {
+      const k = Math.min(1, (e - m.on) / 0.25, (m.off - e) / 0.5);
+      if (k > 0) drawFlame(ctx, hz.x + m.x, hz.y + m.y, m.w, m.h, t, m.seed, k);
     }
     ctx.restore();
   }

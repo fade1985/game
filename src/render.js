@@ -80,6 +80,8 @@ export function drawRoom(ctx, room, time) {
 
   // manchas de los zombis derrotados en esta sala
   for (const d of room.decals || []) {
+    // mancha que ya viene dibujada (la ceniza del molotov, molotov.js)
+    if (d.img) { ctx.drawImage(d.img, d.x - d.w / 2, d.y - d.h / 2, d.w, d.h); continue; }
     ctx.globalAlpha = 0.35;
     ctx.fillStyle = d.color;
     ctx.beginPath();
