@@ -237,9 +237,9 @@ export function makeApartmentLayout(apt) {
     const [min, max] = rm.use === 'jefe' ? SALAS[st.name].cuantosJefe : SALAS[st.name].cuantos;
     // en las habitaciones grandes cabe algún mueble más
     const extra = Math.min(2, Math.floor(rm.cells / 220));
-    // las estancias con plantillas (baño y cocina) solo amueblan la pared del fondo; si en ella no cabe nada
+    // las estancias con plantillas (baño, cocina y salón) solo amueblan la pared del fondo; si en ella no cabe nada
     // (una puerta en medio), como antes: muebles sueltos en las demás paredes
-    const back = hasTemplates(st.name) ? placeBackWall(st.name, rng, { layout: geo, zone: rm.id, clear, fits }) : [];
+    const back = hasTemplates(st.name) && rm.use !== 'jefe' ? placeBackWall(st.name, rng, { layout: geo, zone: rm.id, clear, fits }) : [];
     if (back.length) obstacles.push(...back);
     else obstacles.push(...placeFurniture(st.name, rng, min + extra, max + extra, { layout: geo, zone: rm.id, clear, fits }));
     // seen y fog: las habitaciones que aún no se han pisado se ven a oscuras (fog va de 1, negro, a 0)

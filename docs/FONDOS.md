@@ -64,7 +64,7 @@ obligatorios (fogón en la cocina) y grupos (cama + mesillas). **Los muebles, su
   de detrás (se vuelve medio transparente si hay alguien ahí) y en el muro de arriba se sale del mapa (la cámara
   deja ver `TOP_EXTRA` más arriba y `drawWallTops` pinta ese trozo en cada fotograma). Pega: en los baños
   pequeños (6 de fondo) se ven pocas filas de suelo libres.
-- **Plantillas de la pared del fondo** (`plantillas` de cada sala en `src/catalogo.js`: baño y, desde el 18 oct, cocina; pendiente de visto bueno): lista de muebles
+- **Plantillas de la pared del fondo** (`plantillas` de cada sala en `src/catalogo.js`: baño; desde el 18 oct, cocina (con visto bueno) y salón (pendiente de visto bueno). Ya viven en `catalogo.js`, no en `furniture.js`): lista de muebles
   de izquierda a derecha, con `?` los opcionales (se quitan en el orden de `quitar` de la sala si no cabe). Se reparten por los
   trozos libres de la pared (sin puertas ni lo que hay que dejar despejado delante de ellas). Si no cabe nada
   (puerta en medio de la pared del fondo, ~13 % de los baños), muebles sueltos como antes. Los laterales y la
@@ -72,6 +72,8 @@ obligatorios (fogón en la cocina) y grupos (cama + mesillas). **Los muebles, su
   Muchos baños pequeños con puerta lateral solo tienen sitio para el váter (~35 %).
   Cocina: el fogón es obligatorio y se reparte con nevera, encimera (158 de largo, la primera que se cae en cocinas pequeñas) y
   planta; `quitar` dice el orden en que se quitan los opcionales (en la cocina, planta, encimera y nevera).
+  Salón: el sofá es obligatorio y se reparte con televisión, sillón, estantería, lámpara y planta (en los estrechos caen primero planta
+  y lámpara). El apartamento destrozado del jefe (`use: 'jefe'`, también estilo salón) no usa plantillas: sigue con 2–3 muebles sueltos.
 - **Ningún mueble repetido** en una habitación (`iguales` de cada sala en `src/catalogo.js`: solo encimera y mesilla pueden salir dos veces).
 - **Catálogo de muebles (18 oct, fase 1 de la reorganización, con visto bueno):** todo lo que decide qué muebles salen está en
   `src/catalogo.js`: `MUEBLES` (medidas, en qué paredes va cada uno y su archivo original) y `SALAS` (qué muebles,

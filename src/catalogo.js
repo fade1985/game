@@ -49,7 +49,7 @@ export const MUEBLES = {
 //   muebles     los que puede tener (uno repetido en la lista sale más a menudo)
 //   cuantos     [mínimo, máximo] de muebles sueltos (en las habitaciones grandes, alguno más)
 //   iguales     cuántos de un mismo mueble caben (los que no salen aquí, uno)
-//   plantillas  la pared del fondo es la que más se ve (es alta y de frente), así que en baño y cocina no se
+//   plantillas  la pared del fondo es la que más se ve (es alta y de frente), así que en baño, cocina y salón no se
 //               llena al azar: cada plantilla dice qué va en ella de izquierda a derecha y el juego elige una
 //               que quepa. Los marcados con '?' son opcionales: si no cabe todo, se quitan en el orden de
 //               `quitar`. Cada mueble sale una vez por plantilla (nunca dos lavadoras en el mismo baño).
@@ -59,7 +59,17 @@ export const SALAS = {
   'Salón': {
     muebles: ['sofa', 'tv', 'armchair', 'bookshelf', 'lamp', 'plant'],
     cuantos: [4, 7],
-    cuantosJefe: [2, 3], // el apartamento destrozado del jefe usa el estilo del salón, con menos muebles
+    cuantosJefe: [2, 3], // el apartamento destrozado del jefe usa el estilo del salón, con menos muebles (y sin plantillas)
+    // el sofá es obligatorio; en los salones estrechos se caen primero la planta y la lámpara
+    plantillas: [
+      ['bookshelf?', 'sofa', 'tv', 'plant?'],
+      ['plant?', 'sofa', 'lamp?', 'bookshelf?'],
+      ['armchair?', 'tv', 'sofa', 'lamp?'],
+      ['bookshelf?', 'tv?', 'sofa', 'armchair?'],
+      ['lamp?', 'sofa', 'bookshelf?', 'armchair?'],
+      ['plant?', 'armchair?', 'sofa', 'tv?'],
+    ],
+    quitar: ['plant', 'lamp', 'armchair', 'bookshelf', 'tv'],
   },
   'Cocina': {
     muebles: ['counter', 'fridge', 'stove', 'counter', 'plant'],
