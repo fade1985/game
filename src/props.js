@@ -244,7 +244,7 @@ export class Ordenador {
   constructor(x) {
     this.kind = 'ordenador';
     this.x = x;
-    this.shape = 'rect'; this.w = 136; this.h = 56; // lo que ocupa en el suelo: de la pared a las patas de delante
+    this.shape = 'rect'; this.w = 92; this.h = 44; // lo que ocupa en el suelo: de la pared a las patas de delante
     this.r = this.h / 2; this.y = WALL + this.h / 2;
     this.solid = true;
     this.taken = false;
@@ -256,7 +256,7 @@ export class Ordenador {
     const meta = spriteMeta('mesa-ordenador');
     if (meta) {
       // la pantalla del monitor brilla un poco, para que se vea que se puede usar
-      glow(ctx, x - 2, y + h / 2 - 98, 4, 50, '120, 220, 255', 0.35 + Math.sin(game.time * 2.5) * 0.1);
+      glow(ctx, x - 2, y + h / 2 - 70, 4, 40, '120, 220, 255', 0.35 + Math.sin(game.time * 2.5) * 0.1);
       drawSprite(ctx, 'mesa-ordenador', 'idle', 'south', 0, x, y + h / 2, { scale: meta.scale });
     } else {
       roundBox(ctx, x - w / 2, y - h / 2, w, h, 6, '#8d6346', 3);
