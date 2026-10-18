@@ -1239,6 +1239,31 @@
     "cost": "Unas 35 generaciones: 6 del modelo + 0,25 de importar + unas 29 de animaciones.",
     "updated": "2026-10-15"
   },
+  "zombi-tentaculos-56": {
+    "kind": "character",
+    "character_id": "8ad9211d-bc58-4c7f-b04a-503083edb638",
+    "character_id_piel_beige": "5fed0e48-bfc6-449d-ac20-b2bf51e486a4",
+    "name": "Zombi tentáculos",
+    "nota": "Diseño pedido por el dueño (2026-10-18): que encaje con los demás pero muy asqueroso y temible. A 56x56 como el explosivo. Modelo con create_character_pro_flash (5fed0e48, piel beige, 6 generaciones), piel con assets/sources/zombi-tentaculos-56/piel.py e importado con create_character v3 + direction_images (0,25): el character_id de arriba. PENDIENTE del visto bueno del dueño al modelo.",
+    "request": {
+      "description": "adult male zombie, a dead neighbour from an apartment building, realistic adult body proportions, tall gaunt and broad-shouldered man, slightly hunched forward, small head, sickly grey-green rotting skin with dark veins, his lower jaw hangs loose and torn, open mouth full of dark blood and slime, sunken dark eye sockets with pale dead eyes, a few strands of long greasy black hair, his torn dark navy blue shirt is ripped open at the chest and burst open at the back, his ribcage is split open on the chest showing wet dark red flesh, three thick slimy dark purple fleshy tentacles with pale pink suckers burst out of his upper back over his shoulders and curl up above and beside his head, the tentacles glisten and drip slime, black trousers torn at the knees, worn black shoes, long thin arms hanging at his sides with long clawed fingers, empty hands, menacing and disgusting, detailed shading",
+      "width": 56,
+      "height": 56,
+      "view": "low top-down",
+      "style_image": {
+        "url": "rotations/south.png de conserje-48 (4e6c78c6-d6c6-46d3-99c1-40a2d86f0e6c)",
+        "usage_description": "Match the pixel art style of this character: same outline thickness, same level of detail and shading, same head size in pixels. The new character is a taller, bigger man with tentacles on his back. Do not copy his clothes, face or colors."
+      },
+      "style_options": {
+        "color_palette": false,
+        "detail": true,
+        "outline": true,
+        "shading": true
+      }
+    },
+    "cost": "6,25 generaciones hasta ahora (modelo + importar).",
+    "updated": "2026-10-18"
+  },
   "zombi-tentaculos-gemini": {
     "kind": "character",
     "character_id": "64348dd8-44e2-4281-bd88-b40fc065d508",
