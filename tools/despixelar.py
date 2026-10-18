@@ -144,7 +144,7 @@ def _mediana(valores):
     return valores[len(valores) // 2]
 
 
-def muestrear(img, sx, ox, sy, oy):
+def muestrear(img, sx, ox, sy, oy, alfa=None):
     """Un color por bloque: mediana de su zona central (sin los bordes, que son borrosos)."""
     w, h = img.size
     # columnas/filas de bloques que cubren al menos la mitad dentro de la imagen
@@ -167,14 +167,19 @@ def muestrear(img, sx, ox, sy, oy):
             mx = (x1 - x0) * 0.25
             xa, xb = int(round(x0 + mx)), int(round(x1 - mx))
             xb = max(xb, xa + 1)
-            rs, gs, bs = [], [], []
+            rs, gs, bs, As = [], [], [], []
             for y in range(ya, min(yb, h)):
                 for x in range(xa, min(xb, w)):
                     r, g, b = px[x, y][:3]
                     rs.append(r)
                     gs.append(g)
                     bs.append(b)
-            fila.append((_mediana(rs), _mediana(gs), _mediana(bs)))
+                    if alfa is not None:
+                        As.append(alfa[x, y])
+            if As and _mediana(As) < 128:
+                fila.append(None)  # hueco transparente de la imagen original (p. ej. dentro de la anilla)
+            else:
+                fila.append((_mediana(rs), _mediana(gs), _mediana(bs)))
         celdas.append(fila)
     return celdas
 
@@ -248,6 +253,10 @@ def quitar_fondo(celdas, fondo):
     if fondo != "auto":
         _inundar(mat, caja, [_hex(fondo)])
         return mat
+    x0, y0, x1, y1 = caja
+    borde = [mat[y][x] for x in range(x0, x1 + 1) for y in (y0, y1)] + [mat[y][x] for y in range(y0, y1 + 1) for x in (x0, x1)]
+    if sum(1 for c in borde if c is None) > 0.5 * len(borde):
+        return mat  # la imagen ya traía transparencia: el fondo ya está quitado
     refs, _ = _refs_borde(mat, caja, 0.15)
     if not refs:
         return mat
@@ -270,32 +279,34 @@ def quitar_fondo(celdas, fondo):
 
 
 def juntar_colores(mat, maximo):
-    """Junta colores casi iguales; si quedan más de `maximo`, sube la tolerancia."""
+    """Junta colores casi iguales: va fusionando el par más parecido (ponderado por cuántas casillas
+    tiene cada color) hasta que quedan `maximo`. Así se conservan los colores raros pero distintos
+    (brillos, anilla) y se pierde el ruido."""
     cuenta = Counter(c for fila in mat for c in fila if c is not None)
     if not cuenta:
         return mat
-    for umbral in range(14, 200, 4):
-        paleta = []  # [color, peso]
-        for c, n in cuenta.most_common():
-            if luma(c) < 70 and dist(c, CONTORNO) < umbral + 20:
-                c = CONTORNO  # lo oscuro se convierte en el contorno de siempre
-            for p in paleta:
-                if dist(c, p[0]) <= umbral:
-                    p[1] += n
-                    break
-            else:
-                paleta.append([c, n])
-        if len(paleta) <= maximo:
+    grupos = [[list(c), n, {c}] for c, n in cuenta.most_common()]  # [color medio, peso, originales]
+    while len(grupos) > 1:
+        mejor, par = None, None
+        for i in range(len(grupos)):
+            for j in range(i + 1, len(grupos)):
+                a, b = grupos[i], grupos[j]
+                d2 = sum((p - q) ** 2 for p, q in zip(a[0], b[0]))
+                coste = d2 * a[1] * b[1] / (a[1] + b[1])
+                if mejor is None or coste < mejor:
+                    mejor, par = coste, (i, j)
+        if len(grupos) <= maximo and mejor > 14 ** 2 * 3:
             break
-    refs = [p[0] for p in paleta]
-
-    def cercano(c):
-        if luma(c) < 70 and dist(c, CONTORNO) < umbral + 20:
-            return CONTORNO
-        return min(refs, key=lambda r: dist(c, r))
-
-    cache = {}
-    return [[None if c is None else cache.setdefault(c, cercano(c)) for c in fila] for fila in mat]
+        i, j = par
+        a, b = grupos[i], grupos[j]
+        n = a[1] + b[1]
+        grupos[i] = [[(p * a[1] + q * b[1]) / n for p, q in zip(a[0], b[0])], n, a[2] | b[2]]
+        del grupos[j]
+    tabla = {}
+    for medio, _, orig in grupos:
+        for c in orig:
+            tabla[c] = tuple(int(round(v)) for v in medio)
+    return [[None if c is None else tabla[c] for c in fila] for fila in mat]
 
 
 def contorno(mat, forzar=False):
@@ -358,10 +369,13 @@ def a_imagen(mat):
 
 # ---------------------------------------------------------------- principal
 
-def despixelar(ruta, fondo="auto", colores=12, paso=None, con_contorno=True):
+def despixelar(ruta, fondo="auto", colores=16, paso=None, con_contorno=True):
     img = Image.open(ruta)
+    alfa = None
     if img.mode in ("RGBA", "LA", "P"):
         img = img.convert("RGBA")
+        if img.getchannel("A").getextrema()[0] < 255:
+            alfa = img.getchannel("A").load()
         base = Image.new("RGBA", img.size, (255, 0, 255, 255)) if fondo == "auto" else Image.new(
             "RGBA", img.size, _hex(fondo) + (255,))
         base.alpha_composite(img)
@@ -370,7 +384,7 @@ def despixelar(ruta, fondo="auto", colores=12, paso=None, con_contorno=True):
     w, h = img.size
     sx, ox = detectar_rejilla(_perfil(img, 0), w, paso)
     sy, oy = detectar_rejilla(_perfil(img, 1), h, paso)
-    celdas = muestrear(img, sx, ox, sy, oy)
+    celdas = muestrear(img, sx, ox, sy, oy, alfa)
     mat = quitar_fondo(celdas, fondo)
     mat = juntar_colores(mat, colores)
     mat = recortar(mat, 0)
@@ -385,7 +399,7 @@ def main():
     ap.add_argument("entrada")
     ap.add_argument("--salida", help="PNG de salida (por defecto <entrada>-pixel.png)")
     ap.add_argument("--fondo", default="auto", help="auto, o un color como #ff00ff")
-    ap.add_argument("--colores", type=int, default=12, help="máximo de colores (12)")
+    ap.add_argument("--colores", type=int, default=16, help="máximo de colores (16)")
     ap.add_argument("--paso", type=float, help="tamaño del bloque, si la detección falla")
     ap.add_argument("--sin-contorno", action="store_true", help="no añadir contorno")
     a = ap.parse_args()
