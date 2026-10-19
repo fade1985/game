@@ -641,7 +641,8 @@ body:not(.touch) .overlay.pc-overlay { font-size: clamp(12px, 2.2cqw, 30px); pad
 .pc-led { width: 0.6em; height: 0.6em; background: #7dff6a; box-shadow: 0 0 0.5em #7dff6a; border-radius: 50%; }
 
 .pc-desktop { position: relative; flex: 1; min-height: 0; display: flex; padding: 0.8em; gap: 0.8em; }
-.pc-iconos { display: flex; flex-direction: column; gap: 0.5em; }
+/* en columna; si la pantalla es baja y no caben, siguen en otra columna al lado (nunca encima de la barra) */
+.pc-iconos { display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start; gap: 0.5em; min-height: 0; }
 .pc-icono {
   /* todos del mismo alto (el del nombre más largo, de tres líneas): así quedan a la misma distancia */
   display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 0.15em;
