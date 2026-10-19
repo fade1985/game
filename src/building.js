@@ -11,7 +11,7 @@
 import { makeApartment } from './apartment.js';
 import { pick } from './utils.js';
 import { CELL } from './shapes.js';
-import { ROOM_TYPES, CORRIDOR_COLS, CORRIDOR_ROWS, makeApartmentLayout, makeCorridorLayout, makePlainLayout, makeExit, makeRoomWaves, makeHorde, zoneSpot, backWallSpot } from './rooms.js';
+import { ROOM_TYPES, CORRIDOR_COLS, CORRIDOR_ROWS, makeApartmentLayout, makeCorridorLayout, makePlainLayout, makeExit, makeRoomWaves, makeHorde, zoneSpot, wallMountSpot } from './rooms.js';
 
 const OPPOSITE = { up: 'down', down: 'up', left: 'right', right: 'left' };
 const DOOR_AT = 14 * CELL; // a qué distancia de cada extremo del pasillo están las puertas
@@ -143,11 +143,11 @@ export function generateFloor(num, floors, { pruebas = false } = {}) {
   const survRoom = pick(normal);
   const survZone = pick(survRoom.layout.zones.filter((z) => z !== keyZone));
   floor.survivor = { room: survRoom, ...zoneSpot(survRoom.layout, survZone) };
-  // Un armarito con un botiquín en cada baño (props.js, Armarito): es lo único que cura
+  // Un armarito con un botiquín colgado en la pared del fondo de cada baño (props.js, Armarito): es lo único que cura
   floor.armaritos = [];
   for (const r of normal) {
     for (const z of r.layout.zones.filter((zz) => zz.use === 'bano')) {
-      const spot = backWallSpot(r.layout, z);
+      const spot = wallMountSpot(r.layout, z);
       if (spot) floor.armaritos.push({ room: r, ...spot });
     }
   }

@@ -97,41 +97,51 @@ export class DoorKey {
   }
 }
 
-// Armarito del baño, pegado a la pared: dentro hay un botiquín que cura BOTIQUIN_CURA al cogerlo (basta con
-// arrimarse; con la vida llena no se gasta). Ya cogido, se queda abierto y vacío. Dibujo provisional a mano:
-// si algún día hay sprite 'mueble-armarito', se usa ese (fotograma 0 cerrado, 1 abierto).
+// Armarito del baño, colgado en la pared del fondo como una estantería (clavado con dos tornillos): dentro hay
+// un botiquín que cura BOTIQUIN_CURA al cogerlo. Se coge plantándose delante (o delante del mueble que tenga
+// debajo, hasta `reach`); con la vida llena no se gasta. Ya cogido, se queda abierto y vacío. `y` es el pie de la
+// pared: el armarito se dibuja más arriba, en la cara del muro. Dibujo provisional a mano: si algún día hay
+// sprite 'mueble-armarito', se usa ese (fotograma 0 cerrado, 1 abierto; con los pies en el pie de la pared).
 export const BOTIQUIN_CURA = 50;
+const ARM = { w: 36, h: 40, alto: 34 }; // ancho y alto del armarito, y a qué altura del pie de la pared va su base
 export class Armarito {
-  constructor(x, y) {
+  constructor(x, y, reach = 70) {
     this.kind = 'armarito';
     this.x = x; this.y = y;
     this.r = 22;
+    this.reach = reach;
     this.solid = false;
     this.taken = false;
     this.armed = true;
   }
 
   draw(ctx, game) {
-    const { x, y } = this;
-    if (drawSprite(ctx, 'mueble-armarito', 'idle', 'south', this.taken ? 1 : 0, x, y + 12)) return;
-    pixelShadow(ctx, x, y + 12, 34);
-    if (!this.taken) glow(ctx, x, y - 16, 4, 34, '128, 237, 153', 0.25 + Math.sin(game.time * 3) * 0.1);
-    // mueble blanco con patas cortas
-    roundBox(ctx, x - 17, y - 34, 34, 44, 3, '#e9edf1', 3);
-    ctx.fillStyle = '#c9d1da'; ctx.fillRect(x - 15, y + 4, 30, 4);
+    const { x } = this;
+    const base = this.y - ARM.alto, top = base - ARM.h, l = x - ARM.w / 2;
+    if (drawSprite(ctx, 'mueble-armarito', 'idle', 'south', this.taken ? 1 : 0, x, base)) return;
+    if (!this.taken) glow(ctx, x, top + ARM.h / 2, 4, 30, '128, 237, 153', 0.22 + Math.sin(game.time * 3) * 0.08);
+    // sombra en la pared, un poco hacia abajo y a la derecha
+    ctx.fillStyle = 'rgba(6, 4, 14, 0.35)';
+    ctx.fillRect(l + 4, top + 5, ARM.w, ARM.h);
+    // la caja, blanca, con la balda de abajo un poco más ancha
+    roundBox(ctx, l, top, ARM.w, ARM.h, 2, '#e9edf1', 3);
+    roundBox(ctx, l - 3, base - 5, ARM.w + 6, 6, 1, '#c9d1da', 2.5);
     if (!this.taken) {
-      // puertas cerradas con la cruz roja
-      ctx.fillStyle = OUTLINE; ctx.fillRect(x - 1, y - 32, 2, 36);
+      // puertas cerradas con la cruz roja y dos tiradores
+      ctx.fillStyle = OUTLINE; ctx.fillRect(x - 1, top + 2, 2, ARM.h - 8);
       ctx.fillStyle = '#e63946';
-      ctx.fillRect(x - 9, y - 20, 18, 6); ctx.fillRect(x - 3, y - 26, 6, 18);
-      ctx.fillStyle = '#8d99ae'; ctx.fillRect(x - 5, y - 6, 3, 4); ctx.fillRect(x + 2, y - 6, 3, 4);
+      ctx.fillRect(x - 8, top + 12, 16, 6); ctx.fillRect(x - 3, top + 7, 6, 16);
+      ctx.fillStyle = '#8d99ae'; ctx.fillRect(x - 5, top + 27, 3, 4); ctx.fillRect(x + 2, top + 27, 3, 4);
     } else {
-      // abierto y vacío: el hueco oscuro con una balda
-      ctx.fillStyle = '#4a5568'; ctx.fillRect(x - 13, y - 30, 26, 32);
-      ctx.fillStyle = '#c9d1da'; ctx.fillRect(x - 13, y - 15, 26, 3);
-      roundBox(ctx, x - 25, y - 32, 9, 36, 2, '#e9edf1', 2.5);
-      roundBox(ctx, x + 16, y - 32, 9, 36, 2, '#e9edf1', 2.5);
+      // abierto y vacío: el hueco oscuro con una balda, y las dos puertas abiertas a los lados
+      ctx.fillStyle = '#4a5568'; ctx.fillRect(l + 3, top + 3, ARM.w - 6, ARM.h - 10);
+      ctx.fillStyle = '#c9d1da'; ctx.fillRect(l + 3, top + 17, ARM.w - 6, 3);
+      roundBox(ctx, l - 9, top, 8, ARM.h - 4, 2, '#e9edf1', 2.5);
+      roundBox(ctx, l + ARM.w + 1, top, 8, ARM.h - 4, 2, '#e9edf1', 2.5);
     }
+    // los dos tornillos que lo sujetan a la pared
+    ctx.fillStyle = '#5c6470';
+    ctx.fillRect(l + 4, top + 3, 3, 3); ctx.fillRect(l + ARM.w - 7, top + 3, 3, 3);
   }
 }
 

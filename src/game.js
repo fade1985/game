@@ -183,7 +183,7 @@ export class Game {
       npc.x = survivor.x; npc.y = survivor.y;
       survivor.room.props.push(npc);
     }
-    for (const a of this.floor.armaritos || []) a.room.props.push(new Armarito(a.x, a.y));
+    for (const a of this.floor.armaritos || []) a.room.props.push(new Armarito(a.x, a.y, a.reach));
 
     // Sala de mantenimiento: la mesa con el ordenador, donde se cambian dólares por puntos de talento (ordenador.js)
     if (this.floorNum === 1) this.floor.start.props.push(new Ordenador(ORDENADOR_X));
@@ -428,6 +428,23 @@ export class Game {
         else if (pr.armed && gap < p.r + 6) { pr.armed = false; this.openOrdenador(); }
         continue;
       }
+      if (pr.kind === 'armarito') {
+        // Armarito colgado en la pared: se coge plantándose delante (o delante del mueble que tenga debajo).
+        // El botiquín cura al cogerlo; con la vida llena se deja para luego
+        const delante = Math.abs(p.x - pr.x) < 46 && p.y > pr.y - 10 && p.y - pr.y < pr.reach;
+        if (!delante) { pr.armed = true; continue; }
+        if (!pr.armed) continue;
+        pr.armed = false; // hay que apartarse antes de volver a intentarlo
+        if (p.hp >= this.stats.maxHp) {
+          this.floatText(pr.x, pr.y - 90, 'Tienes la vida al máximo', '#dfe7f2', 18);
+          continue;
+        }
+        pr.taken = true;
+        this.healPlayer(BOTIQUIN_CURA + this.stats.medkitBonus); // Sanitario: curan más
+        this.burst(pr.x, pr.y - 50, '#80ed99', 12, 14);
+        sfx.gem();
+        continue;
+      }
       if (dist(pr, p) > pr.r + p.r + 4) { pr.armed = true; continue; } // hay que salir y volver a pisarlo
       if (pr.kind === 'doorkey') {
         pr.taken = true;
@@ -435,17 +452,6 @@ export class Game {
         this.banner = { icon: 'llave', title: pr.name, sub: 'Ya puedes abrir su puerta, en el pasillo', t: 0 };
         this.burst(pr.x, pr.y, '#dfe7f2', 14, 18);
         sfx.buy();
-      } else if (pr.kind === 'armarito' && pr.armed) {
-        // Armarito del baño: el botiquín cura al cogerlo; con la vida llena se deja para luego
-        pr.armed = false; // hay que apartarse antes de volver a intentarlo
-        if (p.hp >= this.stats.maxHp) {
-          this.floatText(pr.x, pr.y - 40, 'Tienes la vida al máximo', '#dfe7f2', 18);
-          continue;
-        }
-        pr.taken = true;
-        this.healPlayer(BOTIQUIN_CURA + this.stats.medkitBonus); // Sanitario: curan más
-        this.burst(pr.x, pr.y - 20, '#80ed99', 12, 14);
-        sfx.gem();
       } else if (pr.kind === 'survivor' && this.room.cleared) {
         pr.taken = true;
         this.addAlly(pr.def, pr.x, pr.y);

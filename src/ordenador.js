@@ -132,6 +132,9 @@ export class OrdenadorMethods {
     clearInput();
     sfx.click();
     this.drawOrdenador(null, true);
+    if (!this.alCambiarTam) this.alCambiarTam = () => { if (this.pcOpen) this.igualarTalentos(); };
+    window.addEventListener('resize', this.alCambiarTam);
+    document.fonts?.ready.then(this.alCambiarTam);
   }
 
   // Vuelve a pintar la pantalla con esa ventana abierta (null = solo el escritorio)
@@ -164,6 +167,17 @@ export class OrdenadorMethods {
       if (this.pcVentana) { sfx.click(); this.drawOrdenador(null); } else this.closeOrdenador();
     },
     'pc-overlay');
+    this.igualarTalentos();
+  }
+
+  // Todos los recuadros de los talentos, del alto del más alto, para que las filas queden alineadas.
+  // Se mide después de pintar (y otra vez si cambia la ventana o termina de cargar la letra).
+  igualarTalentos() {
+    const cajas = [...document.querySelectorAll('.pc-talento')];
+    if (!cajas.length) return;
+    for (const c of cajas) c.style.height = '';
+    const alto = Math.max(...cajas.map((c) => c.offsetHeight));
+    for (const c of cajas) c.style.height = `${alto}px`;
   }
 
   // Un talento recién comprado se nota ya, sin esperar al siguiente edificio
@@ -180,6 +194,7 @@ export class OrdenadorMethods {
   closeOrdenador() {
     if (!this.pcOpen) return;
     this.pcOpen = false;
+    window.removeEventListener('resize', this.alCambiarTam);
     this.paused = false;
     this.ui.hide();
     clearInput();

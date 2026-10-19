@@ -94,8 +94,8 @@ Las partidas a medias no se guardan.
 
 ### 🩹 Curarse
 
-Los zombis ya no sueltan corazones. En **cada baño** hay un armarito blanco con una cruz roja: arrímate y coges
-el **botiquín**, que cura **50** de vida. Con la vida llena no se gasta, así que puedes volver a por él más tarde.
+Los zombis ya no sueltan corazones. En **cada baño** hay un armarito blanco con una cruz roja colgado en la pared
+del fondo (a veces encima del lavabo): ponte delante y coges el **botiquín**, que cura **50** de vida. Con la vida llena no se gasta, así que puedes volver a por él más tarde.
 
 ### 👥 Supervivientes
 

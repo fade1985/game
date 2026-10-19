@@ -280,18 +280,30 @@ export function zoneSpot(layout, zone, rnd = Math.random) {
   return { x: zone.cx, y: zone.cy };
 }
 
-// Un sitio despejado lo más pegado posible a la pared del fondo (la de arriba) de una habitación, para un
-// mueble pequeño como el armarito del baño. Si esa pared está llena de muebles, el primero libre más abajo.
-export function backWallSpot(layout, zone) {
-  const ok = (x, y) => isOpen(layout, x, y, 30) && layout.owner[Math.floor(y / CELL) * layout.cols + Math.floor(x / CELL)] === zone.id
-    && layout.obstacles.every((o) => obstacleGap(o, { x, y }) > 40);
-  for (let y = zone.y + 32; y < zone.y + zone.h - 32; y += 8) {
-    // del centro hacia los lados, para que no quede metido en una esquina si cabe en medio
-    for (let k = 0; k <= zone.w / 2 - 32; k += 16) {
-      for (const x of [zone.x + zone.w / 2 - k, zone.x + zone.w / 2 + k]) if (ok(x, y)) return { x, y };
+// Dónde colgar algo en la pared del fondo (la de arriba) de una habitación, como el armarito del baño: un tramo
+// de muro sin puertas, sin cuadros ni ventanas, y a ser posible con el suelo de delante libre para llegar a él.
+// Devuelve { x, y, reach }: `y` es el pie de la pared y `reach` hasta dónde hay que acercarse para cogerlo
+// (más lejos si hay un mueble delante).
+export function wallMountSpot(layout, zone, half = 22) {
+  const wallY = zone.y - 8;
+  const enPared = (x) => isWall(layout, x - half, wallY) && isWall(layout, x + half, wallY) && isWall(layout, x, wallY);
+  const sinDecor = (x) => zone.y > WALL + 4 || (layout.wallDecor || []).every((d) => Math.abs(d.x - x) > d.w / 2 + half + 24);
+  const libre = (x, y) => isOpen(layout, x, y, 24) && layout.obstacles.every((o) => obstacleGap(o, { x, y }) > 26);
+  // lo que hay que bajar desde la pared para encontrar suelo libre en esa columna
+  const fondo = (x) => {
+    for (let y = zone.y + 26; y < zone.y + zone.h - 20; y += 8) if (libre(x, y)) return y - zone.y;
+    return Infinity;
+  };
+  let best = null;
+  for (let k = 0; k <= zone.w / 2 - half - 8; k += 8) {
+    for (const x of [zone.x + zone.w / 2 - k, zone.x + zone.w / 2 + k]) {
+      if (!enPared(x) || !sinDecor(x)) continue;
+      const f = fondo(x);
+      if (f <= 34) return { x, y: zone.y + 2, reach: 70 };              // suelo libre justo debajo
+      if (f < Infinity && (!best || f < best.f)) best = { x, f };        // con un mueble delante
     }
   }
-  return null;
+  return best ? { x: best.x, y: zone.y + 2, reach: best.f + 40 } : null;
 }
 
 // ═════════════ Zombis ═════════════

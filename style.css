@@ -650,6 +650,7 @@ body:not(.touch) .overlay.pc-overlay { font-size: clamp(12px, 2.2cqw, 30px); pad
 .pc-pips { display: inline-flex; gap: 0.15em; margin-left: 0.3em; vertical-align: middle; }
 .pc-pips i { width: 0.55em; height: 0.55em; border: 0.1em solid #1b1712; background: #d8d0b8; }
 .pc-pips i.on { background: #e8b923; }
+.pc-talento { align-items: center; }
 .pc-talento.lleno { background: #a9c79a; }
 .pc-talento.lleno .pc-arma-tag { background: #2f6b2a; }
 .pc-talento.apagada { cursor: default; }
