@@ -15,6 +15,7 @@ import { SurvivorNPC, PuertaBano } from './props.js';
 import { sfx, music } from './sfx.js';
 import { CELL, isOpen, wayTo } from './shapes.js';
 import { outlinedText, roundBox } from './draw.js';
+import { loadSave, updateSave } from './save.js';
 
 // Lo que grita desde dentro del baño
 const GRITOS = ['¡Socorro!', '¡Aquí dentro!', '¡Ayuda, por favor!', '¡Que alguien me saque!', '¡Estoy en el baño!'];
@@ -52,13 +53,69 @@ const POR = { salon: 'el salón', cocina: 'la cocina', dormitorio: 'el dormitori
 
 export class SupervivienteMethods {
   // Al empezar la partida: quién sale y en qué planta. En el modo pruebas, siempre en la planta baja
+  // Los que ya viven en la sala de mantenimiento no vuelven a salir; con los tres rescatados no hay a quién salvar
+  // (en el modo pruebas sale igual alguno, para poder probarlo)
   elegirSuperviviente() {
     const floors = this.building.floors;
     const pruebas = new URLSearchParams(location.search).has('pruebas');
-    this.rescate = {
-      def: pick(Object.values(SURVIVORS)),
+    const rescatados = loadSave().rescatados;
+    let quedan = Object.values(SURVIVORS).filter((d) => !rescatados.includes(d.id));
+    if (!quedan.length && pruebas) quedan = Object.values(SURVIVORS);
+    this.rescate = quedan.length ? {
+      def: pick(quedan),
       planta: pruebas || floors <= 1 ? 1 : randInt(1, floors - 1),
-    };
+    } : null;
+  }
+
+  // El superviviente que se ha rescatado en esta partida y sigue en el equipo (null si no)
+  rescatadoNuevo() {
+    const a = this.rescate && this.rescate.amigo;
+    return a && this.allies.includes(a) ? a.def : null;
+  }
+
+  // ═════════════ Los vecinos de la sala de mantenimiento ═════════════
+
+  // Los rescatados en otras partidas esperan en la sala de mantenimiento, a la derecha de la mesa del ordenador.
+  // El acompañante elegido empieza la partida ya en el equipo (su sitio se queda vacío)
+  colocarVecinos() {
+    const save = loadSave();
+    const sala = this.floor.start;
+    save.rescatados.forEach((id, i) => {
+      const def = SURVIVORS[id];
+      if (!def) return;
+      const v = new SurvivorNPC(def);
+      v.kind = 'vecino';
+      v.frase = '¿Te acompaño?';
+      v.x = 600 + i * 110; v.y = WALL + 110;
+      v.armed = true;
+      sala.props.push(v);
+      if (save.acompanante === id) this.llevarVecino(v, false);
+    });
+  }
+
+  // Arrimarse a un vecino: se viene contigo (y el que te acompañaba vuelve a su sitio). Como el ordenador,
+  // hay que apartarse un poco antes de que vuelva a contar
+  hablarVecino(v) {
+    const d = dist(v, this.player);
+    if (d > 90) v.armed = true;
+    else if (v.armed && d < 40) { v.armed = false; this.llevarVecino(v, true); }
+  }
+
+  llevarVecino(v, aviso) {
+    // el que venía contigo vuelve a su sitio
+    for (const otro of this.room ? this.room.props : this.floor.start.props) {
+      if (otro.kind !== 'vecino' || !otro.taken) continue;
+      otro.taken = false; otro.armed = false;
+      this.allies = this.allies.filter((a) => a.def !== otro.def);
+    }
+    v.taken = true;
+    this.addAlly(v.def, v.x, v.y + 20);
+    updateSave((s) => { s.acompanante = v.def.id; });
+    if (aviso) {
+      this.banner = { icon: v.def.id, title: `${v.def.name} te acompaña`, sub: v.def.desc, t: 0 };
+      this.burst(v.x, v.y, v.def.color, 12, 16);
+      sfx.clear();
+    }
   }
 
   // Al generar cada planta: si le toca a esta, se mete en su baño y se cierra la puerta

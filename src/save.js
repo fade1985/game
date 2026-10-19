@@ -18,6 +18,8 @@ const DEFAULT = {
   wins: 0,
   kills: 0,
   baul: {},         // objetos para crear armas guardados en el baúl: { clavos: 2, ... } (objetos.js)
+  rescatados: [],   // supervivientes rescatados (ids de SURVIVORS): viven en la sala de mantenimiento (superviviente.js)
+  acompanante: null, // el que te acompaña en cada partida (uno de los rescatados), o null para ir solo
   baulArmas: [],    // armas creadas en el banco de trabajo, guardadas en el baúl hasta sacarlas (banco.js)
   weapons: [],      // armas desbloqueadas (encontradas alguna vez): ['bate', ...]. La fregona siempre está
   buildings: {},    // progreso por edificio: { apartamentos: { ... } }
@@ -33,6 +35,7 @@ export function loadSave() {
   save.weapons = [...(d.weapons || [])];
   save.baul = { ...(d.baul || {}) };
   save.baulArmas = [...(d.baulArmas || [])];
+  save.rescatados = [...(d.rescatados || [])];
   save.settings = { ...DEFAULT.settings, ...(d.settings || {}) };
   save.buildings = {};
   for (const [id, b] of Object.entries(d.buildings || {})) save.buildings[id] = { ...BUILDING_DEFAULT, ...b };

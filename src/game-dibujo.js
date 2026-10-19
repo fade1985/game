@@ -264,7 +264,7 @@ export class GameDrawing {
     list.length = 0;
     for (const e of this.enemies) if (!this.hidden(e)) list.push(e);
     for (const a of this.allies) list.push(a);
-    for (const pr of this.room.props) if (!(pr.taken && (pr.kind === 'survivor' || pr.kind === 'doorkey')) && !this.hidden(pr)) list.push(pr);
+    for (const pr of this.room.props) if (!(pr.taken && (pr.kind === 'survivor' || pr.kind === 'doorkey' || pr.kind === 'vecino')) && !this.hidden(pr)) list.push(pr);
     for (const sc of sceneryOf(this.room)) list.push(sc);
     if (!this.player.dead) list.push(this.player);
     list.sort((a, b) => a.y - b.y);

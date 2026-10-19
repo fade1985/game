@@ -37,7 +37,7 @@ export class SurvivorNPC {
       walk: scared ? 0 : game.time * 8, // da saltitos de alegría al verte
     });
     // bocadillo
-    const text = scared ? '¡Socorro!' : '¡Llévame contigo!';
+    const text = this.frase || (scared ? '¡Socorro!' : '¡Llévame contigo!'); // frase: la de los vecinos de mantenimiento
     const by = y - 52 - Math.abs(Math.sin(game.time * 3)) * 4;
     ctx.font = '16px "ZS UI", "Pixelify Sans", system-ui, sans-serif';
     const w = ctx.measureText(text).width + 22;

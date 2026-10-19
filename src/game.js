@@ -201,6 +201,8 @@ export class Game {
     if (this.floorNum === 1) this.floor.start.props.push(new Baul(BAUL_X));
     // y al otro lado, el banco de trabajo, donde se crean armas con los objetos (banco.js)
     if (this.floorNum === 1) this.floor.start.props.push(new BancoTrabajo(BANCO_X));
+    // y los supervivientes rescatados en otras partidas, que viven aquí (superviviente.js)
+    if (this.floorNum === 1) this.colocarVecinos();
     // En el modo pruebas, todas las armas en el suelo de la sala de mantenimiento, en fila (abajo)
     if (this.testMode && this.floorNum === 1) {
       const lay = this.floor.start.layout;
@@ -372,6 +374,9 @@ export class Game {
         b.wins++;
         b.completed = true;
         b.bestTime = b.bestTime ? Math.min(b.bestTime, this.runTime) : this.runTime;
+        // el superviviente rescatado en esta partida se viene a vivir a la sala de mantenimiento
+        const nuevo = this.rescatadoNuevo();
+        if (nuevo && !s.rescatados.includes(nuevo.id)) s.rescatados.push(nuevo.id);
       }
     });
     const record = win && save.buildings[id].bestTime === this.runTime;
@@ -384,7 +389,7 @@ export class Game {
         win,
         title: win ? '¡Edificio completado!' : '¡Derrota!',
         sub: win
-          ? `Has limpiado los ${this.building.name} de arriba abajo`
+          ? `Has limpiado los ${this.building.name} de arriba abajo${this.rescatadoNuevo() ? `. ${this.rescatadoNuevo().name} se viene a vivir a la sala de mantenimiento` : ''}`
           : `Caíste en la ${this.floorLabel.toLowerCase()} de los ${this.building.name}`,
         kills: this.kills,
         explored: `${rooms.filter((r) => r.visited).length} / ${rooms.length}`,
@@ -551,6 +556,7 @@ export class Game {
         }
         continue;
       }
+      if (pr.kind === 'vecino') { this.hablarVecino(pr); continue; } // los rescatados de la sala de mantenimiento
       if (pr.kind === 'armarito') {
         // Armarito colgado en la pared: se coge plantándose delante (o delante del mueble que tenga debajo).
         // El botiquín cura al cogerlo; con la vida llena se deja para luego
