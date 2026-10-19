@@ -7,7 +7,7 @@ import { initInput, pressReload, pressSwitch, pressTossSwitch } from './input.js
 import { updatePad } from './mando.js';
 import { unlockAudio, setMusicOn, toggleMute } from './sfx.js';
 import { loadSave } from './save.js';
-import { loadSprites } from './sprites.js';
+import { loadSprites, cambiarDensidad, densidadUnica } from './sprites.js';
 import { objetoAlAzar } from './objetos.js';
 
 const root = document.getElementById('game-wrap');
@@ -53,6 +53,12 @@ window.addEventListener('keydown', (e) => {
     game.spawnEnemy(TEST_ZOMBIES[n - 1], pos.x, pos.y);
   }
   if (n === 9) game.dropPickup('objeto', game.player.x, game.player.y + 40).obj = objetoAlAzar();
+});
+// Prueba de densidad única (rama pixel-escala): la O cambia suelos, paredes y armas del suelo a los píxeles de Johnny
+window.addEventListener('keydown', (e) => {
+  if (!game.testMode || game.state !== 'playing' || game.paused || e.uiHandled || e.code !== 'KeyO') return;
+  cambiarDensidad();
+  game.floatText(game.player.x, game.player.y - 70, densidadUnica ? 'Densidad única' : 'Como antes', '#ffe08a', 16);
 });
 // Carteles de las armas (abajo) y botones redondos de las armas (móvil): tocar la otra arma la saca;
 // tocar la de fuego que ya está en la mano, recarga
