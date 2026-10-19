@@ -16,7 +16,7 @@
 //    stash    mueble de la entrada donde espera el arma: cubo, paraguero, encimera, comoda o taquilla
 //             (si no se pone, sale en una caja). Los muebles se dibujan en props.js
 //    price    dólares que cuesta en la tienda de armas del ordenador (ordenador.js; 0 = gratis). Sin precio no
-//             sale en la tienda (la fregona, que se lleva siempre). Números provisionales
+//             sale en la tienda (la fregona, que se lleva siempre). Con visto bueno del dueño (19 oct)
 //    sprite   (solo versión pixel) hoja de sprites del conserje con esta arma en la mano, con sus animaciones
 //             de reposo, andar y ataque. Si no se pone, se usa el conserje sin arma y el arma se dibuja encima
 // ─────────────────────────────────────────────
