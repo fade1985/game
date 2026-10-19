@@ -16,6 +16,7 @@ import { BancoMethods } from './banco.js';
 import { ArmasCreadasMethods, armaDeCreada } from './armas-creadas.js';
 import { PRECIO_PUNTO, aplicarTalentos } from './talentos.js';
 import { MutacionMethods, actualizarMutaciones } from './mutaciones.js';
+import { casillasMochila } from './objetos.js';
 import { ExposicionMuebles, expoZombis } from './exposicion.js';
 import { weaponSummary, WEAPONS } from './weapons.js';
 import { loadSave, updateSave, buildingSave } from './save.js';
@@ -276,9 +277,11 @@ export class Game {
   tirarDelInventario() {
     const clave = this.invSel, p = this.player;
     const i = Number(clave?.slice(1));
-    if (clave?.[0] === 'm' && this.mochila[i]) {
+    const id = casillasMochila(this.mochila)[i]?.[0];
+    if (clave?.[0] === 'm' && id) {
+      // los iguales van juntos en una casilla: se tira uno
       const pk = this.dropPickup('objeto', p.x, p.y + 30);
-      pk.obj = this.mochila.splice(i, 1)[0];
+      pk.obj = this.mochila.splice(this.mochila.lastIndexOf(id), 1)[0];
       pk.tirado = true; // no vuelve solo a la mochila hasta que Johnny se aleje (game-combate.js)
     } else if (clave?.[0] === 'g' && this.armasGuardadas[i]) {
       const pr = new WeaponProp(this.armasGuardadas.splice(i, 1)[0], p.x, p.y + 40);
@@ -330,15 +333,24 @@ export class Game {
     this.drawInventario();
   }
 
-  // Baúl de la sala de mantenimiento: enseña los objetos guardados de otras partidas (save.baul). De momento solo
-  // se mira; crear armas con ellos irá en el banco de trabajo
+  // Baúl de la sala de mantenimiento: enseña los objetos guardados de otras partidas (save.baul) y las armas
+  // creadas en el banco (save.baulArmas); las armas se pueden sacar para esta partida (banco.js, sacarDelBaul)
   openBaul() {
     if (this.state !== 'playing' || this.paused || this.player.dead) return;
     this.paused = true;
     this.pauseOpen = true;
     clearInput();
     sfx.click();
-    this.ui.showBaul(loadSave().baul, () => this.closePause());
+    this.baulSel = null;
+    this.drawBaul();
+  }
+
+  drawBaul() {
+    this.ui.showBaul(loadSave(), this.baulSel, {
+      cerrar: () => this.closePause(),
+      elegir: (clave) => { sfx.click(); this.baulSel = this.baulSel === clave ? null : clave; this.drawBaul(); },
+      sacar: () => this.sacarDelBaul(),
+    });
   }
 
   closePause() {

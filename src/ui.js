@@ -6,7 +6,7 @@ import { toggleMute } from './sfx.js';
 import { loadSave } from './save.js';
 import { makeTitleCanvas } from './titulo.js';
 import { mutacion } from './mutaciones.js';
-import { OBJETOS, MOCHILA, iconoObjeto } from './objetos.js';
+import { OBJETOS, MOCHILA, BAUL, iconoObjeto, casillasMochila, casillasBaul } from './objetos.js';
 import { casillaCreada, icono } from './banco.js';
 import { RAREZAS, RECETAS } from './recetas.js';
 import { ARROJADIZAS } from './armas-creadas.js';
@@ -120,7 +120,7 @@ export function createUI(root) {
       set('team', $('#hud-team'), g.allies.map((al) => `<i class="ico ico-${al.def.id}"></i>`).join(''), 'innerHTML');
       set('teamShow', $('#pill-team'), g.allies.length === 0, 'hidden');
       set('keys', $('#hud-keys'), `$${g.wallet ?? 0}`);
-      set('mochila', $('#hud-mochila'), `${g.mochila?.length ?? 0}/${MOCHILA}`);
+      set('mochila', $('#hud-mochila'), `${casillasMochila(g.mochila || []).length}/${MOCHILA}`);
       const molotovs = g.testMode ? '∞' : String(g.molotovs);
       set('molotov', $('#hud-molotov'), molotovs);
       const granadas = g.testMode ? '∞' : String(g.granadas);
@@ -247,11 +247,13 @@ export function createUI(root) {
         ? `<div class="inv-casilla gris"><i class="ico ico-${w.id}"></i><b>${w.name}</b><small>${hueco}</small></div>`
         : `<div class="inv-casilla vacia"><small>${hueco}</small></div>`;
       const tocable = (clave, dentro) => `<button class="btn inv-casilla gris${sel === clave ? ' puesta' : ''}" data-act="elegir" data-arg="${clave}">${dentro}</button>`;
+      // los objetos iguales van juntos en una casilla, con cuántos hay
+      const llenas = casillasMochila(g.mochila);
       const casillas = [];
       for (let i = 0; i < MOCHILA; i++) {
-        const id = g.mochila[i];
+        const [id, n] = llenas[i] || [];
         casillas.push(id
-          ? tocable(`m${i}`, `<i class="ico" style="background-image:url(${iconoObjeto(id)})"></i><b>${OBJETOS[id].nombre}</b>`)
+          ? tocable(`m${i}`, `<i class="ico" style="background-image:url(${iconoObjeto(id)})"></i><b>${OBJETOS[id].nombre}</b>${n > 1 ? `<small>× ${n}</small>` : ''}`)
           : '<div class="inv-casilla vacia"></div>');
       }
       const guardadas = g.armasGuardadas.map((w, i) => tocable(`g${i}`, `<i class="ico ico-${w.id}"></i><b>${w.name}</b><small>Guardada</small>`));
@@ -268,10 +270,10 @@ export function createUI(root) {
           <div class="inv-armas">${arma(p.slots.melee, 'Cuerpo a cuerpo')}${arma(p.slots.ranged, 'Fuego')}</div>
           ${guardadas.length || creadas.length ? `<div class="plist-title">Otras armas</div>
           <div class="inv-mochila">${guardadas.join('')}${creadas.join('')}</div>` : ''}
-          <div class="plist-title"><i class="ico ico-mochila"></i> Mochila · ${g.mochila.length} / ${MOCHILA}</div>
+          <div class="plist-title"><i class="ico ico-mochila"></i> Mochila · ${llenas.length} / ${MOCHILA}</div>
           <div class="inv-mochila">${casillas.join('')}</div>
           <p class="sub small">${elegida ? `${elegida.desc}.${['melee', 'ranged'].includes(elegida.hueco) ? '' : ' Se lanza con el botón de lanzar (F / LB cambia de arrojadiza).'}`
-            : sel ? 'Si lo tiras, se queda en el suelo: puedes volver a cogerlo.'
+            : sel ? `Si lo tiras, se queda en el suelo: puedes volver a cogerlo.${sel[0] === 'm' ? ' Se tira de uno en uno.' : ''}`
             : 'Lo que llevas en la mochila pasa al baúl si completas el edificio. Si caes, se pierde. Las armas creadas duran esta partida.'}</p>
           <div class="banco-botones">
             ${ponible ? '<button class="btn small" data-act="poner">Ponérmela</button>' : ''}
@@ -283,22 +285,33 @@ export function createUI(root) {
       (e) => { if (['Escape', 'Tab', 'KeyI', 'KeyP'].includes(e.code)) { e.preventDefault(); cerrar(); } });
     },
 
-    // Baúl de la sala de mantenimiento: los objetos guardados de otras partidas ({ id: cantidad }), con su cantidad
-    showBaul(baul, cerrar) {
+    // Baúl de la sala de mantenimiento (BAUL casillas): los objetos guardados de otras partidas ({ id: cantidad }),
+    // uno por casilla con su cantidad, y las armas creadas en el banco (save.baulArmas), una por casilla. Al tocar
+    // un arma se elige (`sel`: 'a0' = la primera) y sale el botón de sacarla para esta partida
+    showBaul(save, sel, { cerrar, elegir, sacar }) {
+      const baul = save.baul;
       const ids = Object.keys(OBJETOS).filter((id) => baul[id] > 0);
-      const casillas = ids.map((id) => `<div class="inv-casilla gris"><i class="ico" style="background-image:url(${iconoObjeto(id)})"></i><b>${OBJETOS[id].nombre}</b><small>× ${baul[id]}</small></div>`);
-      // siempre al menos dos filas de casillas, y las filas completas
-      const total = Math.max(8, Math.ceil(ids.length / 4) * 4);
+      const armas = save.baulArmas.map((a, i) => `<button class="btn inv-casilla ${a.rareza}${sel === `a${i}` ? ' puesta' : ''}" data-act="elegir" data-arg="a${i}">
+        ${icono(a.icono)}<b>${a.nombre}</b><small>${RAREZAS.find((r) => r.id === a.rareza).nombre} · ${a.unidades ? `${a.unidades} unidades` : `daño ${a.damage}`}</small></button>`);
+      const casillas = [...armas, ...ids.map((id) => `<div class="inv-casilla gris"><i class="ico" style="background-image:url(${iconoObjeto(id)})"></i><b>${OBJETOS[id].nombre}</b><small>× ${baul[id]}</small></div>`)];
+      const usadas = casillasBaul(save);
+      // siempre todas las casillas del baúl, y las filas completas
+      const total = Math.max(BAUL, Math.ceil(casillas.length / 4) * 4);
       while (casillas.length < total) casillas.push('<div class="inv-casilla vacia"></div>');
+      const elegida = sel?.[0] === 'a' ? save.baulArmas[Number(sel.slice(1))] : null;
       open(`
-        <div class="panel inventario">
-          <h2 class="title">Baúl</h2>
+        <div class="panel inventario baul">
+          <h2 class="title">Baúl · ${usadas} / ${BAUL}</h2>
           <div class="inv-mochila">${casillas.join('')}</div>
-          <p class="sub small">${ids.length ? 'Aquí se guarda lo que traes en la mochila al completar un edificio.'
-            : 'Está vacío. Lo que lleves en la mochila se guarda aquí al completar un edificio.'}</p>
-          <button class="btn yellow small" data-act="cerrar">Cerrar</button>
+          <p class="sub small">${elegida ? `${elegida.desc}. Si la sacas, la llevas esta partida (si caes, se pierde).`
+            : usadas ? 'Aquí se guarda lo que traes en la mochila al completar un edificio, y las armas que creas en el banco de trabajo. Toca un arma para sacarla.'
+            : 'Está vacío. Lo que lleves en la mochila se guarda aquí al completar un edificio, y aquí van las armas que crees en el banco de trabajo.'}</p>
+          <div class="banco-botones">
+            ${elegida ? '<button class="btn small" data-act="sacar">Sacarla</button>' : ''}
+            <button class="btn yellow small" data-act="cerrar">Cerrar</button>
+          </div>
         </div>`,
-      { cerrar },
+      { cerrar, elegir, sacar },
       (e) => { if (e.code === 'Escape') { e.preventDefault(); cerrar(); } });
     },
 

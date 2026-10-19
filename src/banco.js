@@ -4,15 +4,16 @@
 //  Al arrimarse (props.js, BancoTrabajo) el juego se pausa y sale un recuadro: arriba, todo lo que se puede
 //  usar (las armas que lleva Johnny y los objetos de la mochila y del baúl); al tocar dos cosas suben a las
 //  casillas del banco y, si hacen una receta (recetas.js), se puede crear el arma. Sale con una rareza al azar,
-//  los ingredientes se gastan (los objetos, primero de la mochila y luego del baúl) y el arma dura esta
-//  partida: la de cuerpo a cuerpo, directa a la mano (armas-creadas.js); las demás, al inventario
-//  (game.armasCreadas) hasta la fase D3 (las arrojadizas).
+//  los ingredientes se gastan (los objetos, primero de la mochila y luego del baúl) y el arma va directa al
+//  baúl (save.baulArmas), donde se queda de una partida a otra. Desde el baúl se saca (sacarDelBaul) y entonces
+//  dura esa partida: la de cuerpo a cuerpo y la de fuego, a la mano (armas-creadas.js); las arrojadizas, al
+//  inventario (game.armasCreadas), y las botellas del cóctel molotov, a los molotovs.
 // ─────────────────────────────────────────────
 import { loadSave, updateSave } from './save.js';
 import { clearInput } from './input.js';
 import { sfx } from './sfx.js';
 import { WEAPONS } from './weapons.js';
-import { OBJETOS, iconoObjeto } from './objetos.js';
+import { OBJETOS, BAUL, iconoObjeto, casillasBaul } from './objetos.js';
 import { buscarReceta, crearArma, RAREZAS, HUECOS } from './recetas.js';
 import { armaDeCreada } from './armas-creadas.js';
 
@@ -64,6 +65,7 @@ export class BancoMethods {
     this.bancoSel = this.bancoSel.filter((c) => ings.some((g) => g.clave === c));
     const puesto = this.bancoSel.map((c) => ings.find((g) => g.clave === c));
     const receta = puesto.length === 2 ? buscarReceta(puesto[0].id, puesto[1].id) : null;
+    const lleno = receta && !this.cabeEnBaul(puesto);
 
     const cosas = ings.map((g) => `
       <button class="btn inv-casilla gris banco-cosa${this.bancoSel.includes(g.clave) ? ' puesta' : ''}" data-act="poner" data-arg="${g.clave}">
@@ -72,11 +74,12 @@ export class BancoMethods {
       ? `<button class="btn inv-casilla gris banco-hueco" data-act="poner" data-arg="${puesto[i].clave}">${icono(puesto[i].id)}<b>${nombreDe(puesto[i].id)}</b></button>`
       : '<div class="inv-casilla vacia banco-hueco"><small>Elige algo</small></div>');
     let resultado;
-    if (this.bancoHecha && !puesto.length) resultado = casillaCreada(this.bancoHecha, '<small>¡Creada!</small>');
+    if (this.bancoHecha && !puesto.length) resultado = casillaCreada(this.bancoHecha, '<small>¡Al baúl!</small>');
     else if (receta) resultado = `<div class="inv-casilla gris banco-hueco">${icono(receta.icono)}<b>${receta.nombre}</b><small>${HUECOS[receta.hueco]}</small></div>`;
     else resultado = `<div class="inv-casilla vacia banco-hueco"><small>${puesto.length === 2 ? 'Esto no combina' : '?'}</small></div>`;
-    const texto = receta ? `${receta.desc}. Al crearla, los dos ingredientes se gastan.`
-      : this.bancoHecha && !puesto.length ? this.bancoHecha.desc
+    const texto = lleno ? 'El baúl está lleno: saca alguna arma del baúl antes de crear otra.'
+      : receta ? `${receta.desc}. Al crearla, los dos ingredientes se gastan y el arma va al baúl.`
+      : this.bancoHecha && !puesto.length ? `${this.bancoHecha.desc}. Está en el baúl: sácala de ahí para usarla.`
       : 'Toca dos cosas para ponerlas en el banco. Si hacen receta, puedes crear un arma.';
 
     const creadas = [this.player.slots.melee?.creada, ...this.armasCreadas].filter(Boolean); // la de la mano, la primera
@@ -88,10 +91,10 @@ export class BancoMethods {
         <div class="banco-mesa">${hueco(0)}<span>+</span>${hueco(1)}<span>=</span>${resultado}</div>
         <p class="sub small">${texto}</p>
         <div class="banco-botones">
-          <button class="btn yellow small" data-act="crear"${receta ? '' : ' disabled'}>Crear</button>
+          <button class="btn yellow small" data-act="crear"${receta && !lleno ? '' : ' disabled'}>Crear</button>
           <button class="btn blue small" data-act="cerrar">Cerrar</button>
         </div>
-        ${creadas.length ? `<div class="plist-title">Armas creadas en esta partida</div>
+        ${creadas.length ? `<div class="plist-title">Armas creadas que llevas en esta partida</div>
         <div class="inv-mochila">${creadas.map((a) => casillaCreada(a)).join('')}</div>` : ''}
       </div>`,
     {
@@ -116,7 +119,7 @@ export class BancoMethods {
     const ings = this.ingredientesBanco();
     const puesto = this.bancoSel.map((c) => ings.find((g) => g.clave === c));
     const receta = puesto.length === 2 && puesto.every(Boolean) ? buscarReceta(puesto[0].id, puesto[1].id) : null;
-    if (!receta) { sfx.nope(); return; }
+    if (!receta || !this.cabeEnBaul(puesto)) { sfx.nope(); return; }
     // se gastan los ingredientes (las armas guardadas, de la última a la primera para no liar los números)
     const guardadas = puesto.filter((g) => g.clave[0] === 'g').map((g) => Number(g.clave.slice(1))).sort((a, b) => b - a);
     for (const i of guardadas) this.armasGuardadas.splice(i, 1);
@@ -124,10 +127,39 @@ export class BancoMethods {
       if (g.clave === 'mano') this.player.slots.melee = null;
       else if (g.clave.startsWith('o:')) this.gastarObjeto(g.id);
     }
-    // la de cuerpo a cuerpo va directa a la mano de Johnny; lo que llevara (si no se ha gastado) pasa al
-    // inventario. Las demás esperan en el inventario (a distancia y arrojadizas: fases D2 y D3)
+    // si se ha gastado el arma de la mano, coge otra fregona para no quedarse sin nada cuerpo a cuerpo
     const p = this.player;
+    if (!p.slots.melee) { p.slots.melee = WEAPONS.fregona; p.hold('melee'); }
+    // el arma creada va directa al baúl
     const arma = crearArma(receta);
+    updateSave((s) => { s.baulArmas.push(arma); });
+    this.bancoHecha = arma;
+    this.bancoSel = [];
+    if (arma.rareza === 'verde') sfx.buy(); else sfx.clear(); // las raras y épicas suenan a premio
+    this.drawBanco();
+  }
+
+  // ¿Hay sitio en el baúl para el arma? Cuenta que los objetos puestos se gastan (si era el último de su clase,
+  // deja libre su casilla)
+  cabeEnBaul(puesto) {
+    const s = loadSave();
+    let usadas = casillasBaul(s);
+    for (const g of puesto) {
+      if (!g.clave.startsWith('o:') || this.mochila.includes(g.id)) continue; // de la mochila no libera nada del baúl
+      if (s.baul[g.id] === 1) usadas--;
+    }
+    return usadas < BAUL;
+  }
+
+  // Saca del baúl el arma elegida (`baulSel`: 'a0' = la primera) para esta partida: la de cuerpo a cuerpo y la
+  // de fuego, a la mano (lo que llevara pasa al inventario); el cóctel molotov suma sus botellas a los molotovs;
+  // las demás arrojadizas, al inventario (armas-creadas.js)
+  sacarDelBaul() {
+    const i = Number(this.baulSel?.slice(1));
+    const arma = loadSave().baulArmas[i];
+    if (this.baulSel?.[0] !== 'a' || !arma) return;
+    updateSave((s) => { s.baulArmas.splice(i, 1); });
+    const p = this.player;
     if (arma.hueco === 'melee') {
       this.guardarArma(p.slots.melee);
       p.slots.melee = armaDeCreada(arma);
@@ -135,12 +167,11 @@ export class BancoMethods {
     } else if (arma.hueco === 'ranged') {
       const old = p.equip(armaDeCreada(arma)); // a la mano de fuego; la que llevaba pasa al inventario con su munición
       this.guardarArma(old?.weapon, old?.ammo);
-    } else if (arma.receta === 'molotov') this.molotovs += arma.unidades; // las botellas se suman a las que ya lleva (armas-creadas.js)
+    } else if (arma.receta === 'molotov') this.molotovs += arma.unidades; // las botellas se suman a las que ya lleva
     else this.armasCreadas.push(arma);
-    this.bancoHecha = arma;
-    this.bancoSel = [];
-    if (arma.rareza === 'verde') sfx.buy(); else sfx.clear(); // las raras y épicas suenan a premio
-    this.drawBanco();
+    sfx.buy();
+    this.baulSel = null;
+    this.drawBaul();
   }
 
   // Gasta un objeto: primero de la mochila y, si no hay ahí, del baúl

@@ -10,7 +10,7 @@ import { destello } from './luz.js';
 import { isWall, lineClear } from './shapes.js';
 import { MOLOTOV } from './molotov.js';
 import { GRANADA } from './granada.js';
-import { OBJETOS, MOCHILA, objetoQueSuelta, objetoAlAzar } from './objetos.js';
+import { OBJETOS, cabeEnMochila, objetoQueSuelta, objetoAlAzar } from './objetos.js';
 import { sfx } from './sfx.js';
 import { animDuration } from './sprites.js';
 
@@ -84,7 +84,7 @@ export class GameCombat {
       const wanted = pk.kind === 'cash' || (pk.kind === 'molotov' ? this.molotovs < MOLOTOV.max + this.stats.extraThrow
         : pk.kind === 'granada' ? this.granadas < GRANADA.max + this.stats.extraThrow
         : pk.kind === 'ammo' ? p.wantsAmmo()
-        : pk.kind === 'objeto' ? this.mochila.length < MOCHILA && !pk.tirado : false); // objetos para crear armas (objetos.js)
+        : pk.kind === 'objeto' ? cabeEnMochila(this.mochila, pk.obj) && !pk.tirado : false); // objetos para crear armas (objetos.js)
       if (!p.dead && wanted && pk.t > 0.4 && d < this.stats.magnet) {
         pk.vx += (dx / d) * 2200 * dt;
         pk.vy += (dy / d) * 2200 * dt;

@@ -26,8 +26,8 @@ import { aplicarTalentos } from './talentos.js';
 
 // Los números de cada una (provisionales)
 export const MUT = {
-  tentacular: { cada: 4, radio: 90, empuje: 520, aturde: 1 },
-  gastro: { cada: 3, radio: 55, dps: 8, dura: 4 },
+  tentacular: { cada: 4, radio: 90, empuje: 1500, aturde: 1 }, // empuje 1500 ≈ los manda a unos 150 de distancia
+  gastro: { cada: 3, radio: 55, dps: 8, dura: 4, alcance: 420 }, // alcance: hasta dónde busca a quién vomitarle
   insensible: { dano: 0.5 },
   canibal: { cura: 0.05 },
   ansiedad: { porZombi: 0.05, max: 10 },
@@ -64,10 +64,18 @@ export const MUTACIONES = [
       return true;
     } },
   { id: 'gastro', nombre: 'Gastroenteritis', icono: 'molotov',
-    desc: 'Cada 3 s vomitas un charco de ácido que quema a los zombis que lo pisan',
+    desc: 'Cada 3 s le lanzas un vómito de ácido al zombi más cercano: deja un charco que quema a los zombis que lo pisan',
     cada: MUT.gastro.cada,
     accion(game, p) {
-      game.vomitar(p.x - p.lookX * 20, p.y + 12 - p.lookY * 20);
+      // el zombi (o jefe) más cercano; sin nadie a tiro no gasta el vómito: lo intenta en el siguiente fotograma
+      let obj = null, mejor = MUT.gastro.alcance;
+      for (const e of game.enemies) {
+        if (!e.active || e.dead) continue;
+        const d = dist(e, p);
+        if (d < mejor) { mejor = d; obj = e; }
+      }
+      if (!obj) return false;
+      game.lanzarVomito(p.x, p.y - 10, obj.x, obj.y + obj.r * 0.5);
       return true;
     } },
   { id: 'insensible', nombre: 'Insensible', icono: 'casco',

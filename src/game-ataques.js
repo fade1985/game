@@ -26,7 +26,7 @@ const HAZARDS = {
   poison: { ...POISON, estados: { veneno: {} }, estilo: ESTILO_VENENO, fill: '#8fd13f', stroke: '#4f772d', bubble: '#c7f27a', drop: '#9be33b' },
   bleach: { ...BLEACH, estados: { resbaladizo: {}, toxico: { dps: 3 } }, estilo: ESTILO_LEJIA, fill: '#e9f8ff', stroke: '#2f86c4', bubble: '#ffffff', drop: '#4cb4f0' },
   // el vómito de Johnny (mutación Gastroenteritis): solo les hace daño a los zombis
-  vomito: { radius: MUT.gastro.radio, life: MUT.gastro.dura, estados: { acido: { dps: MUT.gastro.dps } }, estilo: ESTILO_VENENO, soloZombis: true, drop: '#c7e04a' },
+  vomito: { radius: MUT.gastro.radio, life: MUT.gastro.dura, flight: 0.45, estados: { acido: { dps: MUT.gastro.dps } }, estilo: ESTILO_VENENO, soloZombis: true, drop: '#c7e04a' },
   // la lluvia ácida de la arrojadiza creada: lo mismo, pero más grande (el radio lo pone armas-creadas.js) y más larga
   lluvia: { radius: 150, life: 7, estados: { acido: { dps: 10 } }, estilo: { ...ESTILO_VENENO, life: 7 }, soloZombis: true, drop: '#c7e04a' },
 };
@@ -188,7 +188,7 @@ export class ZombieAttacks {
           this.particles.push({ x: lb.tx, y: lb.ty, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: rand(3, 6), color: hd.drop, life: 0.4, max: 0.4, outline: true });
         }
         if (lb.kind === 'bleach') sfx.glass(); else sfx.splat();
-        if (!p.dead && dist(p, { x: lb.tx, y: lb.ty }) < hd.radius + p.r * 0.5) p.hurt(hd.hit, this);
+        if (!hd.soloZombis && !p.dead && dist(p, { x: lb.tx, y: lb.ty }) < hd.radius + p.r * 0.5) p.hurt(hd.hit, this);
       }
     }
     this.lobs = this.lobs.filter((lb) => !lb.done);
@@ -224,7 +224,13 @@ export class ZombieAttacks {
     if (this.trail.length && this.trail[0].life <= 0) this.trail = this.trail.filter((t) => t.life > 0);
   }
 
-  // Gastroenteritis (mutaciones.js): Johnny vomita un charco de ácido a sus pies
+  // Gastroenteritis (mutaciones.js): Johnny lanza el vómito en parábola hacia un zombi; al caer deja el charco
+  lanzarVomito(x, y, tx, ty) {
+    this.lob(x, y, tx, ty, 'vomito');
+    sfx.splat();
+  }
+
+  // Charco de ácido en (x, y) (el que deja el desintegrador, armas-creadas.js)
   vomitar(x, y) {
     const hd = HAZARDS.vomito;
     const lb = { x0: x, y0: y - 1, tx: x, ty: y };

@@ -2,12 +2,13 @@
 //  Objetos para crear armas (fase A del plan de combinar: claude/plan-combinar.md)
 //
 //  Los sueltan los zombis al morir y Johnny los lleva en la MOCHILA (casillas en MOCHILA). Al completar el
-//  edificio pasan al baúl (save.js, `baul`); si muere, se pierden. Todos son de rareza gris (común).
+//  edificio pasan al baúl (save.js, `baul`); si muere, se pierden. Los iguales se apilan en una casilla. Todos son de rareza gris (común).
 //  De momento se dibujan a mano: cada uno es un dibujito de 10×10 píxeles (una letra = un color).
 // ─────────────────────────────────────────────
 import { PIXEL } from './config.js';
 
-export const MOCHILA = 8;          // casillas de la mochila
+export const MOCHILA = 8;          // casillas de la mochila (los objetos iguales se apilan en una casilla)
+export const BAUL = 24;            // casillas del baúl (el triple): cada objeto distinto ocupa una, y cada arma creada otra
 export const OBJETO_DROP = 0.10;   // probabilidad de que un zombi suelte un objeto (provisional)
 export const EXPLOSIVO_DROP = 0.25; // ...los explosivos, solo los zombis explosivos (provisional)
 
@@ -71,6 +72,24 @@ export const OBJETOS = {
     '..........', '.oo....oo.', 'okko..okko', 'okkooookko', 'okkGGGGkko',
     'okkooookko', 'okko..okko', '.oo....oo.', '..........', '..........'] },
 };
+
+// La mochila (game.mochila) es una lista de ids, uno por objeto; los iguales van juntos en la misma casilla.
+// Devuelve las casillas: [[id, cuántos], ...] en el orden en que se cogieron
+export function casillasMochila(mochila) {
+  const n = new Map();
+  for (const id of mochila) n.set(id, (n.get(id) || 0) + 1);
+  return [...n];
+}
+
+// ¿Cabe uno más de este objeto? Si ya lleva alguno, va a su casilla; si no, hace falta una libre
+export function cabeEnMochila(mochila, id) {
+  return mochila.includes(id) || casillasMochila(mochila).length < MOCHILA;
+}
+
+// Casillas ocupadas en el baúl: una por cada objeto distinto y una por cada arma creada guardada
+export function casillasBaul(save) {
+  return Object.values(save.baul).filter((n) => n > 0).length + save.baulArmas.length;
+}
 
 // Qué objeto suelta un zombi al morir (o null): los explosivos solo los dejan los zombis explosivos
 export function objetoQueSuelta(tipo) {
