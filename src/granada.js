@@ -13,6 +13,7 @@ import { WALL, PIXEL } from './config.js';
 import { rand, clamp } from './utils.js';
 import { drawSprite } from './sprites.js';
 import { sfx } from './sfx.js';
+import { FABRICANTE } from './talentos.js';
 
 // Números de la granada (provisionales, para probar si es divertido)
 export const GRANADA = {
@@ -30,6 +31,7 @@ export const GRANADA = {
 };
 
 export class GranadaMethods {
+  get grenadeRadius() { return GRANADA.radius * (this.stats.fabricante ? FABRICANTE.radio : 1); }
   get hasGrenade() { return this.testMode || this.granadas > 0; }
   get hasToss() { return this.tossKind === 'granada' ? this.hasGrenade : this.hasMolotov; }
 
@@ -96,11 +98,13 @@ export class GranadaMethods {
 
   // ¡Boom!: la explosión de siempre y, además, una mancha chamuscada en el suelo
   grenadeBoom(g) {
-    this.explode(g.x, g.y, GRANADA.radius, GRANADA.dmg, null);
+    // Fabricante: explosión más grande · Puntería: más daño a los zombis (a Johnny le hace lo de siempre)
+    const R = this.grenadeRadius;
+    this.explode(g.x, g.y, R, GRANADA.dmg, null, GRANADA.dmg * this.stats.throwDamage);
     const decals = this.room && this.room.decals;
     if (!decals) return;
-    decals.push({ x: g.x, y: g.y, r: GRANADA.radius * 0.5, color: '#120d0b', seed: rand(0, 6) });
-    decals.push({ x: g.x, y: g.y, r: GRANADA.radius * 0.28, color: '#000000', seed: rand(0, 6) });
+    decals.push({ x: g.x, y: g.y, r: R * 0.5, color: '#120d0b', seed: rand(0, 6) });
+    decals.push({ x: g.x, y: g.y, r: R * 0.28, color: '#000000', seed: rand(0, 6) });
     this.room.decalCount = (this.room.decalCount || 0) + 1;
     if (decals.length > 60) decals.shift();
   }
@@ -128,7 +132,7 @@ export class GranadaMethods {
     const col = ok ? '155, 189, 90' : '170, 170, 170';
     ctx.save();
     ctx.fillStyle = `rgba(${col}, ${0.3 * (0.85 + 0.15 * Math.sin(this.time * 8))})`;
-    ctx.beginPath(); ctx.ellipse(a.x, a.y, GRANADA.radius, GRANADA.radius * 0.6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(a.x, a.y, this.grenadeRadius, this.grenadeRadius * 0.6, 0, 0, Math.PI * 2); ctx.fill();
     ctx.lineWidth = PIXEL;
     ctx.setLineDash([3 * PIXEL, 2 * PIXEL]);
     ctx.lineDashOffset = -this.time * 20;

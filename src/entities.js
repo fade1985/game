@@ -187,6 +187,12 @@ export class Player {
     const s = this.stats;
     this.dashCd -= dt;
     this.invuln -= dt;
+    this.dodgeT = (this.dodgeT || 0) - dt; // Reflejos: cuenta atrás hasta la siguiente esquiva automática
+    // Lobezno: recupera vida poco a poco
+    if (s.regen && !this.dead && this.hp < s.maxHp && (this.regenT = (this.regenT || 0) + dt) >= 3) {
+      this.regenT -= 3;
+      game.healPlayer(s.regen);
+    }
     this.hurtT -= dt;
     this.blinkT -= dt;
     if (this.blinkT < -0.12) this.blinkT = rand(2, 4.5);
@@ -219,6 +225,7 @@ export class Player {
       if (this.dashT <= 0) {
         // frena: un poco de polvo hacia delante y un aplastón rápido
         this.landT = LAND_T;
+        if (s.ninja) game.ninjaStrike(this); // Ninja: golpe en área al acabar la esquiva
         game.dust(this.x, this.y + this.r * 0.8, this.dashX, this.dashY, 3);
       }
     } else {
@@ -281,7 +288,7 @@ export class Player {
         reach: w.reach * s.range * s.meleeRange,
       };
       this.swingDir *= -1;
-      const hit = () => game.meleeHit(this, angle, half, w.reach * s.range * s.meleeRange, w.damage * s.damage, w);
+      const hit = () => game.meleeHit(this, angle, half, w.reach * s.range * s.meleeRange, w.damage * s.damage * s.meleeDamage, w);
       if (w.sprite && hasSprite(w.sprite)) {
         // pixel art: la animación del golpe dura medio segundo como mucho y nunca más que el hueco entre
         // ataques; el daño se hace cuando el arma llega a su sitio (lo dice la hoja), no al empezar a moverla
@@ -300,8 +307,12 @@ export class Player {
       const m = armed ? spriteMuzzle(w.sprite, dirFromVector(Math.cos(angle), Math.sin(angle))) : null;
       const bx = m ? this.x + m[0] : h.x + Math.cos(angle) * w.muzzle;
       const by = m ? this.y + 16 + m[1] + MUZZLE_LIFT : h.y + Math.sin(angle) * w.muzzle;
+      // Mirilla: después de cada 3 disparos, el siguiente es crítico seguro
+      this.shots = (this.shots || 0) + 1;
+      const sure = s.mirilla && this.shots % 4 === 0;
       game.fireVolley(this, angle, {
-        dmg: w.damage * s.damage,
+        crit: sure,
+        dmg: w.damage * s.damage * s.rangedDamage,
         count: n,
         spread: w.pellets > 1 ? w.spread : 0.16,
         jitter: w.pellets > 1 ? 0.06 : w.jitter || 0,
@@ -351,7 +362,7 @@ export class Player {
   // Daño continuo del veneno: no da invulnerabilidad ni retroceso
   poison(amount, game, color = '#9be33b') {
     if (this.dead) return;
-    amount *= this.stats.damageTaken;
+    amount = this.absorb(amount * this.stats.damageTaken);
     this.hp -= amount;
     this.poisonAcc = (this.poisonAcc || 0) + amount;
     if (this.poisonAcc >= 2) {
@@ -366,9 +377,27 @@ export class Player {
     }
   }
 
+  // Acero: mientras quede escudo, para la mitad de cada golpe. Devuelve el daño que sí llega a la vida.
+  absorb(dmg) {
+    if (!(this.shield > 0)) return dmg;
+    const parado = Math.min(this.shield, dmg / 2);
+    this.shield -= parado;
+    return dmg - parado;
+  }
+
   hurt(dmg, game) {
     if (this.invuln > 0 || this.dead) return;
-    dmg = Math.max(1, Math.round(dmg * this.stats.damageTaken)); // el casco reduce el daño
+    const s = this.stats;
+    // Reflejos: cada pocos segundos, un golpe se esquiva solo
+    if (s.autoDodge && this.dodgeT <= 0) {
+      this.dodgeT = s.autoDodge;
+      this.invuln = 0.5;
+      game.floatText(this.x, this.y - this.r - 10, '¡Esquivado!', '#9fe8ff', 20);
+      sfx.dash();
+      return;
+    }
+    dmg = Math.max(1, Math.round(dmg * s.damageTaken) - s.armor); // el casco y Durito reducen el daño
+    dmg = Math.max(1, Math.round(this.absorb(dmg)));
     this.hp -= dmg;
     this.invuln = 0.9;
     this.hurtT = 0.12;

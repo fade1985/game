@@ -339,14 +339,15 @@ export class Zombie {
       this.burnTick -= MOLOTOV.tick;
       // el número de daño no sale en cada pellizco, sino sumado cada BURN_TEXT segundos (con muchos zombis
       // ardiendo había decenas de números a la vez, y el texto es caro de dibujar)
-      this.burnAcc = (this.burnAcc || 0) + MOLOTOV.burn * MOLOTOV.tick;
+      const pellizco = MOLOTOV.burn * MOLOTOV.tick * (game.stats?.throwDamage || 1); // Puntería: quema más
+      this.burnAcc = (this.burnAcc || 0) + pellizco;
       this.burnTextT = (this.burnTextT || 0) + MOLOTOV.tick;
-      const show = this.burnTextT >= BURN_TEXT || this.hp <= MOLOTOV.burn * MOLOTOV.tick;
+      const show = this.burnTextT >= BURN_TEXT || this.hp <= pellizco;
       if (show) {
         game.floatText(this.x + rand(-8, 8), this.y - 38 * this.s, String(Math.round(this.burnAcc)), '#ff9f1c', 18);
         this.burnAcc = 0; this.burnTextT = 0;
       }
-      this.hurt(MOLOTOV.burn * MOLOTOV.tick, false, 0, 0, game, 0, true);
+      this.hurt(pellizco, false, 0, 0, game, 0, true);
     }
   }
 

@@ -640,6 +640,20 @@ body:not(.touch) .overlay.pc-overlay { font-size: clamp(12px, 2.2cqw, 30px); pad
 .pc-arma.bloqueada .ico { filter: grayscale(1); }
 .pc-grupo + .pc-grupo { margin-top: 0.7em; }
 .pc-grupo-titulo { margin-bottom: 0.3em; padding-bottom: 0.15em; border-bottom: 0.1em solid #8e8570; font-weight: bold; font-size: 0.9em; }
+.pc-arbol { display: grid; grid-template-columns: repeat(auto-fit, minmax(16em, 1fr)); gap: 0.7em; align-items: start; }
+.pc-rama { display: flex; flex-direction: column; gap: 0.35em; }
+.pc-rama-titulo { display: flex; align-items: center; gap: 0.4em; padding: 0.2em 0.5em; background: #1d2a6b; color: #fff; font-weight: bold; }
+.pc-rama-titulo .ico { width: 1.6em; height: 1.6em; }
+.pc-nivel { display: flex; flex-direction: column; gap: 0.3em; position: relative; padding-left: 1.6em; }
+.pc-nivel + .pc-nivel::before { content: ''; position: absolute; left: 0.55em; top: -0.35em; height: 0.35em; border-left: 0.15em dotted #4a4336; }
+.pc-nivel-n { position: absolute; left: 0; top: 0.2em; width: 1.3em; text-align: center; font-size: 0.8em; font-weight: bold; color: #f4efe0; background: #4a4336; }
+.pc-pips { display: inline-flex; gap: 0.15em; margin-left: 0.3em; vertical-align: middle; }
+.pc-pips i { width: 0.55em; height: 0.55em; border: 0.1em solid #1b1712; background: #d8d0b8; }
+.pc-pips i.on { background: #e8b923; }
+.pc-talento.lleno { background: #a9c79a; }
+.pc-talento.lleno .pc-arma-tag { background: #2f6b2a; }
+.pc-talento.apagada { cursor: default; }
+.pc-talento.apagada .pc-arma-tag { background: #8e8570; }
 .pc-saldo { display: flex; gap: 0.5em; margin-bottom: 0.6em; }
 .pc-saldo > div { flex: 1; display: flex; flex-direction: column; gap: 0.1em; padding: 0.35em 0.6em; background: #1d2a6b; color: #fff; border: 0.12em solid; border-color: #3a352b #f4efe0 #f4efe0 #3a352b; }
 .pc-saldo span { font-size: 0.75em; opacity: 0.85; }

@@ -12,7 +12,7 @@ import { makePlainLayout } from './rooms.js';
 import { baseStats } from './upgrades.js';
 import { SurvivorNPC, DoorKey, Ordenador, Armarito, BOTIQUIN_CURA, WeaponProp } from './props.js';
 import { OrdenadorMethods } from './ordenador.js';
-import { PRECIO_PUNTO } from './talentos.js';
+import { PRECIO_PUNTO, aplicarTalentos } from './talentos.js';
 import { ExposicionMuebles, expoZombis } from './exposicion.js';
 import { weaponSummary, WEAPONS } from './weapons.js';
 import { loadSave, updateSave, buildingSave } from './save.js';
@@ -135,13 +135,14 @@ export class Game {
   newRun(buildingId = this.building?.id || 'apartamentos') {
     this.building = BUILDINGS[buildingId];
     const save = updateSave((s) => { s.runs++; buildingSave(s, buildingId).runs++; });
-    this.stats = baseStats();
+    this.stats = aplicarTalentos(baseStats(), save.talentos);
     this.player = new Player(this.stats);
     this.allies = [];
     this.kills = 0;
     this.runKeys = 0;          // dólares recogidos en esta partida: solo se guardan si completas el edificio
-    this.molotovs = MOLOTOV.start; // cócteles molotov en la mochila
-    this.granadas = GRANADA.start; // granadas en la mochila
+    this.molotovs = MOLOTOV.start + this.stats.extraThrow; // cócteles molotov en la mochila
+    this.granadas = GRANADA.start + this.stats.extraThrow; // granadas en la mochila
+    this.reviveUsed = false;   // Desfibrilador: solo una vez por edificio
     this.tossKind = 'molotov';     // lo que se lanza con el botón de lanzar: 'molotov' o 'granada'
     this.savedKeys = save.keys; // dólares ahorrados de antes (en el guardado se siguen llamando "keys")
     this.wallet = save.keys;   // lo que sale en el HUD: lo ahorrado más lo de esta partida
@@ -170,6 +171,7 @@ export class Game {
     // las armas están abiertas y a los lados de mantenimiento hay dos salas de exposición (muebles y zombis)
     this.testMode = new URLSearchParams(location.search).has('pruebas');
     this.floor = generateFloor(this.floorNum, this.building.floors, { pruebas: this.testMode });
+    this.player.shield = this.stats.shield; // Acero: escudo nuevo en cada planta
     this.transition = null;
     this.room = null;
 
@@ -441,7 +443,7 @@ export class Game {
           continue;
         }
         pr.taken = true;
-        this.healPlayer(BOTIQUIN_CURA);
+        this.healPlayer(BOTIQUIN_CURA + this.stats.medkitBonus); // Sanitario: curan más
         this.burst(pr.x, pr.y - 20, '#80ed99', 12, 14);
         sfx.gem();
       } else if (pr.kind === 'survivor' && this.room.cleared) {
@@ -663,6 +665,17 @@ export class Game {
 
   onPlayerDeath() {
     const p = this.player;
+    // Desfibrilador: la primera vez que caes en el edificio, vuelves con toda la vida
+    if (this.stats.revive && !this.reviveUsed) {
+      this.reviveUsed = true;
+      p.hp = this.stats.maxHp;
+      p.invuln = 2;
+      this.hurtFlash = 0;
+      this.burst(p.x, p.y, '#80ed99', 24, p.r);
+      this.banner = { icon: 'medico', title: '¡Desfibrilador!', sub: 'Vuelves con toda la vida (solo una vez por edificio)', t: 0 };
+      sfx.clear();
+      return;
+    }
     p.dead = true;
     this.burst(p.x, p.y, '#ffd23f', 30, p.r);
     this.shake(18);

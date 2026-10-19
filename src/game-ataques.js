@@ -79,7 +79,8 @@ function marcaQuemado(game, x, y, radius) {
 
 export class ZombieAttacks {
   // Explosión: daña al jugador y TAMBIÉN a los demás zombis (¡reacciones en cadena!)
-  explode(x, y, radius, dmg, source) {
+  // `dmgZombis`: el daño a los zombis, si es distinto del que recibe Johnny (la granada con Puntería)
+  explode(x, y, radius, dmg, source, dmgZombis = dmg) {
     sfx.boom();
     this.shake(14);
     destello(this, x, y, Math.max(200, radius * 2.5), 0.4); // la explosión ilumina toda la zona
@@ -132,7 +133,7 @@ export class ZombieAttacks {
     for (const e of this.enemies) {
       if (e === source || !e.active) continue;
       const d = dist(e, { x, y });
-      if (d <= radius + e.r) e.hurt(dmg, false, (e.x - x) / (d || 1), (e.y - y) / (d || 1), this, 2.2);
+      if (d <= radius + e.r) e.hurt(dmgZombis, false, (e.x - x) / (d || 1), (e.y - y) / (d || 1), this, 2.2);
     }
   }
 

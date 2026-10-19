@@ -38,8 +38,22 @@ export function baseStats() {
     damageTaken: 1,      // x daño que recibes (menos es mejor)
     speed: 210,
     dashCd: 0.9,         // segundos que tarda en recargarse la esquiva
-    magnet: 120,         // radio en el que los corazones y los billetes vienen hacia ti
+    magnet: 120,         // radio en el que los billetes y lo demás vienen hacia ti
     teamDamage: 1,
     lifesteal: 0,
+    // Del árbol de talentos (talentos.js)
+    meleeDamage: 1,      // x daño cuerpo a cuerpo (Camorrista)
+    rangedDamage: 1,     // x daño con armas de fuego (Tirador)
+    throwDamage: 1,      // x daño del molotov y la granada (Puntería)
+    extraThrow: 0,       // molotovs y granadas de más, al empezar y en la mochila (Artificiero)
+    mirilla: false,      // cada 3 disparos, el siguiente es crítico (Mirilla)
+    fabricante: false,   // fuego y explosiones más grandes (Fabricante)
+    regen: 0,            // vida que recuperas cada 3 s (Lobezno)
+    armor: 0,            // daño que se le quita a cada golpe (Durito)
+    autoDodge: 0,        // cada cuántos segundos esquivas solo un golpe; 0 = nunca (Reflejos)
+    medkitBonus: 0,      // vida de más que curan los botiquines (Sanitario)
+    shield: 0,           // escudo al empezar cada planta (Acero)
+    ninja: false,        // golpe en área al acabar la esquiva (Ninja)
+    revive: false,       // resucitar una vez por edificio (Desfibrilador)
   };
 }

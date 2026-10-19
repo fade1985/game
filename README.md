@@ -67,7 +67,27 @@ se enciende (el juego se para mientras lo usas). De momento tiene un programa, *
 
 - **Intercambio:** cambias tus dólares ahorrados por **puntos de talento**, a **$10 el punto**. Los dólares de la
   partida en curso no se pueden cambiar hasta que completes el edificio.
-- **Árbol de talentos** (en construcción): ahí se gastarán los puntos, en las ramas Militar y Superviviente.
+- **Árbol de talentos:** cada punto sube un nivel de un talento. Lo comprado es **para siempre** y se nota al momento.
+  Los talentos de abajo están con candado hasta que tengas al máximo el que piden.
+
+| Rama | Nv | Talento | Efecto | Puntos | Pide |
+|---|---|---|---|---|---|
+| Militar | 1 | Ataque | +10 % de daño por punto | 5 | — |
+| Militar | 1 | Puntería | +10 % de daño del molotov y la granada por punto | 5 | — |
+| Militar | 2 | Camorrista | +10 % de daño cuerpo a cuerpo por punto | 5 | Ataque |
+| Militar | 2 | Tirador | +10 % de daño con armas de fuego por punto | 5 | Ataque |
+| Militar | 2 | Artificiero | +1 molotov y +1 granada por punto (al empezar y en la mochila) | 3 | Puntería |
+| Militar | 3 | Larguirucho | Duplica el alcance cuerpo a cuerpo | 1 | Camorrista |
+| Militar | 3 | Mirilla | Cada 3 disparos, el siguiente es crítico seguro | 1 | Tirador |
+| Militar | 3 | Fabricante | Fuego del molotov y explosión de la granada un 30 % más grandes; el fuego dura un 50 % más | 1 | Artificiero |
+| Superviviente | 1 | Corpulento | +10 % de vida máxima por punto | 5 | — |
+| Superviviente | 1 | Lobezno | Regeneras 1 de vida cada 3 s por punto | 5 | — |
+| Superviviente | 2 | Durito | Cada golpe que recibes quita 1 menos por punto | 5 | Corpulento |
+| Superviviente | 2 | Reflejos | Esquivas solo un golpe cada 10 s (1 s menos por cada punto más) | 5 | Corpulento |
+| Superviviente | 2 | Sanitario | Los botiquines curan 10 más por punto | 5 | Lobezno |
+| Superviviente | 3 | Acero | Escudo de 50 al empezar cada planta: para la mitad de cada golpe hasta gastarse (se ve junto a la vida) | 1 | Durito |
+| Superviviente | 3 | Ninja | Al acabar una esquiva, golpe en área (alcance de tu arma cuerpo a cuerpo) que mata a los zombis; a los jefes les quita un 10 % | 1 | Reflejos |
+| Superviviente | 3 | Desfibrilador | Una vez por edificio, si caes, resucitas con toda la vida | 1 | Sanitario |
 
 Todo se guarda en el navegador (`localStorage`): dólares, armas desbloqueadas, récords y progreso de cada edificio.
 Las partidas a medias no se guardan.

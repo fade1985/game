@@ -3,14 +3,15 @@
 //
 //  Al arrimarse a la mesa (props.js, Ordenador) el juego se pausa y sale la pantalla del ordenador: un
 //  escritorio viejo con sus iconos. De momento solo hay un programa, "Compra de puntos e intercambio":
-//  cambia los dólares ahorrados por puntos de talento (talentos.js) y, en la fase C, los gasta en el árbol
-//  de talentos. Irán saliendo más programas. Es HTML, como los demás menús: así el ratón, el teclado
+//  cambia los dólares ahorrados por puntos de talento y los gasta en el árbol de talentos (talentos.js).
+//  Irán saliendo más programas. Es HTML, como los demás menús: así el ratón, el teclado
 //  (Tab, Enter, Esc) y el mando (mando.js va de botón en botón; B = Esc) funcionan solos.
 // ─────────────────────────────────────────────
 import { loadSave } from './save.js';
 import { clearInput } from './input.js';
 import { sfx } from './sfx.js';
-import { PRECIO_PUNTO, puntosAlcanzables, comprarPuntos } from './talentos.js';
+import { PRECIO_PUNTO, puntosAlcanzables, comprarPuntos, RAMAS, TALENTOS, talento, nivelDe, puedeSubir, subirTalento, aplicarTalentos } from './talentos.js';
+import { baseStats } from './upgrades.js';
 
 // Los iconos del escritorio: [ventana que abre, icono (assets/ui/iconos), nombre]
 const ICONOS = [
@@ -22,6 +23,33 @@ const reloj = () => {
   const d = new Date();
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 };
+
+// Una rama del árbol: sus talentos por niveles (1 arriba, 3 abajo). `foco()` da la clase del botón en el que
+// empieza el mando (el primero que se puede subir, si no hay ninguno para comprar puntos).
+function rama(save, r, foco) {
+  const nodo = (t) => {
+    const n = nivelDe(save, t.id);
+    const motivo = puedeSubir(save, t.id); // null: se puede subir
+    const estado = motivo === 'max' ? 'lleno' : motivo === 'bloqueado' ? 'bloqueada' : motivo ? 'apagada' : '';
+    const pips = Array.from({ length: t.max }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('');
+    const nota = motivo === 'bloqueado' ? `Necesitas ${talento(t.pide).nombre} al máximo`
+      : motivo === 'max' ? '¡Al máximo!' : t.desc;
+    const tag = motivo === 'max' ? 'MÁX' : motivo === 'bloqueado' ? '' : '+1 ★';
+    return `
+      <button class="pc-arma pc-talento ${estado} ${motivo ? '' : foco()}" data-act="subir" data-arg="${t.id}" ${motivo ? 'disabled' : ''} title="${t.desc}">
+        <i class="ico ico-${motivo === 'bloqueado' ? 'candado' : t.icono}"></i>
+        <span class="pc-arma-txt"><b>${t.nombre} <span class="pc-pips">${pips}</span></b><small>${nota}</small></span>
+        ${tag ? `<span class="pc-arma-tag">${tag}</span>` : ''}
+      </button>`;
+  };
+  const niveles = [1, 2, 3].map((nv) => `
+    <div class="pc-nivel"><span class="pc-nivel-n">${nv}</span>${TALENTOS.filter((t) => t.rama === r.id && t.nivel === nv).map(nodo).join('')}</div>`).join('');
+  return `
+    <div class="pc-rama">
+      <div class="pc-rama-titulo"><i class="ico ico-${r.icono}"></i> ${r.nombre}</div>
+      ${niveles}
+    </div>`;
+}
 
 // Contenido de cada ventana: [título de la barra, HTML de dentro]
 const VENTANAS = {
@@ -54,12 +82,8 @@ const VENTANAS = {
         </div>
       </div>
       <div class="pc-grupo">
-        <div class="pc-grupo-titulo">Árbol de talentos</div>
-        <div class="pc-obras">
-          <i class="ico ico-herramientas"></i>
-          <p><b>En construcción</b></p>
-          <p>Muy pronto podrás gastar tus puntos en las ramas Militar y Superviviente.</p>
-        </div>
+        <div class="pc-grupo-titulo">Árbol de talentos · cada punto sube un nivel</div>
+        <div class="pc-arbol">${RAMAS.map((r) => rama(save, r, () => { const c = foco; foco = ''; return c; })).join('')}</div>
       </div>`];
   },
 };
@@ -126,6 +150,13 @@ export class OrdenadorMethods {
         sfx.buy();
         this.drawOrdenador(ventana);
       },
+      subir: (id) => {
+        const save = subirTalento(id);
+        if (!save) { sfx.nope(); return; }
+        this.aplicarTalentosYa(save.talentos);
+        sfx.buy();
+        this.drawOrdenador(ventana);
+      },
     },
     // Esc (o B en el mando): cierra la ventana y, si no hay ninguna, apaga el ordenador
     (e) => {
@@ -133,6 +164,17 @@ export class OrdenadorMethods {
       if (this.pcVentana) { sfx.click(); this.drawOrdenador(null); } else this.closeOrdenador();
     },
     'pc-overlay');
+  }
+
+  // Un talento recién comprado se nota ya, sin esperar al siguiente edificio
+  aplicarTalentosYa(talentos) {
+    const s = this.stats, p = this.player;
+    const antes = { maxHp: s.maxHp, extraThrow: s.extraThrow, shield: s.shield };
+    Object.assign(s, aplicarTalentos(baseStats(), talentos)); // el mismo objeto: Johnny lo lleva enlazado
+    if (s.maxHp > antes.maxHp) p.hp += s.maxHp - antes.maxHp;   // la vida nueva viene llena
+    const extra = s.extraThrow - antes.extraThrow;               // Artificiero: las botellas de más, ya
+    this.molotovs += extra; this.granadas += extra;
+    if (s.shield && !antes.shield) p.shield = s.shield;          // Acero: el escudo de esta planta
   }
 
   closeOrdenador() {

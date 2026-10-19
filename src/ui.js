@@ -76,7 +76,8 @@ export function createUI(root) {
     updateHud(g) {
       const p = g.player;
       set('hpw', $('.hpbar .fill'), `${Math.max(0, (p.hp / g.stats.maxHp) * 100)}%`, 'width');
-      set('hpt', $('.hpbar span'), `${Math.ceil(p.hp)} / ${Math.round(g.stats.maxHp)}`);
+      // con el escudo de Acero, se ve lo que le queda al lado de la vida
+      set('hpt', $('.hpbar span'), `${Math.ceil(p.hp)} / ${Math.round(g.stats.maxHp)}${p.shield > 0 ? ` · escudo ${Math.ceil(p.shield)}` : ''}`);
       // envenenado o ardiendo (estados.js): la sangre de la barra se pone verde o naranja mientras dura
       set('hpVeneno', $('.hpbar'), !!p.estados?.veneno && !p.estados?.fuego, 'class:envenenado');
       set('hpFuego', $('.hpbar'), !!p.estados?.fuego, 'class:ardiendo');

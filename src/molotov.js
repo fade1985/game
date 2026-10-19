@@ -14,6 +14,7 @@ import { rand, clamp } from './utils.js';
 import { makeSplash, pickSpots, dentro, drawSplash, leaveStain } from './charcos.js';
 import { getToss } from './input.js';
 import { sfx } from './sfx.js';
+import { FABRICANTE } from './talentos.js';
 
 // Números del molotov (provisionales, para probar si es divertido)
 export const MOLOTOV = {
@@ -161,7 +162,8 @@ export class MolotovMethods {
   molotovLand(lb) {
     // el centro, en píxel entero del arte, para que el charco cuadre con el resto del suelo
     const x = Math.round(lb.tx / PIXEL) * PIXEL, y = Math.round(lb.ty / PIXEL) * PIXEL;
-    const hz = { x, y, r: MOLOTOV.radius, life: MOLOTOV.life, seed: rand(0, 6), kind: 'fire', tick: 0 };
+    const fab = this.stats.fabricante ? FABRICANTE : { radio: 1, duracion: 1 }; // Fabricante: fuego más grande y largo
+    const hz = { x, y, r: MOLOTOV.radius * fab.radio, life: MOLOTOV.life * fab.duracion, seed: rand(0, 6), kind: 'fire', tick: 0 };
     hz.splash = makeFire(hz, Math.atan2((lb.ty - lb.y0) / 0.6, lb.tx - lb.x0) || 0);
     this.hazards.push(hz);
     sfx.glass();
@@ -179,7 +181,7 @@ export class MolotovMethods {
       // la llamarada del golpe aún no tiene forma: pilla a los que están cerca, dentro de la elipse
       if (!e.active || Math.hypot(e.x - hz.x, (e.y - hz.y) / 0.6) > hz.r * 0.8 + e.r) continue;
       e.burnT = MOLOTOV.afterburn;   // la llamarada ya lo prende (si muere del golpe, queda quemado)
-      e.hurt(MOLOTOV.hit, false, 0, 0, this, 0);
+      e.hurt(MOLOTOV.hit * this.stats.throwDamage, false, 0, 0, this, 0); // Puntería
     }
   }
 
@@ -195,7 +197,7 @@ export class MolotovMethods {
         // sin parar, y al salir sigue ardiendo (y quemándose al mismo ritmo) unos segundos más.
         // Los jefes no saben arder todavía: a ellos se les quema directamente, solo dentro del fuego.
         if (e.burn) e.burnT = MOLOTOV.afterburn;
-        else e.hurt(MOLOTOV.burn * MOLOTOV.tick, false, 0, 0, this, 0);
+        else e.hurt(MOLOTOV.burn * MOLOTOV.tick * this.stats.throwDamage, false, 0, 0, this, 0);
       }
     }
     // chispas y lenguas de fuego que suben, solo de donde aún arde
@@ -248,7 +250,8 @@ export class MolotovMethods {
     // zona de fuego
     const pulse = 0.85 + 0.15 * Math.sin(this.time * 8);
     ctx.fillStyle = `rgba(${col}, ${0.35 * pulse})`;
-    ctx.beginPath(); ctx.ellipse(a.x, a.y, MOLOTOV.radius, MOLOTOV.radius * 0.6, 0, 0, Math.PI * 2); ctx.fill();
+    const rf = MOLOTOV.radius * (this.stats.fabricante ? FABRICANTE.radio : 1);
+    ctx.beginPath(); ctx.ellipse(a.x, a.y, rf, rf * 0.6, 0, 0, Math.PI * 2); ctx.fill();
     ctx.setLineDash([]);
     ctx.lineWidth = 3 * PIXEL;
     ctx.strokeStyle = 'rgba(29, 27, 44, 0.6)';

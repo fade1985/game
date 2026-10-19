@@ -79,8 +79,8 @@ export class GameCombat {
       const dx = p.x - pk.x, dy = p.y - pk.y;
       const d = Math.hypot(dx, dy) || 1;
       // Los billetes siempre vienen a ti; los molotovs y las granadas, si caben en la mochila
-      const wanted = pk.kind === 'cash' || (pk.kind === 'molotov' ? this.molotovs < MOLOTOV.max
-        : pk.kind === 'granada' ? this.granadas < GRANADA.max
+      const wanted = pk.kind === 'cash' || (pk.kind === 'molotov' ? this.molotovs < MOLOTOV.max + this.stats.extraThrow
+        : pk.kind === 'granada' ? this.granadas < GRANADA.max + this.stats.extraThrow
         : pk.kind === 'ammo' ? p.wantsAmmo() : false);
       if (!p.dead && wanted && pk.t > 0.4 && d < this.stats.magnet) {
         pk.vx += (dx / d) * 2200 * dt;
@@ -111,11 +111,11 @@ export class GameCombat {
       this.floatText(pk.x, pk.y - 20, '+munición', '#ffd23f', 20);
       sfx.reloaded();
     } else if (pk.kind === 'granada') {
-      this.granadas = Math.min(GRANADA.max, this.granadas + 1);
+      this.granadas = Math.min(GRANADA.max + this.stats.extraThrow, this.granadas + 1);
       this.floatText(pk.x, pk.y - 20, '+1 granada', '#9bbd5a', 20);
       sfx.buy();
     } else if (pk.kind === 'molotov') {
-      this.molotovs = Math.min(MOLOTOV.max, this.molotovs + 1);
+      this.molotovs = Math.min(MOLOTOV.max + this.stats.extraThrow, this.molotovs + 1);
       this.floatText(pk.x, pk.y - 20, '+1 molotov', '#ff9f1c', 20);
       sfx.buy();
     }
@@ -146,7 +146,7 @@ export class GameCombat {
     for (let i = 0; i < n; i++) {
       const off = n > 1 ? (i / (n - 1) - 0.5) * spread * (n > 2 ? 1 : 0.6) : 0;
       const a = angle + off + (Math.random() - 0.5) * (o.jitter || 0);
-      const crit = Math.random() < this.stats.crit;
+      const crit = o.crit || Math.random() < this.stats.crit;
       const speed = (o.speed || 560) * (o.jitter ? 0.9 + Math.random() * 0.2 : 1);
       const r = o.r || 7;
       this.bullets.push({
@@ -264,6 +264,25 @@ export class GameCombat {
       const { melee, ranged } = this.player.slots;
       this.room.props.push(new WeaponProp(randomWeapon([melee.id, ranged?.id]), this.rw / 2, this.rh / 2 + 130));
     }
+  }
+
+  // Ninja: al acabar la esquiva, un barrido en círculo con el arma cuerpo a cuerpo. Los zombis que pilla
+  // mueren al momento; a los jefes les quita un 10 % de su vida.
+  ninjaStrike(p) {
+    const w = p.slots.melee || p.weapon;
+    const s = this.stats;
+    const reach = (w.reach || 60) * s.range * s.meleeRange + p.r;
+    let hits = 0;
+    for (const e of this.enemies) {
+      if (!e.active || dist(e, p) > reach + e.r) continue;
+      const l = dist(e, p) || 1;
+      e.hurt(e.isBoss ? e.maxHp * 0.1 : e.hp + 1, true, (e.x - p.x) / l, (e.y - p.y) / l, this, 1.5);
+      hits++;
+    }
+    // el barrido se ve aunque no pille a nadie
+    this.particles.push({ x: p.x, y: p.y, vx: 0, vy: 0, r: reach * 0.6, ring: true, color: '#9fe8ff', life: 0.25, max: 0.25 });
+    if (hits) { this.shake(6); this.hitStop = Math.max(this.hitStop || 0, 0.06); }
+    sfx.swing();
   }
 
   dropPickup(kind, x, y) {
