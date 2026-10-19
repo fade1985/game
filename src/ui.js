@@ -8,7 +8,8 @@ import { makeTitleCanvas } from './titulo.js';
 import { mutacion } from './mutaciones.js';
 import { OBJETOS, MOCHILA, iconoObjeto } from './objetos.js';
 import { casillaCreada, icono } from './banco.js';
-import { RAREZAS } from './recetas.js';
+import { RAREZAS, RECETAS } from './recetas.js';
+import { ARROJADIZAS } from './armas-creadas.js';
 
 // Pantalla completa (solo en móviles que la permiten; en iPhone no existe)
 const canFullscreen = () => document.body.classList.contains('touch') && document.fullscreenEnabled && !document.fullscreenElement;
@@ -58,6 +59,7 @@ export function createUI(root) {
     cache[key] = value;
     if (prop === 'width') { el.style.width = value; el.style.setProperty('--hp', value); }
     else if (prop.startsWith('class:')) el.classList.toggle(prop.slice(6), value); // 'class:on' pone o quita la clase "on"
+    else if (prop === 'css') el.style.cssText = value;
     else if (prop === 'reload') el.style.setProperty('--recarga', value);
     else el[prop] = value;
   }
@@ -125,9 +127,12 @@ export function createUI(root) {
       set('granada', $('#hud-granada'), granadas);
       // el botón de lanzar enseña lo que se lanza ahora (molotov o granada) y las que quedan; en el HUD, la elegida resalta
       const gr = g.tossKind === 'granada';
-      set('tossIco', document.querySelector('.toss-btn .ico'), gr ? 'ico ico-granada' : 'ico ico-molotov', 'className');
-      set('molotovBtn', document.querySelector('.toss-btn b'), gr ? granadas : molotovs);
-      set('tossOnM', $('#pill-molotov'), !gr, 'class:on-toss');
+      const cr = g.tossKind in ARROJADIZAS;   // una arrojadiza creada: icono de su ingrediente y sus unidades
+      const tossIco = document.querySelector('.toss-btn .ico');
+      set('tossIco', tossIco, cr ? 'ico' : gr ? 'ico ico-granada' : 'ico ico-molotov', 'className');
+      set('tossBg', tossIco, cr ? `background-image:url(${iconoObjeto(RECETAS.find((r) => r.id === g.tossKind).icono)})` : '', 'css');
+      set('molotovBtn', document.querySelector('.toss-btn b'), cr ? String(g.unidadesCreada(g.tossKind)) : gr ? granadas : molotovs);
+      set('tossOnM', $('#pill-molotov'), !gr && !cr, 'class:on-toss');
       set('tossOnG', $('#pill-granada'), gr, 'class:on-toss');
     },
 
@@ -265,7 +270,7 @@ export function createUI(root) {
           <div class="inv-mochila">${guardadas.join('')}${creadas.join('')}</div>` : ''}
           <div class="plist-title"><i class="ico ico-mochila"></i> Mochila · ${g.mochila.length} / ${MOCHILA}</div>
           <div class="inv-mochila">${casillas.join('')}</div>
-          <p class="sub small">${elegida ? `${elegida.desc}.${['melee', 'ranged'].includes(elegida.hueco) ? '' : ' Todavía no se puede usar.'}`
+          <p class="sub small">${elegida ? `${elegida.desc}.${['melee', 'ranged'].includes(elegida.hueco) ? '' : ' Se lanza con el botón de lanzar (F / LB cambia de arrojadiza).'}`
             : sel ? 'Si lo tiras, se queda en el suelo: puedes volver a cogerlo.'
             : 'Lo que llevas en la mochila pasa al baúl si completas el edificio. Si caes, se pierde. Las armas creadas duran esta partida.'}</p>
           <div class="banco-botones">

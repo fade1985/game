@@ -242,6 +242,50 @@ async function pruebas() {
     game.invSel = 'g0'; game.ponerDelInventario();
     if (game.player.slots.ranged.id !== 'pistola' || !game.armasCreadas.some((a) => a.receta === id)) throw new Error(`${id}: el inventario no ha cambiado de arma`);
   }
+
+  // 10. Arrojadizas creadas (fase D3): el molotov suma botellas; las otras tres se eligen con el cambio de lanzables
+  //     (switchToss), se gastan al lanzar y cada una hace lo suyo. También fuera de la huella
+  {
+    sala('pistola');
+    if (crearArma(RECETAS.find((x) => x.id === 'molotov')).unidades < 3) throw new Error('molotov: debe dar 3 botellas o más');
+    for (const id of ['atraedora', 'congeladora', 'lluviaAcida']) {
+      sala('pistola');
+      game.armasCreadas.length = 0;
+      const arma = crearArma(RECETAS.find((x) => x.id === id), { id: 'verde', mul: 1, extra: 0 });
+      game.armasCreadas.push(arma);
+      if (!game.tossKinds().includes(id)) throw new Error(`${id}: no sale en el cambio de lanzables`);
+      game.tossKind = 'granada';
+      for (let k = 0; k < 4 && game.tossKind !== id; k++) game.switchToss();
+      if (game.tossKind !== id) throw new Error(`${id}: switchToss no llega a ella`);
+      const p = game.player;
+      const zs = [0, 1, 2].map((k) => game.spawnEnemy('lento', p.x + 190, p.y + (k - 1) * 30) || game.enemies[game.enemies.length - 1]);
+      for (const z of game.enemies) z.hp = z.maxHp = 999;   // que aguanten la explosión
+      const x0 = zs[0].x;
+      game.throwCreada(p.x + 120, p.y);
+      if (arma.unidades !== 2) throw new Error(`${id}: no gasta una unidad (${arma.unidades})`);
+      if (!game.grenades.length || game.grenades[0].tipo !== id) throw new Error(`${id}: no ha salido volando`);
+      let t = 0, atraida = false, congelados = 0, lluvia = false, hp0 = game.enemies.reduce((s, e) => s + e.hp, 0);
+      while (game.grenades.length && t < 5) {
+        game.update(1 / 60); inmortal(); t += 1 / 60;
+        if (id === 'atraedora' && t > 1.2 && game.enemies.some((e) => e.x < x0 - 20 && !e.dead)) atraida = true;
+      }
+      congelados = game.enemies.filter((e) => e.congeladoT > 0 && e.stunT > 0).length;
+      lluvia = game.hazards.some((h) => h.kind === 'lluvia');
+      await foto(`10-${id}`);
+      if (game.grenades.length) throw new Error(`${id}: no ha reventado`);
+      if (!(game.enemies.reduce((s, e) => s + e.hp, 0) < hp0 || game.kills > 0)) throw new Error(`${id}: la explosión no hace daño`);
+      if (id === 'atraedora' && !atraida) throw new Error('atraedora: los zombis no van hacia ella');
+      if (id === 'congeladora' && !congelados) throw new Error('congeladora: no congela');
+      if (id === 'lluviaAcida' && !lluvia) throw new Error('lluviaAcida: no deja charco');
+    }
+    // se gastan las 3: la última devuelve el botón al molotov y sale del inventario
+    sala('pistola');
+    game.armasCreadas.length = 0;
+    game.armasCreadas.push(crearArma(RECETAS.find((x) => x.id === 'congeladora'), { id: 'verde', mul: 1, extra: 0 }));
+    game.tossKind = 'congeladora';
+    for (let k = 0; k < 3; k++) { game.throwCreada(game.player.x + 100, game.player.y); }
+    if (game.armasCreadas.length || game.tossKind !== 'molotov') throw new Error('arrojadiza: al gastarse no vuelve al molotov');
+  }
   return huella;
 }
 

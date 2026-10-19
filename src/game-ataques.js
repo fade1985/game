@@ -27,6 +27,8 @@ const HAZARDS = {
   bleach: { ...BLEACH, estados: { resbaladizo: {}, toxico: { dps: 3 } }, estilo: ESTILO_LEJIA, fill: '#e9f8ff', stroke: '#2f86c4', bubble: '#ffffff', drop: '#4cb4f0' },
   // el vómito de Johnny (mutación Gastroenteritis): solo les hace daño a los zombis
   vomito: { radius: MUT.gastro.radio, life: MUT.gastro.dura, estados: { acido: { dps: MUT.gastro.dps } }, estilo: ESTILO_VENENO, soloZombis: true, drop: '#c7e04a' },
+  // la lluvia ácida de la arrojadiza creada: lo mismo, pero más grande (el radio lo pone armas-creadas.js) y más larga
+  lluvia: { radius: 150, life: 7, estados: { acido: { dps: 10 } }, estilo: { ...ESTILO_VENENO, life: 7 }, soloZombis: true, drop: '#c7e04a' },
 };
 
 // Dado propio para lo que es solo de adorno (chispas, mancha): no gasta tiradas de rand(), así que no
@@ -230,6 +232,18 @@ export class ZombieAttacks {
     for (let i = 0; i < 6; i++) {
       const a = rand(0, Math.PI * 2), sp = rand(40, 120);
       this.particles.push({ x, y: y - 20, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 40, px: true, size: 3, color: hd.drop, life: 0.35, max: 0.35 });
+    }
+    sfx.splat();
+  }
+
+  // Lluvia ácida (armas-creadas.js): un charco de ácido grande y duradero que solo daña a los zombis
+  charcoLluvia(x, y, radio) {
+    const hd = { ...HAZARDS.lluvia, radius: radio };
+    const lb = { x0: x, y0: y - 1, tx: x, ty: y };
+    this.hazards.push(crearCharco(lb, 'lluvia', hd.estilo, hd, rand(0, 6)));
+    for (let i = 0; i < 12; i++) {
+      const a = rand(0, Math.PI * 2), sp = rand(60, 200);
+      this.particles.push({ x, y: y - 10, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.6 - 50, px: true, size: 3, color: hd.drop, life: 0.45, max: 0.45 });
     }
     sfx.splat();
   }

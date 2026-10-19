@@ -16,6 +16,7 @@ import { rand, dist, obstacleGap } from './utils.js';
 import { isWall } from './shapes.js';
 import { destello } from './luz.js';
 import { sfx } from './sfx.js';
+import { FABRICANTE } from './talentos.js';
 
 export const CREADAS = {
   lanza: { base: 'fregona', reach: 96, arc: 35, detalle: '#dfe4ef' },                     // estocada que atraviesa
@@ -43,6 +44,18 @@ export const EFECTOS = {
   acido: { t: 3, total: 3, color: '#c7e04a' },     // el ácido sigue royendo 3 s: el triple del daño de una gota
   tick: 0.5,                                    // cada cuánto se quitan los pellizcos de sangrar y veneno
 };
+
+// Arrojadizas creadas (fase D3). El cóctel molotov no está aquí: sus botellas se suman al contador de molotovs de
+// siempre. Las otras tres se lanzan como la granada (granada.js) con su propio tiempo de mecha y su efecto.
+//   fuse     segundos hasta que revienta · radio  de la explosión · color  del dibujo, el aviso y los anillos
+//   atrae    la atraedora suena y los zombis (a menos de esa distancia) van hacia ella en vez de hacia Johnny
+//   congela  segundos que quedan quietos los zombis que pilla · charco  radio del charco de ácido que deja
+export const ARROJADIZAS = {
+  atraedora: { fuse: 3, radio: 110, color: '#ffd23f', rgb: '255, 210, 63', atrae: 520 },
+  congeladora: { fuse: 2, radio: 120, color: '#9fe8ff', rgb: '159, 232, 255', congela: 3 },
+  lluviaAcida: { fuse: 2, radio: 90, color: '#c7e04a', rgb: '199, 224, 74', charco: 150 },
+};
+const DANO_JOHNNY = 25;   // lo máximo que le hace a Johnny su propia explosión
 
 // El arma que se pone en la mano a partir de la que guarda el inventario (crearArma de recetas.js).
 // `creada` la distingue de las de la tienda; `ico` es el icono del HUD (el del arma base)
@@ -82,6 +95,53 @@ export class ArmasCreadasMethods {
         break;
       }
     }
+  }
+
+  // ── Arrojadizas creadas (fase D3) ──
+  // Cuántas unidades le quedan de esa arrojadiza (suma las de todas las que haya creado)
+  unidadesCreada(k) {
+    return this.armasCreadas.reduce((n, a) => n + (a.receta === k ? a.unidades : 0), 0);
+  }
+
+  // Lo que se puede lanzar ahora, en el orden del botón de cambiar: molotov, granada y las creadas que le queden
+  tossKinds() {
+    return ['molotov', 'granada', ...Object.keys(ARROJADIZAS).filter((k) => this.unidadesCreada(k) > 0)];
+  }
+
+  // Lanza una unidad de la arrojadiza creada que está elegida
+  throwCreada(x, y) {
+    const k = this.tossKind, c = ARROJADIZAS[k], p = this.player;
+    const a = this.armasCreadas.find((o) => o.receta === k && o.unidades > 0);
+    if (!a) { this.tossKind = 'molotov'; this.floatText(p.x, p.y - 54, '¡Se acabó!', c.color, 18); sfx.nope(); return; }
+    if (--a.unidades <= 0) this.armasCreadas.splice(this.armasCreadas.indexOf(a), 1);
+    if (this.unidadesCreada(k) <= 0) this.tossKind = 'molotov';   // era la última: vuelve al molotov
+    this.soltarGranada(x, y, { tipo: k, dmg: a.damage, fuse: c.fuse });
+  }
+
+  // El radio de la explosión (el Fabricante lo agranda)
+  radioCreada(k) { return ARROJADIZAS[k].radio * (this.stats.fabricante ? FABRICANTE.radio : 1); }
+
+  // ¿Hay una atraedora sonando cerca de este zombi? Devuelve la que lo atrae (los jefes pasan de ella)
+  ceboPara(e) {
+    if (e.isBoss) return null;
+    for (const g of this.grenades) if (g.tipo === 'atraedora' && dist(g, e) < ARROJADIZAS.atraedora.atrae) return g;
+    return null;
+  }
+
+  // Una arrojadiza creada revienta: explosión de las de siempre más lo suyo
+  boomCreada(g) {
+    const c = ARROJADIZAS[g.tipo], R = this.radioCreada(g.tipo);
+    this.explode(g.x, g.y, R, Math.min(g.dmg, DANO_JOHNNY), null, g.dmg * this.stats.throwDamage);
+    if (c.congela) {
+      for (const e of this.enemies) {
+        if (!e.active || e.dead || e.isBoss || dist(e, g) > R + e.r) continue;
+        e.congeladoT = c.congela;
+        this.aturdir(e, c.congela);   // congelado = quieto, como aturdido (mutado de zombies.js lo pinta azul)
+      }
+    }
+    if (c.charco) this.charcoLluvia(g.x, g.y, c.charco * (this.stats.fabricante ? FABRICANTE.radio : 1));
+    // anillos del color de cada una, para que se note cuál ha sido
+    for (let i = 0; i < 2; i++) this.particles.push({ x: g.x, y: g.y, vx: 0, vy: 0, r: R * (0.6 + i * 0.4), ring: true, color: c.color, life: 0.4 + i * 0.15, max: 0.55 });
   }
 
   // Aturde a un zombi (se queda quieto echando chispitas amarillas, como con la mutación Tentacular). Los jefes no

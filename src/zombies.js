@@ -392,11 +392,18 @@ export class Zombie {
     // si hay un tabique o un mueble en medio, lo rodea en vez de ir en línea recta
     const way = game.wayTo(this);
     if (way) { ux = way.x; uy = way.y; }
+    // una atraedora sonando (armas-creadas.js): va hacia ella en vez de hacia el conserje
+    const cebo = game.ceboPara(this);
+    if (cebo) {
+      const cx = cebo.x - this.x, cy = cebo.y - this.y, cd = Math.hypot(cx, cy) || 1;
+      ux = cx / cd; uy = cy / cd;
+    }
     // y desde detrás de un tabique nadie ataca: primero hay que llegar a ver al conserje
     const sees = !way || game.sees(this);
     const to = { p, dx, dy, d, ux, uy, sees };
     // cómo quiere moverse: dirección (x, y), velocidad y lo rápido que gira (steer)
     const m = { x: ux, y: uy, spd: this.speed, steer: 8 };
+    if (cebo && Math.hypot(cebo.x - this.x, cebo.y - this.y) < 24) m.spd = 0;   // ya ha llegado: se queda alrededor
 
     // cada tipo cambia su forma de andar y lanza su ataque especial
     switch (this.type) {
@@ -450,10 +457,11 @@ export class Zombie {
     this.spitT = 0;
     // chispitas sobre la cabeza: amarillas si está aturdido, moradas si está desorientado
     if (Math.random() < 5 * dt) {
-      game.particles.push({ x: this.x + (Math.random() - 0.5) * 20, y: this.y - 44 * this.s, vx: (Math.random() - 0.5) * 30, vy: -35, px: true, size: 2, color: this.stunT > 0 ? '#ffd23f' : '#c77dff', life: 0.45, max: 0.45 });
+      game.particles.push({ x: this.x + (Math.random() - 0.5) * 20, y: this.y - 44 * this.s, vx: (Math.random() - 0.5) * 30, vy: -35, px: true, size: 2, color: this.congeladoT > 0 ? '#9fe8ff' : this.stunT > 0 ? '#ffd23f' : '#c77dff', life: 0.45, max: 0.45 });
     }
     if (this.stunT > 0) {
       this.stunT -= dt;
+      if (this.congeladoT > 0) this.congeladoT -= dt;
       this.walk(dt, game, { x: 0, y: 0, spd: 0, steer: 12 });
     } else {
       this.lioT -= dt;

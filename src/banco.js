@@ -135,7 +135,8 @@ export class BancoMethods {
     } else if (arma.hueco === 'ranged') {
       const old = p.equip(armaDeCreada(arma)); // a la mano de fuego; la que llevaba pasa al inventario con su munición
       this.guardarArma(old?.weapon, old?.ammo);
-    } else this.armasCreadas.push(arma);
+    } else if (arma.receta === 'molotov') this.molotovs += arma.unidades; // las botellas se suman a las que ya lleva (armas-creadas.js)
+    else this.armasCreadas.push(arma);
     this.bancoHecha = arma;
     this.bancoSel = [];
     if (arma.rareza === 'verde') sfx.buy(); else sfx.clear(); // las raras y épicas suenan a premio

@@ -15,6 +15,7 @@ import { makeSplash, pickSpots, dentro, drawSplash, leaveStain } from './charcos
 import { getToss } from './input.js';
 import { sfx } from './sfx.js';
 import { FABRICANTE } from './talentos.js';
+import { ARROJADIZAS } from './armas-creadas.js';
 
 // Números del molotov (provisionales, para probar si es divertido)
 export const MOLOTOV = {
@@ -98,10 +99,14 @@ export class MolotovMethods {
     const t = getToss();
     const p = this.player;
     this.aim = null;
+    if (this.tossKind in ARROJADIZAS && this.unidadesCreada(this.tossKind) <= 0) this.tossKind = 'molotov'; // se la quitaron del inventario
     if (p.dead || (!t.aiming && !t.released)) return;
     const target = this.tossTarget(t);
     if (t.aiming) { this.aim = target; return; }
-    if (target) { if (this.tossKind === 'granada') this.throwGrenade(target.x, target.y); else this.throwMolotov(target.x, target.y); }
+    if (!target) return;
+    if (this.tossKind === 'granada') this.throwGrenade(target.x, target.y);
+    else if (this.tossKind in ARROJADIZAS) this.throwCreada(target.x, target.y);
+    else this.throwMolotov(target.x, target.y);
   }
 
   // Dónde caería: con el ratón, donde está el puntero (sin pasarse del alcance); en el móvil, hacia donde
@@ -237,7 +242,7 @@ export class MolotovMethods {
     const a = this.aim, p = this.player;
     if (!a || p.dead) return;
     const ok = this.hasMolotov;
-    const granada = this.tossKind === 'granada';
+    const granada = this.tossKind !== 'molotov';   // la granada y las creadas se apuntan igual
     const col = ok ? '255, 159, 28' : '170, 170, 170';
     ctx.save();
     ctx.lineWidth = PIXEL;
@@ -280,7 +285,7 @@ export class MolotovMethods {
       const x = x0 + (a.x - x0) * k, y = y0 + (a.y - y0) * k - Math.sin(k * Math.PI) * MOLOTOV.height;
       ctx.fillStyle = 'rgba(29, 27, 44, 0.7)';
       ctx.fillRect(x - s / 2 - PIXEL / 2, y - s / 2 - PIXEL / 2, s + PIXEL, s + PIXEL);
-      ctx.fillStyle = this.hasToss ? (this.tossKind === 'granada' ? '#9bbd5a' : '#ffd23f') : '#c8c8c8';
+      ctx.fillStyle = this.hasToss ? (this.tossKind === 'granada' ? '#9bbd5a' : ARROJADIZAS[this.tossKind]?.color || '#ffd23f') : '#c8c8c8';
       ctx.fillRect(x - s / 2, y - s / 2, s, s);
     }
   }
