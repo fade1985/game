@@ -10,10 +10,11 @@ import { Zombie } from './zombies.js';
 import { generateFloor, floorName } from './building.js';
 import { makePlainLayout } from './rooms.js';
 import { baseStats } from './upgrades.js';
-import { SurvivorNPC, DoorKey, Ordenador, Armarito, BOTIQUIN_CURA } from './props.js';
+import { SurvivorNPC, DoorKey, Ordenador, Armarito, BOTIQUIN_CURA, WeaponProp } from './props.js';
 import { OrdenadorMethods } from './ordenador.js';
+import { PRECIO_PUNTO } from './talentos.js';
 import { ExposicionMuebles, expoZombis } from './exposicion.js';
-import { weaponSummary } from './weapons.js';
+import { weaponSummary, WEAPONS } from './weapons.js';
 import { loadSave, updateSave, buildingSave } from './save.js';
 import { Camera, ZOOM, BOSS_ZOOM } from './camera.js';
 import { setTextFont } from './draw.js';
@@ -182,10 +183,14 @@ export class Game {
     }
     for (const a of this.floor.armaritos || []) a.room.props.push(new Armarito(a.x, a.y));
 
-    // Sala de mantenimiento: la mesa con el ordenador, donde se elige con qué arma empezar (ordenador.js).
-    // Solo se pueden elegir las que ya has encontrado en alguna partida; en el modo pruebas, todas.
-    const unlocked = loadSave().weapons;
+    // Sala de mantenimiento: la mesa con el ordenador, donde se cambian dólares por puntos de talento (ordenador.js)
     if (this.floorNum === 1) this.floor.start.props.push(new Ordenador(ORDENADOR_X));
+    // En el modo pruebas, todas las armas en el suelo de la sala de mantenimiento, en fila (abajo)
+    if (this.testMode && this.floorNum === 1) {
+      const lay = this.floor.start.layout;
+      const armas = Object.keys(WEAPONS).filter((id) => id !== 'fregona');
+      armas.forEach((id, i) => this.floor.start.props.push(new WeaponProp(WEAPONS[id], lay.w / 2 + (i - (armas.length - 1) / 2) * 80, lay.h - WALL - 70)));
+    }
     // Salas de exposición del modo pruebas: todos los muebles a la izquierda y todos los zombis a la derecha
     const { expo } = this.floor;
     if (expo) {
@@ -201,7 +206,7 @@ export class Game {
       title: this.building.name,
       sub: this.testMode ? 'Modo pruebas · teclas 1-6: zombis · 7-8: jefes · a los lados: exposiciones'
         : firstTime ? 'Muévete con WASD o flechas · Espacio para esquivar'
-        : unlocked.length ? 'Elige tu arma en el ordenador antes de salir' : this.floorLabel,
+        : this.savedKeys >= PRECIO_PUNTO ? 'Cambia tus dólares por puntos en el ordenador' : this.floorLabel,
       t: 0,
     };
   }
@@ -451,11 +456,11 @@ export class Game {
         const old = p.equip(pr.weapon, pr.ammo);
         if (old) { pr.weapon = old.weapon; pr.ammo = old.ammo; } else pr.taken = true;
         pr.armed = false; // hay que alejarse antes de poder volver a cogerla
-        // la primera vez que encuentras un arma queda desbloqueada para elegirla al empezar
-        const isNew = this.unlockWeapon(this.player.weapon.id);
+        // la primera vez que encuentras un arma se apunta en el guardado
+        this.unlockWeapon(this.player.weapon.id);
         this.banner = {
           title: `${this.player.weapon.icon} ${this.player.weapon.name}`,
-          sub: isNew ? '¡Desbloqueada! Ya puedes elegirla al empezar' : weaponSummary(this.player.weapon),
+          sub: weaponSummary(this.player.weapon),
           t: 0,
         };
         this.burst(pr.x, pr.y, '#ffd23f', 10, 16);
@@ -679,4 +684,4 @@ addMethods(Game, ZombieAttacks); // ataques especiales de los zombis (game-ataqu
 addMethods(Game, GameDrawing);   // dibujo (game-dibujo.js)
 addMethods(Game, GranadaMethods); // la granada de Johnny (granada.js)
 addMethods(Game, MolotovMethods); // el cóctel molotov de Johnny (molotov.js)
-addMethods(Game, OrdenadorMethods); // el ordenador de mantenimiento, donde se elige el arma (ordenador.js)
+addMethods(Game, OrdenadorMethods); // el ordenador de mantenimiento: compra de puntos de talento (ordenador.js)

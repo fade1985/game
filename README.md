@@ -37,7 +37,7 @@ puerta se cierra** y no se abre hasta que lo limpias.
 
 | Qué | Cómo funciona |
 |---|---|
-| 🧰 Sala de mantenimiento | Aquí empiezas, en la planta baja: cada arma espera en su mueble |
+| 🧰 Sala de mantenimiento | Aquí empiezas, en la planta baja. Tiene el ordenador donde se compran puntos de talento |
 | 🧟 Apartamentos | Con oleadas de zombis. No hace falta limpiarlos todos |
 | 🗝️ La llave | El apartamento del mini jefe está **cerrado con llave**. La llave está en el suelo de alguna habitación de otro apartamento |
 | 🙋 Superviviente | Uno por planta, en alguna habitación: limpia el apartamento y acércate para que se una a tu equipo |
@@ -58,8 +58,16 @@ ventanas por las que entra la luz.
 
 Los zombis sueltan a veces un **billete de dólar** 💵 (el mini jefe suelta 3 y la portera 8). Los billetes vienen solos
 hacia ti y se ven en el HUD. Los de la partida **solo se guardan si completas el edificio**: si te matan antes, pierdes
-los que hayas cogido en esa partida (los que ya tenías ahorrados se conservan). Pronto se gastarán en el ordenador
-de la sala de mantenimiento.
+los que hayas cogido en esa partida (los que ya tenías ahorrados se conservan).
+
+### 💻 El ordenador de mantenimiento
+
+En la sala de mantenimiento (solo en la planta baja) hay una mesa con un ordenador viejo, **ConserjeOS**: arrímate y
+se enciende (el juego se para mientras lo usas). De momento tiene un programa, **Compra de puntos e intercambio**:
+
+- **Intercambio:** cambias tus dólares ahorrados por **puntos de talento**, a **$10 el punto**. Los dólares de la
+  partida en curso no se pueden cambiar hasta que completes el edificio.
+- **Árbol de talentos** (en construcción): ahí se gastarán los puntos, en las ramas Militar y Superviviente.
 
 Todo se guarda en el navegador (`localStorage`): dólares, armas desbloqueadas, récords y progreso de cada edificio.
 Las partidas a medias no se guardan.
@@ -91,11 +99,7 @@ zombis sueltan a veces una **caja de munición** (un cargador más) y el mini je
 ninguna bala, Johnny saca solo la de cuerpo a cuerpo, y vuelve a la de fuego al coger una caja. La escopeta
 mete los cartuchos **de uno en uno** y puede disparar a mitad de recarga. En el modo de pruebas la reserva es infinita.
 
-**Elegir arma al empezar:** en la sala de mantenimiento cada arma espera en su mueble, pegado a la pared de arriba:
-la fregona en su cubo, el bate en el paragüero, el cuchillo en la encimera, la pistola en el cajón de la cómoda
-y la escopeta en la taquilla. Arrímate a un mueble abierto para coger su arma (la que llevabas vuelve a su sitio).
-Los muebles con candado guardan armas que aún no has encontrado: **la primera vez que coges un arma en una
-partida queda desbloqueada para siempre**. Con `?pruebas` en la dirección se ven todas abiertas, sin tocar el guardado.
+**Armas al empezar:** empiezas cada edificio con la fregona; las demás se encuentran por el edificio.
 
 | Arma | Tipo | Daño | Ataques/s | Cargador · recarga | Detalle |
 |---|---|---|---|---|---|
@@ -143,7 +147,7 @@ rápida, abanicos más anchos y más botellas. Los barridos de las armas cuerpo 
 en la versión cartoon original, que ya no existe. Ver [`docs/PIXEL_ART.md`](docs/PIXEL_ART.md).
 
 **Modo de pruebas:** añade `?pruebas` a la dirección (por ejemplo `http://localhost:3000/?pruebas`): todas
-las armas estarán abiertas en la sala de mantenimiento, las teclas **1 a 6** invocan cada tipo de zombi, la **7** a la portera (mini jefa)
+las armas estarán en el suelo de la sala de mantenimiento, las teclas **1 a 6** invocan cada tipo de zombi, la **7** a la portera (mini jefa)
 y la **8** a la jefa final.
 
 ## 🚀 Ejecutar en local

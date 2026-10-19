@@ -2,20 +2,19 @@
 //  El ordenador de la sala de mantenimiento ("ConserjeOS")
 //
 //  Al arrimarse a la mesa (props.js, Ordenador) el juego se pausa y sale la pantalla del ordenador: un
-//  escritorio viejo con sus iconos. "Armas" abre una ventana con todas las armas: las que ya has
-//  encontrado en alguna partida se eligen ahí y van a su hueco (cuerpo a cuerpo o de fuego); las demás
-//  salen con candado. "Habilidades" está en obras (fase 2). Es HTML, como los demás menús: así el ratón,
-//  el teclado (Tab, Enter, Esc) y el mando (mando.js va de botón en botón; B = Esc) funcionan solos.
+//  escritorio viejo con sus iconos. De momento solo hay un programa, "Compra de puntos e intercambio":
+//  cambia los dólares ahorrados por puntos de talento (talentos.js) y, en la fase C, los gasta en el árbol
+//  de talentos. Irán saliendo más programas. Es HTML, como los demás menús: así el ratón, el teclado
+//  (Tab, Enter, Esc) y el mando (mando.js va de botón en botón; B = Esc) funcionan solos.
 // ─────────────────────────────────────────────
-import { WEAPONS, weaponSummary } from './weapons.js';
 import { loadSave } from './save.js';
 import { clearInput } from './input.js';
 import { sfx } from './sfx.js';
+import { PRECIO_PUNTO, puntosAlcanzables, comprarPuntos } from './talentos.js';
 
 // Los iconos del escritorio: [ventana que abre, icono (assets/ui/iconos), nombre]
 const ICONOS = [
-  ['armas', 'escopeta', 'Armas'],
-  ['habilidades', 'fuerza', 'Habilidades'],
+  ['tienda', 'billete', 'Compra de puntos e intercambio'],
   ['apagar', 'puerta', 'Apagar'],
 ];
 
@@ -24,48 +23,43 @@ const reloj = () => {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 };
 
-// ¿Se puede elegir esta arma? La fregona siempre; las demás, si ya la has encontrado (en pruebas, todas)
-const abierta = (g, w) => g.testMode || w.id === 'fregona' || loadSave().weapons.includes(w.id);
-
 // Contenido de cada ventana: [título de la barra, HTML de dentro]
 const VENTANAS = {
-  armas(g) {
-    const p = g.player;
-    let foco = 'yellow'; // el mando empieza en la primera que se puede elegir (mando.js busca button.yellow)
-    const fila = (w) => {
-      if (!abierta(g, w)) {
-        return `
-          <button class="pc-arma bloqueada" disabled>
-            <i class="ico ico-candado"></i>
-            <span class="pc-arma-txt"><b>???</b><small>Encuéntrala en el edificio para poder elegirla</small></span>
-          </button>`;
-      }
-      const lleva = p.has(w);
-      const cls = foco; foco = '';
+  tienda(g) {
+    const save = loadSave();
+    const max = puntosAlcanzables(save.keys);
+    let foco = 'yellow'; // el mando empieza en el primer botón que se puede usar (mando.js busca button.yellow)
+    const boton = (n, texto) => {
+      const puede = n >= 1 && max >= n;
+      const cls = puede ? foco : '';
+      if (puede) foco = '';
       return `
-        <button class="pc-arma ${lleva ? 'puesta' : ''} ${cls}" data-act="elegir" data-arg="${w.id}">
-          <i class="ico ico-${w.id}"></i>
-          <span class="pc-arma-txt"><b>${w.name}</b><small>${weaponSummary(w)}</small></span>
-          <span class="pc-arma-tag">${lleva ? 'EQUIPADA' : 'Elegir'}</span>
+        <button class="pc-arma ${cls} ${puede ? '' : 'bloqueada'}" data-act="comprar" data-arg="${n}" ${puede ? '' : 'disabled'}>
+          <i class="ico ico-billete"></i>
+          <span class="pc-arma-txt"><b>${texto}</b><small>${n >= 1 ? `Cuesta $${n * PRECIO_PUNTO}` : `Necesitas $${PRECIO_PUNTO}`}</small></span>
+          <span class="pc-arma-tag">Cambiar</span>
         </button>`;
     };
-    // dos grupos, uno por hueco: cuerpo a cuerpo y de fuego
-    const grupo = (tipo, titulo) => `
+    return ['C:\\MANTENIMIENTO\\PUNTOS.EXE', `
+      <div class="pc-saldo">
+        <div><span>Dólares ahorrados</span><b><i class="ico ico-billete"></i> $${save.keys}</b></div>
+        <div><span>Puntos de talento</span><b>★ ${save.puntos}</b></div>
+      </div>
+      ${g.runKeys ? `<p class="pc-nota">Los $${g.runKeys} de esta partida no se pueden cambiar hasta que completes el edificio.</p>` : ''}
       <div class="pc-grupo">
-        <div class="pc-grupo-titulo">${titulo}</div>
-        <div class="pc-armas">${Object.values(WEAPONS).filter((w) => w.type === tipo).map(fila).join('')}</div>
-      </div>`;
-    return ['C:\\MANTENIMIENTO\\ARMAS', `
-      <p class="pc-nota">Llevas una de cada grupo: elige cuál quieres en cada hueco.</p>
-      ${grupo('melee', 'Cuerpo a cuerpo')}
-      ${grupo('ranged', 'De fuego')}`];
-  },
-  habilidades() {
-    return ['C:\\MANTENIMIENTO\\HABILIDADES', `
-      <div class="pc-obras">
-        <i class="ico ico-herramientas"></i>
-        <p><b>Programa en construcción</b></p>
-        <p>Pronto podrás mejorar a Johnny desde aquí.</p>
+        <div class="pc-grupo-titulo">Intercambio · $${PRECIO_PUNTO} = 1 punto</div>
+        <div class="pc-armas">
+          ${boton(1, 'Comprar 1 punto')}
+          ${boton(max, max > 1 ? `Comprar ${max} puntos (todo)` : 'Comprar todo lo posible')}
+        </div>
+      </div>
+      <div class="pc-grupo">
+        <div class="pc-grupo-titulo">Árbol de talentos</div>
+        <div class="pc-obras">
+          <i class="ico ico-herramientas"></i>
+          <p><b>En construcción</b></p>
+          <p>Muy pronto podrás gastar tus puntos en las ramas Militar y Superviviente.</p>
+        </div>
       </div>`];
   },
 };
@@ -73,7 +67,7 @@ const VENTANAS = {
 // `encender`: solo al abrirlo hace el efecto de encendido del monitor (al cambiar de ventana o elegir arma, no)
 function pantalla(g, ventana, encender) {
   const iconos = ICONOS.map(([id, ico, nombre]) => `
-    <button class="pc-icono ${!ventana && id === 'armas' ? 'yellow' : ''}" data-act="${id === 'apagar' ? 'apagar' : 'abrir'}" data-arg="${id}">
+    <button class="pc-icono ${!ventana && id === 'tienda' ? 'yellow' : ''}" data-act="${id === 'apagar' ? 'apagar' : 'abrir'}" data-arg="${id}">
       <i class="ico ico-${ico}"></i><span>${nombre}</span>
     </button>`).join('');
   let win = '';
@@ -123,10 +117,12 @@ export class OrdenadorMethods {
       abrir: (id) => { sfx.click(); this.drawOrdenador(id); },
       cerrar: () => { sfx.click(); this.drawOrdenador(null); },
       apagar: () => this.closeOrdenador(),
-      elegir: (id) => {
-        const w = WEAPONS[id];
-        if (!w || !abierta(this, w) || this.player.has(w)) return;
-        this.player.equip(w);
+      comprar: (n) => {
+        const save = comprarPuntos(Number(n));
+        if (!save) { sfx.nope(); return; }
+        // el HUD enseña lo ahorrado más lo de esta partida
+        this.savedKeys = save.keys;
+        this.wallet = this.savedKeys + this.runKeys;
         sfx.buy();
         this.drawOrdenador(ventana);
       },
@@ -146,7 +142,5 @@ export class OrdenadorMethods {
     this.ui.hide();
     clearInput();
     sfx.click();
-    const p = this.player;
-    this.banner = { icon: p.weapon.id, title: p.weapon.name, sub: weaponSummary(p.weapon), t: 0 };
   }
 }

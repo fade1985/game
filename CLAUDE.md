@@ -39,7 +39,7 @@ ni compilación. Se publica en **Vercel** como web estática: lo que se sube a `
 `npm run dev` sirve la carpeta en `http://localhost:3000` (el servidor quita el `.html` de las direcciones).
 
 - **Solo hay una opción: `?pruebas`** (las de antes, `?mudo`, `?armas`, `?sala=` y `?muebles`, se quitaron el 18 oct).
-  Arranca sin sonido (lo pidió el dueño), abre todas las armas y las teclas **1–6** sacan cada zombi, **7** la
+  Arranca sin sonido (lo pidió el dueño), deja todas las armas en el suelo de la sala de mantenimiento y las teclas **1–6** sacan cada zombi, **7** la
   portera (mini jefa) y **8** la jefa final. Cerrar la pestaña al terminar.
 - En `?pruebas`, la sala de mantenimiento tiene una puerta a cada lado (`src/exposicion.js`):
   - **izquierda, muebles:** todos los del catálogo con variantes y dibujo de lado, a su tamaño real; teclas
@@ -76,7 +76,7 @@ ni compilación. Se publica en **Vercel** como web estática: lo que se sube a `
 | `estados.js` | Estados genéricos de los charcos (tóxico, veneno, fuego, resbaladizo): misma ficha para todos (daño dentro, lo que dura al salir, si resbala, si afecta a zombis); cada charco elige los suyos en `HAZARDS` de `game-ataques.js` |
 | `molotov.js` | El cóctel molotov: apuntar y lanzar (clic derecho / E / botón táctil / RT del mando), el fuego y su dibujo |
 | `granada.js` | La granada (18 oct, con visto bueno): comparte botón con el molotov (F / LB / ⇄ cambia), bota, parpadea en rojo y explota a los 2 s con `explode`; números en `GRANADA` |
-| `ordenador.js` | El ordenador de mantenimiento ("ConserjeOS", 18 oct, fase 1, **pendiente de visto bueno**): al arrimarse a la mesa (`Ordenador` en `props.js`) se pausa y sale un escritorio de los 90 en HTML; "Armas" elige el arma (sustituye a los muebles de armas, cuya clase `WeaponStash` sigue en `props.js` hasta el visto bueno); "Habilidades", en obras (fase 2). Arte provisional: el escritorio del catálogo y los iconos del HUD |
+| `ordenador.js` / `talentos.js` | El ordenador de mantenimiento ("ConserjeOS"): al arrimarse a la mesa (`Ordenador` en `props.js`) se pausa y sale un escritorio de los 90 en HTML. 19 oct (rama `angel`): un solo programa, "Compra de puntos e intercambio" — cambia dólares ahorrados por puntos de talento (`PRECIO_PUNTO` en `talentos.js`) y, en la fase C, el árbol de talentos (ramas Militar y Superviviente). Se quitaron "Armas" y "Habilidades". Plan en el proyecto: `claude/plan-arbol-talentos.md` |
 | `mando.js` | Jugar con mando: lo lee en cada fotograma; en la partida lo pasa a `input.js` y en los menús va de botón en botón |
 | `upgrades.js` / `ui.js` / `input.js` / `sfx.js` / `save.js` | Mejoras, menús y HUD, controles, sonido, guardado |
 | `musica.js` | Música de fondo siniestra que se inventa sobre la marcha (tramos de tensión, acordes y sucesos al azar con su propio dado); `node tools/grabar-musica.mjs` la graba a un .wav. Con visto bueno (16 oct) |

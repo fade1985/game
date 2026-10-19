@@ -276,7 +276,7 @@ export class WeaponStash {
 }
 
 // Mesa con el ordenador de la sala de mantenimiento, pegada a la pared de arriba: al arrimarse se enciende y
-// sale su pantalla (ordenador.js), donde se elige el arma. Dibujo del dueño (mesa-ordenador, 18 oct, original en
+// sale su pantalla (ordenador.js), donde se compran puntos de talento. Dibujo del dueño (mesa-ordenador, 18 oct, original en
 // assets/sources/ordenador/); si falta su sprite, una mesa dibujada a mano.
 export class Ordenador {
   constructor(x) {
