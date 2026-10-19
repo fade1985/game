@@ -184,14 +184,14 @@
       "floor": 1,
       "dead": false,
       "jammed": true,
-      "time": 106
+      "time": 111
     },
     {
       "state": "playing",
       "floor": 1,
       "dead": false,
       "jammed": true,
-      "time": 80
+      "time": 135
     }
   ],
   "botPlantas": [
@@ -200,9 +200,9 @@
       "floor": 5,
       "dead": false,
       "jammed": false,
-      "time": 584
+      "time": 585
     }
   ],
-  "botMapas": 35,
+  "botMapas": 33,
   "fin": "over"
 }
