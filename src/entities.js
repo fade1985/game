@@ -153,7 +153,7 @@ export class Player {
   // a la de cuerpo a cuerpo por quedarse sin balas, vuelve a sacar la de fuego
   addAmmo(game) {
     const w = this.slots.ranged;
-    if (!w) return false;
+    if (!w || w.sinMunicion) return false;
     this.reserve = Math.min(w.mag * AMMO.max, this.reserve + w.mag * AMMO.box);
     if (this.autoMelee) { this.hold('ranged'); this.autoMelee = false; }
     if (this.hand === 'ranged' && this.mag <= 0) this.startReload(game);
@@ -163,13 +163,14 @@ export class Player {
   // ¿Le cabe más munición? (para que la caja venga hacia él)
   wantsAmmo() {
     const w = this.slots.ranged;
-    return !!w && this.reserve < w.mag * AMMO.max;
+    return !!w && !w.sinMunicion && this.reserve < w.mag * AMMO.max;
   }
 
   // Antes de disparar: ¿hay bala en el cargador? Si no, recarga o, sin reserva, cambia a la de cuerpo a cuerpo.
   // La escopeta puede disparar a mitad de recarga (con lo que lleve metido); las demás, no
   readyToFire(game) {
     const w = this.weapon;
+    if (w.sinMunicion && game.bumeranes.length) return false; // el bumerán: hasta que no vuelve, no se lanza otro
     if (this.reloading) {
       if (!w.shell || this.mag <= 0) return false;
       this.reloadT = 0; // dispara y deja de meter cartuchos
@@ -305,7 +306,7 @@ export class Player {
       sfx.swing();
     } else {
       // Disparo desde la boca del arma (gasta una bala del cargador; al vaciarlo, recarga sola)
-      this.mag--;
+      if (!w.sinMunicion) this.mag--;
       if (this.mag <= 0) this.startReload(game);
       const h = this.handPos(angle);
       const n = w.pellets + s.shots;
@@ -318,7 +319,8 @@ export class Player {
       // Mirilla: después de cada 3 disparos, el siguiente es crítico seguro
       this.shots = (this.shots || 0) + 1;
       const sure = s.mirilla && this.shots % 4 === 0;
-      game.fireVolley(this, angle, {
+      if (w.creada) game.disparoCreada(this, angle, w, { x: bx, y: by, lift: m ? MUZZLE_LIFT : 0 }); // armas creadas a distancia (armas-creadas.js)
+      else game.fireVolley(this, angle, {
         crit: sure,
         dmg: w.damage * s.damage * s.rangedDamage,
         count: n,
@@ -342,7 +344,7 @@ export class Player {
         this.muzzleT = 0.06;
         game.casing(h.x, h.y, angle);
       }
-      if (w.pellets > 1) { sfx.shotgun(); game.shake(4); } else sfx.gun();
+      if (w.creada) { /* ya suena en armas-creadas.js */ } else if (w.pellets > 1) { sfx.shotgun(); game.shake(4); } else sfx.gun();
     }
   }
 

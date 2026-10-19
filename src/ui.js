@@ -91,7 +91,7 @@ export function createUI(root) {
       set('meleeOn', $('#pill-melee'), p.hand === 'melee', 'class:on');
       set('rangedHide', $('#pill-ranged'), !ranged, 'hidden');
       if (ranged) {
-        set('ranged', $('#pill-ranged'), `<i class="ico ico-${ranged.id}"></i> <b>${ranged.name}</b>`, 'innerHTML');
+        set('ranged', $('#pill-ranged'), `<i class="ico ico-${ranged.ico || ranged.id}"></i> <b>${ranged.name}</b>`, 'innerHTML');
         set('rangedOn', $('#pill-ranged'), p.hand === 'ranged', 'class:on');
         // las balas sobre la vida: una por cada bala que cabe en el cargador (las gastadas, apagadas) y la reserva
         const row = $('.ammo-row');
@@ -103,13 +103,13 @@ export function createUI(root) {
         set('ammoReload', row, p.reloading, 'class:reloading');
         set('ammoEmpty', row, p.mag === 0 && !p.reloading && !p.hasReserve(g), 'class:empty');
       }
-      set('ammoHide', $('.ammo-row'), !ranged, 'hidden');
+      set('ammoHide', $('.ammo-row'), !ranged || !!ranged.sinMunicion, 'hidden');
       // y los botones redondos del móvil (lo mismo, en pequeño)
       set('bMelee', $touch('.slot-melee .ico'), `ico ico-${melee.ico || melee.id}`, 'className');
       set('bMeleeOn', $touch('.slot-melee'), p.hand === 'melee', 'class:on');
       set('bRangedHide', $touch('.slot-ranged'), !ranged, 'hidden');
       if (ranged) {
-        set('bRanged', $touch('.slot-ranged .ico'), `ico ico-${ranged.id}`, 'className');
+        set('bRanged', $touch('.slot-ranged .ico'), `ico ico-${ranged.ico || ranged.id}`, 'className');
         set('bRangedOn', $touch('.slot-ranged'), p.hand === 'ranged', 'class:on');
         // el aro de recarga: de 0 a 1 según lo que lleva (style.css lo pinta con --recarga)
         const k = p.reloading ? (1 - p.reloadT / p.reloadDur).toFixed(2) : '0';
@@ -254,7 +254,7 @@ export function createUI(root) {
       const creadas = g.armasCreadas.map((a, i) => `<button class="btn inv-casilla ${a.rareza}${sel === `c${i}` ? ' puesta' : ''}" data-act="elegir" data-arg="c${i}">
         ${icono(a.icono)}<b>${a.nombre}</b><small>${RAREZAS.find((r) => r.id === a.rareza).nombre} · ${a.unidades ? `${a.unidades} unidades` : `daño ${a.damage}`}</small></button>`);
       const n = Number(sel?.slice(1));
-      const ponible = (sel?.[0] === 'g' && g.armasGuardadas[n]?.type === 'melee') || (sel?.[0] === 'c' && g.armasCreadas[n]?.hueco === 'melee');
+      const ponible = (sel?.[0] === 'g' && g.armasGuardadas[n]) || (sel?.[0] === 'c' && ['melee', 'ranged'].includes(g.armasCreadas[n]?.hueco));
       const tirable = sel?.[0] === 'm' || sel?.[0] === 'g';
       const elegida = sel?.[0] === 'c' ? g.armasCreadas[n] : null;
       open(`
@@ -265,7 +265,7 @@ export function createUI(root) {
           <div class="inv-mochila">${guardadas.join('')}${creadas.join('')}</div>` : ''}
           <div class="plist-title"><i class="ico ico-mochila"></i> Mochila · ${g.mochila.length} / ${MOCHILA}</div>
           <div class="inv-mochila">${casillas.join('')}</div>
-          <p class="sub small">${elegida ? `${elegida.desc}.${elegida.hueco === 'melee' ? '' : ' Todavía no se puede usar.'}`
+          <p class="sub small">${elegida ? `${elegida.desc}.${['melee', 'ranged'].includes(elegida.hueco) ? '' : ' Todavía no se puede usar.'}`
             : sel ? 'Si lo tiras, se queda en el suelo: puedes volver a cogerlo.'
             : 'Lo que llevas en la mochila pasa al baúl si completas el edificio. Si caes, se pierde. Las armas creadas duran esta partida.'}</p>
           <div class="banco-botones">

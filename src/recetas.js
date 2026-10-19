@@ -4,7 +4,7 @@
 //  Cada receta junta dos ingredientes: objetos (objetos.js) o armas de la tienda (fregona, bate, cuchillo).
 //  El arma que sale lleva una rareza al azar (RAREZAS) que multiplica su daño. El arma creada
 //  dura esa partida: la de cuerpo a cuerpo va a la mano (armas-creadas.js, fase D1); las demás, de momento,
-//  solo se ven en el inventario (fases D2 y D3).
+//  a distancia van a la mano de fuego (fase D2); las arrojadizas solo se ven en el inventario (fase D3).
 //
 //  Campos de cada receta:
 //    id, nombre      lo que sale

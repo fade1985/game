@@ -217,6 +217,31 @@ async function pruebas() {
   paso(3);
   await foto('08-fin');
   huella.fin = game.state;
+
+  // 9. Armas creadas a distancia (fase D2): van a la mano de fuego y hacen daño con su efecto
+  //    (va al final y fuera de la huella, para no cambiar el azar de lo anterior)
+  const { RECETAS, crearArma } = await import('/src/recetas.js');
+  const { armaDeCreada } = await import('/src/armas-creadas.js');
+  for (const id of ['lanzallamas', 'supersoplete', 'desintegrador', 'bumeran']) {
+    sala('pistola');
+    const arma = crearArma(RECETAS.find((x) => x.id === id));
+    const vieja = game.player.equip(armaDeCreada(arma));
+    game.guardarArma(vieja?.weapon, vieja?.ammo);
+    if (game.player.slots.ranged.id !== id || game.armasGuardadas.length < 1) throw new Error(`${id}: no ha ido a la mano de fuego`);
+    for (let k = 0; k < 3; k++) { game.spawnEnemy('normal', game.player.x + 55 + k * 22, game.player.y + (k - 1) * 20); }
+    let disparos = 0; const dc = game.disparoCreada.bind(game); game.disparoCreada = (...a) => { disparos++; return dc(...a); };
+    const antes = game.enemies.reduce((s, e) => s + e.hp, 0), muertes = game.kills;
+    paso(1.2); inmortal();
+    await foto(`09-${id}`);
+    paso(1.8); inmortal();
+    game.disparoCreada = dc;
+    if (!disparos) throw new Error(`${id}: no ha disparado`);
+    if (!(game.kills > muertes || game.enemies.reduce((s, e) => s + e.hp, 0) < antes)) throw new Error(`${id}: no ha hecho daño`);
+    if (id === 'bumeran') { paso(3); if (game.bumeranes.length) throw new Error('bumeran: no ha vuelto a la mano'); }
+    // al ponerse otra vez la pistola (desde el inventario) vuelve el arma guardada
+    game.invSel = 'g0'; game.ponerDelInventario();
+    if (game.player.slots.ranged.id !== 'pistola' || !game.armasCreadas.some((a) => a.receta === id)) throw new Error(`${id}: el inventario no ha cambiado de arma`);
+  }
   return huella;
 }
 

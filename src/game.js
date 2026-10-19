@@ -101,6 +101,9 @@ export class Game {
     this.aim = null;     // dónde caería el molotov mientras se apunta
     this.enemies = [];
     this.bullets = [];
+    this.chorros = [];    // gotas de fuego y ácido de las armas creadas a distancia (armas-creadas.js)
+    this.bumeranes = [];  // el bumerán segador en el aire
+    this.chorroSfxT = 0; this.acidoT = 0;
     this.particles = [];
     this.texts = [];
     this.timers = [];
@@ -153,6 +156,7 @@ export class Game {
     this.granadas = GRANADA.start + this.stats.extraThrow; // granadas en la mochila
     this.mochila = [];         // objetos para crear armas recogidos en esta partida (objetos.js): al baúl si ganas
     this.armasGuardadas = [];  // armas que lleva en el inventario sin usar (la fregona, al coger otra cuerpo a cuerpo)
+    this.ammoGuardada = new Map(); // munición de las armas de fuego guardadas en el inventario
     this.armasCreadas = [];    // armas creadas en el banco de trabajo (recetas.js): duran esta partida
     this.reviveUsed = false;   // Desfibrilador: solo una vez por edificio
     this.tossKind = 'molotov';     // lo que se lanza con el botón de lanzar: 'molotov' o 'granada'
@@ -291,15 +295,16 @@ export class Game {
   // suelo (o null)
   guardarFregona(old) {
     if (old?.weapon.id !== 'fregona' && !old?.weapon.creada) return old;
-    this.guardarArma(old.weapon);
+    this.guardarArma(old.weapon, old.ammo);
     return null;
   }
 
   // Guarda un arma en el inventario: las creadas vuelven a su lista (armas-creadas.js); las demás, a las guardadas
-  guardarArma(w) {
+  // `ammo` es la munición que llevaba si era de fuego ({ mag, reserve }): se guarda para cuando se la vuelva a poner
+  guardarArma(w, ammo = null) {
     if (!w) return;
-    if (w.creada) this.armasCreadas.push(w.creada);
-    else this.armasGuardadas.push(w);
+    if (w.creada) { w.creada.ammo = ammo; this.armasCreadas.push(w.creada); }
+    else { this.armasGuardadas.push(w); if (ammo) this.ammoGuardada.set(w, ammo); }
   }
 
   // Se pone en la mano el arma cuerpo a cuerpo elegida en el inventario ('g0' guardada, 'c0' creada) y la que
@@ -307,11 +312,19 @@ export class Game {
   ponerDelInventario() {
     const clave = this.invSel, p = this.player;
     const i = Number(clave?.slice(1));
-    let w = null;
-    if (clave?.[0] === 'g' && this.armasGuardadas[i]?.type === 'melee') w = this.armasGuardadas.splice(i, 1)[0];
-    else if (clave?.[0] === 'c' && this.armasCreadas[i]?.hueco === 'melee') w = armaDeCreada(this.armasCreadas.splice(i, 1)[0]);
+    let w = null, ammo = null;
+    if (clave?.[0] === 'g' && this.armasGuardadas[i]) {
+      w = this.armasGuardadas.splice(i, 1)[0];
+      ammo = this.ammoGuardada.get(w) || null;
+      this.ammoGuardada.delete(w);
+    } else if (clave?.[0] === 'c' && ['melee', 'ranged'].includes(this.armasCreadas[i]?.hueco)) {
+      const a = this.armasCreadas.splice(i, 1)[0];
+      ammo = a.ammo || null;
+      w = armaDeCreada(a);
+    }
     if (!w) return;
-    this.guardarArma(p.equip(w)?.weapon);
+    const old = p.equip(w, ammo);
+    this.guardarArma(old?.weapon, old?.ammo);
     sfx.click();
     this.invSel = null;
     this.drawInventario();

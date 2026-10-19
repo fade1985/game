@@ -256,6 +256,7 @@ export class GameDrawing {
     for (const e of list) e.draw(ctx, this);
 
     for (const b of this.bullets) drawBullet(ctx, b);
+    this.dibujarChorros(ctx);
     this.drawLobs(ctx);
     this.drawGrenades(ctx);
     this.drawParticles(ctx);

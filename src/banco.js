@@ -6,7 +6,7 @@
 //  casillas del banco y, si hacen una receta (recetas.js), se puede crear el arma. Sale con una rareza al azar,
 //  los ingredientes se gastan (los objetos, primero de la mochila y luego del baúl) y el arma dura esta
 //  partida: la de cuerpo a cuerpo, directa a la mano (armas-creadas.js); las demás, al inventario
-//  (game.armasCreadas) hasta las fases D2 y D3.
+//  (game.armasCreadas) hasta la fase D3 (las arrojadizas).
 // ─────────────────────────────────────────────
 import { loadSave, updateSave } from './save.js';
 import { clearInput } from './input.js';
@@ -132,6 +132,9 @@ export class BancoMethods {
       this.guardarArma(p.slots.melee);
       p.slots.melee = armaDeCreada(arma);
       p.hold('melee');
+    } else if (arma.hueco === 'ranged') {
+      const old = p.equip(armaDeCreada(arma)); // a la mano de fuego; la que llevaba pasa al inventario con su munición
+      this.guardarArma(old?.weapon, old?.ammo);
     } else this.armasCreadas.push(arma);
     this.bancoHecha = arma;
     this.bancoSel = [];
