@@ -102,7 +102,7 @@ function navigateMenu(g, down, hit, overlay, dt) {
   if (shownFor !== overlay.firstElementChild || !focused || !focused.isConnected || !list.includes(focused)) {
     const same = shownFor === overlay.firstElementChild;
     shownFor = overlay.firstElementChild;
-    // si es la misma pantalla redibujada (por ejemplo, al comprar en el Taller), se queda en el mismo sitio
+    // si es la misma pantalla redibujada (por ejemplo, al comprar algo), se queda en el mismo sitio
     const keep = same ? list[Math.min(focusedIdx, list.length - 1)] : null;
     setFocus(keep || overlay.querySelector('button.yellow:not([disabled])') || list[0], list);
   }

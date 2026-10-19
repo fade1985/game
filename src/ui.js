@@ -126,8 +126,7 @@ export function createUI(root) {
     },
 
     // ═════════════ Pantallas ═════════════
-    showMenu(save, { play, workshop }) {
-      const upgrades = Object.values(save.workshop).reduce((a, b) => a + b, 0);
+    showMenu(save, { play }) {
       open(`
         <div class="menu">
           <h1 class="logo" aria-label="Zombie Escape"></h1>
@@ -135,7 +134,6 @@ export function createUI(root) {
           <div class="col">
             <button class="btn yellow big" data-act="play">JUGAR</button>
             ${canFullscreen() ? '<button class="btn green small" data-act="fullscreen">Pantalla completa</button>' : ''}
-            <button class="btn blue" data-act="workshop"><i class="ico ico-herramientas"></i> Taller <span class="keys-chip"><i class="ico ico-billete"></i> $${save.keys}</span>${upgrades ? ` <small>· ${upgrades} mejora${upgrades > 1 ? 's' : ''}</small>` : ''}</button>
           </div>
           <div class="hint panel small">
             <b>Teclado:</b> WASD moverse · Espacio esquivar · Q o rueda cambiar de arma · R recargar · clic derecho o E (mantén y suelta) lanzar · F cambiar molotov/granada<br>
@@ -144,10 +142,9 @@ export function createUI(root) {
           </div>
           ${save.bestFloor ? `<div class="record"><i class="ico ico-trofeo"></i> Mejor planta alcanzada: ${save.bestFloor}</div>` : ''}
         </div>`,
-      { play, workshop, fullscreen: goFullscreen },
+      { play, fullscreen: goFullscreen },
       (e) => {
         if (e.code === 'Enter') play();
-        else if (e.code === 'KeyT') workshop();
       },
       'clear');
       overlay.querySelector('.logo')?.append(makeTitleCanvas());
@@ -192,34 +189,6 @@ export function createUI(root) {
       });
     },
 
-    // Taller del conserje: mejoras permanentes que se compran con dólares
-    showWorkshop(save, upgrades, { buy, back }) {
-      const rows = upgrades.map((up) => {
-        const lvl = save.workshop[up.id] || 0;
-        const maxed = lvl >= up.max;
-        const price = up.cost[lvl];
-        const pips = Array.from({ length: up.max }, (_, i) => `<i class="${i < lvl ? 'on' : ''}"></i>`).join('');
-        return `
-          <div class="wrow ${maxed ? 'maxed' : ''}">
-            <div class="wicon"><i class="ico ico-${up.id}"></i></div>
-            <div class="winfo"><b>${up.name}</b><span>${up.desc}</span><div class="pips">${pips}</div></div>
-            <button class="btn ${maxed ? 'green' : 'yellow'} small" data-act="buy" data-arg="${up.id}" ${maxed || save.keys < price ? 'disabled' : ''}>
-              ${maxed ? 'MÁX' : `<i class="ico ico-billete"></i> $${price}`}
-            </button>
-          </div>`;
-      }).join('');
-      open(`
-        <div class="panel workshop">
-          <h2 class="title"><i class="ico ico-herramientas"></i> Taller del conserje</h2>
-          <p class="sub">Los dólares <i class="ico ico-billete"></i> que sueltan los zombis se guardan aunque pierdas.<br>Las mejoras se aplican al empezar cada edificio.</p>
-          <div class="wallet"><i class="ico ico-billete"></i> $${save.keys}</div>
-          <div class="wrows">${rows}</div>
-          <button class="btn blue small" data-act="back">Volver</button>
-        </div>`,
-      { buy, back },
-      (e) => { if (e.code === 'Escape') back(); });
-    },
-
     showPause(g, { resume, music, quit }) {
       const musicOn = loadSave().settings.music;
       const s = g.stats;
@@ -258,7 +227,7 @@ export function createUI(root) {
       (e) => { if (e.code === 'Escape' || e.code === 'KeyP') resume(); });
     },
 
-    showEnd(r, { retry, workshop, menu }) {
+    showEnd(r, { retry, menu }) {
       open(`
         <div class="panel end ${r.win ? 'win' : 'lose'}">
           <h2 class="title">${r.title}</h2>
@@ -269,17 +238,14 @@ export function createUI(root) {
             <div class="stat"><span><i class="ico ico-puerta"></i> Apartamentos visitados (última planta)</span><b>${r.explored}</b></div>
             <div class="stat"><span><i class="ico ico-policia"></i> Equipo</span><b>${r.team}</b></div>
             ${r.time ? `<div class="stat"><span>Tiempo</span><b>${r.time}</b></div>` : ''}
-            <div class="stat key"><span><i class="ico ico-billete"></i> Dólares conseguidos</span><b>+$${r.keys} <small>(tienes $${r.wallet})</small></b></div>
+            <div class="stat key"><span><i class="ico ico-billete"></i> Dólares conseguidos</span><b>${r.win ? `+$${r.keys}` : `$${r.keys} <small>perdidos</small>`} <small>(tienes $${r.wallet})</small></b></div>
           </div>
           <div class="col">
             <button class="btn yellow big" data-act="retry">${r.win ? 'Jugar otra vez' : 'Reintentar edificio'}</button>
-            <div class="row-btns">
-              <button class="btn green small" data-act="workshop"><i class="ico ico-herramientas"></i> Taller</button>
-              <button class="btn blue small" data-act="menu">Menú principal</button>
-            </div>
+            <button class="btn blue small" data-act="menu">Menú principal</button>
           </div>
         </div>`,
-      { retry, workshop, menu },
+      { retry, menu },
       (e) => { if (e.code === 'Enter') retry(); });
     },
   };

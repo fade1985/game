@@ -9,8 +9,8 @@ import { makeBoss, BOSS_TYPES } from './bosses.js';
 import { Zombie } from './zombies.js';
 import { generateFloor, floorName } from './building.js';
 import { makePlainLayout } from './rooms.js';
-import { baseStats, rollItem, applyWorkshop, WORKSHOP } from './upgrades.js';
-import { SurvivorNPC, DoorKey, Ordenador } from './props.js';
+import { baseStats } from './upgrades.js';
+import { SurvivorNPC, DoorKey, Ordenador, Armarito, BOTIQUIN_CURA } from './props.js';
 import { OrdenadorMethods } from './ordenador.js';
 import { ExposicionMuebles, expoZombis } from './exposicion.js';
 import { weaponSummary } from './weapons.js';
@@ -123,7 +123,7 @@ export class Game {
     this.setupMenuScene();
     this.ui.showHud(false);
     music.play('menu');
-    this.ui.showMenu(loadSave(), { play: () => this.showBuildings(), workshop: () => this.showWorkshop() });
+    this.ui.showMenu(loadSave(), { play: () => this.showBuildings() });
   }
 
   // Selector de edificios
@@ -131,40 +131,19 @@ export class Game {
     this.ui.showBuildings(loadSave(), BUILDINGS, { pick: (id) => this.newRun(id), back: () => this.goMenu() });
   }
 
-  // Taller: mejoras permanentes que se compran con dólares
-  showWorkshop() {
-    this.ui.showWorkshop(loadSave(), WORKSHOP, {
-      buy: (id) => {
-        const up = WORKSHOP.find((u) => u.id === id);
-        let bought = false;
-        updateSave((s) => {
-          const lvl = s.workshop[id] || 0;
-          const price = up.cost[lvl];
-          if (lvl >= up.max || s.keys < price) return;
-          s.keys -= price;
-          s.workshop[id] = lvl + 1;
-          bought = true;
-        });
-        if (bought) sfx.buy(); else sfx.nope();
-        this.showWorkshop();
-        return bought;
-      },
-      back: () => this.goMenu(),
-    });
-  }
-
   newRun(buildingId = this.building?.id || 'apartamentos') {
     this.building = BUILDINGS[buildingId];
     const save = updateSave((s) => { s.runs++; buildingSave(s, buildingId).runs++; });
-    this.stats = applyWorkshop(baseStats(), save.workshop);
+    this.stats = baseStats();
     this.player = new Player(this.stats);
     this.allies = [];
     this.kills = 0;
-    this.runKeys = 0;          // dólares recogidos en esta partida
+    this.runKeys = 0;          // dólares recogidos en esta partida: solo se guardan si completas el edificio
     this.molotovs = MOLOTOV.start; // cócteles molotov en la mochila
     this.granadas = GRANADA.start; // granadas en la mochila
     this.tossKind = 'molotov';     // lo que se lanza con el botón de lanzar: 'molotov' o 'granada'
-    this.wallet = save.keys;   // dólares ahorrados (para el HUD; en el guardado se siguen llamando "keys")
+    this.savedKeys = save.keys; // dólares ahorrados de antes (en el guardado se siguen llamando "keys")
+    this.wallet = save.keys;   // lo que sale en el HUD: lo ahorrado más lo de esta partida
     this.runTime = 0;
     this.floorNum = 1;
     this.fade = null;
@@ -172,12 +151,6 @@ export class Game {
     this.survivorOrder = shuffle(Object.values(SURVIVORS));
     this.items = [];            // objetos conseguidos
     this.itemsSeen = new Set(); // objetos que ya han salido (para no repetir)
-    // Mejora "Mochila" del Taller: empiezas con un objeto al azar
-    if (save.workshop.mochila) {
-      const it = rollItem(this.itemsSeen);
-      it.apply(this);
-      this.items.push(it);
-    }
     this.state = 'playing';
     this.paused = false;
     clearInput();
@@ -207,6 +180,7 @@ export class Game {
       npc.x = survivor.x; npc.y = survivor.y;
       survivor.room.props.push(npc);
     }
+    for (const a of this.floor.armaritos || []) a.room.props.push(new Armarito(a.x, a.y));
 
     // Sala de mantenimiento: la mesa con el ordenador, donde se elige con qué arma empezar (ordenador.js).
     // Solo se pueden elegir las que ya has encontrado en alguna partida; en el modo pruebas, todas.
@@ -267,6 +241,9 @@ export class Game {
       const b = buildingSave(s, id);
       b.bestFloor = Math.max(b.bestFloor, win ? this.building.floors : this.floorNum);
       if (win) {
+        // los dólares de la partida solo se guardan si completas el edificio; si caes, se pierden
+        s.keys += this.runKeys;
+        s.totalKeys += this.runKeys;
         s.wins++;
         b.wins++;
         b.completed = true;
@@ -293,7 +270,7 @@ export class Game {
         wallet: save.keys,
         time: win ? `${formatTime(this.runTime)}${record ? ' · ¡récord!' : ''}` : null,
       },
-      { retry: () => this.newRun(), workshop: () => this.showWorkshop(), menu: () => this.goMenu() },
+      { retry: () => this.newRun(), menu: () => this.goMenu() },
     );
   }
 
@@ -430,7 +407,7 @@ export class Game {
     }
   }
 
-  // Cosas del mapa: muebles con arma, la llave del mini jefe, supervivientes y armas en el suelo
+  // Cosas del mapa: el ordenador, la llave del mini jefe, los armaritos del baño, supervivientes y armas en el suelo
   updateProps() {
     const p = this.player;
     if (p.dead) return;
@@ -451,6 +428,17 @@ export class Game {
         this.banner = { icon: 'llave', title: pr.name, sub: 'Ya puedes abrir su puerta, en el pasillo', t: 0 };
         this.burst(pr.x, pr.y, '#dfe7f2', 14, 18);
         sfx.buy();
+      } else if (pr.kind === 'armarito' && pr.armed) {
+        // Armarito del baño: el botiquín cura al cogerlo; con la vida llena se deja para luego
+        pr.armed = false; // hay que apartarse antes de volver a intentarlo
+        if (p.hp >= this.stats.maxHp) {
+          this.floatText(pr.x, pr.y - 40, 'Tienes la vida al máximo', '#dfe7f2', 18);
+          continue;
+        }
+        pr.taken = true;
+        this.healPlayer(BOTIQUIN_CURA);
+        this.burst(pr.x, pr.y - 20, '#80ed99', 12, 14);
+        sfx.gem();
       } else if (pr.kind === 'survivor' && this.room.cleared) {
         pr.taken = true;
         this.addAlly(pr.def, pr.x, pr.y);

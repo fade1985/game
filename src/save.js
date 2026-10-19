@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────
 //  Guardado del progreso en el navegador (localStorage)
 //
-//  Se guarda: dólares, mejoras del Taller, armas desbloqueadas, récords y el progreso de cada edificio.
+//  Se guarda: dólares, armas desbloqueadas, récords y el progreso de cada edificio.
 //  Las partidas a medias NO se guardan: si cierras, empiezas el edificio de nuevo.
 // ─────────────────────────────────────────────
 const KEY = 'blobquest-save-v2';
@@ -10,12 +10,11 @@ const BUILDING_DEFAULT = { completed: false, runs: 0, wins: 0, bestFloor: 0, bes
 
 const DEFAULT = {
   bestFloor: 0,     // mejor planta alcanzada en cualquier edificio
-  keys: 0,          // dólares para gastar en el Taller (antes eran llaves: el nombre se queda para no perder lo ahorrado)
+  keys: 0,          // dólares ahorrados (antes eran llaves: el nombre se queda para no perder lo ahorrado)
   totalKeys: 0,     // dólares conseguidos en total
   runs: 0,
   wins: 0,
   kills: 0,
-  workshop: {},     // nivel de cada mejora del Taller: { vida: 2, ... }
   weapons: [],      // armas desbloqueadas (encontradas alguna vez): ['bate', ...]. La fregona siempre está
   buildings: {},    // progreso por edificio: { apartamentos: { ... } }
   settings: { music: true },
@@ -25,7 +24,7 @@ export function loadSave() {
   let d = {};
   try { d = JSON.parse(localStorage.getItem(KEY)) || {}; } catch { /* guardado roto o sin acceso */ }
   const save = { ...structuredClone(DEFAULT), ...d };
-  save.workshop = { ...(d.workshop || {}) };
+  delete save.workshop; // el Taller ya no existe: se olvidan sus mejoras
   save.weapons = [...(d.weapons || [])];
   save.settings = { ...DEFAULT.settings, ...(d.settings || {}) };
   save.buildings = {};

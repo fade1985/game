@@ -280,6 +280,20 @@ export function zoneSpot(layout, zone, rnd = Math.random) {
   return { x: zone.cx, y: zone.cy };
 }
 
+// Un sitio despejado lo más pegado posible a la pared del fondo (la de arriba) de una habitación, para un
+// mueble pequeño como el armarito del baño. Si esa pared está llena de muebles, el primero libre más abajo.
+export function backWallSpot(layout, zone) {
+  const ok = (x, y) => isOpen(layout, x, y, 30) && layout.owner[Math.floor(y / CELL) * layout.cols + Math.floor(x / CELL)] === zone.id
+    && layout.obstacles.every((o) => obstacleGap(o, { x, y }) > 40);
+  for (let y = zone.y + 32; y < zone.y + zone.h - 32; y += 8) {
+    // del centro hacia los lados, para que no quede metido en una esquina si cabe en medio
+    for (let k = 0; k <= zone.w / 2 - 32; k += 16) {
+      for (const x of [zone.x + zone.w / 2 - k, zone.x + zone.w / 2 + k]) if (ok(x, y)) return { x, y };
+    }
+  }
+  return null;
+}
+
 // ═════════════ Zombis ═════════════
 
 // Enemigos que aparecen al entrar, por oleadas: solo los jefes. Los zombis de los apartamentos

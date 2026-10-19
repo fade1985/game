@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────
 //  Combate: las balas, los golpes cuerpo a cuerpo, los disparos de los zombis, qué pasa cuando
-//  muere uno (y cuando cae un jefe) y lo que sueltan (billetes, corazones, molotovs).
+//  muere uno (y cuando cae un jefe) y lo que sueltan (billetes, molotovs, granadas, munición).
 //
 //  Son métodos de Game: game.js los añade a la clase, así que dentro "this" es la partida.
 // ─────────────────────────────────────────────
@@ -9,15 +9,12 @@ import { rand, clamp, dist, pushOut, obstacleGap } from './utils.js';
 import { WeaponProp } from './props.js';
 import { destello } from './luz.js';
 import { randomWeapon } from './weapons.js';
-import { updateSave } from './save.js';
 import { isWall, lineClear } from './shapes.js';
 import { MOLOTOV } from './molotov.js';
 import { GRANADA } from './granada.js';
 import { sfx } from './sfx.js';
 
 const CASH_CHANCE = 0.07;  // probabilidad de que un zombi suelte un billete de dólar 💵
-const HEART_CHANCE = 0.05; // ...o un corazón
-const HEART_HEAL = 15;
 const AMMO_CHANCE = 0.1;   // ...o una caja de munición (solo si llevas arma de fuego; provisional)
 const BULLET_LIFT = 22;    // pixel art: altura a la que se dibujan las balas de un arma dibujada (la del cuerpo de un zombi)
 
@@ -75,18 +72,16 @@ export class GameCombat {
 
   updatePickups(dt) {
     const p = this.player;
-    const needsHp = p.hp < this.stats.maxHp;
     for (const pk of this.pickups) {
       pk.t += dt;
       const fr = Math.exp(-dt * 5);
       pk.vx *= fr; pk.vy *= fr;
       const dx = p.x - pk.x, dy = p.y - pk.y;
       const d = Math.hypot(dx, dy) || 1;
-      // Los billetes siempre vienen a ti; los corazones, solo si te falta vida
-      // y los molotovs, si caben en la mochila
+      // Los billetes siempre vienen a ti; los molotovs y las granadas, si caben en la mochila
       const wanted = pk.kind === 'cash' || (pk.kind === 'molotov' ? this.molotovs < MOLOTOV.max
         : pk.kind === 'granada' ? this.granadas < GRANADA.max
-        : pk.kind === 'ammo' ? p.wantsAmmo() : needsHp);
+        : pk.kind === 'ammo' ? p.wantsAmmo() : false);
       if (!p.dead && wanted && pk.t > 0.4 && d < this.stats.magnet) {
         pk.vx += (dx / d) * 2200 * dt;
         pk.vy += (dy / d) * 2200 * dt;
@@ -105,13 +100,10 @@ export class GameCombat {
 
   collect(pk) {
     pk.dead = true;
-    if (pk.kind === 'heart') {
-      this.healPlayer(HEART_HEAL);
-      sfx.gem();
-    } else if (pk.kind === 'cash') {
-      // los dólares se guardan al momento: no se pierden aunque mueras
+    if (pk.kind === 'cash') {
+      // los dólares de la partida no se guardan hasta completar el edificio (game.js, endRun)
       this.runKeys++;
-      this.wallet = updateSave((s) => { s.keys++; s.totalKeys++; }).keys;
+      this.wallet = this.savedKeys + this.runKeys;
       this.floatText(pk.x, pk.y - 20, '+$1', '#80ed99', 20);
       sfx.coin();
     } else if (pk.kind === 'ammo') {
@@ -241,7 +233,6 @@ export class GameCombat {
     sfx.kill();
     if (!e.isBoss) {
       if (Math.random() < CASH_CHANCE) this.dropPickup('cash', e.x, e.y);
-      else if (Math.random() < HEART_CHANCE) this.dropPickup('heart', e.x, e.y);
       else if (Math.random() < MOLOTOV.drop) this.dropPickup('molotov', e.x, e.y);
       else if (Math.random() < GRANADA.drop) this.dropPickup('granada', e.x, e.y);
       else if (this.player.slots.ranged && Math.random() < AMMO_CHANCE) this.dropPickup('ammo', e.x, e.y);
@@ -266,8 +257,6 @@ export class GameCombat {
     this.shake(20);
     this.hitStop = 0.35; // cámara lenta un instante: ¡golpe final!
     sfx.boom();
-    this.dropPickup('heart', boss.x, boss.y);
-    this.dropPickup('heart', boss.x, boss.y);
     for (let i = 0; i < (boss.type === 'boss' ? 8 : 3); i++) this.dropPickup('cash', boss.x, boss.y);
     for (let i = 0; i < 2; i++) this.dropPickup('ammo', boss.x, boss.y); // y munición
     // el mini jefe siempre suelta un arma (lejos de donde saldrán las escaleras)

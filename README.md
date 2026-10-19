@@ -54,36 +54,20 @@ bañeras, neveras... Los muebles van pegados a las paredes, nunca tapan una puer
 y a las balas**. En las paredes hay cuadros, relojes y
 ventanas por las que entra la luz.
 
-### 💵 Dólares y Taller
+### 💵 Dólares
 
 Los zombis sueltan a veces un **billete de dólar** 💵 (el mini jefe suelta 3 y la portera 8). Los billetes vienen solos
-hacia ti y **se guardan al momento, aunque pierdas**. En el **Taller del conserje** (botón en el menú o al
-terminar una partida) los gastas en mejoras permanentes que se aplican al empezar cada edificio:
+hacia ti y se ven en el HUD. Los de la partida **solo se guardan si completas el edificio**: si te matan antes, pierdes
+los que hayas cogido en esa partida (los que ya tenías ahorrados se conservan). Pronto se gastarán en el ordenador
+de la sala de mantenimiento.
 
-| Mejora | Efecto por nivel | Niveles | Precio ($) |
-|---|---|---|---|
-| 🥪 Bocadillo | +10 de vida máxima | 5 | 3 · 6 · 10 · 15 · 20 |
-| 🏋️ Pesas | +6 % de daño | 5 | 4 · 8 · 12 · 16 · 20 |
-| 👟 Cordones nuevos | +4 % de velocidad | 3 | 5 · 10 · 15 |
-| 🌀 Reflejos | La esquiva se recarga un 12 % antes | 3 | 5 · 10 · 15 |
-| 🎒 Mochila | Empiezas cada edificio con un objeto al azar | 1 | 25 |
-
-Todo se guarda en el navegador (`localStorage`): dólares, mejoras, récords y progreso de cada edificio.
+Todo se guarda en el navegador (`localStorage`): dólares, armas desbloqueadas, récords y progreso de cada edificio.
 Las partidas a medias no se guardan.
 
-### 🎒 Objetos
+### 🩹 Curarse
 
-De momento los objetos solo se consiguen con la mejora Mochila del Taller: la sala de objeto se ha retirado y más adelante los soltarán los zombis. Los que llevas se
-ven arriba a la izquierda y en la pausa.
-
-| Objeto | Efecto |
-|---|---|
-| 👟 Zapatillas | +15 % de velocidad de movimiento |
-| 🥤 Proteínas | +20 % de daño |
-| 🩹 Botiquín | +25 de vida máxima (y te cura 25) |
-| ☕ Café | +20 % de velocidad de ataque |
-| 🧤 Guantes | +25 % de alcance cuerpo a cuerpo |
-| ⛑️ Casco | Recibes un 15 % menos de daño |
+Los zombis ya no sueltan corazones. En **cada baño** hay un armarito blanco con una cruz roja: arrímate y coges
+el **botiquín**, que cura **50** de vida. Con la vida llena no se gasta, así que puedes volver a por él más tarde.
 
 ### 👥 Supervivientes
 
@@ -192,7 +176,7 @@ src/
   apartment.js    → generador de apartamentos (habitaciones, tabiques y puertas)
   rooms.js        → lo que hay en cada mapa: estilo, muebles, decoración y oleadas
   shapes.js       → la cuadrícula de cada mapa (suelo o muro) y el camino de los zombis
-  props.js        → cosas de los mapas: superviviente, la llave del mini jefe y armas
+  props.js        → cosas de los mapas: superviviente, la llave del mini jefe, el armarito del baño y armas
   weapons.js      → catálogo de armas (datos) y su dibujo
   aim.js          → controlador de apuntado (automático; el manual irá aquí)
   entities.js     → jugador y compañeros (comportamiento + dibujo)
@@ -203,14 +187,14 @@ src/
   render.js       → dibujo de habitaciones, puertas en los 4 lados y minimapa
   furniture.js    → muebles de cada estilo de habitación y decoración de las paredes
   draw.js         → ayudas de dibujo: personaje humano, "blobs", ojos, sombras, texto
-  upgrades.js     → atributos del jugador, objetos y mejoras del Taller
-  ui.js           → menús en HTML (inicio, selector de edificios, Taller, pausa, fin) y HUD
+  upgrades.js     → atributos del jugador y objetos
+  ui.js           → menús en HTML (inicio, selector de edificios, pausa, fin) y HUD
   input.js        → teclado + joystick táctil
   sfx.js          → sonidos y música generados con Web Audio (sin archivos)
   sprites.js      → carga y dibujo de los sprites de pixel art (modo por defecto)
 assets/sprites/   → sprites de pixel art (PNG + JSON) y su lista (manifest.json)
 tools/pixellab.mjs → herramienta para generar sprites con la API de PixelLab
-  save.js         → guardado en localStorage (dólares, Taller, récords y edificios)
+  save.js         → guardado en localStorage (dólares, armas, récords y edificios)
   config.js       → constantes, colores, edificios y estilos de habitación
 ```
 

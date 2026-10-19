@@ -116,12 +116,14 @@ function think(game, memo) {
     if (!left.includes(memo.goal)) memo.goal = left.reduce((a, b) => (dist(b, p) < dist(a, p) ? b : a));
     return toward(game, memo.goal);
   }
-  // limpio: recoger lo que haya (la llave, el superviviente, corazones si hacen falta) y salir
-  const prop = room.props.find((pr) => !pr.taken && (pr.kind === 'doorkey' || (pr.kind === 'survivor' && game.allies.length < 4)));
+  // limpio: recoger lo que haya (la llave, el superviviente, el botiquín del baño si hace falta) y salir
+  const hurt = p.hp < game.stats.maxHp * 0.8;
+  const prop = room.props.find((pr) => !pr.taken && (pr.kind === 'doorkey' || (pr.kind === 'survivor' && game.allies.length < 4)
+    || (pr.kind === 'armarito' && hurt)));
   if (prop) return toward(game, prop);
-  // corazones (si hacen falta) y billetes, solo los que tiene cerca y a la vista: los que caen detrás de un mueble se quedan
+  // billetes, solo los que tiene cerca y a la vista: los que caen detrás de un mueble se quedan
   const near = (pk) => dist(pk, p) < 280 && lineClear(room.layout, p.x, p.y, pk.x, pk.y);
-  const loot = game.pickups.find((pk) => (pk.kind === 'cash' || p.hp < game.stats.maxHp) && near(pk));
+  const loot = game.pickups.find((pk) => pk.kind === 'cash' && near(pk));
   if (loot && !memo.skipLoot) return toward(game, loot);
 
   let ex;

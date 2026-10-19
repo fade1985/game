@@ -65,7 +65,7 @@ const VENTANAS = {
       <div class="pc-obras">
         <i class="ico ico-herramientas"></i>
         <p><b>Programa en construcción</b></p>
-        <p>Pronto podrás mejorar a Johnny desde aquí.<br>De momento, las mejoras están en el Taller del menú principal.</p>
+        <p>Pronto podrás mejorar a Johnny desde aquí.</p>
       </div>`];
   },
 };

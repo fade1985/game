@@ -55,7 +55,7 @@ export class SurvivorNPC {
 }
 
 // La llave del apartamento del mini jefe: espera en el suelo de alguna habitación de otro apartamento.
-// No tiene nada que ver con los dólares del Taller: abre esa puerta y nada más.
+// No tiene nada que ver con los dólares: abre esa puerta y nada más.
 export class DoorKey {
   constructor(name, x, y) {
     this.kind = 'doorkey';
@@ -94,6 +94,44 @@ export class DoorKey {
       ctx.restore();
     }
     outlinedText(ctx, this.name, x, this.y + 34, 15, '#dfe7f2', { lw: 4 });
+  }
+}
+
+// Armarito del baño, pegado a la pared: dentro hay un botiquín que cura BOTIQUIN_CURA al cogerlo (basta con
+// arrimarse; con la vida llena no se gasta). Ya cogido, se queda abierto y vacío. Dibujo provisional a mano:
+// si algún día hay sprite 'mueble-armarito', se usa ese (fotograma 0 cerrado, 1 abierto).
+export const BOTIQUIN_CURA = 50;
+export class Armarito {
+  constructor(x, y) {
+    this.kind = 'armarito';
+    this.x = x; this.y = y;
+    this.r = 22;
+    this.solid = false;
+    this.taken = false;
+    this.armed = true;
+  }
+
+  draw(ctx, game) {
+    const { x, y } = this;
+    if (drawSprite(ctx, 'mueble-armarito', 'idle', 'south', this.taken ? 1 : 0, x, y + 12)) return;
+    pixelShadow(ctx, x, y + 12, 34);
+    if (!this.taken) glow(ctx, x, y - 16, 4, 34, '128, 237, 153', 0.25 + Math.sin(game.time * 3) * 0.1);
+    // mueble blanco con patas cortas
+    roundBox(ctx, x - 17, y - 34, 34, 44, 3, '#e9edf1', 3);
+    ctx.fillStyle = '#c9d1da'; ctx.fillRect(x - 15, y + 4, 30, 4);
+    if (!this.taken) {
+      // puertas cerradas con la cruz roja
+      ctx.fillStyle = OUTLINE; ctx.fillRect(x - 1, y - 32, 2, 36);
+      ctx.fillStyle = '#e63946';
+      ctx.fillRect(x - 9, y - 20, 18, 6); ctx.fillRect(x - 3, y - 26, 6, 18);
+      ctx.fillStyle = '#8d99ae'; ctx.fillRect(x - 5, y - 6, 3, 4); ctx.fillRect(x + 2, y - 6, 3, 4);
+    } else {
+      // abierto y vacío: el hueco oscuro con una balda
+      ctx.fillStyle = '#4a5568'; ctx.fillRect(x - 13, y - 30, 26, 32);
+      ctx.fillStyle = '#c9d1da'; ctx.fillRect(x - 13, y - 15, 26, 3);
+      roundBox(ctx, x - 25, y - 32, 9, 36, 2, '#e9edf1', 2.5);
+      roundBox(ctx, x + 16, y - 32, 9, 36, 2, '#e9edf1', 2.5);
+    }
   }
 }
 
