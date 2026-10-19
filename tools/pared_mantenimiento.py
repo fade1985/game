@@ -82,20 +82,20 @@ def pegar(seg, x0, borde=48):
 pegar(A, 150)    # NO ESCAPE: de la unidad 56 a la 248, a la izquierda de la puerta (que está en el centro)
 pegar(B, 1493)   # el salpicón grande, a la derecha de la puerta
 
-ALTO = 192
-pared = lienzo.resize((ANCHO * ALTO // 256, ALTO), Image.LANCZOS)
+ALTO = 48  # 3 casillas a la densidad de los personajes ("scale": 1, desde el 19 oct)
+pared = lienzo.resize((ANCHO * ALTO // 256, ALTO), Image.BOX)
 pared.save('assets/sprites/pared-mantenimiento.png')
-meta = {'cell': list(pared.size), 'pivot': [0, 0], 'scale': 0.25, 'suave': True,
+meta = {'cell': list(pared.size), 'pivot': [0, 0], 'scale': 1,
         'anims': {'idle': {'fps': 1, 'dirs': {'south': {'row': 0, 'frames': 1}}}}}
 json.dump(meta, open('assets/sprites/pared-mantenimiento.json', 'w'), indent=2)
 
 # moldura del techo (3 franjas con los colores del zócalo), del mismo ancho
-techo = Image.new('RGB', (pared.size[0], 24))
-for y in range(24):
-    col = (150, 146, 120) if y < 8 else (118, 115, 95) if y < 16 else (76, 68, 51)
+techo = Image.new('RGB', (pared.size[0], 6))
+for y in range(6):
+    col = (150, 146, 120) if y < 2 else (118, 115, 95) if y < 4 else (76, 68, 51)
     for x in range(pared.size[0]):
         techo.putpixel((x, y), col)
 techo.save('assets/sprites/techo-mantenimiento.png')
-meta['cell'] = [pared.size[0], 24]
+meta['cell'] = [pared.size[0], 6]
 json.dump(meta, open('assets/sprites/techo-mantenimiento.json', 'w'), indent=2)
 print('pared-mantenimiento', pared.size)

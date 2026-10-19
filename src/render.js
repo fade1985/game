@@ -106,7 +106,7 @@ export function drawRoom(ctx, room, time) {
     ctx.translate(m.x, m.y);
     ctx.rotate(m.giro * Math.PI / 2);
     if (m.volteo) ctx.scale(-1, 1);
-    drawSprite(ctx, 'manchas-suelo', 'idle', 'south', 0, 0, 0, { scale: 0.5, frame: m.f });
+    drawSprite(ctx, 'manchas-suelo', 'idle', 'south', 0, 0, 0, { frame: m.f });
     ctx.restore();
   }
 

@@ -14,8 +14,8 @@ izquierda: en la derecha se pone en espejo). La carpeta es solo para ordenar: va
 Cada imagen: fuera el fondo y el halo blanco que deja la IA, recortada, reducida al ancho del mueble en el
 catálogo (el de frente, a su largo `len`; el de lado, a su fondo `dep`, para que choque justo con lo que se ve) y
 con el contorno oscuro de los demás muebles. Deja assets/sprites/mueble-<tipo>[-<variante>][-lado].png y su .json
-con "scale": 0.5 (cada píxel, 1 unidad del juego: el doble de detalle que los personajes), y lo apunta en
-manifest.json.
+con "scale": 1 (cada píxel, 2 unidades del juego: la misma densidad que los personajes; hasta el 19 oct salían a
+0,5, con el doble de detalle), y lo apunta en manifest.json.
 
 Para saber qué es nuevo, apunta la huella de cada original en assets/sources/salas/importados.json. Un mueble de
 tipo nuevo (que no está en el catálogo) no se convierte: hay que añadirlo antes a src/catalogo.js.
@@ -117,8 +117,9 @@ def main(forzar):
         if isinstance(que, str): avisos.append(f'{rel}: {que}'); continue
         tipo, largo, fondo, variante, lado = que
         sid = f'mueble-{tipo}' + (f'-{variante}' if variante else '') + ('-lado' if lado else '')
-        bloque, escala = BLOQUE.get(tipo, (None, 0.5))
-        im = convierte(ruta, fondo if lado else largo, bloque)
+        bloque, escala = BLOQUE.get(tipo, (None, 1))
+        # a la densidad de los personajes: cada píxel, 2 unidades del juego (el ancho del catálogo va en unidades)
+        im = convierte(ruta, round((fondo if lado else largo) / 2), bloque)
         if im is None: avisos.append(f'{rel}: no tiene fondo transparente (¿un damero pintado?); no se convierte'); continue
         im.save(f'{OUT}/{sid}.png')
         meta = {'cell': [im.width, im.height], 'pivot': [im.width // 2, im.height], 'scale': escala,

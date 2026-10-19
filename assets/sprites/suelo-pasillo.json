@@ -1,13 +1,13 @@
 {
   "cell": [
-    128,
-    128
+    64,
+    64
   ],
   "pivot": [
     0,
     0
   ],
-  "scale": 0.5,
+  "scale": 1,
   "suavizar": 0,
   "anims": {
     "idle": {

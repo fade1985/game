@@ -181,64 +181,8 @@ function findFeet(img, meta) {
 }
 
 export const hasSprite = (id) => sheets.has(id);
-// Cuántas hojas hay cargadas (sirve para saber si hay que rehacer un dibujo guardado: puede haber llegado su textura).
-// Cambia también al activar o quitar la prueba de densidad única
-let versionHojas = 0;
-export const spriteCount = () => `${sheets.size}.${versionHojas}`;
-
-// ── Prueba de densidad única (19 oct, rama pixel-escala) ──
-// Las texturas de suelo, pared, techo y tapa (y las armas del suelo) tienen el doble o el cuádruple de detalle
-// que los personajes ("scale" 0,5 o 0,25 en su .json). Esta prueba las reduce en vivo a la densidad de Johnny:
-// cada bloque de 2×2 (o 4×4) píxeles pasa a ser uno, con el color medio. Así se puede comparar a ojo.
-const originales = new Map(); // id → hoja tal como se cargó
-export let densidadUnica = false;
-export function cambiarDensidad() {
-  densidadUnica = !densidadUnica;
-  for (const [id, sh] of sheets) {
-    if (id.includes('@')) continue;
-    const orig = originales.get(id) || sh;
-    const scale = orig.meta.scale || 1;
-    if (scale >= 1) continue;
-    if (!originales.has(id)) originales.set(id, orig);
-    sheets.set(id, densidadUnica ? reducirHoja(orig, Math.round(1 / scale)) : orig);
-  }
-  versionHojas++;
-}
-
-// La hoja reducida: f×f píxeles → 1 (media de color, contando la transparencia)
-function reducirHoja(sh, f) {
-  const { img, meta } = sh;
-  const w = img.width, h = img.height, nw = Math.ceil(w / f), nh = Math.ceil(h / f);
-  const src = document.createElement('canvas');
-  src.width = w; src.height = h;
-  const sg = src.getContext('2d');
-  sg.drawImage(img, 0, 0);
-  const d = sg.getImageData(0, 0, w, h).data;
-  const c = document.createElement('canvas');
-  c.width = nw; c.height = nh;
-  const g = c.getContext('2d');
-  const out = g.createImageData(nw, nh);
-  for (let y = 0; y < nh; y++) {
-    for (let x = 0; x < nw; x++) {
-      let r = 0, gr = 0, b = 0, a = 0, n = 0;
-      for (let j = 0; j < f; j++) {
-        for (let i = 0; i < f; i++) {
-          const sx = x * f + i, sy = y * f + j;
-          if (sx >= w || sy >= h) continue;
-          const k = (sy * w + sx) * 4, al = d[k + 3];
-          r += d[k] * al; gr += d[k + 1] * al; b += d[k + 2] * al; a += al; n++;
-        }
-      }
-      const k = (y * nw + x) * 4;
-      if (a > 0) { out.data[k] = r / a; out.data[k + 1] = gr / a; out.data[k + 2] = b / a; }
-      // el borde de lo recortado (armas): o se ve entero o no se ve, sin medias tintas
-      out.data[k + 3] = a / n >= 128 ? 255 : 0;
-    }
-  }
-  g.putImageData(out, 0, 0);
-  const [cw, ch] = meta.cell, [px, py] = meta.pivot || [cw / 2, ch];
-  return { img: c, meta: { ...meta, scale: 1, suave: false, cell: [cw / f, ch / f], pivot: [px / f, py / f] } };
-}
+// Cuántas hojas hay cargadas (sirve para saber si hay que rehacer un dibujo guardado: puede haber llegado su textura)
+export const spriteCount = () => sheets.size;
 
 // Dibuja el fotograma que toca. `t` es el tiempo de la animación en segundos.
 // Opciones: flash (blanco), tint ({ color, alpha }: capa de color), alpha, scale (1 = tamaño natural), frame (forzar fotograma), cycle (ver abajo).

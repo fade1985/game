@@ -8,7 +8,7 @@ import { rand, clamp } from './utils.js';
 import { drawLuz, oscuridadDe } from './luz.js';
 import { drawRoom, drawWallTops, sceneryOf, drawDoors, drawDoorLabels, drawFog, drawPickup, drawBullet, drawMinimap, drawEmoji as drawEmojiAt, minimapRect } from './render.js';
 import { outlinedText, roundBox, pixelBossBar, pixelHpBar, MARCO_VIDA_ANCHO } from './draw.js';
-import { setGridSnap, drawSprite, densidadUnica } from './sprites.js';
+import { setGridSnap, drawSprite } from './sprites.js';
 
 const REPAINT = 0.5; // cada cuánto, como mucho, se repinta el suelo para añadir manchas nuevas
 
@@ -107,7 +107,7 @@ export class GameDrawing {
   // Rendimiento: las manchas nuevas no repintan el mapa al momento, sino como mucho cada REPAINT segundos
   // (con un molotov mueren varios zombis por segundo y cada uno lo repintaba entero)
   roomImage(room) {
-    const key = `${room.decalCount || 0}:${(this.spriteIds || []).length}.${densidadUnica}`;
+    const key = `${room.decalCount || 0}:${(this.spriteIds || []).length}`;
     const soon = room.cache && room.cacheKey.split(':')[1] === key.split(':')[1] && this.time - (room.cacheT ?? -1e9) < REPAINT;
     if (!room.cache || (room.cacheKey !== key && !soon)) {
       room.cacheT = this.time;

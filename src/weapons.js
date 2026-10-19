@@ -82,7 +82,7 @@ export function weaponSummary(w) {
 // El arma como objeto (en su mueble o en el suelo): su sprite en pixel art (tools/arma_objeto.py), con el origen en
 // la empuñadura y apuntando a la derecha; si falta, el dibujo de siempre
 export function drawWeaponItem(ctx, w) {
-  if (!drawSprite(ctx, `arma-${w.id}`, 'idle', 'south', 0, 0, 0, { scale: 0.5 })) drawWeapon(ctx, w);
+  if (!drawSprite(ctx, `arma-${w.id}`, 'idle', 'south', 0, 0, 0)) drawWeapon(ctx, w);
 }
 
 export function drawWeapon(ctx, w) {

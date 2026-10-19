@@ -20,7 +20,10 @@ pudiendo ver añadiendo **`?cartoon`** a la dirección (por ejemplo `http://loca
 - **Resolución del dibujo:** 480×320 píxeles. Cada píxel del dibujo son 2 unidades del juego (`PIXEL = 2`).
 - **Baldosas:** 16×16 píxeles. El interior de una sala mide **26×16 baldosas**, las paredes 2 baldosas de
   grosor (64 unidades) y las puertas 3 baldosas de ancho.
-- **Suelos:** baldosa de 32×32 píxeles que se repite (2×2 baldosas de 16).
+- **Una sola densidad (19 oct):** todo (personajes, muebles, suelos, paredes, objetos) a 1 píxel = 2 unidades,
+  `"scale": 1`. Nada de texturas con más detalle ni de encoger dibujos en el juego (el zombi lento iba al 0,85).
+  Cómo traer suelos y paredes: `docs/FONDOS.md`, al principio.
+- **Suelos:** textura entera que se repite, a 16 píxeles por baldosa.
 - **Personajes:** lienzo de **32×32** (es el mínimo de PixelLab); el personaje ocupa unos 22–26 píxeles de alto,
   con los pies abajo del todo. Los jefes, 48×48 o 64×64.
 - **Muebles:** su tamaño en píxeles es la mitad de su hueco en el juego (un sofá de 152×64 unidades → 76×32 píxeles),

@@ -7,7 +7,7 @@ import { initInput, pressReload, pressSwitch, pressTossSwitch } from './input.js
 import { updatePad } from './mando.js';
 import { unlockAudio, setMusicOn, toggleMute } from './sfx.js';
 import { loadSave } from './save.js';
-import { loadSprites, cambiarDensidad, densidadUnica } from './sprites.js';
+import { loadSprites } from './sprites.js';
 import { objetoAlAzar } from './objetos.js';
 
 const root = document.getElementById('game-wrap');
@@ -54,22 +54,6 @@ window.addEventListener('keydown', (e) => {
   }
   if (n === 9) game.dropPickup('objeto', game.player.x, game.player.y + 40).obj = objetoAlAzar();
 });
-// Prueba de densidad única (rama pixel-escala): la O cambia suelos, paredes y armas del suelo a los píxeles de Johnny
-// (en el móvil, con el botón "O" que sale junto a la pausa)
-function probarDensidad() {
-  if (!game.testMode || game.state !== 'playing' || game.paused) return;
-  cambiarDensidad();
-  game.floatText(game.player.x, game.player.y - 70, densidadUnica ? 'Densidad única' : 'Como antes', '#ffe08a', 16);
-}
-window.addEventListener('keydown', (e) => { if (e.code === 'KeyO' && !e.uiHandled) probarDensidad(); });
-if (new URLSearchParams(location.search).has('pruebas')) {
-  const b = document.createElement('button');
-  b.className = 'icon-btn';
-  b.title = 'Prueba de densidad única (O)';
-  b.textContent = 'O';
-  b.addEventListener('click', (e) => { e.currentTarget.blur(); probarDensidad(); });
-  document.getElementById('btn-pause').before(b);
-}
 // Carteles de las armas (abajo) y botones redondos de las armas (móvil): tocar la otra arma la saca;
 // tocar la de fuego que ya está en la mano, recarga
 const slotButtons = [

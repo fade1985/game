@@ -247,8 +247,8 @@ class Corpse {
 export const ZOMBIE_TYPES = {
   lento: {
     variantes: ['rojo', 'bata', 'mostaza', 'negro', 'militar', 'turquesa'],
-    // medio cuerpo: su dibujo se encoge un poco (spriteScale) para que no abulte tanto como uno entero
-    name: 'Zombi lento', r: 17, s: 1.05, spriteScale: 0.85, top: 50, hp: 30, speed: 45, dmg: 10, push: 130,
+    // medio cuerpo (antes se encogía al 0,85; se quitó el 19 oct para que sus píxeles midan lo mismo que los de Johnny)
+    name: 'Zombi lento', r: 17, s: 1.05, top: 50, hp: 30, speed: 45, dmg: 10, push: 130,
     look: { skin: '#a8c686', hair: '#5b4a3a', shirt: '#8d7b68', pants: '#5c5470', shoes: '#3b3550' },
   },
   normal: {

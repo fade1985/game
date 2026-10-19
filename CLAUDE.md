@@ -85,7 +85,9 @@ ni compilación. Se publica en **Vercel** como web estática: lo que se sube a `
 | `upgrades.js` / `ui.js` / `input.js` / `sfx.js` / `save.js` | Mejoras, menús y HUD, controles, sonido, guardado |
 | `musica.js` | Música de fondo siniestra que se inventa sobre la marcha (tramos de tensión, acordes y sucesos al azar con su propio dado); `node tools/grabar-musica.mjs` la graba a un .wav. Con visto bueno (16 oct) |
 
-Arte a 480×320 (2 unidades del juego por píxel), casillas de 16 píxeles, personajes de 48. Cada sprite es
+Arte a 2 unidades del juego por píxel, **todo a esa densidad** (`"scale": 1`; suelos y paredes también, desde el
+19 oct: `docs/FONDOS.md`), casillas de 16 píxeles, personajes de 48. En pantalla cada píxel del dibujo ocupa un
+número entero de píxeles (`Camera.pixelPantalla`). Cada sprite es
 `assets/sprites/<id>.png` + `.json` y su id va en `assets/sprites/manifest.json`.
 
 **Rendimiento:** lo que no cambia se dibuja una vez y se guarda como imagen (el mapa en `roomImage`; paredes,

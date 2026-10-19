@@ -6,12 +6,30 @@ el dueño: **vuelta a las salas generadas**, con suelo y pared texturizados y mu
 "aquí encimera"...) y el juego llena los huecos de un pool de muebles con límites (una lavadora por cocina),
 obligatorios (fogón en la cocina) y grupos (cama + mesillas). **Los muebles, suelos y paredes los trae el dueño.**
 
+## Una sola densidad (19 oct, rama `pixel-escala`, con visto bueno)
+
+Hasta el 19 oct los suelos y tapas iban al doble de detalle que los personajes (`"scale": 0.5`) y las paredes y
+techos al cuádruple (`0.25`, suavizadas). Se veían "de otra resolución" que Johnny. El dueño lo comparó con la
+prueba de la tecla O y eligió **todo a la densidad de los personajes**: cada píxel = 2 unidades del juego,
+`"scale": 1`. `py tools/densidad.py` pasó así todo lo que había (media de color de cada bloque de 2×2 o 4×4), y los
+scripts de abajo ya sacan lo nuevo así. Lo que de este documento hable de 0,5, 0,25 o "doble detalle" es de antes.
+
+**Cómo traer suelos, paredes y tapas:**
+- **No hace falta pixelarlas antes** (ni con tezumie): basta la imagen de la IA tal cual, grande y limpia. El
+  script la reduce con la media de color de cada bloque, que es lo mismo que hace un pixelador. Si se pixela antes,
+  al reducirla otra vez a un tamaño que no casa con su cuadrícula, los píxeles quedan desiguales.
+- Si se quiere retocar a mano la versión pixelada (colores, paleta), pixelarla **justo al tamaño final**: suelo,
+  16 píxeles por baldosa (una textura de 10×10 baldosas = 160×160); pared, 48 píxeles de alto (3 casillas) del borde
+  de arriba al rodapié; techo, 6; tapa, 128×128. Así el script no la cambia.
+- Lo que tiene que cumplir la imagen sigue igual: vista cenital y sin costura (suelo y tapa), de frente y sin
+  muebles (pared), baldosas rectas y contadas (para decir N).
+- Dejarla en `assets/sources/suelos/` con su nombre (`<estancia>-suelo-<a|b|c>`, `<estancia>-pared-<a|b|c>`) y
+  pedírmela: yo paso el script con los números (N baldosas, juntas de la pared) y la pruebo en el juego.
+
 - **Suelo:** textura entera, vista cenital, sin costura, con N × N baldosas rectas. `py tools/textura_suelo.py
-  <imagen> <estancia> <N>` la reduce a 32 píxeles por baldosa y crea `assets/sprites/suelo-<estancia>`; el
-  juego la dibuja a media escala (doble detalle que los personajes) y la repite. **Recortar baldosa a baldosa
+  <imagen> <estancia> <N>` la reduce a 16 píxeles por baldosa y crea `assets/sprites/suelo-<estancia>`; el
+  juego la repite. **Recortar baldosa a baldosa
   quedaba peor** (se veían las juntas pintadas): `tools/extraer_baldosas.py` se queda solo para probar.
-  El fondo se pinta al **doble de detalle** que los sprites (`BG_PIXEL = 1` en `config.js`, elegido por el dueño):
-  las texturas salen a 32 píxeles por casilla y se dibujan a media escala (`"scale": 0.5` en su `.json`).
 - Baño (18 oct, **pendiente de visto bueno**): dos suelos y dos paredes del dueño (Gemini + tezumie), que se combinan
   al azar: `suelo-bano-a` (damero blanco y negro con cascotes) y `-b` (verde menta con sangre), `pared-bano-a`
   (azulejo blanco y verde, salpicones) y `-b` (bloque azul aguado). Originales en `assets/sources/suelos/bano-suelo-a|b`
