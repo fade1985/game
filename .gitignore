@@ -3,3 +3,6 @@ node_modules/
 .DS_Store
 __pycache__/
 tools/prueba-salida/
+
+# capturas que dejan las sesiones de Claude para enseñar su trabajo (no son del juego)
+Claude outputs/
