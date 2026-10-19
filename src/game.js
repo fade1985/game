@@ -565,7 +565,7 @@ export class Game {
         if (!delante) { pr.armed = true; continue; }
         if (!pr.armed) continue;
         pr.armed = false; // hay que apartarse antes de volver a intentarlo
-        if (p.hp >= this.stats.maxHp) {
+        if (p.hp >= p.vidaTope()) {
           this.floatText(pr.x, pr.y - 90, 'Tienes la vida al máximo', '#dfe7f2', 18);
           continue;
         }
@@ -638,7 +638,7 @@ export class Game {
   healPlayer(n) {
     const p = this.player;
     const before = p.hp;
-    p.hp = Math.min(this.stats.maxHp, p.hp + n);
+    p.hp = Math.min(p.vidaTope(), p.hp + n); // los tercios perdidos no se curan
     const healed = Math.round(p.hp - before);
     if (healed > 0) this.floatText(p.x, p.y - 44, `+${healed}`, '#80ed99', 20);
   }
@@ -807,6 +807,7 @@ export class Game {
     if (this.stats.revive && !this.reviveUsed) {
       this.reviveUsed = true;
       p.hp = this.stats.maxHp;
+      p.tercios = 3;
       p.invuln = 2;
       this.hurtFlash = 0;
       this.burst(p.x, p.y, '#80ed99', 24, p.r);

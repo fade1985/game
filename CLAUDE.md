@@ -69,7 +69,7 @@ ni compilación. Se publica en **Vercel** como web estática: lo que se sube a `
 | `render.js` / `furniture.js` / `camera.js` | Suelo, paredes con cara, muebles, minimapa; cámara |
 | `catalogo.js` | Catálogo de muebles: medidas y paredes de cada uno, y qué muebles lleva cada sala, cuántos y sus plantillas. Originales en `assets/sources/salas/<sala>/` (nombres en español; `nevera-b.png` = variante). **`py tools/importar.py`** convierte lo nuevo o cambiado en sprites; un mueble de tipo nuevo hay que añadirlo antes aquí |
 | `sprites.js` | Carga y dibuja las hojas de sprites; si falta una, usa el dibujo de siempre |
-| `entities.js` / `zombies.js` | Johnny, supervivientes y los 6 zombis |
+| `entities.js` / `zombies.js` | Johnny, supervivientes y los 6 zombis. **Vida en tres tercios** (19 oct, con visto bueno): el tercio perdido ya no se cura y cada uno perdido le quita un 25 % de velocidad al andar (`tercios`, `vidaTope`; la barra los tapa en `ui.js`); solo el desfibrilador los devuelve |
 | `bosses.js` / `jefe-base.js` / `jefe-portera.js` | Jefes: `bosses.js` los reúne y los crea; la ficha de cada uno y lo común en `jefe-base.js`; cada jefe en su archivo (de momento, solo la portera) |
 | `weapons.js` / `aim.js` / `props.js` | Armas, apuntado automático, objetos del suelo y muebles con arma |
 | `luz.js` | Penumbra y luces: capa oscura encima de la partida con agujeros de luz cálida (apliques del pasillo con parpadeo; fogonazos, explosiones, fuego del molotov y zombis ardiendo; penumbra suave en los apartamentos), todo con visto bueno (17 oct). **17 oct, pendiente de visto bueno:** apartamentos más oscuros (0.55) y las lámparas y mesillas como luces de verdad (algunas parpadean) Cada clase de sala tiene su nivel en `OSCURIDAD_SALA` |
