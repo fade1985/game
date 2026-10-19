@@ -398,6 +398,14 @@ export class Zombie {
       const cx = cebo.x - this.x, cy = cebo.y - this.y, cd = Math.hypot(cx, cy) || 1;
       ux = cx / cd; uy = cy / cd;
     }
+    // en la horda del superviviente (superviviente.js), si el conserje se aleja de él van a por él
+    const presa = !cebo && game.presaDe(this);
+    if (presa) {
+      const w = game.caminoHacia(this, presa);
+      const px = presa.x - this.x, py = presa.y - this.y, pd = Math.hypot(px, py) || 1;
+      ux = w ? w.x : px / pd; uy = w ? w.y : py / pd;
+      if (!this.anim && pd < this.r + presa.r + REACH && this.dmg > 0 && this.type !== 'venenoso' && this.type !== 'explosivo') this.play('attack');
+    }
     // y desde detrás de un tabique nadie ataca: primero hay que llegar a ver al conserje
     const sees = !way || game.sees(this);
     const to = { p, dx, dy, d, ux, uy, sees };

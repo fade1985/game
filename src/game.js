@@ -163,6 +163,7 @@ export class Game {
     this.fade = null;
     // el superviviente de esta partida y la planta donde se esconde (superviviente.js)
     this.elegirSuperviviente();
+    this.horda = null;
     this.items = [];            // objetos conseguidos
     this.itemsSeen = new Set(); // objetos que ya han salido (para no repetir)
     this.state = 'playing';
@@ -186,6 +187,7 @@ export class Game {
     this.player.shield = this.stats.shield + this.stats.mutShield; // Acero y Endurecimiento: escudo nuevo en cada planta
     this.transition = null;
     this.room = null;
+    this.horda = null;
 
     // La llave del mini jefe, en su habitación; y el superviviente, si esta partida le toca esta planta (superviviente.js)
     const { key } = this.floor;
@@ -575,8 +577,8 @@ export class Game {
         sfx.buy();
       } else if (pr.kind === 'survivor' && this.room.cleared) {
         pr.taken = true;
-        this.superviventeRescatado();
         this.addAlly(pr.def, pr.x, pr.y);
+        this.superviventeRescatado();
         this.banner = { icon: pr.def.id, title: `¡${pr.def.name} se une!`, sub: pr.def.desc, t: 0 };
         this.burst(pr.x, pr.y, pr.def.color, 14, 16);
         sfx.clear();
@@ -723,6 +725,7 @@ export class Game {
     this.updateDoors(dt);
     this.updateProps();
     this.actualizarSocorro(dt); // el superviviente encerrado grita (superviviente.js)
+    this.actualizarHorda(dt);   // y, ya rescatado, la horda mientras fuerza la puerta
 
     this.shakeAmt *= Math.exp(-dt * 10);
     this.hurtFlash = Math.max(0, (this.hurtFlash || 0) - dt);
@@ -739,7 +742,7 @@ export class Game {
   // el mapa queda limpio cuando no queda ninguno.
   updateWaves(dt) {
     const waves = this.room.waves;
-    if (this.room.cleared) return;
+    if (this.room.cleared || this.horda) return; // en la horda del superviviente manda superviviente.js
     if (!waves.length) {
       if (this.enemies.length === 0) this.roomCleared();
       return;

@@ -578,6 +578,7 @@ export class Ally {
   }
 
   update(dt, game) {
+    if (this.forzando) { game.amigoForzando(this, dt); return; } // la horda del superviviente (superviviente.js)
     const p = game.player;
     const n = game.allies.length;
     // Los compañeros se reparten alrededor del jugador y lo siguen
@@ -690,6 +691,15 @@ export class Ally {
       ctx.restore();
     }
 
+    // caído en la horda del superviviente: tumbado en el suelo hasta que el conserje lo levante
+    if (this.caido) {
+      ctx.save();
+      ctx.translate(this.x, this.y + 6);
+      ctx.rotate(-Math.PI / 2);
+      drawHuman(ctx, 0, 0, { ...this.def.look, s: ALLY_S, lookX: 0, lookY: 1, moving: 0, walk: 0 });
+      ctx.restore();
+      return;
+    }
     const sp = Math.hypot(this.vx, this.vy);
     const a = this.aimAngle;
     const behind = this.weapon && Math.sin(a) < -0.3;

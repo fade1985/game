@@ -96,6 +96,7 @@ export class GameDrawing {
     drawLuz(out, this, camX, camY, vw, vh, tr ? antes + (oscura - antes) * tr.e : oscura);
     this.drawReload(out);
     this.drawTexts(out);
+    this.dibujarHorda(out); // la horda del superviviente: su vida y lo que dice (superviviente.js)
 
     // 3) interfaz
     out.setTransform(this.scale, 0, 0, this.scale, 0, 0);
@@ -229,6 +230,7 @@ export class GameDrawing {
     }
     this.drawVignette(ctx);
     this.drawBossBar(ctx);
+    this.dibujarBarraHorda(ctx);
     this.drawBanner(ctx);
     if (this.fade) {
       const k = clamp(this.fade.t / FADE, 0, 1);
