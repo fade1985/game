@@ -14,6 +14,7 @@ import { destello } from './luz.js';
 import { MOLOTOV, drawMolotov } from './molotov.js';
 import { ESTILO_VENENO, ESTILO_LEJIA, crearCharco, drawCharco, dentro, leaveStain } from './charcos.js';
 import { pisar, actualizarEstados, herirZombi, efectosEstados } from './estados.js';
+import { MUT } from './mutaciones.js';
 
 // Rastro de sangre del zombi lento: cada cuánto deja una mancha, cuánto dura y cuánto tarda en borrarse al final
 const TRAIL = { step: 9, life: 8, fade: 2.5, max: 400, color: '#680c06', dark: '#4a0804' };
@@ -24,6 +25,8 @@ const HAZARDS = {
   fire: { ...MOLOTOV, estados: { fuego: { dps: MOLOTOV.dps } }, fill: 'rgba(255, 159, 28, 0.3)' },
   poison: { ...POISON, estados: { veneno: {} }, estilo: ESTILO_VENENO, fill: '#8fd13f', stroke: '#4f772d', bubble: '#c7f27a', drop: '#9be33b' },
   bleach: { ...BLEACH, estados: { resbaladizo: {}, toxico: { dps: 3 } }, estilo: ESTILO_LEJIA, fill: '#e9f8ff', stroke: '#2f86c4', bubble: '#ffffff', drop: '#4cb4f0' },
+  // el vómito de Johnny (mutación Gastroenteritis): solo les hace daño a los zombis
+  vomito: { radius: MUT.gastro.radio, life: MUT.gastro.dura, estados: { acido: { dps: MUT.gastro.dps } }, estilo: ESTILO_VENENO, soloZombis: true, drop: '#c7e04a' },
 };
 
 // Dado propio para lo que es solo de adorno (chispas, mancha): no gasta tiradas de rand(), así que no
@@ -193,7 +196,7 @@ export class ZombieAttacks {
     for (const hz of this.hazards) {
       hz.life -= dt;
       const hd = HAZARDS[hz.kind];
-      if (!p.dead && p.dashT <= 0 && dentro(hz, p.x, p.y, p.r * 0.3)) pisar(pisaJohnny, hd.estados);
+      if (!hd.soloZombis && !p.dead && p.dashT <= 0 && dentro(hz, p.x, p.y, p.r * 0.3)) pisar(pisaJohnny, hd.estados);
       for (const e of this.enemies) {
         if (!e.active || e.isBoss || !dentro(hz, e.x, e.y, e.r * 0.3)) continue;
         if (!pisaZombis.has(e)) pisaZombis.set(e, {});
@@ -217,6 +220,27 @@ export class ZombieAttacks {
     }
     for (const t of this.trail) t.life -= dt;
     if (this.trail.length && this.trail[0].life <= 0) this.trail = this.trail.filter((t) => t.life > 0);
+  }
+
+  // Gastroenteritis (mutaciones.js): Johnny vomita un charco de ácido a sus pies
+  vomitar(x, y) {
+    const hd = HAZARDS.vomito;
+    const lb = { x0: x, y0: y - 1, tx: x, ty: y };
+    this.hazards.push(crearCharco(lb, 'vomito', hd.estilo, hd, rand(0, 6)));
+    for (let i = 0; i < 6; i++) {
+      const a = rand(0, Math.PI * 2), sp = rand(40, 120);
+      this.particles.push({ x, y: y - 20, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 40, px: true, size: 3, color: hd.drop, life: 0.35, max: 0.35 });
+    }
+    sfx.splat();
+  }
+
+  // Flatulento (mutaciones.js): una nube verdosa que sale de Johnny y se deshace
+  gases(x, y, radius) {
+    for (let i = 0; i < 14; i++) {
+      const a = rand(0, Math.PI * 2), sp = rand(0.6, 1.1) * radius * 1.6;
+      this.particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.7 - 20, px: true, size: Math.round(rand(3, 6)), color: ['#b5c94a', '#8a9a3a', '#d8e07a'][i % 3], life: 0.6, max: 0.6 });
+    }
+    sfx.sizzle();
   }
 
   // El zombi lento deja un rastro de sangre al arrastrarse: una mancha cada pocos pasos, que se va secando

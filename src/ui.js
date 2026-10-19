@@ -5,6 +5,7 @@ import { weaponSummary } from './weapons.js';
 import { toggleMute } from './sfx.js';
 import { loadSave } from './save.js';
 import { makeTitleCanvas } from './titulo.js';
+import { mutacion } from './mutaciones.js';
 
 // Pantalla completa (solo en móviles que la permiten; en iPhone no existe)
 const canFullscreen = () => document.body.classList.contains('touch') && document.fullscreenEnabled && !document.fullscreenElement;
@@ -214,7 +215,7 @@ export function createUI(root) {
             </div>
             <div>
               ${list('<i class="ico ico-cuchillo"></i> Armas', Object.values(g.player.slots).filter(Boolean).map((w) => `<i class="ico ico-${w.id}"></i> <b>${w.name}</b> · ${weaponSummary(w)}`), '')}
-              ${list('<i class="ico ico-mochila"></i> Objetos', g.items.map((it) => `<i class="ico ico-${it.id}"></i> <b>${it.name}</b> · ${it.desc}`), 'Ninguno todavía')}
+              ${list('<i class="ico ico-zombi"></i> Mutaciones', (g.mutaciones || []).map((id) => mutacion(id)).map((m) => `<i class="ico ico-${m.icono}"></i> <b>${m.nombre}</b> · ${m.desc}`), 'Ninguna todavía: ¡derrota a un mini jefe!')}
               ${list('<i class="ico ico-policia"></i> Equipo', g.allies.map((al) => `<i class="ico ico-${al.def.id}"></i> <b>${al.def.name}</b> · ${al.def.desc}`), 'Nadie todavía: ¡rescata supervivientes!')}
             </div>
           </div>
@@ -226,6 +227,31 @@ export function createUI(root) {
         </div>`,
       { resume, music, quit },
       (e) => { if (e.code === 'Escape' || e.code === 'KeyP') resume(); });
+    },
+
+    // Al caer un mini jefe: dos mutaciones para elegir una (mutaciones.js). `llevas`: cuántas tiene ya.
+    // Se elige con el ratón, con las teclas 1 y 2 (o las flechas y Enter) o con el mando
+    showMutacion(opciones, llevas, pick) {
+      const cartas = opciones.map((m, i) => `
+        <button class="btn mut-carta" data-act="pick" data-arg="${m.id}">
+          <span class="mut-num">${i + 1}</span>
+          <i class="ico ico-${m.icono}"></i>
+          <b>${m.nombre}</b>
+          <small>${m.desc}</small>
+        </button>`).join('');
+      open(`
+        <div class="panel mutacion">
+          <p class="mut-virus">La exposición prolongada al virus hace que te sientas...</p>
+          <h2 class="title mut-titulo">¡¡¡DIFERENTE!!!</h2>
+          <div class="mut-cartas">${cartas}</div>
+          <p class="sub small">Mutación ${llevas + 1} de 4 · dura hasta que acabe la partida</p>
+        </div>`,
+      { pick },
+      (e) => {
+        const n = { Digit1: 0, Numpad1: 0, Digit2: 1, Numpad2: 1 }[e.code];
+        if (n !== undefined && opciones[n]) pick(opciones[n].id);
+      },
+      'mut-overlay');
     },
 
     showEnd(r, { retry, menu }) {

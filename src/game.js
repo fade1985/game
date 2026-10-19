@@ -13,6 +13,7 @@ import { baseStats } from './upgrades.js';
 import { SurvivorNPC, DoorKey, Ordenador, Armarito, BOTIQUIN_CURA, WeaponProp } from './props.js';
 import { OrdenadorMethods } from './ordenador.js';
 import { PRECIO_PUNTO, aplicarTalentos } from './talentos.js';
+import { MutacionMethods, actualizarMutaciones } from './mutaciones.js';
 import { ExposicionMuebles, expoZombis } from './exposicion.js';
 import { weaponSummary, WEAPONS } from './weapons.js';
 import { loadSave, updateSave, buildingSave } from './save.js';
@@ -136,6 +137,8 @@ export class Game {
     this.building = BUILDINGS[buildingId];
     const save = updateSave((s) => { s.runs++; buildingSave(s, buildingId).runs++; });
     this.stats = aplicarTalentos(baseStats(), save.talentos);
+    this.mutaciones = [];      // mutaciones de esta partida (mutaciones.js): se pierden al acabarla
+    this.mutOpen = false;
     this.player = new Player(this.stats);
     this.allies = [];
     this.kills = 0;
@@ -171,7 +174,7 @@ export class Game {
     // las armas están abiertas y a los lados de mantenimiento hay dos salas de exposición (muebles y zombis)
     this.testMode = new URLSearchParams(location.search).has('pruebas');
     this.floor = generateFloor(this.floorNum, this.building.floors, { pruebas: this.testMode });
-    this.player.shield = this.stats.shield; // Acero: escudo nuevo en cada planta
+    this.player.shield = this.stats.shield + this.stats.mutShield; // Acero y Endurecimiento: escudo nuevo en cada planta
     this.transition = null;
     this.room = null;
 
@@ -575,6 +578,7 @@ export class Game {
       if (consumeSwitch()) p.switchHand(this);
       if (consumeReload()) p.startReload(this);
       p.update(dt, this, getMoveVector(), consumeDash());
+      actualizarMutaciones(this, p, dt); // las mutaciones que actúan solas cada pocos segundos
     }
     this.camera.update(dt, p);
     if (consumeTossSwitch()) this.switchToss();
@@ -586,7 +590,7 @@ export class Game {
 
     for (const e of this.enemies) {
       e.update(dt, this);
-      if (e.active && e.dmg > 0 && !p.dead && dist(e, p) < e.r + p.r - 4) p.hurt(e.dmg, this);
+      if (e.active && e.dmg > 0 && !e.mareado && !p.dead && dist(e, p) < e.r + p.r - 4) p.hurt(e.dmg, this);
     }
     this.separateEnemies();
     this.enemies = this.enemies.filter((e) => !e.dead);
@@ -704,3 +708,4 @@ addMethods(Game, GameDrawing);   // dibujo (game-dibujo.js)
 addMethods(Game, GranadaMethods); // la granada de Johnny (granada.js)
 addMethods(Game, MolotovMethods); // el cóctel molotov de Johnny (molotov.js)
 addMethods(Game, OrdenadorMethods); // el ordenador de mantenimiento: compra de puntos de talento (ordenador.js)
+addMethods(Game, MutacionMethods); // el recuadro de elegir mutación al caer un mini jefe (mutaciones.js)

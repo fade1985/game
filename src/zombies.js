@@ -379,6 +379,9 @@ export class Zombie {
       else this.anim = null;
     }
     if (this.asleep || this.wakeT > 0) { this.doze(dt, game); return; }
+    // mutaciones de Johnny (mutaciones.js): aturdido se queda quieto y desorientado da vueltas sin rumbo
+    // (el explosivo con la mecha encendida revienta igual)
+    if ((this.stunT > 0 || this.lioT > 0) && !(this.fuse > 0)) { this.mutado(dt, game); return; }
     this.cd -= dt;
 
     // hacia dónde está el conserje
@@ -439,6 +442,29 @@ export class Zombie {
     this.kx *= kd; this.ky *= kd;
     game.collideWorld(this);
   }
+
+  // Aturdido (Tentacular, Flatulento) o desorientado (Locura): corta su ataque especial y no hace daño.
+  // Aturdido no se mueve (salvo lo que le empujen); desorientado anda despacio hacia un lado y otro
+  mutado(dt, game) {
+    this.tent = null;
+    this.spitT = 0;
+    // chispitas sobre la cabeza: amarillas si está aturdido, moradas si está desorientado
+    if (Math.random() < 5 * dt) {
+      game.particles.push({ x: this.x + (Math.random() - 0.5) * 20, y: this.y - 44 * this.s, vx: (Math.random() - 0.5) * 30, vy: -35, px: true, size: 2, color: this.stunT > 0 ? '#ffd23f' : '#c77dff', life: 0.45, max: 0.45 });
+    }
+    if (this.stunT > 0) {
+      this.stunT -= dt;
+      this.walk(dt, game, { x: 0, y: 0, spd: 0, steer: 12 });
+    } else {
+      this.lioT -= dt;
+      this.lioA = (this.lioA ?? this.t) + dt * 2.5 * this.strafe;
+      this.walk(dt, game, { x: Math.cos(this.lioA), y: Math.sin(this.lioA), spd: this.speed * 0.4, steer: 4 });
+      this.lookX = Math.cos(this.lioA); this.lookY = Math.sin(this.lioA);
+    }
+  }
+
+  // ¿Está tan aturdido o desorientado que no puede hacer daño?
+  get mareado() { return this.stunT > 0 || this.lioT > 0; }
 
   // Explosivo: al llegar a tu lado enciende la mecha, se planta y revienta. Devuelve true si ha reventado
   fuseTick(dt, game, { p, d, sees }, m) {

@@ -12,6 +12,7 @@ import { clearInput } from './input.js';
 import { sfx } from './sfx.js';
 import { PRECIO_PUNTO, puntosAlcanzables, comprarPuntos, RAMAS, TALENTOS, talento, nivelDe, puedeSubir, subirTalento, aplicarTalentos } from './talentos.js';
 import { baseStats } from './upgrades.js';
+import { aplicarMutaciones } from './mutaciones.js';
 
 // Los iconos del escritorio: [ventana que abre, icono (assets/ui/iconos), nombre]
 const ICONOS = [
@@ -184,7 +185,8 @@ export class OrdenadorMethods {
   aplicarTalentosYa(talentos) {
     const s = this.stats, p = this.player;
     const antes = { maxHp: s.maxHp, extraThrow: s.extraThrow, shield: s.shield };
-    Object.assign(s, aplicarTalentos(baseStats(), talentos)); // el mismo objeto: Johnny lo lleva enlazado
+    // el mismo objeto: Johnny lo lleva enlazado (y sin perder las mutaciones de esta partida)
+    Object.assign(s, aplicarMutaciones(aplicarTalentos(baseStats(), talentos), this.mutaciones));
     if (s.maxHp > antes.maxHp) p.hp += s.maxHp - antes.maxHp;   // la vida nueva viene llena
     const extra = s.extraThrow - antes.extraThrow;               // Artificiero: las botellas de más, ya
     this.molotovs += extra; this.granadas += extra;

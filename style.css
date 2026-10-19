@@ -173,6 +173,28 @@ canvas {
 .plist-title { font-size: 1.15em; margin: 0.2em 0; }
 .plist-row { padding: 0.15em 0.1em; color: var(--muted); }
 .plist-row b { color: var(--ink); }
+
+/* Mutaciones: el recuadro que sale al caer un mini jefe (ui.js, showMutacion) */
+.overlay.mut-overlay { background: radial-gradient(circle, rgba(60, 10, 50, 0.6), rgba(10, 8, 16, 0.88)); }
+.mutacion { display: flex; flex-direction: column; align-items: center; gap: 0.6em; max-width: 46em; }
+.mut-virus { font-size: 1.3em; font-weight: 800; text-align: center; margin: 0; }
+.mutacion .mut-titulo { font-size: 3em; color: #e07be0; animation: pop 0.35s cubic-bezier(0.3, 1.6, 0.5, 1), temblor 0.12s 0.35s 4; }
+.mut-cartas { display: flex; gap: 1em; justify-content: center; flex-wrap: wrap; }
+.btn.mut-carta {
+  position: relative;
+  width: 15em;
+  min-height: 12em;
+  flex-direction: column;
+  justify-content: flex-start;
+  font-size: 1.1em;
+  text-align: center;
+  white-space: normal;
+}
+.mut-carta .ico { width: 3.2em; height: 3.2em; }
+.mut-carta b { font-size: 1.3em; font-weight: 400; color: #e07be0; }
+.mut-carta small { font-size: 0.8em; line-height: 1.35; }
+.mut-num { position: absolute; top: 0; left: 0.1em; font-size: 0.8em; opacity: 0.6; }
+@keyframes temblor { 0%, 100% { transform: translateX(0); } 33% { transform: translateX(-0.08em) rotate(-1deg); } 66% { transform: translateX(0.08em) rotate(1deg); } }
 .plist-row.empty { font-style: italic; }
 .pause { width: min(52em, 100%); max-height: 100%; overflow-y: auto; }
 .pause-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 1.4em; width: 100%; align-items: start; }

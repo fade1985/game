@@ -13,6 +13,7 @@ import { isWall, lineClear } from './shapes.js';
 import { MOLOTOV } from './molotov.js';
 import { GRANADA } from './granada.js';
 import { sfx } from './sfx.js';
+import { animDuration } from './sprites.js';
 
 const CASH_CHANCE = 0.07;  // probabilidad de que un zombi suelte un billete de dólar 💵
 const AMMO_CHANCE = 0.1;   // ...o una caja de munición (solo si llevas arma de fuego; provisional)
@@ -238,6 +239,8 @@ export class GameCombat {
       else if (this.player.slots.ranged && Math.random() < AMMO_CHANCE) this.dropPickup('ammo', e.x, e.y);
     }
     if (this.stats.lifesteal && !this.player.dead) this.healPlayer(this.stats.lifesteal);
+    // Caníbal (mutación): cada zombi muerto cura un poco
+    if (this.stats.canibal && !this.player.dead) this.healPlayer(this.stats.maxHp * this.stats.canibal);
     if (e.isBoss) this.bossDefeated(e);
   }
 
@@ -263,6 +266,9 @@ export class GameCombat {
     if (boss.type === 'miniboss') {
       const { melee, ranged } = this.player.slots;
       this.room.props.push(new WeaponProp(randomWeapon([melee.id, ranged?.id]), this.rw / 2, this.rh / 2 + 130));
+      // y un segundo después de que su cuerpo acabe de caer, el recuadro de las mutaciones (mutaciones.js)
+      const caer = boss.sprite ? animDuration(boss.sprite, 'death') || 0 : 0;
+      this.later(caer + 1, () => this.openMutacion());
     }
   }
 

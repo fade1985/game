@@ -23,6 +23,8 @@ export const ESTADOS = {
   veneno:      { dps: 4, despues: 3, zombis: false, color: '#9be33b' },
   fuego:       { dps: 12, despues: 2, zombis: false, color: '#ff9f1c' },   // los zombis arden aparte (molotov.js)
   resbaladizo: { resbala: 0.8, despues: 0.4, zombis: true, color: '#7fd0ff' },
+  acido:       { dps: 8, despues: 0, zombis: true, color: '#c7e04a' },       // el vómito de Gastroenteritis (mutaciones.js)
+  gases:       { dps: 10, despues: 2, zombis: true, color: '#b5c94a' },      // los gases de Flatulento: se lo pone directamente
 };
 
 // Cada cuánto se reparte el daño de los estados a los zombis (a pellizcos, como el fuego)

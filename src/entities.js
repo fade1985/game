@@ -9,6 +9,7 @@ import { sfx } from './sfx.js';
 import { WEAPONS, RIFLE, AMMO, drawHeld } from './weapons.js';
 import { autoAim } from './aim.js';
 import { agarre, tinteEstado } from './estados.js';
+import { MUT } from './mutaciones.js';
 
 const TAU = Math.PI * 2;
 // Unidades que avanza el conserje en un ciclo de andar (dos pasos): a su velocidad normal (210) son
@@ -267,12 +268,19 @@ export class Player {
         this.aimAngle = aim.angle;
         this.lookX = Math.cos(aim.angle); this.lookY = Math.sin(aim.angle);
         if (aim.attack && this.atkT <= 0 && (w.type === 'melee' || this.readyToFire(game))) {
-          this.atkT = 1 / (w.rate * s.fireRate);
+          this.atkT = 1 / (w.rate * s.fireRate * (w.type === 'melee' ? this.ansiedad(game) : 1));
           this.attack(game, aim.angle);
         }
       } else if (w.type === 'ranged') this.startReload(game); // sin nadie a tiro, aprovecha para recargar
     }
     this.animateArm(dt);
+  }
+
+  // Ansiedad (mutación): cuántas veces más rápido golpea cuerpo a cuerpo según los zombis que tenga a la vista
+  ansiedad(game) {
+    if (!this.stats.ansiedad) return 1;
+    const n = game.enemies.filter((e) => e.active && game.camera.inView(e, 0) && !game.hidden(e)).length;
+    return 1 + Math.min(n, MUT.ansiedad.max) * MUT.ansiedad.porZombi;
   }
 
   attack(game, angle) {

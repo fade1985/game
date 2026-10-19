@@ -55,5 +55,9 @@ export function baseStats() {
     shield: 0,           // escudo al empezar cada planta (Acero)
     ninja: false,        // golpe en área al acabar la esquiva (Ninja)
     revive: false,       // resucitar una vez por edificio (Desfibrilador)
+    // De las mutaciones de la partida (mutaciones.js)
+    canibal: 0,          // parte de la vida máxima que cura cada zombi que matas (Caníbal)
+    ansiedad: false,     // golpes cuerpo a cuerpo más rápidos con muchos zombis a la vista (Ansiedad)
+    mutShield: 0,        // escudo al empezar cada planta (Endurecimiento), sumado al de Acero
   };
 }
