@@ -315,6 +315,41 @@ export class Ordenador {
   }
 }
 
+// Baúl de la sala de mantenimiento, pegado a la pared de arriba al lado del ordenador: al arrimarse sale lo que
+// hay guardado (ui.js, showBaul). Dibujado a mano en pixel art (cada píxel, 2 unidades del juego) hasta que tenga sprite.
+export class Baul {
+  constructor(x) {
+    this.kind = 'baul';
+    this.x = x;
+    this.shape = 'rect'; this.w = 60; this.h = 36; // lo que ocupa en el suelo
+    this.r = this.h / 2; this.y = WALL + this.h / 2;
+    this.solid = true;
+    this.taken = false;
+    this.armed = true; // al cerrar el recuadro hay que apartarse un poco antes de que se vuelva a abrir
+  }
+
+  draw(ctx) {
+    const { x, y, h } = this;
+    const left = x - 30, top = y + h / 2 - 48; // 30×24 píxeles de arte; el dibujo sube un poco por la pared
+    drawCached(ctx, this, 'baul', left, top, 60, 48, (g) => {
+      const px = (cx, cy, w, hh, c) => { g.fillStyle = c; g.fillRect(left + cx * 2, top + cy * 2, w * 2, hh * 2); };
+      const borde = '#24150d', oscura = '#5a3820', madera = '#8a5a32', clara = '#b07a44';
+      const hierro = '#5e6670', brillo = '#a3acb6', oro = '#e3b341', oroOscuro = '#9c7322';
+      px(1, 0, 28, 1, borde); px(0, 1, 30, 23, borde);            // silueta, con las esquinas de arriba redondeadas
+      px(1, 1, 28, 9, madera); px(2, 1, 26, 2, clara);             // tapa (con luz arriba)
+      px(1, 8, 28, 1, oscura); px(1, 9, 28, 1, hierro);            // sombra de la tapa y su canto de hierro
+      px(1, 10, 28, 1, borde);                                     // raja entre tapa y caja
+      px(1, 11, 28, 12, madera);                                   // caja
+      px(1, 15, 28, 1, oscura); px(1, 19, 28, 1, oscura);          // tablas
+      px(1, 21, 28, 2, oscura);                                    // sombra de abajo
+      for (const bx of [4, 23]) { px(bx, 1, 3, 22, hierro); px(bx, 1, 1, 22, brillo); } // flejes de hierro
+      px(12, 7, 6, 8, borde); px(13, 8, 4, 6, oro); px(13, 13, 4, 1, oroOscuro); // cerradura
+      px(14, 10, 2, 2, borde);                                     // ojo de la cerradura
+    });
+    outlinedText(ctx, 'Baúl', x, y + h / 2 + 16, 15, '#ffd98a', { lw: 4 });
+  }
+}
+
 function disc(ctx, x, y, r, fill, lw = 3) {
   ctx.beginPath();
   ctx.arc(x, y, r, 0, TAU);

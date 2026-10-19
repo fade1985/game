@@ -257,6 +257,25 @@ export function createUI(root) {
       (e) => { if (['Escape', 'Tab', 'KeyI', 'KeyP'].includes(e.code)) { e.preventDefault(); cerrar(); } });
     },
 
+    // Baúl de la sala de mantenimiento: los objetos guardados de otras partidas ({ id: cantidad }), con su cantidad
+    showBaul(baul, cerrar) {
+      const ids = Object.keys(OBJETOS).filter((id) => baul[id] > 0);
+      const casillas = ids.map((id) => `<div class="inv-casilla gris"><i class="ico" style="background-image:url(${iconoObjeto(id)})"></i><b>${OBJETOS[id].nombre}</b><small>× ${baul[id]}</small></div>`);
+      // siempre al menos dos filas de casillas, y las filas completas
+      const total = Math.max(8, Math.ceil(ids.length / 4) * 4);
+      while (casillas.length < total) casillas.push('<div class="inv-casilla vacia"></div>');
+      open(`
+        <div class="panel inventario">
+          <h2 class="title">Baúl</h2>
+          <div class="inv-mochila">${casillas.join('')}</div>
+          <p class="sub small">${ids.length ? 'Aquí se guarda lo que traes en la mochila al completar un edificio.'
+            : 'Está vacío. Lo que lleves en la mochila se guarda aquí al completar un edificio.'}</p>
+          <button class="btn yellow small" data-act="cerrar">Cerrar</button>
+        </div>`,
+      { cerrar },
+      (e) => { if (e.code === 'Escape') { e.preventDefault(); cerrar(); } });
+    },
+
     // Al caer un mini jefe: dos mutaciones para elegir una (mutaciones.js). `llevas`: cuántas tiene ya.
     // Se elige con el ratón, con las teclas 1 y 2 (o las flechas y Enter) o con el mando
     showMutacion(opciones, llevas, pick) {

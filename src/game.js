@@ -10,7 +10,7 @@ import { Zombie } from './zombies.js';
 import { generateFloor, floorName } from './building.js';
 import { makePlainLayout } from './rooms.js';
 import { baseStats } from './upgrades.js';
-import { SurvivorNPC, DoorKey, Ordenador, Armarito, BOTIQUIN_CURA, WeaponProp } from './props.js';
+import { SurvivorNPC, DoorKey, Ordenador, Baul, Armarito, BOTIQUIN_CURA, WeaponProp } from './props.js';
 import { OrdenadorMethods } from './ordenador.js';
 import { PRECIO_PUNTO, aplicarTalentos } from './talentos.js';
 import { MutacionMethods, actualizarMutaciones } from './mutaciones.js';
@@ -32,6 +32,8 @@ import { GameMap } from './game-mapa.js';
 
 // Dónde va la mesa del ordenador en la pared de arriba de la sala de mantenimiento (la puerta está en el centro)
 const ORDENADOR_X = 240;
+// y el baúl, a su derecha (entre la mesa y la puerta)
+const BAUL_X = 340;
 
 // Vida de los jefes según la planta (la portera solo sale en la azotea)
 const bossHpMul = (type, floorNum) => (type === 'boss' ? 1 : 1 + (floorNum - 1) * 0.25);
@@ -191,6 +193,8 @@ export class Game {
 
     // Sala de mantenimiento: la mesa con el ordenador, donde se cambian dólares por puntos de talento (ordenador.js)
     if (this.floorNum === 1) this.floor.start.props.push(new Ordenador(ORDENADOR_X));
+    // y a su lado el baúl, donde se ven los objetos guardados de otras partidas
+    if (this.floorNum === 1) this.floor.start.props.push(new Baul(BAUL_X));
     // En el modo pruebas, todas las armas en el suelo de la sala de mantenimiento, en fila (abajo)
     if (this.testMode && this.floorNum === 1) {
       const lay = this.floor.start.layout;
@@ -242,6 +246,17 @@ export class Game {
     this.pauseOpen = true;
     clearInput();
     this.ui.showInventario(this, () => this.closePause());
+  }
+
+  // Baúl de la sala de mantenimiento: enseña los objetos guardados de otras partidas (save.baul). De momento solo
+  // se mira; crear armas con ellos irá en el banco de trabajo
+  openBaul() {
+    if (this.state !== 'playing' || this.paused || this.player.dead) return;
+    this.paused = true;
+    this.pauseOpen = true;
+    clearInput();
+    sfx.click();
+    this.ui.showBaul(loadSave().baul, () => this.closePause());
   }
 
   closePause() {
@@ -435,12 +450,15 @@ export class Game {
     if (p.dead) return;
     for (const pr of this.room.props) {
       if (pr.taken) continue;
-      if (pr.kind === 'ordenador') {
-        // Mesa del ordenador: basta con arrimarse para encenderlo. Al cerrarlo hay que apartarse un poco
+      if (pr.kind === 'ordenador' || pr.kind === 'baul') {
+        // Mesa del ordenador o baúl: basta con arrimarse para abrirlo. Al cerrarlo hay que apartarse un poco
         // antes de que vuelva a abrirse (si no, se abriría otra vez nada más cerrarlo).
         const gap = obstacleGap(pr, p);
         if (gap > p.r + 30) pr.armed = true;
-        else if (pr.armed && gap < p.r + 6) { pr.armed = false; this.openOrdenador(); }
+        else if (pr.armed && gap < p.r + 6) {
+          pr.armed = false;
+          if (pr.kind === 'baul') this.openBaul(); else this.openOrdenador();
+        }
         continue;
       }
       if (pr.kind === 'armarito') {
