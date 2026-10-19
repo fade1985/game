@@ -6,7 +6,7 @@
 //  mapa es más pequeño que la pantalla (el pasillo es estrecho), lo centra. Con un
 //  jefe delante se aleja un poco para que se vean bien sus ataques.
 // ─────────────────────────────────────────────
-import { W, H, TOP_EXTRA } from './config.js';
+import { W, H, TOP_EXTRA, PIXEL } from './config.js';
 import { clamp } from './utils.js';
 
 export const ZOOM = 1.5;       // acercamiento normal
@@ -19,13 +19,19 @@ export class Camera {
     this.x = W / 2;
     this.y = H / 2;
     this.aspect = W / H; // ancho / alto de la pantalla (se actualiza al cambiar el tamaño de la ventana)
+    this.pantallaH = H;  // alto del lienzo en píxeles de pantalla (también se actualiza)
     this.rw = W;         // tamaño del mapa que se está viendo
     this.rh = H;
   }
 
+  // Píxeles de pantalla que ocupa cada píxel del dibujo: siempre un número entero, para que todos los
+  // píxeles midan lo mismo y no "bailen" (con 5,07 unos saldrían de 5 y otros de 6). Se elige el entero
+  // más cercano al zoom que se quiere; por eso el zoom real cambia a saltos y no poco a poco.
+  get pixelPantalla() { return Math.max(1, Math.round((this.pantallaH * this.zoom * PIXEL) / H)); }
+
   // Tamaño de la vista en unidades del juego
   // la altura visible es fija (según el zoom) y el ancho depende de la forma de la pantalla
-  get vh() { return H / this.zoom; }
+  get vh() { return (this.pantallaH * PIXEL) / this.pixelPantalla; }
   get vw() { return this.vh * this.aspect; }
 
   // Esquina de arriba a la izquierda de la vista (exacta: el fondo se desplaza con suavidad)
@@ -75,6 +81,7 @@ export class Camera {
 
   // De coordenadas del mundo a la pantalla (que mide W×H)
   toScreen(x, y) {
-    return { x: (x - this.left) * this.zoom, y: (y - this.top) * this.zoom };
+    const z = H / this.vh; // el zoom de verdad, ya ajustado a píxeles enteros
+    return { x: (x - this.left) * z, y: (y - this.top) * z };
   }
 }

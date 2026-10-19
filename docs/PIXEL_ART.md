@@ -60,6 +60,11 @@ pudiendo ver añadiendo **`?cartoon`** a la dirección (por ejemplo `http://loca
   guarda; cada fotograma se recorta lo que se ve y se amplía con un desplazamiento exacto, así el fondo se mueve
   con suavidad aunque cada píxel del dibujo ocupe varios de pantalla. Los personajes, balas y partículas se
   dibujan a resolución de pantalla en su posición exacta (sus píxeles siguen nítidos), para que no "tiemblen".
+- **Escala entera (19 oct, rama `pixel-escala`, pendiente de visto bueno):** cada píxel del dibujo ocupa un número
+  entero de píxeles de pantalla (3, 4, 5…), el más cercano al ×1,5 o al ×1,15 que se quiere
+  (`Camera.pixelPantalla`). Así todos miden lo mismo; antes, con 3,6 o 5,07, unos salían más anchos que otros. Por
+  eso lo que se ve de sala cambia un poco según la pantalla (en una de 1080 de alto, 432 unidades; en una de 768,
+  384) y el zoom va a saltos. La esquina de la cámara y el fondo también se cuadran a píxeles enteros.
 - Código: `src/camera.js`; el dibujo, en `Game.renderPixel`; los avisos, en `Game.drawOffscreen`.
 
 ## Lo que sigue dibujándose con código

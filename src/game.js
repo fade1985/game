@@ -84,6 +84,7 @@ export class Game {
     this.scale = this.canvas.height / H;
     this.ow = this.canvas.width / this.scale;
     this.camera.aspect = this.canvas.width / this.canvas.height;
+    this.camera.pantallaH = this.canvas.height;
     this.camera.clampToRoom();
   }
 

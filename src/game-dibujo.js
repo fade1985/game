@@ -49,11 +49,14 @@ export class GameDrawing {
     } else if (this.shakeAmt > 0.3) {
       offX = rand(-1, 1) * this.shakeAmt; offY = rand(-1, 1) * this.shakeAmt;
     }
-    const camX = cam.left - offX, camY = cam.top - offY; // esquina exacta de lo que se ve
+    // esquina de lo que se ve, cuadrada a un píxel de pantalla entero (si cae entre dos, el fondo se ve borroso
+    // o con píxeles desiguales)
+    const camX = Math.round((cam.left - offX) * k) / k, camY = Math.round((cam.top - offY) * k) / k;
 
-    // 1) fondo en el lienzo pequeño
-    const sx = Math.floor(camX / BG_PIXEL) * BG_PIXEL, sy = Math.floor(camY / BG_PIXEL) * BG_PIXEL;
-    const bw = Math.ceil(vw / BG_PIXEL) + 2, bh = Math.ceil(vh / BG_PIXEL) + 2;
+    // 1) fondo en el lienzo pequeño, empezando en un píxel del dibujo (PIXEL) para que cada uno caiga
+    //    justo en un número entero de píxeles de pantalla
+    const sx = Math.floor(camX / PIXEL) * PIXEL, sy = Math.floor(camY / PIXEL) * PIXEL;
+    const bw = Math.ceil(vw / BG_PIXEL) + 4, bh = Math.ceil(vh / BG_PIXEL) + 4;
     if (this.low.width !== bw || this.low.height !== bh) { this.low.width = bw; this.low.height = bh; }
     const ctx = this.lowCtx;
     ctx.setTransform(1 / BG_PIXEL, 0, 0, 1 / BG_PIXEL, -sx / BG_PIXEL, -sy / BG_PIXEL);
@@ -64,8 +67,8 @@ export class GameDrawing {
       // el mapa que se deja sale con su propia cámara
       const [dx, dy] = DIRS[tr.dir];
       const prev = tr.cam || { left: 0, top: 0 };
-      const tx = Math.round((camX - prev.left - dx * vw * tr.e) / BG_PIXEL) * BG_PIXEL;
-      const ty = Math.round((camY - prev.top - dy * vh * tr.e) / BG_PIXEL) * BG_PIXEL;
+      const tx = Math.round((camX - prev.left - dx * vw * tr.e) / PIXEL) * PIXEL;
+      const ty = Math.round((camY - prev.top - dy * vh * tr.e) / PIXEL) * PIXEL;
       ctx.save();
       ctx.translate(tx, ty);
       ctx.drawImage(this.roomImage(tr.from), 0, 0, tr.from.layout.w, tr.from.layout.h);
