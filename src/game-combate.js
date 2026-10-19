@@ -6,9 +6,7 @@
 // ─────────────────────────────────────────────
 import { WALL } from './config.js';
 import { rand, clamp, dist, pushOut, obstacleGap } from './utils.js';
-import { WeaponProp } from './props.js';
 import { destello } from './luz.js';
-import { randomWeapon } from './weapons.js';
 import { isWall, lineClear } from './shapes.js';
 import { MOLOTOV } from './molotov.js';
 import { GRANADA } from './granada.js';
@@ -262,11 +260,9 @@ export class GameCombat {
     sfx.boom();
     for (let i = 0; i < (boss.type === 'boss' ? 8 : 3); i++) this.dropPickup('cash', boss.x, boss.y);
     for (let i = 0; i < 2; i++) this.dropPickup('ammo', boss.x, boss.y); // y munición
-    // el mini jefe siempre suelta un arma (lejos de donde saldrán las escaleras)
+    // Las armas ya solo se compran en la tienda del ordenador (ordenador.js): el mini jefe no suelta ninguna
     if (boss.type === 'miniboss') {
-      const { melee, ranged } = this.player.slots;
-      this.room.props.push(new WeaponProp(randomWeapon([melee.id, ranged?.id]), this.rw / 2, this.rh / 2 + 130));
-      // y un segundo después de que su cuerpo acabe de caer, el recuadro de las mutaciones (mutaciones.js)
+      // un segundo después de que su cuerpo acabe de caer, el recuadro de las mutaciones (mutaciones.js)
       const caer = boss.sprite ? animDuration(boss.sprite, 'death') || 0 : 0;
       this.later(caer + 1, () => this.openMutacion());
     }

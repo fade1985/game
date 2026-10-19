@@ -2,21 +2,30 @@
 //  El ordenador de la sala de mantenimiento ("ConserjeOS")
 //
 //  Al arrimarse a la mesa (props.js, Ordenador) el juego se pausa y sale la pantalla del ordenador: un
-//  escritorio viejo con sus iconos. De momento solo hay un programa, "Compra de puntos e intercambio":
-//  cambia los dólares ahorrados por puntos de talento y los gasta en el árbol de talentos (talentos.js).
+//  escritorio viejo con sus iconos. Hay dos programas:
+//    · "Compra de puntos e intercambio": cambia los dólares ahorrados por puntos de talento y los gasta en el
+//      árbol de talentos (talentos.js).
+//    · "Tienda de armas": compra con los dólares ahorrados un arma para esta partida (su precio, `price`, en
+//      weapons.js; la pistola es gratis). La que llevaras en ese hueco se queda en el suelo.
 //  Irán saliendo más programas. Es HTML, como los demás menús: así el ratón, el teclado
 //  (Tab, Enter, Esc) y el mando (mando.js va de botón en botón; B = Esc) funcionan solos.
 // ─────────────────────────────────────────────
-import { loadSave } from './save.js';
+import { loadSave, updateSave } from './save.js';
 import { clearInput } from './input.js';
 import { sfx } from './sfx.js';
 import { PRECIO_PUNTO, puntosAlcanzables, comprarPuntos, RAMAS, TALENTOS, talento, nivelDe, puedeSubir, subirTalento, aplicarTalentos } from './talentos.js';
 import { baseStats } from './upgrades.js';
 import { aplicarMutaciones } from './mutaciones.js';
+import { WEAPONS, weaponSummary } from './weapons.js';
+import { WeaponProp } from './props.js';
+
+// Las armas de la tienda, de la más barata a la más cara (la fregona no tiene precio: se lleva siempre)
+const EN_VENTA = Object.values(WEAPONS).filter((w) => w.price != null).sort((a, b) => a.price - b.price);
 
 // Los iconos del escritorio: [ventana que abre, icono (assets/ui/iconos), nombre]
 const ICONOS = [
   ['tienda', 'billete', 'Compra de puntos e intercambio'],
+  ['armas', 'pistola', 'Tienda de armas'],
   ['apagar', 'puerta', 'Apagar'],
 ];
 
@@ -89,6 +98,39 @@ const VENTANAS = {
   },
 };
 
+// La tienda de armas: cada arma con su precio. Las que ya llevas o no te llega el dinero salen apagadas
+VENTANAS.armas = (g) => {
+  const dinero = loadSave().keys;
+  let foco = 'yellow';
+  const fila = (w) => {
+    const llevas = g.player.has(w);
+    const puede = !llevas && dinero >= w.price;
+    const cls = puede ? foco : '';
+    if (puede) foco = '';
+    const tag = llevas ? 'LA LLEVAS' : w.price ? `$${w.price}` : 'GRATIS';
+    return `
+      <button class="pc-arma ${cls} ${llevas ? 'puesta' : puede ? '' : 'bloqueada'}" data-act="armar" data-arg="${w.id}" ${puede ? '' : 'disabled'}>
+        <i class="ico ico-${w.id}"></i>
+        <span class="pc-arma-txt"><b>${w.name}</b><small>${weaponSummary(w)}</small></span>
+        <span class="pc-arma-tag">${tag}</span>
+      </button>`;
+  };
+  return ['C:\\MANTENIMIENTO\\ARMAS.EXE', `
+    <div class="pc-saldo">
+      <div><span>Dólares ahorrados</span><b><i class="ico ico-billete"></i> $${dinero}</b></div>
+    </div>
+    <p class="pc-nota">Lo que compres es para esta partida: si caes, lo pierdes. La que llevaras en ese hueco se queda en el suelo.</p>
+    ${g.runKeys ? `<p class="pc-nota">Los $${g.runKeys} de esta partida no se pueden gastar hasta que completes el edificio.</p>` : ''}
+    <div class="pc-grupo">
+      <div class="pc-grupo-titulo">Cuerpo a cuerpo</div>
+      <div class="pc-armas">${EN_VENTA.filter((w) => w.type === 'melee').map(fila).join('')}</div>
+    </div>
+    <div class="pc-grupo">
+      <div class="pc-grupo-titulo">De fuego · con el cargador lleno y munición de reserva</div>
+      <div class="pc-armas">${EN_VENTA.filter((w) => w.type === 'ranged').map(fila).join('')}</div>
+    </div>`];
+};
+
 // `encender`: solo al abrirlo hace el efecto de encendido del monitor (al cambiar de ventana o elegir arma, no)
 function pantalla(g, ventana, encender) {
   const iconos = ICONOS.map(([id, ico, nombre]) => `
@@ -154,6 +196,7 @@ export class OrdenadorMethods {
         sfx.buy();
         this.drawOrdenador(ventana);
       },
+      armar: (id) => this.comprarArma(WEAPONS[id]),
       subir: (id) => {
         const save = subirTalento(id);
         if (!save) { sfx.nope(); return; }
@@ -169,6 +212,30 @@ export class OrdenadorMethods {
     },
     'pc-overlay');
     this.igualarTalentos();
+  }
+
+  // Compra un arma de la tienda con los dólares ahorrados y se la pone a Johnny
+  comprarArma(w) {
+    const p = this.player;
+    let ok = false;
+    const save = updateSave((s) => {
+      if (!w || p.has(w) || s.keys < w.price) return;
+      s.keys -= w.price;
+      ok = true;
+    });
+    if (!ok) { sfx.nope(); return; }
+    this.savedKeys = save.keys;
+    this.wallet = this.savedKeys + this.runKeys;
+    // la que llevaba en ese hueco se queda en el suelo, a sus pies (con sus balas)
+    const old = p.equip(w);
+    if (old) {
+      const pr = new WeaponProp(old.weapon, p.x, p.y + 40);
+      pr.ammo = old.ammo;
+      this.room.props.push(pr);
+    }
+    this.unlockWeapon(w.id);
+    sfx.buy();
+    this.drawOrdenador('armas');
   }
 
   // Todos los recuadros de los talentos, del alto del más alto, para que las filas queden alineadas.

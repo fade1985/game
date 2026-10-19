@@ -15,6 +15,8 @@
 //             disparar a mitad de recarga (la escopeta)
 //    stash    mueble de la entrada donde espera el arma: cubo, paraguero, encimera, comoda o taquilla
 //             (si no se pone, sale en una caja). Los muebles se dibujan en props.js
+//    price    dólares que cuesta en la tienda de armas del ordenador (ordenador.js; 0 = gratis). Sin precio no
+//             sale en la tienda (la fregona, que se lleva siempre). Números provisionales
 //    sprite   (solo versión pixel) hoja de sprites del conserje con esta arma en la mano, con sus animaciones
 //             de reposo, andar y ataque. Si no se pone, se usa el conserje sin arma y el arma se dibuja encima
 // ─────────────────────────────────────────────
@@ -29,26 +31,26 @@ export const WEAPONS = {
     damage: 8, rate: 1.8, reach: 62, arc: 140, knock: 2.0, trail: '#3fb5ec',
   },
   bate: {
-    id: 'bate', stash: 'paraguero', name: 'Bate', icon: '🏏', type: 'melee', sprite: 'conserje-48-bate',
+    id: 'bate', price: 15, stash: 'paraguero', name: 'Bate', icon: '🏏', type: 'melee', sprite: 'conserje-48-bate',
     damage: 16, rate: 1.6, reach: 66, arc: 110, knock: 1.5, trail: '#ffb347',
   },
   cuchillo: {
-    id: 'cuchillo', stash: 'encimera', name: 'Cuchillo', icon: '🔪', type: 'melee', sprite: 'conserje-48-cuchillo',
+    id: 'cuchillo', price: 10, stash: 'encimera', name: 'Cuchillo', icon: '🔪', type: 'melee', sprite: 'conserje-48-cuchillo',
     damage: 9, rate: 4, reach: 46, arc: 60, knock: 0.5, trail: '#c9b6ff',
   },
   pistola: {
-    id: 'pistola', stash: 'comoda', name: 'Pistola', icon: '🔫', type: 'ranged', sprite: 'conserje-48-pistola',
+    id: 'pistola', price: 0, stash: 'comoda', name: 'Pistola', icon: '🔫', type: 'ranged', sprite: 'conserje-48-pistola',
     damage: 10, rate: 2.5, range: 420, speed: 620, pellets: 1, spread: 0, knock: 0.8, muzzle: 24,
     mag: 12, reload: 1.1,
   },
   escopeta: {
-    id: 'escopeta', stash: 'taquilla', name: 'Escopeta', icon: '💥', type: 'ranged', sprite: 'conserje-48-escopeta',
+    id: 'escopeta', price: 30, stash: 'taquilla', name: 'Escopeta', icon: '💥', type: 'ranged', sprite: 'conserje-48-escopeta',
     damage: 7, rate: 1, range: 260, speed: 540, pellets: 5, spread: 0.55, knock: 1.2, muzzle: 38,
     mag: 6, reload: 0.45, shell: true,
   },
   // Sin mueble propio: espera en una caja. Ráfaga de balas flojas y algo imprecisas (números provisionales)
   mp5: {
-    id: 'mp5', name: 'MP5', icon: '🔫', type: 'ranged', sprite: 'conserje-48-mp5',
+    id: 'mp5', price: 40, name: 'MP5', icon: '🔫', type: 'ranged', sprite: 'conserje-48-mp5',
     damage: 4, rate: 8, range: 340, speed: 640, pellets: 1, spread: 0, jitter: 0.14, knock: 0.3, muzzle: 30,
     mag: 30, reload: 1.8,
   },
