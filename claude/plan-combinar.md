@@ -72,7 +72,12 @@ Daños con rareza verde (azul ×1,2, épica ×1,45). Números provisionales.
 - **A:** objetos que sueltan los zombis + mochila en el HUD. Hecha el 19 oct, con visto bueno.
 - **B:** el baúl (guardar y ver lo guardado). Hecha el 19 oct, con visto bueno: `Baul` en `src/props.js`
   (dibujado a mano), al lado del ordenador (`BAUL_X` en `game.js`); al arrimarse, `showBaul` de `ui.js`.
-- **C:** banco de trabajo, recetas y rarezas.
+- **C:** banco de trabajo, recetas y rarezas. Hecha el 19 oct, pendiente de visto bueno: recetas y rarezas en
+  `src/recetas.js` (daños de las armas a distancia y arrojadizas puestos por Claude, provisionales); el banco
+  (`BancoTrabajo` en `props.js`, a la izquierda del ordenador) y su recuadro en `src/banco.js`. Decidido con el
+  dueño: la fregona va al inventario al coger otra arma cuerpo a cuerpo y solo se queda en el suelo si se tira
+  desde el inventario, como los objetos. Provisional: si al crear Johnny se queda sin arma cuerpo a cuerpo, coge
+  otra fregona; en la fase D el arma creada irá a su mano.
 - **D:** armas combinadas en el juego, por tandas: D1 cuerpo a cuerpo (1, 2, 3, 5, 12, 14, 15); D2 a distancia
   (4, 6, 7, 13); D3 arrojadizas (8–11). Dibujo provisional: el sprite del arma base con un detalle encima; los
   sprites propios, más adelante con `/arma-nueva`.

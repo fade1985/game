@@ -78,11 +78,13 @@ export class GameCombat {
       pk.vx *= fr; pk.vy *= fr;
       const dx = p.x - pk.x, dy = p.y - pk.y;
       const d = Math.hypot(dx, dy) || 1;
+      // un objeto tirado desde el inventario no vuelve a la mochila hasta que Johnny se aleja de él
+      if (pk.tirado && d > this.stats.magnet + 40) pk.tirado = false;
       // Los billetes siempre vienen a ti; los molotovs y las granadas, si caben en la mochila
       const wanted = pk.kind === 'cash' || (pk.kind === 'molotov' ? this.molotovs < MOLOTOV.max + this.stats.extraThrow
         : pk.kind === 'granada' ? this.granadas < GRANADA.max + this.stats.extraThrow
         : pk.kind === 'ammo' ? p.wantsAmmo()
-        : pk.kind === 'objeto' ? this.mochila.length < MOCHILA : false); // objetos para crear armas (objetos.js)
+        : pk.kind === 'objeto' ? this.mochila.length < MOCHILA && !pk.tirado : false); // objetos para crear armas (objetos.js)
       if (!p.dead && wanted && pk.t > 0.4 && d < this.stats.magnet) {
         pk.vx += (dx / d) * 2200 * dt;
         pk.vy += (dy / d) * 2200 * dt;

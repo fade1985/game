@@ -10,8 +10,9 @@ import { Zombie } from './zombies.js';
 import { generateFloor, floorName } from './building.js';
 import { makePlainLayout } from './rooms.js';
 import { baseStats } from './upgrades.js';
-import { SurvivorNPC, DoorKey, Ordenador, Baul, Armarito, BOTIQUIN_CURA, WeaponProp } from './props.js';
+import { SurvivorNPC, DoorKey, Ordenador, Baul, BancoTrabajo, Armarito, BOTIQUIN_CURA, WeaponProp } from './props.js';
 import { OrdenadorMethods } from './ordenador.js';
+import { BancoMethods } from './banco.js';
 import { PRECIO_PUNTO, aplicarTalentos } from './talentos.js';
 import { MutacionMethods, actualizarMutaciones } from './mutaciones.js';
 import { ExposicionMuebles, expoZombis } from './exposicion.js';
@@ -34,6 +35,8 @@ import { GameMap } from './game-mapa.js';
 const ORDENADOR_X = 240;
 // y el baúl, a su derecha (entre la mesa y la puerta)
 const BAUL_X = 340;
+// y el banco de trabajo, al otro lado (a su izquierda)
+const BANCO_X = 135;
 
 // Vida de los jefes según la planta (la portera solo sale en la azotea)
 const bossHpMul = (type, floorNum) => (type === 'boss' ? 1 : 1 + (floorNum - 1) * 0.25);
@@ -148,6 +151,8 @@ export class Game {
     this.molotovs = MOLOTOV.start + this.stats.extraThrow; // cócteles molotov en la mochila
     this.granadas = GRANADA.start + this.stats.extraThrow; // granadas en la mochila
     this.mochila = [];         // objetos para crear armas recogidos en esta partida (objetos.js): al baúl si ganas
+    this.armasGuardadas = [];  // armas que lleva en el inventario sin usar (la fregona, al coger otra cuerpo a cuerpo)
+    this.armasCreadas = [];    // armas creadas en el banco de trabajo (recetas.js): duran esta partida
     this.reviveUsed = false;   // Desfibrilador: solo una vez por edificio
     this.tossKind = 'molotov';     // lo que se lanza con el botón de lanzar: 'molotov' o 'granada'
     this.savedKeys = save.keys; // dólares ahorrados de antes (en el guardado se siguen llamando "keys")
@@ -195,6 +200,8 @@ export class Game {
     if (this.floorNum === 1) this.floor.start.props.push(new Ordenador(ORDENADOR_X));
     // y a su lado el baúl, donde se ven los objetos guardados de otras partidas
     if (this.floorNum === 1) this.floor.start.props.push(new Baul(BAUL_X));
+    // y al otro lado, el banco de trabajo, donde se crean armas con los objetos (banco.js)
+    if (this.floorNum === 1) this.floor.start.props.push(new BancoTrabajo(BANCO_X));
     // En el modo pruebas, todas las armas en el suelo de la sala de mantenimiento, en fila (abajo)
     if (this.testMode && this.floorNum === 1) {
       const lay = this.floor.start.layout;
@@ -245,7 +252,44 @@ export class Game {
     this.paused = true;
     this.pauseOpen = true;
     clearInput();
-    this.ui.showInventario(this, () => this.closePause());
+    this.invSel = null;
+    this.drawInventario();
+  }
+
+  // Vuelve a pintar el inventario. Al tocar una casilla se elige (`invSel`: 'm2' = la 3.ª de la mochila,
+  // 'g0' = la 1.ª arma guardada) y sale el botón de tirarla al suelo
+  drawInventario() {
+    this.ui.showInventario(this, this.invSel, {
+      cerrar: () => this.closePause(),
+      elegir: (clave) => { sfx.click(); this.invSel = this.invSel === clave ? null : clave; this.drawInventario(); },
+      tirar: () => this.tirarDelInventario(),
+    });
+  }
+
+  // Tira al suelo, a los pies de Johnny, lo elegido en el inventario: un objeto o un arma guardada
+  tirarDelInventario() {
+    const clave = this.invSel, p = this.player;
+    const i = Number(clave?.slice(1));
+    if (clave?.[0] === 'm' && this.mochila[i]) {
+      const pk = this.dropPickup('objeto', p.x, p.y + 30);
+      pk.obj = this.mochila.splice(i, 1)[0];
+      pk.tirado = true; // no vuelve solo a la mochila hasta que Johnny se aleje (game-combate.js)
+    } else if (clave?.[0] === 'g' && this.armasGuardadas[i]) {
+      const pr = new WeaponProp(this.armasGuardadas.splice(i, 1)[0], p.x, p.y + 40);
+      pr.armed = false; // hay que apartarse antes de volver a cogerla
+      this.room.props.push(pr);
+    } else return;
+    sfx.click();
+    this.invSel = null;
+    this.drawInventario();
+  }
+
+  // Al coger otra arma cuerpo a cuerpo, la fregona no se queda en el suelo: va al inventario. Recibe lo que
+  // devuelve `equip` (la que había en ese hueco) y devuelve lo que hay que dejar en el suelo (o null)
+  guardarFregona(old) {
+    if (old?.weapon.id !== 'fregona') return old;
+    this.armasGuardadas.push(old.weapon);
+    return null;
   }
 
   // Baúl de la sala de mantenimiento: enseña los objetos guardados de otras partidas (save.baul). De momento solo
@@ -450,14 +494,16 @@ export class Game {
     if (p.dead) return;
     for (const pr of this.room.props) {
       if (pr.taken) continue;
-      if (pr.kind === 'ordenador' || pr.kind === 'baul') {
+      if (pr.kind === 'ordenador' || pr.kind === 'baul' || pr.kind === 'banco') {
         // Mesa del ordenador o baúl: basta con arrimarse para abrirlo. Al cerrarlo hay que apartarse un poco
         // antes de que vuelva a abrirse (si no, se abriría otra vez nada más cerrarlo).
         const gap = obstacleGap(pr, p);
         if (gap > p.r + 30) pr.armed = true;
         else if (pr.armed && gap < p.r + 6) {
           pr.armed = false;
-          if (pr.kind === 'baul') this.openBaul(); else this.openOrdenador();
+          if (pr.kind === 'baul') this.openBaul();
+          else if (pr.kind === 'banco') this.openBanco();
+          else this.openOrdenador();
         }
         continue;
       }
@@ -493,8 +539,8 @@ export class Game {
         sfx.clear();
       } else if (pr.kind === 'weapon' && pr.armed) {
         // Cogemos el arma: va a su hueco, y la que hubiera en ese hueco se queda en el suelo (con sus balas).
-        // Si el hueco estaba vacío, el arma desaparece del suelo
-        const old = p.equip(pr.weapon, pr.ammo);
+        // La fregona no: va al inventario. Si no queda nada que dejar, el arma desaparece del suelo
+        const old = this.guardarFregona(p.equip(pr.weapon, pr.ammo));
         if (old) { pr.weapon = old.weapon; pr.ammo = old.ammo; } else pr.taken = true;
         pr.armed = false; // hay que alejarse antes de poder volver a cogerla
         // la primera vez que encuentras un arma se apunta en el guardado
@@ -737,5 +783,6 @@ addMethods(Game, ZombieAttacks); // ataques especiales de los zombis (game-ataqu
 addMethods(Game, GameDrawing);   // dibujo (game-dibujo.js)
 addMethods(Game, GranadaMethods); // la granada de Johnny (granada.js)
 addMethods(Game, MolotovMethods); // el cóctel molotov de Johnny (molotov.js)
+addMethods(Game, BancoMethods);    // el banco de trabajo: crear armas con objetos (banco.js)
 addMethods(Game, OrdenadorMethods); // el ordenador de mantenimiento: compra de puntos de talento (ordenador.js)
 addMethods(Game, MutacionMethods); // el recuadro de elegir mutación al caer un mini jefe (mutaciones.js)

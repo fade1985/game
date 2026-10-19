@@ -213,6 +213,14 @@ canvas {
 .inv-casilla.verde { border-color: #5ac85a; }
 .inv-casilla.azul { border-color: #4a8bf0; }
 .inv-casilla.morada { border-color: #b65ce0; }
+/* Casillas que se pueden tocar (inventario y banco de trabajo): botón con aspecto de casilla */
+.btn.inv-casilla { font-size: 1em; padding: 0.4em; border-width: 0.18em; border-image: none; flex-direction: column; text-shadow: none; }
+.btn.inv-casilla.puesta { border-color: #ffd23f; background: rgba(255, 210, 63, 0.15); }
+/* Banco de trabajo (banco.js): las dos casillas de los ingredientes y la del arma que sale */
+.banco-cosas { max-height: 15em; overflow-y: auto; }
+.banco-mesa { display: flex; align-items: center; gap: 0.6em; font-size: 1.4em; }
+.banco-mesa .inv-casilla { width: 7em; font-size: 0.72em; }
+.banco-botones { display: flex; gap: 0.8em; }
 @keyframes temblor { 0%, 100% { transform: translateX(0); } 33% { transform: translateX(-0.08em) rotate(-1deg); } 66% { transform: translateX(0.08em) rotate(1deg); } }
 .plist-row.empty { font-style: italic; }
 .pause { width: min(52em, 100%); max-height: 100%; overflow-y: auto; }

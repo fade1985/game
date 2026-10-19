@@ -350,6 +350,50 @@ export class Baul {
   }
 }
 
+// Banco de trabajo del conserje, pegado a la pared de arriba al otro lado del ordenador: al arrimarse sale el
+// recuadro para crear armas (banco.js). Dibujado a mano en pixel art (cada píxel, 2 unidades) hasta que tenga sprite:
+// un tablero de madera con un tornillo de banco, y en la pared un panel con herramientas colgadas.
+export class BancoTrabajo {
+  constructor(x) {
+    this.kind = 'banco';
+    this.x = x;
+    this.shape = 'rect'; this.w = 76; this.h = 36; // lo que ocupa en el suelo
+    this.r = this.h / 2; this.y = WALL + this.h / 2;
+    this.solid = true;
+    this.taken = false;
+    this.armed = true; // al cerrar el recuadro hay que apartarse un poco antes de que se vuelva a abrir
+  }
+
+  draw(ctx) {
+    const { x, y, h } = this;
+    const left = x - 38, top = y + h / 2 - 64; // 38×32 píxeles de arte; el panel de herramientas sube por la pared
+    drawCached(ctx, this, 'banco', left, top, 76, 64, (g) => {
+      const px = (cx, cy, w, hh, c) => { g.fillStyle = c; g.fillRect(left + cx * 2, top + cy * 2, w * 2, hh * 2); };
+      const borde = '#24150d', oscura = '#5a3820', madera = '#8a5a32', clara = '#b07a44';
+      const hierro = '#5e6670', brillo = '#a3acb6', rojo = '#b8433a', corcho = '#6b5a44', punto = '#4a3d2e';
+      // panel de agujeros en la pared, con herramientas colgadas
+      px(3, 0, 32, 13, borde); px(4, 1, 30, 11, corcho);
+      for (let i = 6; i < 33; i += 4) for (let j = 3; j < 11; j += 4) px(i, j, 1, 1, punto);
+      px(7, 2, 1, 8, borde); px(6, 2, 3, 2, hierro); px(7, 4, 1, 6, hierro);           // destornillador
+      px(7, 7, 1, 3, rojo);
+      px(13, 2, 5, 2, hierro); px(13, 2, 5, 1, brillo); px(15, 4, 1, 7, oscura);        // martillo
+      px(21, 2, 2, 9, hierro); px(21, 2, 1, 9, brillo); px(20, 2, 4, 2, hierro);        // llave fija
+      px(27, 3, 4, 4, rojo); px(28, 4, 2, 2, corcho); px(28, 7, 2, 4, oscura);          // sierra pequeña / alicates
+      // tablero del banco
+      px(0, 13, 38, 6, borde); px(1, 14, 36, 4, madera); px(1, 14, 36, 1, clara); px(1, 17, 36, 1, oscura);
+      // tornillo de banco a la izquierda, encima del tablero
+      px(3, 10, 8, 4, borde); px(4, 11, 6, 3, hierro); px(4, 11, 6, 1, brillo); px(10, 12, 3, 1, hierro);
+      // patas y balda de abajo
+      px(1, 19, 4, 13, borde); px(2, 19, 2, 12, oscura);
+      px(33, 19, 4, 13, borde); px(34, 19, 2, 12, oscura);
+      px(5, 25, 28, 3, borde); px(5, 26, 28, 1, madera);
+      // cajón con tirador
+      px(14, 19, 12, 5, borde); px(15, 19, 10, 4, madera); px(19, 21, 2, 1, hierro);
+    });
+    outlinedText(ctx, 'Banco', x, y + h / 2 + 16, 15, '#ffb36b', { lw: 4 });
+  }
+}
+
 function disc(ctx, x, y, r, fill, lw = 3) {
   ctx.beginPath();
   ctx.arc(x, y, r, 0, TAU);

@@ -7,6 +7,7 @@ import { loadSave } from './save.js';
 import { makeTitleCanvas } from './titulo.js';
 import { mutacion } from './mutaciones.js';
 import { OBJETOS, MOCHILA, iconoObjeto } from './objetos.js';
+import { casillaCreada } from './banco.js';
 
 // Pantalla completa (solo en móviles que la permiten; en iPhone no existe)
 const canFullscreen = () => document.body.classList.contains('touch') && document.fullscreenEnabled && !document.fullscreenElement;
@@ -231,29 +232,40 @@ export function createUI(root) {
       (e) => { if (e.code === 'Escape' || e.code === 'KeyP') resume(); });
     },
 
-    // Inventario: las dos armas que lleva Johnny y las casillas de la mochila (objetos.js)
-    showInventario(g, cerrar) {
+    // Inventario: las dos armas que lleva Johnny, las que guarda (la fregona, al coger otra), las casillas de la
+    // mochila (objetos.js) y las armas creadas en el banco (banco.js). Al tocar un objeto o un arma guardada se
+    // elige (`sel`) y sale el botón de tirarla al suelo
+    showInventario(g, sel, { cerrar, elegir, tirar }) {
       const p = g.player;
       const arma = (w, hueco) => w
         ? `<div class="inv-casilla gris"><i class="ico ico-${w.id}"></i><b>${w.name}</b><small>${hueco}</small></div>`
         : `<div class="inv-casilla vacia"><small>${hueco}</small></div>`;
+      const tocable = (clave, dentro) => `<button class="btn inv-casilla gris${sel === clave ? ' puesta' : ''}" data-act="elegir" data-arg="${clave}">${dentro}</button>`;
       const casillas = [];
       for (let i = 0; i < MOCHILA; i++) {
         const id = g.mochila[i];
         casillas.push(id
-          ? `<div class="inv-casilla gris"><i class="ico" style="background-image:url(${iconoObjeto(id)})"></i><b>${OBJETOS[id].nombre}</b></div>`
+          ? tocable(`m${i}`, `<i class="ico" style="background-image:url(${iconoObjeto(id)})"></i><b>${OBJETOS[id].nombre}</b>`)
           : '<div class="inv-casilla vacia"></div>');
       }
+      const guardadas = g.armasGuardadas.map((w, i) => tocable(`g${i}`, `<i class="ico ico-${w.id}"></i><b>${w.name}</b><small>Guardada</small>`));
+      const creadas = g.armasCreadas.map((a) => casillaCreada(a));
       open(`
         <div class="panel inventario">
           <h2 class="title">Inventario</h2>
           <div class="inv-armas">${arma(p.slots.melee, 'Cuerpo a cuerpo')}${arma(p.slots.ranged, 'Fuego')}</div>
+          ${guardadas.length || creadas.length ? `<div class="plist-title">Otras armas</div>
+          <div class="inv-mochila">${guardadas.join('')}${creadas.join('')}</div>` : ''}
           <div class="plist-title"><i class="ico ico-mochila"></i> Mochila · ${g.mochila.length} / ${MOCHILA}</div>
           <div class="inv-mochila">${casillas.join('')}</div>
-          <p class="sub small">Lo que llevas en la mochila pasa al baúl si completas el edificio. Si caes, se pierde.</p>
-          <button class="btn yellow small" data-act="cerrar">Seguir</button>
+          <p class="sub small">${sel ? 'Si lo tiras, se queda en el suelo: puedes volver a cogerlo.'
+            : 'Lo que llevas en la mochila pasa al baúl si completas el edificio. Si caes, se pierde. Las armas creadas duran esta partida.'}</p>
+          <div class="banco-botones">
+            ${sel ? '<button class="btn pink small" data-act="tirar">Tirar al suelo</button>' : ''}
+            <button class="btn yellow small" data-act="cerrar">Seguir</button>
+          </div>
         </div>`,
-      { cerrar },
+      { cerrar, elegir, tirar },
       (e) => { if (['Escape', 'Tab', 'KeyI', 'KeyP'].includes(e.code)) { e.preventDefault(); cerrar(); } });
     },
 

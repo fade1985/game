@@ -226,8 +226,8 @@ export class OrdenadorMethods {
     if (!ok) { sfx.nope(); return; }
     this.savedKeys = save.keys;
     this.wallet = this.savedKeys + this.runKeys;
-    // la que llevaba en ese hueco se queda en el suelo, a sus pies (con sus balas)
-    const old = p.equip(w);
+    // la que llevaba en ese hueco se queda en el suelo, a sus pies (con sus balas); la fregona va al inventario
+    const old = this.guardarFregona(p.equip(w));
     if (old) {
       const pr = new WeaponProp(old.weapon, p.x, p.y + 40);
       pr.ammo = old.ammo;
