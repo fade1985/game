@@ -7,7 +7,8 @@ import { loadSave } from './save.js';
 import { makeTitleCanvas } from './titulo.js';
 import { mutacion } from './mutaciones.js';
 import { OBJETOS, MOCHILA, iconoObjeto } from './objetos.js';
-import { casillaCreada } from './banco.js';
+import { casillaCreada, icono } from './banco.js';
+import { RAREZAS } from './recetas.js';
 
 // Pantalla completa (solo en móviles que la permiten; en iPhone no existe)
 const canFullscreen = () => document.body.classList.contains('touch') && document.fullscreenEnabled && !document.fullscreenElement;
@@ -86,7 +87,7 @@ export function createUI(root) {
       set('hpFuego', $('.hpbar'), !!p.estados?.fuego, 'class:ardiendo');
       // las dos armas: la de cuerpo a cuerpo y, si lleva, la de fuego con sus balas (cargador / reserva)
       const { melee, ranged } = p.slots;
-      set('melee', $('#pill-melee'), `<i class="ico ico-${melee.id}"></i> <b>${melee.name}</b>`, 'innerHTML');
+      set('melee', $('#pill-melee'), `<i class="ico ico-${melee.ico || melee.id}"></i> <b>${melee.name}</b>`, 'innerHTML');
       set('meleeOn', $('#pill-melee'), p.hand === 'melee', 'class:on');
       set('rangedHide', $('#pill-ranged'), !ranged, 'hidden');
       if (ranged) {
@@ -104,7 +105,7 @@ export function createUI(root) {
       }
       set('ammoHide', $('.ammo-row'), !ranged, 'hidden');
       // y los botones redondos del móvil (lo mismo, en pequeño)
-      set('bMelee', $touch('.slot-melee .ico'), `ico ico-${melee.id}`, 'className');
+      set('bMelee', $touch('.slot-melee .ico'), `ico ico-${melee.ico || melee.id}`, 'className');
       set('bMeleeOn', $touch('.slot-melee'), p.hand === 'melee', 'class:on');
       set('bRangedHide', $touch('.slot-ranged'), !ranged, 'hidden');
       if (ranged) {
@@ -233,11 +234,11 @@ export function createUI(root) {
     },
 
     // Inventario: las dos armas que lleva Johnny, las que guarda (la fregona, al coger otra), las casillas de la
-    // mochila (objetos.js) y las armas creadas en el banco (banco.js). Al tocar un objeto o un arma guardada se
-    // elige (`sel`) y sale el botón de tirarla al suelo
-    showInventario(g, sel, { cerrar, elegir, tirar }) {
+    // mochila (objetos.js) y las armas creadas en el banco (banco.js). Al tocar una casilla se elige (`sel`) y
+    // salen sus botones: tirar al suelo (objetos y armas guardadas) y ponérsela (armas cuerpo a cuerpo)
+    showInventario(g, sel, { cerrar, elegir, tirar, poner }) {
       const p = g.player;
-      const arma = (w, hueco) => w
+      const arma = (w, hueco) => w?.creada ? casillaCreada(w.creada, `<small>${hueco}</small>`) : w
         ? `<div class="inv-casilla gris"><i class="ico ico-${w.id}"></i><b>${w.name}</b><small>${hueco}</small></div>`
         : `<div class="inv-casilla vacia"><small>${hueco}</small></div>`;
       const tocable = (clave, dentro) => `<button class="btn inv-casilla gris${sel === clave ? ' puesta' : ''}" data-act="elegir" data-arg="${clave}">${dentro}</button>`;
@@ -249,7 +250,13 @@ export function createUI(root) {
           : '<div class="inv-casilla vacia"></div>');
       }
       const guardadas = g.armasGuardadas.map((w, i) => tocable(`g${i}`, `<i class="ico ico-${w.id}"></i><b>${w.name}</b><small>Guardada</small>`));
-      const creadas = g.armasCreadas.map((a) => casillaCreada(a));
+      // las creadas, con el borde del color de su rareza; las de cuerpo a cuerpo se pueden poner en la mano
+      const creadas = g.armasCreadas.map((a, i) => `<button class="btn inv-casilla ${a.rareza}${sel === `c${i}` ? ' puesta' : ''}" data-act="elegir" data-arg="c${i}">
+        ${icono(a.icono)}<b>${a.nombre}</b><small>${RAREZAS.find((r) => r.id === a.rareza).nombre} · ${a.unidades ? `${a.unidades} unidades` : `daño ${a.damage}`}</small></button>`);
+      const n = Number(sel?.slice(1));
+      const ponible = (sel?.[0] === 'g' && g.armasGuardadas[n]?.type === 'melee') || (sel?.[0] === 'c' && g.armasCreadas[n]?.hueco === 'melee');
+      const tirable = sel?.[0] === 'm' || sel?.[0] === 'g';
+      const elegida = sel?.[0] === 'c' ? g.armasCreadas[n] : null;
       open(`
         <div class="panel inventario">
           <h2 class="title">Inventario</h2>
@@ -258,14 +265,16 @@ export function createUI(root) {
           <div class="inv-mochila">${guardadas.join('')}${creadas.join('')}</div>` : ''}
           <div class="plist-title"><i class="ico ico-mochila"></i> Mochila · ${g.mochila.length} / ${MOCHILA}</div>
           <div class="inv-mochila">${casillas.join('')}</div>
-          <p class="sub small">${sel ? 'Si lo tiras, se queda en el suelo: puedes volver a cogerlo.'
+          <p class="sub small">${elegida ? `${elegida.desc}.${elegida.hueco === 'melee' ? '' : ' Todavía no se puede usar.'}`
+            : sel ? 'Si lo tiras, se queda en el suelo: puedes volver a cogerlo.'
             : 'Lo que llevas en la mochila pasa al baúl si completas el edificio. Si caes, se pierde. Las armas creadas duran esta partida.'}</p>
           <div class="banco-botones">
-            ${sel ? '<button class="btn pink small" data-act="tirar">Tirar al suelo</button>' : ''}
+            ${ponible ? '<button class="btn small" data-act="poner">Ponérmela</button>' : ''}
+            ${tirable ? '<button class="btn pink small" data-act="tirar">Tirar al suelo</button>' : ''}
             <button class="btn yellow small" data-act="cerrar">Seguir</button>
           </div>
         </div>`,
-      { cerrar, elegir, tirar },
+      { cerrar, elegir, tirar, poner },
       (e) => { if (['Escape', 'Tab', 'KeyI', 'KeyP'].includes(e.code)) { e.preventDefault(); cerrar(); } });
     },
 

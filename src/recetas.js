@@ -2,8 +2,9 @@
 //  Recetas para crear armas en el banco de trabajo (fase C del plan de combinar: claude/plan-combinar.md)
 //
 //  Cada receta junta dos ingredientes: objetos (objetos.js) o armas de la tienda (fregona, bate, cuchillo).
-//  El arma que sale lleva una rareza al azar (RAREZAS) que multiplica su daño. De momento el arma creada solo
-//  se guarda en el inventario de Johnny para esa partida; que pegue de verdad es la fase D.
+//  El arma que sale lleva una rareza al azar (RAREZAS) que multiplica su daño. El arma creada
+//  dura esa partida: la de cuerpo a cuerpo va a la mano (armas-creadas.js, fase D1); las demás, de momento,
+//  solo se ven en el inventario (fases D2 y D3).
 //
 //  Campos de cada receta:
 //    id, nombre      lo que sale

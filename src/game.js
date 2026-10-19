@@ -13,6 +13,7 @@ import { baseStats } from './upgrades.js';
 import { SurvivorNPC, DoorKey, Ordenador, Baul, BancoTrabajo, Armarito, BOTIQUIN_CURA, WeaponProp } from './props.js';
 import { OrdenadorMethods } from './ordenador.js';
 import { BancoMethods } from './banco.js';
+import { ArmasCreadasMethods, armaDeCreada } from './armas-creadas.js';
 import { PRECIO_PUNTO, aplicarTalentos } from './talentos.js';
 import { MutacionMethods, actualizarMutaciones } from './mutaciones.js';
 import { ExposicionMuebles, expoZombis } from './exposicion.js';
@@ -257,12 +258,13 @@ export class Game {
   }
 
   // Vuelve a pintar el inventario. Al tocar una casilla se elige (`invSel`: 'm2' = la 3.ª de la mochila,
-  // 'g0' = la 1.ª arma guardada) y sale el botón de tirarla al suelo
+  // 'g0' = la 1.ª arma guardada, 'c0' = la 1.ª creada) y salen los botones de tirarla al suelo o ponérsela
   drawInventario() {
     this.ui.showInventario(this, this.invSel, {
       cerrar: () => this.closePause(),
       elegir: (clave) => { sfx.click(); this.invSel = this.invSel === clave ? null : clave; this.drawInventario(); },
       tirar: () => this.tirarDelInventario(),
+      poner: () => this.ponerDelInventario(),
     });
   }
 
@@ -284,12 +286,35 @@ export class Game {
     this.drawInventario();
   }
 
-  // Al coger otra arma cuerpo a cuerpo, la fregona no se queda en el suelo: va al inventario. Recibe lo que
-  // devuelve `equip` (la que había en ese hueco) y devuelve lo que hay que dejar en el suelo (o null)
+  // Al coger otra arma cuerpo a cuerpo, la fregona y las armas creadas no se quedan en el suelo: van al
+  // inventario. Recibe lo que devuelve `equip` (la que había en ese hueco) y devuelve lo que hay que dejar en el
+  // suelo (o null)
   guardarFregona(old) {
-    if (old?.weapon.id !== 'fregona') return old;
-    this.armasGuardadas.push(old.weapon);
+    if (old?.weapon.id !== 'fregona' && !old?.weapon.creada) return old;
+    this.guardarArma(old.weapon);
     return null;
+  }
+
+  // Guarda un arma en el inventario: las creadas vuelven a su lista (armas-creadas.js); las demás, a las guardadas
+  guardarArma(w) {
+    if (!w) return;
+    if (w.creada) this.armasCreadas.push(w.creada);
+    else this.armasGuardadas.push(w);
+  }
+
+  // Se pone en la mano el arma cuerpo a cuerpo elegida en el inventario ('g0' guardada, 'c0' creada) y la que
+  // llevaba pasa al inventario
+  ponerDelInventario() {
+    const clave = this.invSel, p = this.player;
+    const i = Number(clave?.slice(1));
+    let w = null;
+    if (clave?.[0] === 'g' && this.armasGuardadas[i]?.type === 'melee') w = this.armasGuardadas.splice(i, 1)[0];
+    else if (clave?.[0] === 'c' && this.armasCreadas[i]?.hueco === 'melee') w = armaDeCreada(this.armasCreadas.splice(i, 1)[0]);
+    if (!w) return;
+    this.guardarArma(p.equip(w)?.weapon);
+    sfx.click();
+    this.invSel = null;
+    this.drawInventario();
   }
 
   // Baúl de la sala de mantenimiento: enseña los objetos guardados de otras partidas (save.baul). De momento solo
@@ -656,6 +681,7 @@ export class Game {
       p.update(dt, this, getMoveVector(), consumeDash());
       actualizarMutaciones(this, p, dt); // las mutaciones que actúan solas cada pocos segundos
     }
+    this.actualizarArmasCreadas(dt); // sangrar, veneno y el detalle del arma creada (armas-creadas.js)
     this.camera.update(dt, p);
     if (consumeTossSwitch()) this.switchToss();
     this.updateToss();
@@ -784,5 +810,6 @@ addMethods(Game, GameDrawing);   // dibujo (game-dibujo.js)
 addMethods(Game, GranadaMethods); // la granada de Johnny (granada.js)
 addMethods(Game, MolotovMethods); // el cóctel molotov de Johnny (molotov.js)
 addMethods(Game, BancoMethods);    // el banco de trabajo: crear armas con objetos (banco.js)
+addMethods(Game, ArmasCreadasMethods); // lo que hacen las armas creadas al golpear (armas-creadas.js)
 addMethods(Game, OrdenadorMethods); // el ordenador de mantenimiento: compra de puntos de talento (ordenador.js)
 addMethods(Game, MutacionMethods); // el recuadro de elegir mutación al caer un mini jefe (mutaciones.js)

@@ -81,3 +81,6 @@ Daños con rareza verde (azul ×1,2, épica ×1,45). Números provisionales.
 - **D:** armas combinadas en el juego, por tandas: D1 cuerpo a cuerpo (1, 2, 3, 5, 12, 14, 15); D2 a distancia
   (4, 6, 7, 13); D3 arrojadizas (8–11). Dibujo provisional: el sprite del arma base con un detalle encima; los
   sprites propios, más adelante con `/arma-nueva`.
+- **D1 (19 oct, pendiente de visto bueno):** las 7 de cuerpo a cuerpo ya pegan, en `src/armas-creadas.js`. Al
+  crearlas van a la mano (se quitó la fregona provisional) y en el inventario se cambian con "Ponérmela". Efectos y
+  números provisionales en `CREADAS` y `EFECTOS`; sangrar y veneno afectan también a los jefes, aturdir y fuego no.

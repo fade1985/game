@@ -191,6 +191,7 @@ export class GameCombat {
       const crit = Math.random() < this.stats.crit;
       const l = Math.hypot(e.x - src.x, e.y - src.y) || 1;
       e.hurt(crit ? dmg * 2 : dmg, crit, (e.x - src.x) / l, (e.y - src.y) / l, this, w.knock);
+      if (w.efecto) this.efectoGolpe(e, w, crit ? dmg * 2 : dmg); // armas creadas: fuego, aturdir... (armas-creadas.js)
       this.hitSpark(e.x - ((e.x - src.x) / l) * e.r * 0.6, e.y - ((e.y - src.y) / l) * e.r * 0.6 - 10, crit);
       hits++;
       // salpicaduras (de agua, si es la fregona)
@@ -201,6 +202,11 @@ export class GameCombat {
     }
     for (const b of this.bullets) {
       if (!b.friendly && inArc(b.x, b.y, b.r)) { b.dead = true; this.puff(b.x, b.y, '#ffffff'); }
+    }
+    // la súper maza: golpe en círculo con temblor, se vea aunque no pille a nadie
+    if (w.efecto === 'circulo') {
+      this.particles.push({ x: src.x, y: src.y, vx: 0, vy: 0, r: reach * 0.6, ring: true, color: '#c9c9d6', life: 0.3, max: 0.3 });
+      this.shake(8);
     }
     if (hits) {
       this.hitStop = Math.max(this.hitStop || 0, 0.05); // pequeña pausa de impacto: da sensación de golpe
