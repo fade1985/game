@@ -18,7 +18,7 @@ export class GameMap {
     ent.y = clamp(ent.y, WALL + ent.r, this.rh - WALL - ent.r);
     for (const b of this.room.layout.blocks) pushOut(ent, b); // tabiques de los apartamentos
     for (const o of this.room.layout.obstacles) pushOut(ent, o);
-    for (const pr of this.room.props) if (pr.solid) pushOut(ent, pr);
+    for (const pr of this.room.props) if (pr.solid) pushOut(ent, pr.choque || pr); // `choque`: si lo que choca no es lo que se dibuja
   }
 
   // Hacia dónde tiene que andar un enemigo para llegar al jugador rodeando muros y muebles
@@ -44,6 +44,7 @@ export class GameMap {
 
   // ¿Está esto en una habitación que aún no se ha pisado? (entonces ni se dibuja ni se le apunta)
   hidden(ent) {
+    if (ent.siempreVisible) return false; // la puerta del baño del superviviente: se ve aunque el baño esté a oscuras
     const z = this.zoneAt(ent.x, ent.y);
     return !!z && z.fog > 0.5;
   }
@@ -58,6 +59,7 @@ export class GameMap {
     const here = l.zones[l.owner[r * l.cols + c]];
     if (here) here.seen = true;
     for (const d of l.inner) {
+      if (d.locked) continue; // la puerta del baño del superviviente, cerrada: no se ve lo de dentro
       if (c >= d.c - 1 && c <= d.c + d.w && r >= d.r - 1 && r <= d.r + d.h) l.zones[d.a].seen = l.zones[d.b].seen = true;
     }
     for (const z of l.zones) if (z.seen && z.fog > 0) z.fog = Math.max(0, z.fog - dt * 3.5);

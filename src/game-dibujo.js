@@ -182,6 +182,16 @@ export class GameDrawing {
         ctx.globalAlpha = 1;
       }
     }
+    // el superviviente encerrado: una flecha hacia la puerta de su baño (o, desde el pasillo, la de su piso)
+    // que late cada vez que grita
+    const sos = this.floor.sos;
+    if (sos && sos.puerta.solid) {
+      const at = this.room === sos.room ? sos.puerta : this.room === this.floor.corridor ? this.room.exits.find((ex) => ex.to === sos.room) : null;
+      if (at && !cam.inView({ x: at.x, y: at.y, r: 0 })) {
+        const s = cam.toScreen(at.x, at.y);
+        marker(edge(s.x, s.y), 13, sos.def.color, sos.def.icon, this.time - (this.socorroGritoT ?? -9) < 0.7);
+      }
+    }
     if (!this.room.cleared || this.doorOpen < 1) return;
     const point = (x, y, fill, label) => {
       if (cam.inView({ x, y, r: 0 })) return;

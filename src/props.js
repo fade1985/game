@@ -2,10 +2,11 @@
 //  Cosas que hay en los mapas: superviviente atrapado, la llave del
 //  mini jefe, armas en el suelo y los muebles que guardan un arma
 // ─────────────────────────────────────────────
-import { W, H, WALL, OUTLINE } from './config.js';
+import { W, H, WALL, OUTLINE, FACE_H } from './config.js';
 import { drawHuman, outlinedText, roundBox, glow, drawCached } from './draw.js';
 import { drawWeaponItem } from './weapons.js';
 import { drawSprite, hasSprite, pixelShadow, spriteMeta, poseSheet } from './sprites.js';
+import { CELL } from './shapes.js';
 
 const TAU = Math.PI * 2;
 
@@ -51,6 +52,70 @@ export class SurvivorNPC {
     ctx.textBaseline = 'middle';
     ctx.fillText(text, x, by + 1);
     outlinedText(ctx, this.def.name, x, y + 30, 14, '#ffffff', { lw: 4 });
+  }
+}
+
+// La puerta del baño donde se esconde el superviviente: cerrada (no se puede pasar) hasta que se limpia el piso.
+// `door` es el hueco del tabique (de layout.inner, en casillas). Mientras está cerrada, de vez en cuando
+// tiembla con los golpes que da él desde dentro (`knockT`, lo pone game.js al gritar "¡Socorro!")
+export class PuertaBano {
+  constructor(door) {
+    this.kind = 'puertaBano';
+    this.door = door;
+    this.flat = door.h === 1; // hueco en un tabique horizontal: la puerta se ve de frente, como los muros
+    const x0 = door.c * CELL, y0 = door.r * CELL, w = door.w * CELL, h = door.h * CELL;
+    // lo que choca: el hueco del tabique (game-mapa.js, collideWorld)
+    this.choque = { shape: 'rect', x: x0 + w / 2, y: y0 + h / 2, w, h };
+    // para dibujarla en orden: justo delante de la cara del tabique, que acaba al pie del hueco
+    this.x = x0 + w / 2;
+    this.y = y0 + h + 1;
+    this.w = w; this.h = h; this.r = Math.max(w, h) / 2;
+    this.solid = true;
+    this.siempreVisible = true;
+    this.open = 0;     // 0 cerrada, 1 abierta del todo
+    this.knockT = 0;
+    door.locked = true; // la niebla no deja ver el baño mientras está cerrada (game-mapa.js, updateFog)
+  }
+
+  abrir() {
+    this.solid = false;
+    this.door.locked = false;
+  }
+
+  draw(ctx, game) {
+    if (this.open >= 1) return; // abierta: el hueco queda libre, como las demás puertas de dentro
+    const k = 1 - this.open;    // al abrirse se encoge hacia un lado (gira sobre las bisagras)
+    const shake = this.knockT > 0 ? Math.sin(game.time * 70) * 2 * Math.min(1, this.knockT / 0.15) : 0;
+    const { x: cx, y: cy, w, h } = this.choque;
+    ctx.save();
+    ctx.lineWidth = 2; ctx.strokeStyle = OUTLINE;
+    if (this.flat) {
+      // de frente: del pie del hueco hasta casi lo alto del muro, con dos cuarterones y el pomo
+      const bottom = cy + h / 2, top = bottom - FACE_H + 10, x0 = cx - w / 2 + 4 + shake, dw = (w - 8) * k;
+      ctx.fillStyle = '#4a3123';
+      ctx.fillRect(x0, top, dw, bottom - top);
+      ctx.fillStyle = '#6e4b35';
+      ctx.fillRect(x0 + 3, top + 3, dw - 6, bottom - top - 6);
+      ctx.strokeRect(x0, top, dw, bottom - top);
+      if (dw > 20) {
+        ctx.fillStyle = '#5a3d2b';
+        const pw = dw - 16, ph = (bottom - top - 26) / 2;
+        ctx.fillRect(x0 + 8, top + 8, pw, ph);
+        ctx.fillRect(x0 + 8, top + 18 + ph, pw, ph);
+        ctx.fillStyle = '#c9a227';
+        ctx.fillRect(x0 + dw - 11, top + (bottom - top) / 2, 5, 5);
+        ctx.strokeRect(x0 + dw - 11, top + (bottom - top) / 2, 5, 5);
+      }
+    } else {
+      // en un tabique de lado: una hoja de madera vista desde arriba
+      const x0 = cx - 6 + shake, y0 = cy - h / 2, dh = h * k;
+      ctx.fillStyle = '#5a3d2b';
+      ctx.fillRect(x0, y0, 12, dh);
+      ctx.fillStyle = '#6e4b35';
+      ctx.fillRect(x0 + 2, y0 + 2, 4, dh - 4);
+      ctx.strokeRect(x0, y0, 12, dh);
+    }
+    ctx.restore();
   }
 }
 

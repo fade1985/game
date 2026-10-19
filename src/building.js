@@ -64,7 +64,7 @@ function addExpoRooms(maint) {
 //   start, startExit   dónde aparece el conserje (sin puerta: en el centro del mapa)
 //   boss        el apartamento del mini jefe        stairs   la puerta de las escaleras de emergencia
 //   key         { room, x, y, name } dónde está la llave del mini jefe
-//   survivor    { room, x, y } dónde espera el superviviente de la planta
+//   survivor    { room, zone, door, x, y } el baño (y su puerta) donde se esconde el superviviente
 //   hasKey, keyUsed   si el conserje lleva la llave y si ya la ha gastado
 //   expo        en el modo pruebas, las salas de exposición a los lados de mantenimiento ({ muebles, zombis })
 export function generateFloor(num, floors, { pruebas = false } = {}) {
@@ -130,19 +130,22 @@ export function generateFloor(num, floors, { pruebas = false } = {}) {
   shuffle([...normal]).forEach((r, i) => { r.dist = i + 1; });
   const boss = floor.apartments.find((r) => r.type === 'miniboss');
   boss.dist = normal.length + 1;
+  // El superviviente (si en esta partida le toca esta planta: lo decide game.js) se esconde en el baño de un
+  // apartamento, con la puerta cerrada. Ese baño no lleva zombis: si no, nadie podría limpiar el piso
+  const survRoom = pick(normal);
+  const bath = pick(survRoom.layout.zones.filter((z) => z.use === 'bano'));
+  const bathDoor = bath && survRoom.layout.inner.find((d) => d.a === bath.id || d.b === bath.id);
+  if (bathDoor) floor.survivor = { room: survRoom, zone: bath, door: bathDoor, ...zoneSpot(survRoom.layout, bath) };
+
   for (const r of floor.apartments) {
     r.waves = makeRoomWaves(r);
-    if (r.type === 'apartment') r.horde = makeHorde(r.layout, r.dist, num);
+    if (r.type === 'apartment') r.horde = makeHorde(r.layout, r.dist, num, floor.survivor && floor.survivor.room === r ? bath.id : -1);
   }
 
-  // La llave del mini jefe, en una habitación (que no sea el salón) de otro apartamento
+  // La llave del mini jefe, en una habitación (que no sea el salón ni el baño del superviviente) de otro apartamento
   const keyRoom = pick(normal);
-  const keyZone = pick(keyRoom.layout.zones.filter((z) => z.use !== 'salon'));
+  const keyZone = pick(keyRoom.layout.zones.filter((z) => z.use !== 'salon' && z !== bath));
   floor.key = { room: keyRoom, name: `Llave del ${boss.name}`, ...zoneSpot(keyRoom.layout, keyZone) };
-  // El superviviente, en cualquier habitación de cualquier apartamento (menos donde está la llave)
-  const survRoom = pick(normal);
-  const survZone = pick(survRoom.layout.zones.filter((z) => z !== keyZone));
-  floor.survivor = { room: survRoom, ...zoneSpot(survRoom.layout, survZone) };
   // Un armarito con un botiquín colgado en la pared del fondo de cada baño (props.js, Armarito): es lo único que cura
   floor.armaritos = [];
   for (const r of normal) {

@@ -319,7 +319,8 @@ export function makeRoomWaves(room) {
 // Los zombis de un apartamento: ya están dentro, repartidos por las habitaciones según su tamaño, y no se
 // mueven hasta que notan al conserje. Devuelve [{ type, zone, x, y }].
 // `depth` es el orden del apartamento dentro de la planta (1, 2, 3): cuanto más alto, más y peores.
-export function makeHorde(layout, depth, floorNum = 1) {
+// `skip`: una habitación que se queda sin zombis (el baño donde se esconde el superviviente)
+export function makeHorde(layout, depth, floorNum = 1, skip = -1) {
   const level = depth + Math.round((floorNum - 1) * HORDE.floorStep);
   // Los tipos más peligrosos van apareciendo según se avanza
   const pool = ['lento', 'normal'];
@@ -330,7 +331,7 @@ export function makeHorde(layout, depth, floorNum = 1) {
   const area = zones.reduce((s, z) => s + z.cells, 0);
   // en los pisos grandes hay más, pero no en proporción: si no, los de 3 dormitorios serían eternos
   const budget = (HORDE.base + level * HORDE.perLevel) * clamp(area / 700, 0.8, 1.4);
-  const weight = (z) => z.cells * (z.use === 'bano' ? 0.5 : 1); // en los baños, pocos
+  const weight = (z) => z.id === skip ? 0 : z.cells * (z.use === 'bano' ? 0.5 : 1); // en los baños, pocos
   const total = zones.reduce((s, z) => s + weight(z), 0);
   const door = { x: entry.at, y: entry.dir === 'down' ? layout.h - WALL - 52 : WALL + 52 };
 

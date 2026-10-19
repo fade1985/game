@@ -2,7 +2,7 @@
 //  Game: controla el flujo de la partida
 //  menú → edificio → plantas → pasillo y apartamentos
 // ─────────────────────────────────────────────
-import { W, H, WALL, DOOR_W, MAX_ALLIES, BUILDINGS, SURVIVORS, SLIDE, FADE } from './config.js';
+import { W, H, WALL, DOOR_W, MAX_ALLIES, BUILDINGS, SLIDE, FADE } from './config.js';
 import { rand, clamp, dist, obstacleGap } from './utils.js';
 import { Player, Ally } from './entities.js';
 import { makeBoss, BOSS_TYPES } from './bosses.js';
@@ -10,12 +10,13 @@ import { Zombie } from './zombies.js';
 import { generateFloor, floorName } from './building.js';
 import { makePlainLayout } from './rooms.js';
 import { baseStats } from './upgrades.js';
-import { SurvivorNPC, DoorKey, Ordenador, Baul, BancoTrabajo, Armarito, BOTIQUIN_CURA, WeaponProp } from './props.js';
+import { DoorKey, Ordenador, Baul, BancoTrabajo, Armarito, BOTIQUIN_CURA, WeaponProp } from './props.js';
 import { OrdenadorMethods } from './ordenador.js';
 import { BancoMethods } from './banco.js';
 import { ArmasCreadasMethods, armaDeCreada } from './armas-creadas.js';
 import { PRECIO_PUNTO, aplicarTalentos } from './talentos.js';
 import { MutacionMethods, actualizarMutaciones } from './mutaciones.js';
+import { SupervivienteMethods } from './superviviente.js';
 import { casillasMochila } from './objetos.js';
 import { ExposicionMuebles, expoZombis } from './exposicion.js';
 import { weaponSummary, WEAPONS } from './weapons.js';
@@ -48,13 +49,6 @@ const NOPE_EVERY = 1.6;    // cada cuánto se repite el aviso de una puerta que 
 
 const formatTime = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
 
 export class Game {
   constructor(canvas, ui) {
@@ -167,8 +161,8 @@ export class Game {
     this.runTime = 0;
     this.floorNum = 1;
     this.fade = null;
-    // orden en que aparecerán los supervivientes en este edificio
-    this.survivorOrder = shuffle(Object.values(SURVIVORS));
+    // el superviviente de esta partida y la planta donde se esconde (superviviente.js)
+    this.elegirSuperviviente();
     this.items = [];            // objetos conseguidos
     this.itemsSeen = new Set(); // objetos que ya han salido (para no repetir)
     this.state = 'playing';
@@ -193,14 +187,10 @@ export class Game {
     this.transition = null;
     this.room = null;
 
-    // La llave del mini jefe y el superviviente de esta planta, cada uno en su habitación
-    const { key, survivor } = this.floor;
+    // La llave del mini jefe, en su habitación; y el superviviente, si esta partida le toca esta planta (superviviente.js)
+    const { key } = this.floor;
     if (key) key.room.props.push(new DoorKey(key.name, key.x, key.y));
-    if (survivor) {
-      const npc = new SurvivorNPC(this.survivorOrder[(this.floorNum - 1) % this.survivorOrder.length]);
-      npc.x = survivor.x; npc.y = survivor.y;
-      survivor.room.props.push(npc);
-    }
+    this.colocarSuperviviente();
     for (const a of this.floor.armaritos || []) a.room.props.push(new Armarito(a.x, a.y, a.reach));
 
     // Sala de mantenimiento: la mesa con el ordenador, donde se cambian dólares por puntos de talento (ordenador.js)
@@ -523,6 +513,7 @@ export class Game {
     sfx.clear();
     this.floatText(this.player.x, this.player.y - 50, '¡Despejado!', '#80ed99', 24);
     this.later(0.25, () => sfx.door());
+    this.abrirBano(); // si es el piso del superviviente, se abre la puerta de su baño
 
     const type = this.room.type;
     if (type === 'miniboss') {
@@ -584,6 +575,7 @@ export class Game {
         sfx.buy();
       } else if (pr.kind === 'survivor' && this.room.cleared) {
         pr.taken = true;
+        this.superviventeRescatado();
         this.addAlly(pr.def, pr.x, pr.y);
         this.banner = { icon: pr.def.id, title: `¡${pr.def.name} se une!`, sub: pr.def.desc, t: 0 };
         this.burst(pr.x, pr.y, pr.def.color, 14, 16);
@@ -730,6 +722,7 @@ export class Game {
     this.updateParticles(dt);
     this.updateDoors(dt);
     this.updateProps();
+    this.actualizarSocorro(dt); // el superviviente encerrado grita (superviviente.js)
 
     this.shakeAmt *= Math.exp(-dt * 10);
     this.hurtFlash = Math.max(0, (this.hurtFlash || 0) - dt);
@@ -839,4 +832,5 @@ addMethods(Game, MolotovMethods); // el cóctel molotov de Johnny (molotov.js)
 addMethods(Game, BancoMethods);    // el banco de trabajo: crear armas con objetos (banco.js)
 addMethods(Game, ArmasCreadasMethods); // lo que hacen las armas creadas al golpear (armas-creadas.js)
 addMethods(Game, OrdenadorMethods); // el ordenador de mantenimiento: compra de puntos de talento (ordenador.js)
+addMethods(Game, SupervivienteMethods); // el superviviente encerrado en el baño (superviviente.js)
 addMethods(Game, MutacionMethods); // el recuadro de elegir mutación al caer un mini jefe (mutaciones.js)

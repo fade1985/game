@@ -927,7 +927,7 @@ export function drawMinimap(ctx, floor, current, title, time, screenW = W) {
         const r = ex.to;
         // la llave que aún no se ha recogido se marca en cuanto se ha entrado en su apartamento
         const icon = ex.locked === 'key' ? '🔒' : floor.key.room === r && r.visited && !floor.hasKey && !floor.keyUsed ? '🗝️' : ROOM_TYPES[r.type].frame ? ROOM_TYPES[r.type].icon : null;
-        boxes.push([x0 + (ex.at / hall.layout.w) * len - 15, ex.dir === 'up' ? top : top + 38, 30, 18, tint(r), current === r, icon]);
+        boxes.push([x0 + (ex.at / hall.layout.w) * len - 15, ex.dir === 'up' ? top : top + 38, 30, 18, tint(r), current === r, icon, !!floor.sos && floor.sos.room === r]);
       }
     }
   }
@@ -961,6 +961,17 @@ export function drawMinimap(ctx, floor, current, title, time, screenW = W) {
     ctx.stroke();
   }
   ctx.restore();
+  // el piso donde alguien pide socorro: un "!" rojo que parpadea en su esquina
+  if (Math.sin(time * 8) > -0.3) {
+    for (const [x, y, w, , , , , sos] of boxes) {
+      if (!sos) continue;
+      ctx.beginPath();
+      ctx.arc(x + w, y, 6, 0, Math.PI * 2);
+      ctx.fillStyle = '#ff2d4b'; ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = OUTLINE; ctx.stroke();
+      outlinedText(ctx, '!', x + w, y + 1, 10, '#ffffff', { lw: 3 });
+    }
+  }
 }
 
 // Emojis que ya tienen icono pixel art (assets/ui/iconos); el resto se sigue dibujando como texto
