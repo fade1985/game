@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────
 //  Guardado del progreso en el navegador (localStorage)
 //
-//  Se guarda: dólares, puntos y talentos, armas desbloqueadas, récords y el progreso de cada edificio.
+//  Se guarda: dólares, puntos y talentos, objetos del baúl, armas desbloqueadas, récords y el progreso de cada edificio.
 //  Las partidas a medias NO se guardan: si cierras, empiezas el edificio de nuevo.
 // ─────────────────────────────────────────────
 const KEY = 'blobquest-save-v2';
@@ -17,6 +17,7 @@ const DEFAULT = {
   runs: 0,
   wins: 0,
   kills: 0,
+  baul: {},         // objetos para crear armas guardados en el baúl: { clavos: 2, ... } (objetos.js)
   weapons: [],      // armas desbloqueadas (encontradas alguna vez): ['bate', ...]. La fregona siempre está
   buildings: {},    // progreso por edificio: { apartamentos: { ... } }
   settings: { music: true },
@@ -29,6 +30,7 @@ export function loadSave() {
   delete save.workshop; // el Taller ya no existe: se olvidan sus mejoras
   save.talentos = { ...(d.talentos || {}) };
   save.weapons = [...(d.weapons || [])];
+  save.baul = { ...(d.baul || {}) };
   save.settings = { ...DEFAULT.settings, ...(d.settings || {}) };
   save.buildings = {};
   for (const [id, b] of Object.entries(d.buildings || {})) save.buildings[id] = { ...BUILDING_DEFAULT, ...b };

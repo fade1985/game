@@ -6,6 +6,7 @@ import { toggleMute } from './sfx.js';
 import { loadSave } from './save.js';
 import { makeTitleCanvas } from './titulo.js';
 import { mutacion } from './mutaciones.js';
+import { OBJETOS, MOCHILA, iconoObjeto } from './objetos.js';
 
 // Pantalla completa (solo en móviles que la permiten; en iPhone no existe)
 const canFullscreen = () => document.body.classList.contains('touch') && document.fullscreenEnabled && !document.fullscreenElement;
@@ -115,6 +116,7 @@ export function createUI(root) {
       set('team', $('#hud-team'), g.allies.map((al) => `<i class="ico ico-${al.def.id}"></i>`).join(''), 'innerHTML');
       set('teamShow', $('#pill-team'), g.allies.length === 0, 'hidden');
       set('keys', $('#hud-keys'), `$${g.wallet ?? 0}`);
+      set('mochila', $('#hud-mochila'), `${g.mochila?.length ?? 0}/${MOCHILA}`);
       const molotovs = g.testMode ? '∞' : String(g.molotovs);
       set('molotov', $('#hud-molotov'), molotovs);
       const granadas = g.testMode ? '∞' : String(g.granadas);
@@ -227,6 +229,32 @@ export function createUI(root) {
         </div>`,
       { resume, music, quit },
       (e) => { if (e.code === 'Escape' || e.code === 'KeyP') resume(); });
+    },
+
+    // Inventario: las dos armas que lleva Johnny y las casillas de la mochila (objetos.js)
+    showInventario(g, cerrar) {
+      const p = g.player;
+      const arma = (w, hueco) => w
+        ? `<div class="inv-casilla gris"><i class="ico ico-${w.id}"></i><b>${w.name}</b><small>${hueco}</small></div>`
+        : `<div class="inv-casilla vacia"><small>${hueco}</small></div>`;
+      const casillas = [];
+      for (let i = 0; i < MOCHILA; i++) {
+        const id = g.mochila[i];
+        casillas.push(id
+          ? `<div class="inv-casilla gris"><i class="ico" style="background-image:url(${iconoObjeto(id)})"></i><b>${OBJETOS[id].nombre}</b></div>`
+          : '<div class="inv-casilla vacia"></div>');
+      }
+      open(`
+        <div class="panel inventario">
+          <h2 class="title">Inventario</h2>
+          <div class="inv-armas">${arma(p.slots.melee, 'Cuerpo a cuerpo')}${arma(p.slots.ranged, 'Fuego')}</div>
+          <div class="plist-title"><i class="ico ico-mochila"></i> Mochila · ${g.mochila.length} / ${MOCHILA}</div>
+          <div class="inv-mochila">${casillas.join('')}</div>
+          <p class="sub small">Lo que llevas en la mochila pasa al baúl si completas el edificio. Si caes, se pierde.</p>
+          <button class="btn yellow small" data-act="cerrar">Seguir</button>
+        </div>`,
+      { cerrar },
+      (e) => { if (['Escape', 'Tab', 'KeyI', 'KeyP'].includes(e.code)) { e.preventDefault(); cerrar(); } });
     },
 
     // Al caer un mini jefe: dos mutaciones para elegir una (mutaciones.js). `llevas`: cuántas tiene ya.

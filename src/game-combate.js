@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────
 //  Combate: las balas, los golpes cuerpo a cuerpo, los disparos de los zombis, qué pasa cuando
-//  muere uno (y cuando cae un jefe) y lo que sueltan (billetes, molotovs, granadas, munición).
+//  muere uno (y cuando cae un jefe) y lo que sueltan (billetes, molotovs, granadas, munición, objetos).
 //
 //  Son métodos de Game: game.js los añade a la clase, así que dentro "this" es la partida.
 // ─────────────────────────────────────────────
@@ -10,6 +10,7 @@ import { destello } from './luz.js';
 import { isWall, lineClear } from './shapes.js';
 import { MOLOTOV } from './molotov.js';
 import { GRANADA } from './granada.js';
+import { OBJETOS, MOCHILA, objetoQueSuelta, objetoAlAzar } from './objetos.js';
 import { sfx } from './sfx.js';
 import { animDuration } from './sprites.js';
 
@@ -80,7 +81,8 @@ export class GameCombat {
       // Los billetes siempre vienen a ti; los molotovs y las granadas, si caben en la mochila
       const wanted = pk.kind === 'cash' || (pk.kind === 'molotov' ? this.molotovs < MOLOTOV.max + this.stats.extraThrow
         : pk.kind === 'granada' ? this.granadas < GRANADA.max + this.stats.extraThrow
-        : pk.kind === 'ammo' ? p.wantsAmmo() : false);
+        : pk.kind === 'ammo' ? p.wantsAmmo()
+        : pk.kind === 'objeto' ? this.mochila.length < MOCHILA : false); // objetos para crear armas (objetos.js)
       if (!p.dead && wanted && pk.t > 0.4 && d < this.stats.magnet) {
         pk.vx += (dx / d) * 2200 * dt;
         pk.vy += (dy / d) * 2200 * dt;
@@ -116,6 +118,10 @@ export class GameCombat {
     } else if (pk.kind === 'molotov') {
       this.molotovs = Math.min(MOLOTOV.max + this.stats.extraThrow, this.molotovs + 1);
       this.floatText(pk.x, pk.y - 20, '+1 molotov', '#ff9f1c', 20);
+      sfx.buy();
+    } else if (pk.kind === 'objeto') {
+      this.mochila.push(pk.obj);
+      this.floatText(pk.x, pk.y - 20, `+${OBJETOS[pk.obj].nombre}`, '#c8ccd2', 18);
       sfx.buy();
     }
   }
@@ -235,6 +241,9 @@ export class GameCombat {
       else if (Math.random() < MOLOTOV.drop) this.dropPickup('molotov', e.x, e.y);
       else if (Math.random() < GRANADA.drop) this.dropPickup('granada', e.x, e.y);
       else if (this.player.slots.ranged && Math.random() < AMMO_CHANCE) this.dropPickup('ammo', e.x, e.y);
+      // y aparte, a veces, un objeto para crear armas (objetos.js)
+      const obj = objetoQueSuelta(e.type);
+      if (obj) this.dropPickup('objeto', e.x, e.y).obj = obj;
     }
     if (this.stats.lifesteal && !this.player.dead) this.healPlayer(this.stats.lifesteal);
     // Caníbal (mutación): cada zombi muerto cura un poco
@@ -260,6 +269,7 @@ export class GameCombat {
     sfx.boom();
     for (let i = 0; i < (boss.type === 'boss' ? 8 : 3); i++) this.dropPickup('cash', boss.x, boss.y);
     for (let i = 0; i < 2; i++) this.dropPickup('ammo', boss.x, boss.y); // y munición
+    for (let i = 0; i < 2; i++) this.dropPickup('objeto', boss.x, boss.y).obj = objetoAlAzar(); // y dos objetos
     // Las armas ya solo se compran en la tienda del ordenador (ordenador.js): el mini jefe no suelta ninguna
     if (boss.type === 'miniboss') {
       // un segundo después de que su cuerpo acabe de caer, el recuadro de las mutaciones (mutaciones.js)
@@ -289,6 +299,8 @@ export class GameCombat {
 
   dropPickup(kind, x, y) {
     const a = rand(0, Math.PI * 2), s = rand(80, 220);
-    this.pickups.push({ kind, x, y, r: 14, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0, seed: rand(0, 6) });
+    const pk = { kind, x, y, r: 14, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0, seed: rand(0, 6) };
+    this.pickups.push(pk);
+    return pk;
   }
 }

@@ -194,6 +194,25 @@ canvas {
 .mut-carta b { font-size: 1.3em; font-weight: 400; color: #e07be0; }
 .mut-carta small { font-size: 0.8em; line-height: 1.35; }
 .mut-num { position: absolute; top: 0; left: 0.1em; font-size: 0.8em; opacity: 0.6; }
+/* Inventario (ui.js, showInventario): las dos armas y las casillas de la mochila. El borde dice la rareza
+   (de momento todo es gris, común; luego vendrán verde, azul y morada) */
+.inventario { display: flex; flex-direction: column; align-items: center; gap: 0.6em; width: min(40em, 100%); }
+.inv-armas { display: flex; gap: 0.8em; }
+.inv-mochila { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5em; width: 100%; }
+.inv-casilla {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.2em;
+  min-height: 6.2em; padding: 0.4em; text-align: center;
+  border: 0.18em solid; border-radius: 0.3em; background: rgba(0, 0, 0, 0.25);
+}
+.inv-armas .inv-casilla { width: 10em; }
+.inv-casilla .ico { width: 2.6em; height: 2.6em; image-rendering: pixelated; }
+.inv-casilla b { font-size: 0.85em; font-weight: 400; line-height: 1.15; }
+.inv-casilla small { font-size: 0.7em; color: var(--muted); }
+.inv-casilla.vacia { border-style: dashed; border-color: rgba(255, 255, 255, 0.15); }
+.inv-casilla.gris { border-color: #9aa0a8; }
+.inv-casilla.verde { border-color: #5ac85a; }
+.inv-casilla.azul { border-color: #4a8bf0; }
+.inv-casilla.morada { border-color: #b65ce0; }
 @keyframes temblor { 0%, 100% { transform: translateX(0); } 33% { transform: translateX(-0.08em) rotate(-1deg); } 66% { transform: translateX(0.08em) rotate(1deg); } }
 .plist-row.empty { font-style: italic; }
 .pause { width: min(52em, 100%); max-height: 100%; overflow-y: auto; }

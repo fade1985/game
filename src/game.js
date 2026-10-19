@@ -145,6 +145,7 @@ export class Game {
     this.runKeys = 0;          // dólares recogidos en esta partida: solo se guardan si completas el edificio
     this.molotovs = MOLOTOV.start + this.stats.extraThrow; // cócteles molotov en la mochila
     this.granadas = GRANADA.start + this.stats.extraThrow; // granadas en la mochila
+    this.mochila = [];         // objetos para crear armas recogidos en esta partida (objetos.js): al baúl si ganas
     this.reviveUsed = false;   // Desfibrilador: solo una vez por edificio
     this.tossKind = 'molotov';     // lo que se lanza con el botón de lanzar: 'molotov' o 'granada'
     this.savedKeys = save.keys; // dólares ahorrados de antes (en el guardado se siguen llamando "keys")
@@ -234,6 +235,15 @@ export class Game {
     });
   }
 
+  // Inventario (Tab, I, Select del mando o tocar la mochila del HUD): las dos armas y la mochila
+  openInventario() {
+    if (this.state !== 'playing' || this.paused || this.player.dead) return;
+    this.paused = true;
+    this.pauseOpen = true;
+    clearInput();
+    this.ui.showInventario(this, () => this.closePause());
+  }
+
   closePause() {
     if (!this.pauseOpen) return;
     this.pauseOpen = false;
@@ -253,6 +263,8 @@ export class Game {
       if (win) {
         // los dólares de la partida solo se guardan si completas el edificio; si caes, se pierden
         s.keys += this.runKeys;
+        // y los objetos de la mochila pasan al baúl (si caes, también se pierden)
+        for (const id of this.mochila) s.baul[id] = (s.baul[id] || 0) + 1;
         s.totalKeys += this.runKeys;
         s.wins++;
         b.wins++;

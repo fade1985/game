@@ -8,6 +8,7 @@ import { updatePad } from './mando.js';
 import { unlockAudio, setMusicOn, toggleMute } from './sfx.js';
 import { loadSave } from './save.js';
 import { loadSprites } from './sprites.js';
+import { objetoAlAzar } from './objetos.js';
 
 const root = document.getElementById('game-wrap');
 const canvas = document.getElementById('game');
@@ -35,8 +36,13 @@ window.addEventListener('keydown', unlockAudio);
 // Pausa con Esc / P, y automáticamente al cambiar de pestaña
 window.addEventListener('keydown', (e) => {
   if ((e.code === 'Escape' || e.code === 'KeyP') && !e.uiHandled) game.openPause();
+  // el inventario: Tab o I (el Tab, sin que el navegador salte de botón en botón)
+  if ((e.code === 'Tab' || e.code === 'KeyI') && !e.uiHandled) { e.preventDefault(); game.openInventario(); }
 });
-// Modo pruebas (?pruebas): las teclas 1-6 invocan cada tipo de zombi, 7 el mini jefe y 8 la jefa final
+// tocar la mochila del HUD también abre el inventario (móvil)
+document.getElementById('pill-mochila').addEventListener('pointerdown', (e) => { e.preventDefault(); game.openInventario(); });
+// Modo pruebas (?pruebas): las teclas 1-6 invocan cada tipo de zombi, 7 el mini jefe y 8 la jefa final;
+// el 9 deja caer un objeto para crear armas a los pies de Johnny
 const TEST_ZOMBIES = ['lento', 'normal', 'rapido', 'explosivo', 'tentaculos', 'venenoso', 'miniboss', 'boss'];
 window.addEventListener('keydown', (e) => {
   if (!game.testMode || game.state !== 'playing' || game.paused || e.uiHandled) return;
@@ -46,6 +52,7 @@ window.addEventListener('keydown', (e) => {
     const pos = game.findSpawnPoint();
     game.spawnEnemy(TEST_ZOMBIES[n - 1], pos.x, pos.y);
   }
+  if (n === 9) game.dropPickup('objeto', game.player.x, game.player.y + 40).obj = objetoAlAzar();
 });
 // Carteles de las armas (abajo) y botones redondos de las armas (móvil): tocar la otra arma la saca;
 // tocar la de fuego que ya está en la mano, recarga
