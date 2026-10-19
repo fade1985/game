@@ -69,8 +69,8 @@ Daños con rareza verde (azul ×1,2, épica ×1,45). Números provisionales.
 
 ## Fases
 
-- **A:** objetos que sueltan los zombis + mochila en el HUD.
-- **B:** el baúl (guardar y ver lo guardado). Hecha el 19 oct, pendiente de visto bueno: `Baul` en `src/props.js`
+- **A:** objetos que sueltan los zombis + mochila en el HUD. Hecha el 19 oct, con visto bueno.
+- **B:** el baúl (guardar y ver lo guardado). Hecha el 19 oct, con visto bueno: `Baul` en `src/props.js`
   (dibujado a mano), al lado del ordenador (`BAUL_X` en `game.js`); al arrimarse, `showBaul` de `ui.js`.
 - **C:** banco de trabajo, recetas y rarezas.
 - **D:** armas combinadas en el juego, por tandas: D1 cuerpo a cuerpo (1, 2, 3, 5, 12, 14, 15); D2 a distancia
