@@ -254,7 +254,7 @@ export class OrdenadorMethods {
     const antes = { maxHp: s.maxHp, extraThrow: s.extraThrow, shield: s.shield };
     // el mismo objeto: Johnny lo lleva enlazado (y sin perder las mutaciones de esta partida)
     Object.assign(s, aplicarMutaciones(aplicarTalentos(baseStats(), talentos), this.mutaciones));
-    if (s.maxHp > antes.maxHp) p.hp += s.maxHp - antes.maxHp;   // la vida nueva viene llena
+    if (s.maxHp > antes.maxHp) p.hp = Math.min(p.hp + s.maxHp - antes.maxHp, p.vidaTope()); // la vida nueva viene llena (sin los tercios perdidos)
     const extra = s.extraThrow - antes.extraThrow;               // Artificiero: las botellas de más, ya
     this.molotovs += extra; this.granadas += extra;
     if (s.shield && !antes.shield) p.shield = s.shield;          // Acero: el escudo de esta planta

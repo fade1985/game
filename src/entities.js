@@ -42,6 +42,7 @@ export class Player {
     this.r = 18;
     this.vx = 0; this.vy = 0;
     this.hp = stats.maxHp;
+    this.tercios = 3;     // la vida va en tres tercios: el que se pierde ya no se cura (vidaTope)
     this.invuln = 0;      // tiempo de invulnerabilidad tras recibir daño
     this.hurtT = 0;       // destello blanco al recibir daño
     this.dashT = 0;       // duración restante de la esquiva
@@ -185,13 +186,23 @@ export class Player {
     return false;
   }
 
+  // Hasta dónde se puede curar: los tercios enteros que le quedan. Al bajar de un tercio, ese se pierde
+  // para el resto de la partida (solo el desfibrilador lo devuelve)
+  vidaTope() {
+    const tercio = this.stats.maxHp / 3;
+    const quedan = Math.max(1, Math.ceil(this.hp / tercio - 1e-6));
+    if (quedan < this.tercios) this.tercios = quedan;
+    return this.tercios * tercio;
+  }
+
   update(dt, game, move, dash) {
     const s = this.stats;
+    this.vidaTope(); // apunta si acaba de perder un tercio
     this.dashCd -= dt;
     this.invuln -= dt;
     this.dodgeT = (this.dodgeT || 0) - dt; // Reflejos: cuenta atrás hasta la siguiente esquiva automática
     // Lobezno: recupera vida poco a poco
-    if (s.regen && !this.dead && this.hp < s.maxHp && (this.regenT = (this.regenT || 0) + dt) >= 3) {
+    if (s.regen && !this.dead && this.hp < this.vidaTope() && (this.regenT = (this.regenT || 0) + dt) >= 3) {
       this.regenT -= 3;
       game.healPlayer(s.regen);
     }
@@ -232,9 +243,11 @@ export class Player {
       }
     } else {
       // Aceleración suave hacia la velocidad deseada (en suelo resbaladizo, mucho más suave: patina)
+      // por cada tercio de vida perdido anda un 25 % más lento
       const k = 1 - Math.exp(-dt * 14 * agarre(this));
-      this.vx += (move.x * s.speed - this.vx) * k;
-      this.vy += (move.y * s.speed - this.vy) * k;
+      const vel = s.speed * (1 - 0.25 * (3 - this.tercios));
+      this.vx += (move.x * vel - this.vx) * k;
+      this.vy += (move.y * vel - this.vy) * k;
     }
 
     this.x += this.vx * dt;
@@ -612,7 +625,7 @@ export class Ally {
     } else if (ab.kind === 'heal') {
       if (this.abT <= 0) {
         this.abT = ab.every;
-        if (!p.dead && p.hp < game.stats.maxHp) this.heal(game, ab.amount);
+        if (!p.dead && p.hp < p.vidaTope()) this.heal(game, ab.amount);
       }
     }
   }
@@ -649,7 +662,7 @@ export class Ally {
   // El juego avisa a cada compañero cuando se limpia una sala
   onRoomCleared(game) {
     const p = game.player;
-    if (this.ab.onClear && !p.dead && p.hp < game.stats.maxHp) this.heal(game, this.ab.onClear);
+    if (this.ab.onClear && !p.dead && p.hp < p.vidaTope()) this.heal(game, this.ab.onClear);
   }
 
   handPos(a) {
