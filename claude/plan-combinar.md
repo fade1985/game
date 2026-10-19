@@ -72,7 +72,7 @@ Daños con rareza verde (azul ×1,2, épica ×1,45). Números provisionales.
 - **A:** objetos que sueltan los zombis + mochila en el HUD. Hecha el 19 oct, con visto bueno.
 - **B:** el baúl (guardar y ver lo guardado). Hecha el 19 oct, con visto bueno: `Baul` en `src/props.js`
   (dibujado a mano), al lado del ordenador (`BAUL_X` en `game.js`); al arrimarse, `showBaul` de `ui.js`.
-- **C:** banco de trabajo, recetas y rarezas. Hecha el 19 oct, pendiente de visto bueno: recetas y rarezas en
+- **C:** banco de trabajo, recetas y rarezas. Hecha el 19 oct, con visto bueno: recetas y rarezas en
   `src/recetas.js` (daños de las armas a distancia y arrojadizas puestos por Claude, provisionales); el banco
   (`BancoTrabajo` en `props.js`, a la izquierda del ordenador) y su recuadro en `src/banco.js`. Decidido con el
   dueño: la fregona va al inventario al coger otra arma cuerpo a cuerpo y solo se queda en el suelo si se tira
