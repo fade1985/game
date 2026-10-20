@@ -180,29 +180,29 @@
   },
   "botPartidas": [
     {
+      "state": "over",
+      "floor": 1,
+      "dead": true,
+      "jammed": false,
+      "time": 155
+    },
+    {
       "state": "playing",
       "floor": 1,
       "dead": false,
-      "jammed": true,
-      "time": 114
-    },
+      "jammed": false,
+      "time": 298
+    }
+  ],
+  "botPlantas": [
     {
       "state": "over",
       "floor": 1,
       "dead": true,
       "jammed": false,
-      "time": 242
+      "time": 181
     }
   ],
-  "botPlantas": [
-    {
-      "state": "playing",
-      "floor": 2,
-      "dead": false,
-      "jammed": true,
-      "time": 203
-    }
-  ],
-  "botMapas": 8,
+  "botMapas": 3,
   "fin": "over"
 }
