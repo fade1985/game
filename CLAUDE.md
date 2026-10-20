@@ -116,6 +116,7 @@ fotograma. `node tools/rendimiento.mjs` mide el dibujo con muchos zombis ardiend
   dormitorio, salón y pasillo cuando el baño tenga el visto bueno; coordinar con la sesión del mapa los tamaños
   fijos de habitación.
 - **Armas:** los números del MP5, la portera y el molotov se quedan como están (20 oct, decidido por el dueño).
+- **Jefes:** la portera, cambiarla a su diseño nuevo; faltan por hacer los otros tres mini jefes (Glotón, Gymbro, jefe de bomberos). Todo en `docs/JEFES.md`.
 - **Limpieza en PixelLab** de lo descartado (listas en `docs/HISTORIA.md`, `docs/ZOMBIS.md` y `assets/pixellab.json`).
 - De antes: reposo de Johnny con PixMiniMax, equilibrado de salas grandes, y si el proyecto pasa a Godot
   (`docs/HISTORIA.md`).

@@ -1,6 +1,6 @@
 # Dinámicas de los jefes (diseño del dueño, 20 de octubre de 2026)
 
-Guardado para el futuro: **todavía no se hace nada de esto**. Según el dueño, de momento solo se puede hacer lo de la portera (los otros tres jefes aún no tienen sprite). Cuando toque, contar el plan al dueño y preguntar.
+Guardado para el futuro: **todavía no se hace nada de esto**. Según el dueño, de momento solo se puede hacer lo de la portera; el Glotón, el Gymbro y el jefe de bomberos son **mini jefes que faltan por hacer** (aún no tienen sprite). Cuando toque, contar el plan al dueño y preguntar.
 Lo ya hecho de la portera está en [`ZOMBIS.md`](ZOMBIS.md) (al final) y en `src/jefe-portera.js`.
 
 ## 1. La portera
