@@ -117,7 +117,8 @@ function think(game, memo) {
     return toward(game, memo.goal);
   }
   // limpio: recoger lo que haya (la llave, el superviviente, el botiquín del baño si hace falta) y salir
-  const hurt = p.hp < game.stats.maxHp * 0.8;
+  // herido: comparado con lo que aún puede curarse (los tercios perdidos ya no vuelven: entities.js, vidaTope)
+  const hurt = p.hp < p.vidaTope() * 0.8;
   const prop = room.props.find((pr) => !pr.taken && (pr.kind === 'doorkey' || (pr.kind === 'survivor' && game.allies.length < 4)
     || (pr.kind === 'armarito' && hurt)));
   if (prop) return toward(game, prop);

@@ -2,7 +2,9 @@
 //  "La portera" (mini jefa de cada planta desde el 15 de octubre de 2026, y
 //  de momento también la jefa final): una abuela zombi con una fregona
 //  llena de sangre. Lanza agua sucia en abanico, da fregonazos, tira
-//  botellas de lejía y, a mitad de vida, se enfada de verdad. En pixel art
+//  botellas de lejía y, a mitad de vida, se enfada de verdad. Desde el 20 de octubre, además, lo de
+//  docs/JEFES.md: salpica charcos de ácido con la fregona, embiste y remata con un fregonazo en
+//  círculo, y grita para llamar a los vecinos (todo el doble en la fase 2). En pixel art
 //  (hoja "jefe-portera"); sin la hoja, se dibuja como antes.
 // ─────────────────────────────────────────────
 import { OUTLINE, PIXEL } from './config.js';
@@ -18,6 +20,12 @@ export const PORTERA = {
   fanWarn: 0.55, fanCount: 7, fanSpread: 1.0, fanSpeed: 240, fanDmg: 10,
   sweepWarn: 0.6, sweepReach: 135, sweepHalf: 1.05, sweepDmg: 20, sweepRange: 150,
   bottles: 3, spinTime: 2.6, spinDmg: 10,
+  // charcos de ácido (cuántos en cada fase; el charco en sí, en ACIDO)
+  acidWarn: 0.5, acid: [3, 6],
+  // embestida: aviso, velocidad y tiempo máximo corriendo; luego el fregonazo en círculo (cuántas seguidas en cada fase)
+  chargeWarn: 0.55, chargeSpeed: 470, chargeTime: 0.9, slamWarn: 0.35, slamR: 125, slamDmg: 20, charges: [1, 2],
+  // grito: cuántos vecinos llama en cada fase
+  vecinos: [2, 4],
 };
 // Charco de lejía (lo usa game.js igual que los de veneno)
 // Unidades que avanza la portera en un ciclo de andar (dos pasos), medidas en su dibujo: el pie apoyado retrocede
@@ -31,6 +39,8 @@ const feetDy = (dir) => (FEET_DY[dir] || 0) * PIXEL;
 
 // lo que hace pisarla (resbalar y algo de daño) está en sus estados: HAZARDS de game-ataques.js
 export const BLEACH = { hit: 10, life: 5, radius: 54, flight: 0.9 };
+// Charco de ácido que salpica con la fregona: hace daño al pisarlo y envenena (HAZARDS de game-ataques.js)
+export const ACIDO = { hit: 8, life: 6, radius: 58, flight: 0.75 };
 
 // ═════════════ LA PORTERA ═════════════
 export class Portera extends BossBase {
@@ -101,6 +111,30 @@ export class Portera extends BossBase {
         if (st.t >= 0.6) this.setState('spin', { next: 0 });
         break;
       case 'spin': this.whirl(dt, game, to); break;
+      case 'acidWarn':
+        // levanta la fregona chorreando ácido
+        this.brake(dt);
+        this.look(dt, p.x, p.y);
+        this.broomTarget = aim - 2.2;
+        if (Math.random() < dt * 12) game.puff(this.x + rand(-30, 30), this.y - rand(20, 60), '#9be33b');
+        if (st.t >= PORTERA.acidWarn) this.setState('acid', { thrown: 0 });
+        break;
+      case 'acid': this.acid(dt, game, to); break;
+      case 'chargeWarn': this.chargeWarn(dt, game, to); break;
+      case 'charge': this.charge(dt, game, to); break;
+      case 'slamWarn':
+        this.brake(dt, 6);
+        this.broomTarget = -Math.PI / 2;
+        if (st.t >= PORTERA.slamWarn) this.slam(game);
+        break;
+      case 'slam':
+        this.brake(dt);
+        this.broomTarget = aim + 0.9;
+        if (st.t >= 0.4) {
+          if (st.left > 0) this.setState('chargeWarn', { left: st.left, warn: PORTERA.chargeWarn * 0.6 });
+          else this.setState('walk', { dur: angry ? 0.5 : 0.9 });
+        }
+        break;
       case 'summon': this.summon(dt, game); break;
       case 'rage': this.rage(dt, game); break;
       case 'recover':
@@ -186,18 +220,87 @@ export class Portera extends BossBase {
     if (st.t >= PORTERA.spinTime) this.setState('recover', { dur: 0.9 });
   }
 
-  // Llama a los vecinos del 3º: un zombi normal y uno rápido a sus lados
+  // Grita y llama a los vecinos: 2 zombis (4 enfadada), normales y rápidos, repartidos a su alrededor
   summon(dt, game) {
     const st = this.state;
     this.brake(dt);
     if (st.t >= 0.8 && !st.done) {
       st.done = true;
-      for (const [i, type] of ['normal', 'rapido'].entries()) {
-        const a = (i / 2) * TAU + rand(-0.5, 0.5);
+      const n = PORTERA.vecinos[this.phase - 1];
+      for (let i = 0; i < n; i++) {
+        const type = i % 2 ? 'rapido' : 'normal';
+        const a = (i / n) * TAU + rand(-0.5, 0.5);
         game.spawnEnemy(type, this.x + Math.cos(a) * 120, this.y + Math.sin(a) * 90);
       }
     }
     if (st.t >= 1.1) this.setState('walk', { dur: 0.6 });
+  }
+
+  // Charcos de ácido: sacude la fregona y los salpica en parábola (el primero, justo donde vas a estar)
+  acid(dt, game, { p, aim, angry }) {
+    const st = this.state;
+    this.brake(dt);
+    this.look(dt, p.x, p.y);
+    this.broomTarget = st.thrown % 2 ? aim - 1.2 : aim + 1.2;
+    const n = PORTERA.acid[angry ? 1 : 0];
+    const gap = angry ? 0.1 : 0.16;
+    while (st.thrown < n && st.t >= st.thrown * gap) {
+      const spreadR = st.thrown === 0 ? 0 : rand(70, angry ? 190 : 140);
+      const a = rand(0, TAU);
+      // sale de la punta de la fregona
+      const fx = this.x + Math.cos(aim) * 40, fy = this.y - 20;
+      game.lob(fx, fy, p.x + p.vx * 0.3 + Math.cos(a) * spreadR, p.y + p.vy * 0.3 + Math.sin(a) * spreadR, 'acido');
+      if (st.thrown % 2 === 0) sfx.broom();
+      st.thrown++;
+    }
+    if (st.t >= n * gap + 0.45) this.setState('walk', { dur: angry ? 0.5 : 0.9 });
+  }
+
+  // Aviso de la embestida: se agacha mirando a Johnny y marca por dónde va a venir
+  chargeWarn(dt, game, { p, aim }) {
+    const st = this.state;
+    this.brake(dt);
+    this.look(dt, p.x, p.y, 14);
+    st.angle = aim;
+    this.broomTarget = aim + 2.4;
+    if (st.t >= (st.warn ?? PORTERA.chargeWarn)) {
+      this.setState('charge', { angle: aim, left: (st.left ?? PORTERA.charges[this.phase - 1]) - 1 });
+      sfx.roar();
+    }
+  }
+
+  // Corre en línea recta muy deprisa; al llegar a Johnny (o al cansarse) se para y prepara el fregonazo
+  charge(dt, game, { d }) {
+    const st = this.state;
+    const sp = PORTERA.chargeSpeed;
+    this.vx = Math.cos(st.angle) * sp; this.vy = Math.sin(st.angle) * sp;
+    this.lookX = Math.cos(st.angle); this.lookY = Math.sin(st.angle);
+    this.broomTarget = st.angle + 2.4;
+    if (Math.random() < dt * 25) game.puff(this.x + rand(-20, 20), this.y + this.def.feet, '#8a7a66');
+    if (d < 75 || st.t >= PORTERA.chargeTime) {
+      this.vx *= 0.3; this.vy *= 0.3;
+      this.setState('slamWarn', { left: st.left });
+    }
+  }
+
+  // Fregonazo en círculo: golpea todo lo que tiene alrededor y lo echa hacia atrás
+  slam(game) {
+    this.setState('slam', { left: this.state.left });
+    const p = game.player;
+    sfx.broom();
+    game.shake(12);
+    game.particles.push({ x: this.x, y: this.y, vx: 0, vy: 0, r: PORTERA.slamR, ring: true, color: '#cbb994', life: 0.35, max: 0.35 });
+    for (let i = 0; i < 14; i++) {
+      const a = (i / 14) * TAU, r = rand(50, PORTERA.slamR);
+      game.puff(this.x + Math.cos(a) * r, this.y + Math.sin(a) * r * 0.8, '#cbb994');
+    }
+    if (p.dead) return;
+    const dx = p.x - this.x, dy = p.y - this.y;
+    const d = Math.hypot(dx, dy);
+    if (d - p.r <= PORTERA.slamR) {
+      p.hurt(PORTERA.slamDmg, game);
+      p.vx += (dx / (d || 1)) * 700; p.vy += (dy / (d || 1)) * 700;
+    }
   }
 
   // Paso a la fase 2: invulnerable un momento y echa al jugador hacia atrás (game.bossRage), echando humo
@@ -218,18 +321,23 @@ export class Portera extends BossBase {
       this.setState('sweepWarn');
       return;
     }
-    if (angry && this.summonCd <= 0 && this.minions(game) < 3) {
+    // grita y llama a los vecinos (si no quedan ya muchos zombis por ahí)
+    if (this.summonCd <= 0 && this.minions(game) <= PORTERA.vecinos[this.phase - 1]) {
       this.summonCd = 12;
       this.setState('summon');
-      game.floatText(this.x, this.y - this.top - 20 * this.s, '¡LOS DEL 3º!', '#ffd23f', 26);
+      game.floatText(this.x, this.y - this.top - 20 * this.s, '¡VECINOS!', '#ffd23f', 26);
       sfx.roar();
       return;
     }
-    const opts = angry ? ['fan', 'bleach', 'spin'] : ['fan', 'bleach'];
+    const opts = angry ? ['fan', 'bleach', 'spin', 'acid', 'charge'] : ['fan', 'bleach', 'acid', 'charge'];
     const pick = opts.filter((o) => o !== this.last);
     const choice = pick[Math.floor(Math.random() * pick.length)];
     this.last = choice;
     if (choice === 'fan') this.setState('fanWarn');
+    else if (choice === 'acid') {
+      this.setState('acidWarn');
+      game.floatText(this.x, this.y - this.top - 20 * this.s, '¡ÁCIDO!', '#9be33b', 24);
+    } else if (choice === 'charge') this.setState('chargeWarn');
     else if (choice === 'bleach') {
       this.setState('bleach', { thrown: 0 });
       game.floatText(this.x, this.y - this.top - 20 * this.s, '¡LEJÍA!', '#bfe9ff', 24);
@@ -300,6 +408,22 @@ export class Portera extends BossBase {
       ctx.restore();
     }
     if (st.name === 'spinWarn') drawCircleWarn(ctx, x, y + 10, 70, Math.min(1, st.t / 0.6));
+    if (st.name === 'chargeWarn' && st.angle !== undefined) {
+      // franja roja por donde va a embestir
+      const k = Math.min(1, st.t / (st.warn ?? PORTERA.chargeWarn));
+      const len = PORTERA.chargeSpeed * PORTERA.chargeTime;
+      ctx.save();
+      ctx.translate(x, y + 6);
+      ctx.rotate(st.angle);
+      ctx.fillStyle = `rgba(255, 60, 90, ${0.08 + k * 0.2})`;
+      ctx.fillRect(0, -this.r, len, this.r * 2);
+      ctx.setLineDash([9, 7]);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(255, 60, 90, 0.9)';
+      ctx.strokeRect(0, -this.r, len * k, this.r * 2);
+      ctx.restore();
+    }
+    if (st.name === 'slamWarn') drawCircleWarn(ctx, x, y + 6, PORTERA.slamR, Math.min(1, st.t / PORTERA.slamWarn));
 
     const flash = this.hitFlash > 0 || (this.invulnerable && Math.floor(game.time * 16) % 2 === 0);
     const shake = st.name === 'rage' ? rand(-2, 2) : 0;
@@ -368,6 +492,15 @@ export class Portera extends BossBase {
         set('still', 0);
         dir = dirFromVector(Math.cos(this.spin), Math.sin(this.spin));
         break;
+      case 'acidWarn': set('attack', raise(st.t / PORTERA.acidWarn)); break;
+      case 'chargeWarn': set('attack', raise(st.t / (st.warn ?? PORTERA.chargeWarn))); break;
+      case 'slamWarn': set('attack', raise(st.t / PORTERA.slamWarn)); break;
+      case 'acid': {
+        const n = PORTERA.acid[this.phase - 1], gap = this.phase === 2 ? 0.1 : 0.16;
+        set('attack', strike(st.t / (n * gap + 0.45)));
+        break;
+      }
+      case 'slam': set('attack', strike(st.t / 0.4)); break;
       case 'summon': set('roar', fr('roar', st.t / 1.1)); break;
       case 'rage': set('roar', fr('roar', st.t / 1.6)); break;
     }
