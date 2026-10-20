@@ -32,6 +32,18 @@ export function unlockAudio() {
   if (ac.state === 'suspended') ac.resume();
 }
 
+// Si la pestaña queda escondida o la ventana pierde el foco (estás en otra cosa),
+// el sonido se apaga del todo; al volver al juego, vuelve a sonar.
+function ausente() { return document.hidden || !document.hasFocus(); }
+function revisarAusencia() {
+  if (!ac) return;
+  if (ausente()) { if (ac.state === 'running') ac.suspend(); }
+  else if (ac.state === 'suspended') ac.resume();
+}
+document.addEventListener('visibilitychange', revisarAusencia);
+window.addEventListener('blur', revisarAusencia);
+window.addEventListener('focus', revisarAusencia);
+
 export function toggleMute() {
   muted = !muted;
   if (master) master.gain.setTargetAtTime(muted ? 0 : 1, ac.currentTime, 0.02);
