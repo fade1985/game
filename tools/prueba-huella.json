@@ -63,24 +63,24 @@
   "jefe-miniboss": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 89,
-    "x": 201,
-    "y": 266,
-    "muertes": 1,
-    "zombis": 2,
-    "balas": 0,
-    "vidaJefe": 236
+    "vida": 78,
+    "x": 213,
+    "y": 271,
+    "muertes": 0,
+    "zombis": 1,
+    "balas": 20,
+    "vidaJefe": 54
   },
   "jefe-boss": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 99,
-    "x": 878,
-    "y": 400,
-    "muertes": 0,
+    "vida": 89,
+    "x": 550,
+    "y": 409,
+    "muertes": 2,
     "zombis": 1,
     "balas": 0,
-    "vidaJefe": 598
+    "vidaJefe": 983
   },
   "arma-fregona": {
     "planta": 1,
@@ -125,12 +125,12 @@
   "arma-escopeta": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 100,
+    "vida": 80,
     "x": 480,
     "y": 360,
-    "muertes": 3,
-    "zombis": 0,
-    "balas": 0
+    "muertes": 0,
+    "zombis": 3,
+    "balas": 5
   },
   "arma-mp5": {
     "planta": 1,
@@ -145,11 +145,11 @@
   "molotov": {
     "planta": 1,
     "sala": "Sala de mantenimiento",
-    "vida": 90,
+    "vida": 100,
     "x": 480,
     "y": 360,
-    "muertes": 0,
-    "zombis": 2,
+    "muertes": 2,
+    "zombis": 0,
     "balas": 0,
     "molotovs": 2
   },
@@ -171,8 +171,8 @@
     "vida": 100,
     "x": 480,
     "y": 360,
-    "muertes": 0,
-    "zombis": 2,
+    "muertes": 1,
+    "zombis": 1,
     "balas": 0,
     "mano": "ranged",
     "cargador": 0,
@@ -180,29 +180,29 @@
   },
   "botPartidas": [
     {
+      "state": "playing",
+      "floor": 1,
+      "dead": false,
+      "jammed": true,
+      "time": 114
+    },
+    {
       "state": "over",
       "floor": 1,
       "dead": true,
       "jammed": false,
-      "time": 172
-    },
-    {
-      "state": "playing",
-      "floor": 1,
-      "dead": false,
-      "jammed": false,
-      "time": 298
+      "time": 242
     }
   ],
   "botPlantas": [
     {
-      "state": "over",
-      "floor": 1,
-      "dead": true,
-      "jammed": false,
-      "time": 141
+      "state": "playing",
+      "floor": 2,
+      "dead": false,
+      "jammed": true,
+      "time": 203
     }
   ],
-  "botMapas": 3,
+  "botMapas": 8,
   "fin": "over"
 }
