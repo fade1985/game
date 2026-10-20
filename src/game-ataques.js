@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────
 import { WALL, OUTLINE, PIXEL } from './config.js';
 import { rand, clamp, dist } from './utils.js';
-import { BLEACH, drawBottle } from './jefe-portera.js';
+import { BLEACH, ACIDO, drawBottle } from './jefe-portera.js';
 import { POISON, TENTACLE } from './zombies.js';
 import { drawSprite } from './sprites.js';
 import { sfx } from './sfx.js';
@@ -25,6 +25,8 @@ const HAZARDS = {
   fire: { ...MOLOTOV, estados: { fuego: { dps: MOLOTOV.dps } }, fill: 'rgba(255, 159, 28, 0.3)' },
   poison: { ...POISON, estados: { veneno: {} }, estilo: ESTILO_VENENO, fill: '#8fd13f', stroke: '#4f772d', bubble: '#c7f27a', drop: '#9be33b' },
   bleach: { ...BLEACH, estados: { resbaladizo: {}, toxico: { dps: 3 } }, estilo: ESTILO_LEJIA, fill: '#e9f8ff', stroke: '#2f86c4', bubble: '#ffffff', drop: '#4cb4f0' },
+  // el ácido que salpica la portera con la fregona: quema al pisarlo y deja veneno al salir
+  acido: { ...ACIDO, estados: { acido: {}, veneno: {} }, estilo: { ...ESTILO_VENENO, life: ACIDO.life }, drop: '#c7e04a' },
   // el vómito de Johnny (mutación Gastroenteritis): solo les hace daño a los zombis
   vomito: { radius: MUT.gastro.radio, life: MUT.gastro.dura, flight: 0.45, estados: { acido: { dps: MUT.gastro.dps } }, estilo: ESTILO_VENENO, soloZombis: true, drop: '#c7e04a' },
   // la lluvia ácida de la arrojadiza creada: lo mismo, pero más grande (el radio lo pone armas-creadas.js) y más larga
